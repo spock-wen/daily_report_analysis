@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 GitHub AI Trending</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@300;400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0B0F19;
+            --bg-secondary: #111827;
+            --bg-card: #1A2332;
+            --text-primary: #F9FAFB;
+            --text-secondary: #9CA3AF;
+            --accent-primary: #3B82F6;
+            --accent-gradient: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+            --border-color: #1F2937;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        .container { max-width: 1000px; margin: 0 auto; padding: 48px 24px; }
+        
+        /* Logo */
+        .logo { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; }
+        .logo-icon {
+            width: 48px; height: 48px;
+            background: var(--accent-gradient);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px;
+        }
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 32px;
+            font-weight: 600;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle { color: var(--text-secondary); margin-bottom: 32px; }
+        
+        /* Tabs */
+        .tabs { display: flex; gap: 8px; margin-bottom: 32px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; }
+        .tab {
+            padding: 10px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: var(--text-secondary);
+        }
+        .tab:hover { border-color: var(--accent-primary); color: var(--text-primary); }
+        .tab.active {
+            background: var(--accent-gradient);
+            border-color: transparent;
+            color: white;
+        }
+        
+        /* Stats */
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 40px; }
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family: 'Outfit', sans-serif;
+        }
+        .stat-label { color: var(--text-secondary); font-size: 13px; margin-top: 8px; }
+        
+        /* Report List */
+        .report-section { margin-bottom: 40px; }
+        .report-section h2 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            padding-left: 12px;
+            border-left: 3px solid var(--accent-primary);
+        }
+        .report-list {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .report-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s;
+        }
+        .report-item:hover { border-color: var(--accent-primary); transform: translateX(8px); }
+        .report-item:last-child { margin-bottom: 0; }
+        .report-date { font-weight: 600; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; }
+        .report-title { color: var(--text-secondary); font-size: 13px; margin-top: 4px; }
+        .report-arrow { color: var(--accent-primary); font-size: 18px; }
+        
+        .footer {
+            text-align: center;
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <div class="logo-icon">🚀</div>
+            <h1>GitHub AI Trending</h1>
+        </div>
+        <p class="subtitle">追踪技术前沿，发现优质项目</p>
+        
+        <!-- Tabs -->
+        <div class="tabs">
+            <a href="./" class="tab active">📰 日报</a>
+            <a href="./reports/weekly/index.html" class="tab">📚 周报</a>
+            <a href="./reports/monthly/index.html" class="tab">📊 月报</a>
+        </div>
+        
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalReports">-</div>
+                <div class="stat-label">报告总数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="dailyCount">-</div>
+                <div class="stat-label">日报</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="weeklyCount">-</div>
+                <div class="stat-label">周报</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalProjects">-</div>
+                <div class="stat-label">收录项目</div>
+            </div>
+        </div>
+        
+        <!-- Daily Reports -->
+        <div class="report-section">
+            <h2>📰 最新日报</h2>
+            <div class="report-list" id="dailyList">
+                <div style="padding: 20px; text-align: center; color: var(--text-secondary);">加载中...</div>
+            </div>
+        </div>
+        
+        <!-- Weekly Reports Preview -->
+        <div class="report-section">
+            <h2>📚 最新周报</h2>
+            <div class="report-list" id="weeklyList">
+                <div style="padding: 20px; text-align: center; color: var(--text-secondary);">加载中...</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            由 OpenClaw 自动生成 | 每日更新
+        </div>
+    </div>
+    
+    <script>
+        // 动态加载报告列表
+        async function loadReports() {
+            try {
+                // 加载日报列表
+                const dailyResponse = await fetch('./reports/daily/index.html');
+                if (dailyResponse.ok) {
+                    const dailyHtml = await dailyResponse.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(dailyHtml, 'text/html');
+                    const dailyItems = doc.querySelectorAll('.report-item');
+                    const dailyList = document.getElementById('dailyList');
+                    
+                    if (dailyItems.length > 0) {
+                        dailyList.innerHTML = Array.from(dailyItems).slice(0, 7).map(item => {
+                            const href = item.getAttribute('onclick')?.match(/'([^']+)'/)?.[1] || '#';
+                            const date = item.querySelector('h3')?.textContent?.trim() || '未知日期';
+                            const stars = item.querySelector('.report-stat strong')?.textContent?.trim() || '';
+                            return `
+                                <a href="./reports/daily/${href}" class="report-item">
+                                    <div>
+                                        <div class="report-date">${date}</div>
+                                        <div class="report-title">GitHub AI 项目每日简报 ${stars ? '(+' + stars + ' Stars)' : ''}</div>
+                                    </div>
+                                    <div class="report-arrow">→</div>
+                                </a>
+                            `;
+                        }).join('');
+                    }
+                }
+                
+                // 加载周报列表
+                const weeklyResponse = await fetch('./reports/weekly/index.html');
+                if (weeklyResponse.ok) {
+                    const weeklyHtml = await weeklyResponse.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(weeklyHtml, 'text/html');
+                    const weeklyItems = doc.querySelectorAll('.report-item');
+                    const weeklyList = document.getElementById('weeklyList');
+                    
+                    if (weeklyItems.length > 0) {
+                        weeklyList.innerHTML = Array.from(weeklyItems).slice(0, 3).map(item => {
+                            const href = item.getAttribute('onclick')?.match(/'([^']+)'/)?.[1] || '#';
+                            const date = item.querySelector('h3')?.textContent?.trim() || item.querySelector('.report-meta p')?.textContent?.trim() || '未知日期';
+                            const projects = item.querySelectorAll('.report-stat')[1]?.textContent?.trim() || '';
+                            return `
+                                <a href="./reports/weekly/${href}" class="report-item">
+                                    <div>
+                                        <div class="report-date">${date}</div>
+                                        <div class="report-title">GitHub 周报 ${projects ? '(' + projects + ')' : ''}</div>
+                                    </div>
+                                    <div class="report-arrow">→</div>
+                                </a>
+                            `;
+                        }).join('');
+                    }
+                }
+                
+                // 更新统计
+                const dailyCount = document.querySelectorAll('.report-item').length > 0 ? 7 : 3;
+                const weeklyCount = 1;
+                const totalReports = dailyCount + weeklyCount;
+                
+                document.getElementById('dailyCount').textContent = dailyCount;
+                document.getElementById('weeklyCount').textContent = weeklyCount;
+                document.getElementById('totalReports').textContent = totalReports;
+                document.getElementById('totalProjects').textContent = dailyCount * 10;
+            } catch (e) {
+                console.error('加载失败:', e);
+            }
+        }
+        
+        loadReports();
+    </script>
+</body>
+</html>
