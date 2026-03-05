@@ -1179,7 +1179,7 @@ async function getFeishuToken() {
 }
 
 async function sendFeishuNotification(date, token, data, insights) {
-    const reportUrl = `${REPORT_BASE_URL}/github-ai-trending-${date}.html`;
+    const reportUrl = `${REPORT_BASE_URL}/reports/daily/github-ai-trending-${date}.html`;
     
     // 获取 TOP 5 项目
     const sortedProjects = [...data.projects].sort((a, b) => {
@@ -1271,7 +1271,7 @@ async function sendFeishuNotification(date, token, data, insights) {
 
 // WeLink 发送消息（Webhook 方式）
 async function sendWeLinkNotification(date, data, insights, webhookUrl) {
-    const reportUrl = `${REPORT_BASE_URL}/github-ai-trending-${date}.html`;
+    const reportUrl = `${REPORT_BASE_URL}/reports/daily/github-ai-trending-${date}.html`;
     
     // 获取 TOP 5 项目
     const sortedProjects = [...data.projects].sort((a, b) => {
