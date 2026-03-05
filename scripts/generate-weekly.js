@@ -299,7 +299,7 @@ ${categories.weeklyTop.slice(0, 5).map((p, i) => `${i+1}. **${p.repo}**: +${p.to
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer 5b7e1ee388ad5bf896a483930d610432f0debedbf50108a4'
+          'Authorization': `Bearer ${process.env.LLM_API_KEY || ''}`
         }
       }, (res) => {
         let body = '';

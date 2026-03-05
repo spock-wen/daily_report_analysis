@@ -11,21 +11,27 @@ const STATE_FILE = path.join(ROOT_DIR, '.processor_state.json');
 const OUTPUT_DIR = ROOT_DIR;
 
 // 飞书配置
-const FEISHU_APP_ID = process.env.FEISHU_APP_ID || 'cli_a916e5b5a1b8dcd4';
-const FEISHU_APP_SECRET = process.env.FEISHU_APP_SECRET || 'rXVOqRNAKGtD8edjDwuYmbaWjuJbHSmO';
+const FEISHU_APP_ID = process.env.FEISHU_APP_ID;
+const FEISHU_APP_SECRET = process.env.FEISHU_APP_SECRET;
 const FEISHU_RECEIVE_ID = process.env.FEISHU_RECEIVE_ID || 'ou_c5f7c0e7dda00b982d531a474fb0d542';
 
 // WeLink 配置（Webhook 方式）- 支持多个机器人
 // 环境变量格式：用逗号分隔多个 URL，例如：https://...token=abc...,https://...token=xyz...
 const WELINK_WEBHOOK_URLS = process.env.WELINK_WEBHOOK_URLS 
     ? process.env.WELINK_WEBHOOK_URLS.split(',').map(url => url.trim())
-    : [
-    'https://open.welink.huaweicloud.com/api/werobot/v1/webhook/send?token=35dfd31807064f3b9ca277a7bd0db0e3&channel=standard',
-    'https://open.welink.huaweicloud.com/api/werobot/v1/webhook/send?token=669110b5da7d4d249b63c05ea76924d5&channel=standard'
-  ];
+    : [];
 
 // 报告 URL 配置
 const REPORT_BASE_URL = process.env.REPORT_BASE_URL || 'https://report.wenspock.site';
+
+// 验证配置
+if (!FEISHU_APP_ID || !FEISHU_APP_SECRET) {
+    console.error('❌ 缺少飞书配置：请设置 FEISHU_APP_ID 和 FEISHU_APP_SECRET 环境变量');
+    process.exit(1);
+}
+if (WELINK_WEBHOOK_URLS.length === 0) {
+    console.warn('⚠️ 未配置 WeLink Webhook，跳过推送');
+}
 
 function loadData() { return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); }
 function loadInsights() { return JSON.parse(fs.readFileSync(INSIGHTS_FILE, 'utf8')); }
