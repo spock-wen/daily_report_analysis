@@ -80,11 +80,14 @@ function main() {
     // 生成 HTML
     log('🎨 生成 HTML...');
     try {
+        // 调试模式：不发送推送通知
+        // 定时任务通过 run-with-env.js 设置 SKIP_NOTIFY=0 强制发送
+        // 手动调试时 SKIP_NOTIFY 未设置或为 1，不发送通知
         execSync('node /srv/www/daily-report/generate-html.js', { 
-    stdio: 'inherit', 
-    timeout: 60000,
-    env: { ...process.env, SKIP_NOTIFY: '0' }  // 定时任务强制发送通知
-});
+            stdio: 'inherit', 
+            timeout: 60000,
+            env: { ...process.env, SKIP_NOTIFY: process.env.SKIP_NOTIFY || '1' }
+        });
         log('✅ HTML 生成成功！');
         
         state.lastProcessedAt = data.generatedAt;

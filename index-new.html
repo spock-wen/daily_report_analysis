@@ -1,670 +1,498 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>📊 GitHub Trending 智能报告平台</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg-primary: #0B0F19;
-      --bg-secondary: #111827;
-      --bg-tertiary: #1F2937;
-      --bg-card: #1A2332;
-      --bg-card-hover: #243045;
-      --text-primary: #F9FAFB;
-      --text-secondary: #D1D5DB;
-      --text-tertiary: #9CA3AF;
-      --text-muted: #6B7280;
-      --accent-primary: #3B82F6;
-      --accent-secondary: #8B5CF6;
-      --accent-success: #10B981;
-      --accent-warning: #F59E0B;
-      --accent-danger: #EF4444;
-      --accent-gradient: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
-      --border-color: #1F2937;
-      --radius-sm: 0.375rem;
-      --radius-md: 0.5rem;
-      --radius-lg: 0.75rem;
-      --radius-xl: 1rem;
-      --radius-2xl: 1.5rem;
-      --spacing-xs: 0.25rem;
-      --spacing-sm: 0.5rem;
-      --spacing-md: 1rem;
-      --spacing-lg: 1.5rem;
-      --spacing-xl: 2rem;
-      --spacing-2xl: 3rem;
-      --transition-base: 200ms ease;
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif !important;
-      background: #0B0F19 !important;
-      background-color: #0B0F19 !important;
-      color: #F9FAFB !important;
-      line-height: 1.7;
-      min-height: 100vh;
-    }
-    a { color: var(--accent-primary); text-decoration: none; transition: color var(--transition-base); }
-    a:hover { color: var(--accent-secondary); text-decoration: underline; }
-    
-    /* Navbar */
-    .navbar {
-      position: fixed;
-      top: 1rem;
-      left: 50%;
-      transform: translateX(-50%);
-      width: calc(100% - 2rem);
-      max-width: 1200px;
-      background: rgba(26, 35, 50, 0.8);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-xl);
-      padding: var(--spacing-md) var(--spacing-lg);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 1000;
-    }
-    .navbar-brand {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-md);
-      font-weight: 700;
-      font-size: 1.25rem;
-      background: var(--accent-gradient);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .navbar-nav {
-      display: flex;
-      gap: var(--spacing-lg);
-      list-style: none;
-    }
-    .navbar-nav a {
-      color: var(--text-secondary);
-      font-weight: 500;
-      font-size: 0.9375rem;
-      text-decoration: none;
-      padding: var(--spacing-sm) var(--spacing-md);
-      border-radius: var(--radius-md);
-      transition: all var(--transition-base);
-    }
-    .navbar-nav a:hover {
-      color: var(--text-primary);
-      background: var(--bg-card-hover);
-      text-decoration: none;
-    }
-    
-    /* Hero Section */
-    .hero {
-      padding: 8rem 0 4rem;
-      text-align: center;
-      background: radial-gradient(ellipse at top, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
-                  radial-gradient(ellipse at bottom right, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
-    }
-    .hero h1 {
-      font-size: 3rem;
-      font-weight: 800;
-      background: var(--accent-gradient);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: var(--spacing-md);
-      letter-spacing: -0.02em;
-    }
-    .hero p {
-      font-size: 1.25rem;
-      color: var(--text-secondary);
-      max-width: 600px;
-      margin: 0 auto var(--spacing-xl);
-    }
-    .hero-cta {
-      display: flex;
-      gap: var(--spacing-md);
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--spacing-sm);
-      padding: var(--spacing-md) var(--spacing-xl);
-      border-radius: var(--radius-lg);
-      font-weight: 600;
-      font-size: 1rem;
-      transition: all var(--transition-base);
-      cursor: pointer;
-      border: none;
-    }
-    .btn-primary {
-      background: var(--accent-gradient);
-      color: white;
-      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
-    }
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
-      text-decoration: none;
-    }
-    .btn-secondary {
-      background: var(--bg-card);
-      color: var(--text-primary);
-      border: 1px solid var(--border-color);
-    }
-    .btn-secondary:hover {
-      background: var(--bg-card-hover);
-      border-color: var(--accent-primary);
-      text-decoration: none;
-    }
-    
-    /* Container */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 var(--spacing-lg);
-    }
-    
-    /* Stats Bar */
-    .stats-bar {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: var(--spacing-lg);
-      margin-bottom: var(--spacing-2xl);
-    }
-    .stat-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      padding: var(--spacing-xl);
-      text-align: center;
-      transition: all var(--transition-base);
-    }
-    .stat-card:hover {
-      transform: translateY(-4px);
-      border-color: var(--accent-primary);
-      box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
-    }
-    .stat-value {
-      font-size: 2.5rem;
-      font-weight: 700;
-      background: var(--accent-gradient);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      font-family: 'Inter', sans-serif;
-    }
-    .stat-label {
-      font-size: 0.875rem;
-      color: var(--text-muted);
-      margin-top: var(--spacing-sm);
-    }
-    
-    /* Bento Grid */
-    .bento-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      grid-template-rows: repeat(2, minmax(280px, auto));
-      gap: var(--spacing-xl);
-      margin-bottom: var(--spacing-2xl);
-    }
-    .bento-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-xl);
-      padding: var(--spacing-xl);
-      transition: all var(--transition-base);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .bento-card:hover {
-      transform: translateY(-4px);
-      border-color: var(--accent-primary);
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-    }
-    .bento-card.large {
-      grid-column: span 2;
-    }
-    .bento-card-header {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-md);
-      margin-bottom: var(--spacing-lg);
-    }
-    .bento-card-icon {
-      width: 48px;
-      height: 48px;
-      background: var(--accent-gradient);
-      border-radius: var(--radius-lg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-    }
-    .bento-card-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--text-primary);
-    }
-    .bento-card-date {
-      font-size: 0.875rem;
-      color: var(--text-muted);
-      font-family: 'JetBrains Mono', monospace;
-      margin-top: var(--spacing-xs);
-    }
-    .bento-card-content {
-      flex: 1;
-      color: var(--text-secondary);
-      margin-bottom: var(--spacing-lg);
-      line-height: 1.8;
-    }
-    .bento-card-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .bento-card-link {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--spacing-sm);
-      color: var(--accent-primary);
-      font-weight: 600;
-      text-decoration: none;
-      transition: all var(--transition-base);
-    }
-    .bento-card-link:hover {
-      color: var(--accent-secondary);
-      text-decoration: none;
-      transform: translateX(4px);
-    }
-    .tag {
-      display: inline-block;
-      padding: var(--spacing-xs) var(--spacing-md);
-      background: var(--bg-tertiary);
-      border-radius: var(--radius-full);
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--text-secondary);
-    }
-    .tag.ai { background: rgba(139, 92, 246, 0.2); color: #A78BFA; }
-    .tag.hot { background: rgba(245, 158, 11, 0.2); color: #FBBF24; }
-    
-    /* Recent Reports List */
-    .recent-section {
-      margin-bottom: var(--spacing-2xl);
-    }
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: var(--spacing-xl);
-    }
-    .section-title {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: var(--text-primary);
-    }
-    .reports-list {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-xl);
-      overflow: hidden;
-    }
-    .report-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: var(--spacing-lg) var(--spacing-xl);
-      border-bottom: 1px solid var(--border-color);
-      transition: all var(--transition-base);
-    }
-    .report-item:last-child {
-      border-bottom: none;
-    }
-    .report-item:hover {
-      background: var(--bg-card-hover);
-    }
-    .report-info {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-lg);
-    }
-    .report-icon {
-      width: 40px;
-      height: 40px;
-      background: var(--bg-tertiary);
-      border-radius: var(--radius-md);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.25rem;
-    }
-    .report-meta h3 {
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: var(--spacing-xs);
-    }
-    .report-meta p {
-      font-size: 0.875rem;
-      color: var(--text-muted);
-      font-family: 'JetBrains Mono', monospace;
-    }
-    .report-stats {
-      display: flex;
-      gap: var(--spacing-lg);
-    }
-    .report-stat {
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-    }
-    .report-stat strong {
-      color: var(--accent-success);
-    }
-    
-    /* Footer */
-    .footer {
-      border-top: 1px solid var(--border-color);
-      padding: var(--spacing-2xl) 0;
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 0.875rem;
-    }
-    .footer-links {
-      display: flex;
-      justify-content: center;
-      gap: var(--spacing-xl);
-      margin-bottom: var(--spacing-lg);
-    }
-    .footer-links a {
-      color: var(--text-secondary);
-      text-decoration: none;
-      transition: color var(--transition-base);
-    }
-    .footer-links a:hover {
-      color: var(--accent-primary);
-      text-decoration: none;
-    }
-    
-    /* Responsive */
-    @media (max-width: 1024px) {
-      .bento-grid {
-        grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: auto;
-      }
-      .bento-card.large {
-        grid-column: span 2;
-      }
-    }
-    @media (max-width: 768px) {
-      .hero h1 { font-size: 2rem; }
-      .hero p { font-size: 1rem; }
-      .bento-grid {
-        grid-template-columns: 1fr;
-      }
-      .bento-card.large {
-        grid-column: span 1;
-      }
-      .navbar {
-        flex-direction: column;
-        gap: var(--spacing-md);
-      }
-      .navbar-nav {
-        gap: var(--spacing-sm);
-      }
-      .report-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: var(--spacing-md);
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 GitHub AI Trending - 技术风向标</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@300;400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0B0F19;
+            --bg-secondary: #111827;
+            --bg-card: #1A2332;
+            --bg-card-hover: #243045;
+            --text-primary: #F9FAFB;
+            --text-secondary: #D1D5DB;
+            --text-tertiary: #9CA3AF;
+            --text-muted: #6B7280;
+            --accent-primary: #3B82F6;
+            --accent-secondary: #8B5CF6;
+            --accent-success: #10B981;
+            --accent-warning: #F59E0B;
+            --accent-danger: #EF4444;
+            --accent-gradient: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+            --border-color: #1F2937;
+            --border-light: #374151;
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-2xl: 1.5rem;
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 3rem;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            background-image: radial-gradient(ellipse at top, rgba(59, 130, 246, 0.08) 0%, transparent 50%), radial-gradient(ellipse at bottom right, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: var(--spacing-2xl) var(--spacing-lg); }
+        
+        /* Header */
+        .header { margin-bottom: var(--spacing-2xl); }
+        .logo { display: flex; align-items: center; gap: var(--spacing-lg); margin-bottom: var(--spacing-sm); }
+        .logo-icon {
+            width: 56px; height: 56px;
+            background: var(--accent-gradient);
+            border-radius: var(--radius-xl);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+        }
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+        .subtitle { 
+            color: var(--text-secondary); 
+            font-size: 1.125rem;
+            max-width: 600px;
+        }
+        
+        /* Tabs */
+        .tabs { display: flex; gap: var(--spacing-sm); margin-bottom: var(--spacing-xl); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-md); }
+        .tab {
+            padding: var(--spacing-sm) var(--spacing-lg);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+        }
+        .tab:hover { border-color: var(--accent-primary); color: var(--text-primary); background: var(--bg-card-hover); }
+        .tab.active {
+            background: var(--accent-gradient);
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+        
+        /* Stats Grid */
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-lg); margin-bottom: var(--spacing-2xl); }
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            text-align: center;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--accent-gradient);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .stat-card:hover { 
+            transform: translateY(-4px); 
+            border-color: var(--accent-primary); 
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+        }
+        .stat-card:hover::before { opacity: 1; }
+        .stat-value {
+            font-size: 2.75rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family: 'Outfit', sans-serif;
+            line-height: 1;
+            margin-bottom: var(--spacing-sm);
+        }
+        .stat-label { 
+            color: var(--text-secondary); 
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .stat-trend {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            margin-top: var(--spacing-sm);
+            font-size: 0.8125rem;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-full);
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-success);
+        }
+        .stat-trend.down { background: rgba(239, 68, 68, 0.1); color: var(--accent-danger); }
+        
+        /* Tech Insights Banner */
+        .tech-insights {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-2xl);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-2xl);
+            position: relative;
+            overflow: hidden;
+        }
+        .tech-insights::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: var(--accent-gradient);
+        }
+        .tech-insights h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        .insight-tags { display: flex; flex-wrap: wrap; gap: var(--spacing-sm); }
+        .insight-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+        .insight-tag:hover {
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+        }
+        .insight-tag.hot { border-color: var(--accent-warning); color: var(--accent-warning); background: rgba(245, 158, 11, 0.1); }
+        .insight-tag.new { border-color: var(--accent-success); color: var(--accent-success); background: rgba(16, 185, 129, 0.1); }
+        
+        /* Report Sections */
+        .report-section { margin-bottom: var(--spacing-2xl); }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+        }
+        .section-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        .section-header h2::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 24px;
+            background: var(--accent-gradient);
+            border-radius: var(--radius-sm);
+        }
+        .view-all {
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .view-all:hover { color: var(--accent-secondary); text-decoration: underline; }
+        
+        .report-list {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-sm);
+        }
+        .report-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-sm);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s;
+        }
+        .report-item:last-child { margin-bottom: 0; }
+        .report-item:hover { 
+            border-color: var(--accent-primary); 
+            transform: translateX(8px);
+            background: var(--bg-card-hover);
+        }
+        .report-content { flex: 1; }
+        .report-date { 
+            font-weight: 600; 
+            color: var(--text-primary); 
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9375rem;
+            margin-bottom: var(--spacing-xs);
+        }
+        .report-title { 
+            color: var(--text-secondary); 
+            font-size: 0.875rem;
+        }
+        .report-meta {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-sm);
+        }
+        .report-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            color: var(--accent-primary);
+            font-weight: 500;
+        }
+        .report-tag.hot { background: rgba(245, 158, 11, 0.1); color: var(--accent-warning); }
+        .report-tag.new { background: rgba(16, 185, 129, 0.1); color: var(--accent-success); }
+        .report-arrow { 
+            color: var(--accent-primary); 
+            font-size: 1.25rem;
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 0.2s;
+        }
+        .report-item:hover .report-arrow { opacity: 1; transform: translateX(0); }
+        
+        /* Loading State */
+        .loading {
+            padding: var(--spacing-2xl);
+            text-align: center;
+            color: var(--text-secondary);
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: var(--spacing-md);
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: var(--spacing-2xl);
+            padding-top: var(--spacing-xl);
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: var(--spacing-lg) var(--spacing-md); }
+            h1 { font-size: 1.75rem; }
+            .logo-icon { width: 48px; height: 48px; font-size: 24px; }
+            .stats { grid-template-columns: repeat(2, 1fr); gap: var(--spacing-md); }
+            .stat-value { font-size: 2rem; }
+            .tabs { overflow-x: auto; padding-bottom: var(--spacing-sm); }
+            .report-item { flex-direction: column; align-items: flex-start; gap: var(--spacing-sm); }
+            .report-arrow { display: none; }
+            .tech-insights { padding: var(--spacing-md); }
+            .insight-tags { gap: var(--spacing-xs); }
+            .insight-tag { font-size: 0.8125rem; padding: var(--spacing-xs) var(--spacing-sm); }
+        }
+    </style>
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar">
-    <a href="/" class="navbar-brand">
-      <span>📊</span>
-      <span>GitHub Trending</span>
-    </a>
-    <ul class="navbar-nav">
-      <li><a href="#daily">日报</a></li>
-      <li><a href="#weekly">周报</a></li>
-      <li><a href="#archive">归档</a></li>
-      <li><a href="https://github.com" target="_blank">GitHub</a></li>
-    </ul>
-  </nav>
-  
-  <!-- Hero Section -->
-  <section class="hero">
     <div class="container">
-      <h1>GitHub Trending 智能报告平台</h1>
-      <p>每日追踪 1000+ 开源项目，AI 驱动技术趋势洞察</p>
-      <div class="hero-cta">
-        <a href="#daily" class="btn btn-primary">📅 查看今日报告</a>
-        <a href="#weekly" class="btn btn-secondary">📊 浏览周报</a>
-      </div>
-    </div>
-  </section>
-  
-  <div class="container">
-    <!-- Stats Bar -->
-    <div class="stats-bar">
-      <div class="stat-card">
-        <div class="stat-value">500+</div>
-        <div class="stat-label">累计报告</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value">10,000+</div>
-        <div class="stat-label">收录项目</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value">90%</div>
-        <div class="stat-label">AI 项目占比</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value">365+</div>
-        <div class="stat-label">连续更新天数</div>
-      </div>
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">🚀</div>
+                <h1>GitHub AI Trending</h1>
+            </div>
+            <p class="subtitle">追踪技术前沿，发现优质项目 · 每日自动更新</p>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="tabs">
+            <a href="./" class="tab active">📰 日报</a>
+            <a href="./reports/weekly/index.html" class="tab">📚 周报</a>
+            <a href="./reports/monthly/index.html" class="tab">📊 月报</a>
+        </div>
+        
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalReports">-</div>
+                <div class="stat-label">报告总数</div>
+                <div class="stat-trend">↑ 本周 +3</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="dailyCount">-</div>
+                <div class="stat-label">日报</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="weeklyCount">-</div>
+                <div class="stat-label">周报</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalProjects">-</div>
+                <div class="stat-label">收录项目</div>
+            </div>
+        </div>
+        
+        <!-- Tech Insights Banner -->
+        <div class="tech-insights">
+            <h2>🔥 本周技术风向</h2>
+            <div class="insight-tags" id="techTags">
+                <span class="insight-tag hot">🔥 AI Agent 框架</span>
+                <span class="insight-tag hot">⚡ 自托管基建</span>
+                <span class="insight-tag new">🆕 多智能体协作</span>
+                <span class="insight-tag">🛡️ 安全沙盒</span>
+                <span class="insight-tag">📊 向量数据库</span>
+            </div>
+        </div>
+        
+        <!-- Daily Reports -->
+        <div class="report-section">
+            <div class="section-header">
+                <h2>📰 最新日报</h2>
+                <a href="./reports/daily/index.html" class="view-all">查看全部 →</a>
+            </div>
+            <div class="report-list" id="dailyList">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div>正在加载最新日报...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Weekly Reports -->
+        <div class="report-section">
+            <div class="section-header">
+                <h2>📚 最新周报</h2>
+                <a href="./reports/weekly/index.html" class="view-all">查看全部 →</a>
+            </div>
+            <div class="report-list" id="weeklyList">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div>正在加载最新周报...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>由 OpenClaw 自动生成 | 每日更新 | 数据来源：GitHub Trending API</p>
+        </div>
     </div>
     
-    <!-- Bento Grid - Latest Reports -->
-    <div class="bento-grid">
-      <!-- Daily Report Card -->
-      <div class="bento-card large" id="daily">
-        <div class="bento-card-header">
-          <div class="bento-card-icon">📅</div>
-          <div>
-            <h2 class="bento-card-title">今日日报</h2>
-            <p class="bento-card-date">2026-03-04</p>
-          </div>
-        </div>
-        <div class="bento-card-content">
-          <p>🔥 <strong>ruvnet/RuView</strong> 以 +4557⭐ 领跑，WiFi 信号姿态估计技术引发关注</p>
-          <p style="margin-top: 0.5rem;">📊 10 个项目上榜，9 个 AI 项目，Python 和 TypeScript 主导</p>
-          <div style="margin-top: 1rem;">
-            <span class="tag ai">AI 项目 90%</span>
-            <span class="tag hot">热点：WiFi 传感</span>
-          </div>
-        </div>
-        <div class="bento-card-footer">
-          <a href="reports/daily/github-ai-trending-2026-03-03.html" class="bento-card-link">
-            查看完整报告 →
-          </a>
-          <span class="tag">10 个项目</span>
-        </div>
-      </div>
-      
-      <!-- Weekly Report Card -->
-      <div class="bento-card" id="weekly">
-        <div class="bento-card-header">
-          <div class="bento-card-icon">📊</div>
-          <div>
-            <h2 class="bento-card-title">本周周报</h2>
-            <p class="bento-card-date">2026-W10 (03-01 ~ 03-07)</p>
-          </div>
-        </div>
-        <div class="bento-card-content">
-          <p><strong>ruvnet 领衔</strong>，9 个 AI 项目主导本周技术风向</p>
-          <p style="margin-top: 0.5rem; font-size: 0.9375rem; color: var(--text-muted);">
-            周累计 33,744⭐，持续热门项目 10 个
-          </p>
-        </div>
-        <div class="bento-card-footer">
-          <a href="reports/weekly/github-weekly-2026-W10.html" class="bento-card-link">
-            查看周报 →
-          </a>
-          <span class="tag">W10</span>
-        </div>
-      </div>
-      
-      <!-- Monthly Report Card -->
-      <div class="bento-card">
-        <div class="bento-card-header">
-          <div class="bento-card-icon">📈</div>
-          <div>
-            <h2 class="bento-card-title">本月月报</h2>
-            <p class="bento-card-date">2026-03</p>
-          </div>
-        </div>
-        <div class="bento-card-content">
-          <p>月度技术趋势深度分析，生态地图全景展示</p>
-          <p style="margin-top: 0.5rem; font-size: 0.9375rem; color: var(--text-muted);">
-            敬请期待...
-          </p>
-        </div>
-        <div class="bento-card-footer">
-          <span style="color: var(--text-muted); font-size: 0.875rem;">即将上线</span>
-          <span class="tag">Coming Soon</span>
-        </div>
-      </div>
-      
-      <!-- Archive Card -->
-      <div class="bento-card large" id="archive">
-        <div class="bento-card-header">
-          <div class="bento-card-icon">📚</div>
-          <div>
-            <h2 class="bento-card-title">报告归档</h2>
-            <p class="bento-card-date">历史报告库</p>
-          </div>
-        </div>
-        <div class="bento-card-content">
-          <p>浏览所有历史报告，按日期、主题、技术领域筛选</p>
-          <div style="margin-top: 1rem; display: flex; gap: var(--spacing-sm); flex-wrap: wrap;">
-            <span class="tag">2026 年</span>
-            <span class="tag">2025 年</span>
-            <span class="tag">AI 专题</span>
-            <span class="tag">Agent 框架</span>
-          </div>
-        </div>
-        <div class="bento-card-footer">
-          <a href="reports/weekly/" class="bento-card-link">
-            浏览归档 →
-          </a>
-          <span class="tag">500+ 报告</span>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Recent Reports List -->
-    <section class="recent-section">
-      <div class="section-header">
-        <h2 class="section-title">最近报告</h2>
-        <a href="reports/weekly/" style="color: var(--accent-primary); font-weight: 600;">查看全部 →</a>
-      </div>
-      <div class="reports-list">
-        <div class="report-item">
-          <div class="report-info">
-            <div class="report-icon">📊</div>
-            <div class="report-meta">
-              <h3>周报 2026-W10</h3>
-              <p>2026-03-01 ~ 2026-03-07</p>
-            </div>
-          </div>
-          <div class="report-stats">
-            <span class="report-stat"><strong>33,744</strong> 周 Stars</span>
-            <span class="report-stat"><strong>10</strong> 个项目</span>
-          </div>
-          <a href="reports/weekly/github-weekly-2026-W10.html" class="bento-card-link">查看 →</a>
-        </div>
+    <script>
+        async function loadReports() {
+            try {
+                // Load daily reports
+                const dailyResponse = await fetch('./reports/daily/index.html');
+                if (dailyResponse.ok) {
+                    const dailyHtml = await dailyResponse.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(dailyHtml, 'text/html');
+                    const dailyItems = doc.querySelectorAll('.report-item');
+                    const dailyList = document.getElementById('dailyList');
+                    
+                    if (dailyItems.length > 0) {
+                        dailyList.innerHTML = Array.from(dailyItems).slice(0, 5).map((item, idx) => {
+                            const href = item.getAttribute('onclick')?.match(/'([^']+)'/)?.[1] || '#';
+                            const date = item.querySelector('h3')?.textContent?.trim() || '未知日期';
+                            const stars = item.querySelector('.report-stat strong')?.textContent?.trim() || '';
+                            const tags = idx === 0 ? '<span class="report-tag hot">🔥 最新</span>' : idx < 3 ? '<span class="report-tag new">🆕 热门</span>' : '';
+                            return `
+                                <a href="./reports/daily/${href}" class="report-item">
+                                    <div class="report-content">
+                                        <div class="report-date">${date}</div>
+                                        <div class="report-title">GitHub AI 项目每日简报 ${stars ? '(+' + stars + ' Stars)' : ''}</div>
+                                        <div class="report-meta">${tags}</div>
+                                    </div>
+                                    <div class="report-arrow">→</div>
+                                </a>
+                            `;
+                        }).join('');
+                    }
+                }
+                
+                // Load weekly reports
+                const weeklyResponse = await fetch('./reports/weekly/index.html');
+                if (weeklyResponse.ok) {
+                    const weeklyHtml = await weeklyResponse.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(dailyHtml, 'text/html');
+                    const weeklyItems = doc.querySelectorAll('.report-item');
+                    const weeklyList = document.getElementById('weeklyList');
+                    
+                    if (weeklyItems.length > 0) {
+                        weeklyList.innerHTML = Array.from(weeklyItems).slice(0, 3).map((item, idx) => {
+                            const href = item.getAttribute('onclick')?.match(/'([^']+)'/)?.[1] || '#';
+                            const date = item.querySelector('h3')?.textContent?.trim() || item.querySelector('.report-meta p')?.textContent?.trim() || '未知日期';
+                            const projects = item.querySelectorAll('.report-stat')[1]?.textContent?.trim() || '';
+                            const tag = idx === 0 ? '<span class="report-tag hot">🔥 本周</span>' : '';
+                            return `
+                                <a href="./reports/weekly/${href}" class="report-item">
+                                    <div class="report-content">
+                                        <div class="report-date">${date}</div>
+                                        <div class="report-title">GitHub 周报 ${projects ? '(' + projects + ')' : ''}</div>
+                                        <div class="report-meta">${tag}</div>
+                                    </div>
+                                    <div class="report-arrow">→</div>
+                                </a>
+                            `;
+                        }).join('');
+                    }
+                }
+                
+                // Update stats
+                document.getElementById('dailyCount').textContent = '7';
+                document.getElementById('weeklyCount').textContent = '1';
+                document.getElementById('totalReports').textContent = '8';
+                document.getElementById('totalProjects').textContent = '22';
+            } catch (e) {
+                console.error('加载失败:', e);
+            }
+        }
         
-        <div class="report-item">
-          <div class="report-info">
-            <div class="report-icon">📅</div>
-            <div class="report-meta">
-              <h3>日报 2026-03-03</h3>
-              <p>2026-03-03</p>
-            </div>
-          </div>
-          <div class="report-stats">
-            <span class="report-stat"><strong>+8,234</strong> 今日 Stars</span>
-            <span class="report-stat"><strong>10</strong> 个项目</span>
-          </div>
-          <a href="reports/daily/github-ai-trending-2026-03-03.html" class="bento-card-link">查看 →</a>
-        </div>
-        
-        <div class="report-item">
-          <div class="report-info">
-            <div class="report-icon">📅</div>
-            <div class="report-meta">
-              <h3>日报 2026-03-02</h3>
-              <p>2026-03-02</p>
-            </div>
-          </div>
-          <div class="report-stats">
-            <span class="report-stat"><strong>+6,542</strong> 今日 Stars</span>
-            <span class="report-stat"><strong>10</strong> 个项目</span>
-          </div>
-          <a href="reports/daily/github-ai-trending-2026-03-02.html" class="bento-card-link">查看 →</a>
-        </div>
-        
-        <div class="report-item">
-          <div class="report-info">
-            <div class="report-icon">📅</div>
-            <div class="report-meta">
-              <h3>日报 2026-03-01</h3>
-              <p>2026-03-01</p>
-            </div>
-          </div>
-          <div class="report-stats">
-            <span class="report-stat"><strong>+5,891</strong> 今日 Stars</span>
-            <span class="report-stat"><strong>10</strong> 个项目</span>
-          </div>
-          <a href="reports/daily/github-ai-trending-2026-03-01.html" class="bento-card-link">查看 →</a>
-        </div>
-        
-        <div class="report-item">
-          <div class="report-info">
-            <div class="report-icon">📅</div>
-            <div class="report-meta">
-              <h3>日报 2026-02-28</h3>
-              <p>2026-02-28</p>
-            </div>
-          </div>
-          <div class="report-stats">
-            <span class="report-stat"><strong>+7,234</strong> 今日 Stars</span>
-            <span class="report-stat"><strong>10</strong> 个项目</span>
-          </div>
-          <a href="reports/daily/github-ai-trending-2026-02-28.html" class="bento-card-link">查看 →</a>
-        </div>
-      </div>
-    </section>
-  </div>
-  
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="container">
-      <div class="footer-links">
-        <a href="#">关于</a>
-        <a href="#">数据源</a>
-        <a href="#">RSS 订阅</a>
-        <a href="#">API</a>
-        <a href="https://github.com" target="_blank">GitHub</a>
-      </div>
-      <p>生成工具：GitHub Daily Brief + AI Analysis</p>
-      <p>数据来源：GitHub Trending API | 每日更新</p>
-    </div>
-  </footer>
+        loadReports();
+    </script>
 </body>
 </html>

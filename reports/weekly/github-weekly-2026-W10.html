@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Trending 周报 - 2026-W10</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0a; --bg-elevated: #141414; --bg-subtle: #1a1a1a;
+            --text: #fff; --text-dim: #888; --text-muted: #555;
+            --border: #222; --accent: #00ff41;
+            --space-sm: 0.5rem; --space-md: 1rem; --space-lg: 1.5rem; --space-xl: 2rem;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+        .container { max-width: 1024px; margin: 0 auto; padding: var(--space-xl) var(--space-lg); }
+        
+        .header { padding-bottom: var(--space-xl); border-bottom: 1px solid var(--border); margin-bottom: var(--space-xl); }
+        .logo { display: flex; align-items: baseline; gap: var(--space-md); margin-bottom: var(--space-sm); }
+        h1 { font-family: 'IBM Plex Mono', monospace; font-size: 1.25rem; font-weight: 600; text-transform: uppercase; }
+        .subtitle { color: var(--text-dim); font-size: 0.875rem; font-family: 'JetBrains Mono', monospace; }
+        
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-md); margin-bottom: var(--space-xl); }
+        .stat { background: var(--bg-elevated); border: 1px solid var(--border); padding: var(--space-lg); }
+        .stat-value { font-family: 'JetBrains Mono', monospace; font-size: 2rem; font-weight: 700; line-height: 1; }
+        .stat-label { font-family: 'JetBrains Mono', monospace; font-size: 0.6875rem; color: var(--text-muted); text-transform: uppercase; margin-top: var(--space-sm); }
+        .stat-trend { font-size: 0.75rem; margin-top: var(--space-xs); }
+        .stat-trend.up { color: var(--accent); }
+        .stat-trend.down { color: #ff4444; }
+        
+        .section { margin-bottom: var(--space-xl); }
+        .section-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.875rem; font-weight: 600; text-transform: uppercase; margin-bottom: var(--space-lg); display: flex; align-items: center; gap: var(--space-sm); }
+        .section-title::before { content: ''; width: 8px; height: 8px; background: var(--accent); }
+        
+        .theme-box { background: var(--bg-elevated); border: 1px solid var(--border); padding: var(--space-lg); margin-bottom: var(--space-xl); }
+        .theme-text { font-size: 1.125rem; line-height: 1.8; color: var(--text); }
+        
+        .insights { background: var(--bg-elevated); border: 1px solid var(--border); padding: var(--space-lg); margin-bottom: var(--space-xl); }
+        .insight-block { margin-bottom: var(--space-xl); padding-bottom: var(--space-lg); border-bottom: 1px solid var(--border); }
+        .insight-block:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        .insight-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.9375rem; font-weight: 700; color: var(--text); text-transform: uppercase; margin-bottom: var(--space-md); display: flex; align-items: center; gap: var(--space-sm); }
+        .insight-label::before { content: ''; width: 10px; height: 10px; background: var(--accent); }
+        .insight-content { font-size: 0.9375rem; line-height: 1.8; color: var(--text-dim); }
+        .insight-content a { color: var(--accent); text-decoration: none; }
+        .insight-content a:hover { text-decoration: underline; }
+        .insight-list { list-style: none; }
+        .insight-list li { padding: var(--space-sm) 0; border-bottom: 1px solid var(--border); }
+        .insight-list li:last-child { border-bottom: none; }
+        .insight-list li::before { content: '› '; color: var(--accent); font-weight: 600; margin-right: var(--space-sm); }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+        th { font-family: 'JetBrains Mono', monospace; font-size: 0.6875rem; color: var(--text-dim); text-transform: uppercase; padding: var(--space-md); text-align: left; border-bottom: 1px solid var(--border); }
+        td { padding: var(--space-md); border-bottom: 1px solid var(--border); }
+        tr:hover { background: var(--bg-subtle); }
+        td a { color: var(--accent); text-decoration: none; }
+        td a:hover { text-decoration: underline; }
+        
+        .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); margin-bottom: var(--space-xl); }
+        .comparison-card { background: var(--bg-elevated); border: 1px solid var(--border); padding: var(--space-lg); }
+        .comparison-card h3 { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; font-weight: 600; color: var(--text); margin-bottom: var(--space-md); }
+        .comparison-card ul { list-style: none; }
+        .comparison-card li { padding: var(--space-xs) 0; color: var(--text-dim); font-size: 0.875rem; }
+        .comparison-card li::before { content: '• '; color: var(--accent); }
+        .comparison-card a { color: var(--text-dim); text-decoration: none; border-bottom: 1px solid var(--border); }
+        .comparison-card a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+        
+        .footer { padding-top: var(--space-xl); border-top: 1px solid var(--border); text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 0.6875rem; color: var(--text-muted); text-transform: uppercase; }
+        
+        @media (max-width: 768px) {
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .comparison-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">◈</span>
+                <h1>GitHub Trending 周报</h1>
+            </div>
+            <p class="subtitle">2026-W10 · 2026-03-01 ~ 2026-03-07</p>
+        </header>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value">22</div>
+                <div class="stat-label">上榜项目</div>
+                
+            </div>
+            <div class="stat">
+                <div class="stat-value">54,465</div>
+                <div class="stat-label">累计 Stars</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">91%</div>
+                <div class="stat-label">AI 项目</div>
+                
+            </div>
+            <div class="stat">
+                <div class="stat-value">18,228</div>
+                <div class="stat-label">最大黑马</div>
+                <div class="stat-trend" style="color:var(--text-dim);font-size:0.6875rem">RuView</div>
+            </div>
+        </div>
+        
+        
+        <section class="section">
+            <div class="section-title">领域分布</div>
+            <div class="comparison-grid" style="grid-template-columns: repeat(4, 1fr);">
+                
+                <div class="comparison-card">
+                    <h3>Agent 系统</h3>
+                    <div class="stat-value" style="font-size:1.5rem">13</div>
+                    <div class="stat-label">个项目</div>
+                </div>
+                
+                <div class="comparison-card">
+                    <h3>通用工具</h3>
+                    <div class="stat-value" style="font-size:1.5rem">6</div>
+                    <div class="stat-label">个项目</div>
+                </div>
+                
+                <div class="comparison-card">
+                    <h3>语音处理</h3>
+                    <div class="stat-value" style="font-size:1.5rem">1</div>
+                    <div class="stat-label">个项目</div>
+                </div>
+                
+                <div class="comparison-card">
+                    <h3>LLM 工具/框架</h3>
+                    <div class="stat-value" style="font-size:1.5rem">1</div>
+                    <div class="stat-label">个项目</div>
+                </div>
+                
+            </div>
+        </section>
+        
+        <section class="section">
+            <div class="section-title">周度主题</div>
+            <div class="theme-box">
+                <div class="theme-text">ruvnet领衔，91% AI 项目占比彰显技术变革力度</div>
+            </div>
+        </section>
+        
+        <section class="section">
+            <div class="section-title">AI 深度洞察</div>
+            <div class="insights">
+                <div class="insight-block">
+                    <div class="insight-label">🔥 本周热点</div>
+                    <div class="insight-content">
+                        <ul class="insight-list">
+                            <li><a href="https://github.com/ruvnet/RuView" target="_blank" rel="noopener">ruvnet/RuView</a> 以 +18,228⭐领跑本周</li><li>10个项目持续霸榜，说明不是单日炒作而是真实技术需求</li><li>AI 项目占比高达91%，Python 生态占据主导</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="insight-block">
+                    <div class="insight-label">📈 短期趋势（1-4 周）</div>
+                    <div class="insight-content">
+                        <ul class="insight-list">
+                            <li>自托管 AI 从概念走向实用：多个项目提供本地部署方案</li><li>多智能体协作成为新热点：从单一 Agent 到多 Agent 协同</li><li>AI 安全与可解释性受重视：开发者开始关注模型透明度</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                
+                <div class="insight-block">
+                    <div class="insight-label">🎯 行动建议</div>
+                    <div class="insight-content">
+                        <ol class="insight-list" style="list-style: decimal; padding-left: var(--space-md);">
+                            <li style="border:none; padding: var(--space-sm) 0;">评估现有架构是否支持 AI Agent 集成，预留扩展接口</li><li style="border:none; padding: var(--space-sm) 0;">关注自托管 AI 方案，为敏感数据场景做准备</li><li style="border:none; padding: var(--space-sm) 0;">建立 AI 项目评估机制，关注安全性与可维护性</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="section">
+            <div class="section-title">分类洞察</div>
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h3>🔥 持续热门</h3>
+                    <ul>
+                        <li><a href="https://github.com/ruvnet/RuView" target="_blank">ruvnet/RuView</a> <span style="color:var(--text-muted)">上榜4天</span>，+18,228⭐</li><li><a href="https://github.com/moeru-ai/airi" target="_blank">moeru-ai/airi</a> <span style="color:var(--text-muted)">上榜7天</span>，+10,709⭐</li><li><a href="https://github.com/alibaba/OpenSandbox" target="_blank">alibaba/OpenSandbox</a> <span style="color:var(--text-muted)">上榜5天</span>，+5,133⭐</li><li><a href="https://github.com/K-Dense-AI/claude-scientific-skills" target="_blank">K-Dense-AI/claude-scientific-skills</a> <span style="color:var(--text-muted)">上榜5天</span>，+4,086⭐</li><li><a href="https://github.com/superset-sh/superset" target="_blank">superset-sh/superset</a> <span style="color:var(--text-muted)">上榜4天</span>，+2,548⭐</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h3>🆕 新面孔</h3>
+                    <ul>
+                        <li><a href="https://github.com/ItzCrazyKns/Perplexica" target="_blank">ItzCrazyKns/Perplexica</a> (+1,096⭐)</li><li><a href="https://github.com/QwenLM/Qwen-Agent" target="_blank">QwenLM/Qwen-Agent</a> (+684⭐)</li><li><a href="https://github.com/openai/skills" target="_blank">openai/skills</a> (+582⭐)</li><li><a href="https://github.com/Ed1s0nZ/CyberStrikeAI" target="_blank">Ed1s0nZ/CyberStrikeAI</a> (+138⭐)</li><li><a href="https://github.com/microsoft/mcp-for-beginners" target="_blank">microsoft/mcp-for-beginners</a> (+122⭐)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <section class="section">
+            <div class="section-title">周榜 Top 10</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:50px">排名</th>
+                        <th>项目</th>
+                        <th>描述</th>
+                        <th style="width:100px">语言</th>
+                        <th style="width:80px">周 Stars</th>
+                        <th style="width:60px">天数</th>
+                    </tr>
+                </thead>
+                <tbody>
+        <tr>
+            <td>1</td>
+            <td><a href="https://github.com/ruvnet/RuView" target="_blank">ruvnet/RuView</a></td>
+            <td>π RuView ： WiFi DensePose将商品WiFi信号转化为实时人体姿态估计、生命体征监测和存在检测—所有这些都无需单个视频像素。</td>
+            <td>Rust</td>
+            <td><span style="color: var(--accent);">+18,228</span></td>
+            <td>4天</td>
+        </tr>
+    
+        <tr>
+            <td>2</td>
+            <td><a href="https://github.com/moeru-ai/airi" target="_blank">moeru-ai/airi</a> 🤖</td>
+            <td>💖🧸 自我托管，你拥有的Grok Companion ，一个包含外府灵魂的容器，将它们带入我们的世界的网络生活，希望达到Neuro-sama的高度。能够实时语音聊天、Minecraft、Factorio播放。支持Web/macOS/Windows。</td>
+            <td>TypeScript</td>
+            <td><span style="color: var(--accent);">+10,709</span></td>
+            <td>7天</td>
+        </tr>
+    
+        <tr>
+            <td>3</td>
+            <td><a href="https://github.com/alibaba/OpenSandbox" target="_blank">alibaba/OpenSandbox</a> 🤖</td>
+            <td>OpenSandbox是用于AI应用的通用沙盒平台，提供多语言SDK、统一的沙盒API和Docker/Kubernetes运行时，适用于编码代理、GUI代理、代理评估、AI代码执行和RL培训等场景。</td>
+            <td>Python</td>
+            <td><span style="color: var(--accent);">+5,133</span></td>
+            <td>5天</td>
+        </tr>
+    
+        <tr>
+            <td>4</td>
+            <td><a href="https://github.com/KeygraphHQ/shannon" target="_blank">KeygraphHQ/shannon</a> 🤖</td>
+            <td>完全自主的人工智能黑客，可在您的网络应用程序中查找实际漏洞。Shannon在无提示、源代码感知的XBOW基准测试中取得了96.15%的成功率。</td>
+            <td>TypeScript</td>
+            <td><span style="color: var(--accent);">+4,773</span></td>
+            <td>2天</td>
+        </tr>
+    
+        <tr>
+            <td>5</td>
+            <td><a href="https://github.com/K-Dense-AI/claude-scientific-skills" target="_blank">K-Dense-AI/claude-scientific-skills</a> 🤖</td>
+            <td>一套随时可用的代理技能，用于研究、科学、工程、分析、财务和写作。</td>
+            <td>Python</td>
+            <td><span style="color: var(--accent);">+4,086</span></td>
+            <td>5天</td>
+        </tr>
+    
+        <tr>
+            <td>6</td>
+            <td><a href="https://github.com/superset-sh/superset" target="_blank">superset-sh/superset</a> 🤖</td>
+            <td>AI智能体时代的IDE -在您的机器上运行Claude Code、Codex等大军</td>
+            <td>TypeScript</td>
+            <td><span style="color: var(--accent);">+2,548</span></td>
+            <td>4天</td>
+        </tr>
+    
+        <tr>
+            <td>7</td>
+            <td><a href="https://github.com/aquasecurity/trivy" target="_blank">aquasecurity/trivy</a> 🤖</td>
+            <td>查找漏洞、错误配置、秘密、容器中的SBOM、Kubernetes、代码仓库、云等</td>
+            <td>Go</td>
+            <td><span style="color: var(--accent);">+1,245</span></td>
+            <td>6天</td>
+        </tr>
+    
+        <tr>
+            <td>8</td>
+            <td><a href="https://github.com/ItzCrazyKns/Perplexica" target="_blank">ItzCrazyKns/Perplexica</a> 🤖</td>
+            <td>Perplexica是人工智能驱动的应答引擎。</td>
+            <td>TypeScript</td>
+            <td><span style="color: var(--accent);">+1,096</span></td>
+            <td>1天</td>
+        </tr>
+    
+        <tr>
+            <td>9</td>
+            <td><a href="https://github.com/CodebuffAI/codebuff" target="_blank">CodebuffAI/codebuff</a> 🤖</td>
+            <td>从终端生成代码！</td>
+            <td>TypeScript</td>
+            <td><span style="color: var(--accent);">+1,084</span></td>
+            <td>6天</td>
+        </tr>
+    
+        <tr>
+            <td>10</td>
+            <td><a href="https://github.com/TheCraigHewitt/seomachine" target="_blank">TheCraigHewitt/seomachine</a> 🤖</td>
+            <td>一个专门的Claude Code工作区，用于为任何企业创建长篇、SEO优化的博客内容。该系统可帮助您研究、撰写、分析和优化排名良好的内容，并为您的目标受众提供服务。</td>
+            <td>Python</td>
+            <td><span style="color: var(--accent);">+1,046</span></td>
+            <td>2天</td>
+        </tr>
+    </tbody>
+            </table>
+        </section>
+        
+        <footer class="footer">由 OpenClaw 自动生成 · 数据来源 GitHub Trending API</footer>
+    </div>
+</body>
+</html>
