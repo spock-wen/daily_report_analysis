@@ -334,65 +334,52 @@ class MessageSender {
   }
 
   /**
-   * 发送 Webhook 请求
+   * 发送 Webhook 请求（使用 fetch API）
    * @param {string} webhookUrl - Webhook URL
    * @param {Object} data - 请求数据
    * @returns {Promise<Object>} 响应结果
    */
-  sendWebhookRequest(webhookUrl, data) {
-    return new Promise((resolve, reject) => {
-      const url = new URL(webhookUrl);
-      const payload = JSON.stringify(data);
-
-      const options = {
-        hostname: url.hostname,
-        port: 443,
-        path: url.pathname + url.search, // 包含查询参数（token 和 channel）
+  async sendWebhookRequest(webhookUrl, data) {
+    try {
+      const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Content-Length': payload.length.toString(),
           'Accept-Charset': 'UTF-8'
+        },
+        body: JSON.stringify(data),
+        timeout: 15000
+      });
+
+      const responseData = await response.text();
+      
+      try {
+        const result = JSON.parse(responseData);
+        
+        // 检查 WeLink 返回码
+        if (result.code === '0' || result.code === 0 || result.errcode === 0) {
+          return result;
+        } else {
+          return { 
+            success: false, 
+            result, 
+            error: `WeLink return code: ${result.code || result.errcode}` 
+          };
         }
+      } catch (error) {
+        // 解析失败，可能是 HTML 错误页面
+        return { 
+          success: false, 
+          error: 'Response parse error', 
+          raw: responseData.substring(0, 200) 
+        };
+      }
+    } catch (error) {
+      return { 
+        success: false, 
+        error: `Request failed: ${error.message}` 
       };
-
-      const req = https.request(options, (res) => {
-        let responseData = '';
-
-        res.on('data', (chunk) => {
-          responseData += chunk;
-        });
-
-        res.on('end', () => {
-          try {
-            const result = JSON.parse(responseData);
-            // 检查 WeLink 返回码
-            if (result.code === '0' || result.code === 0 || result.errcode === 0) {
-              resolve(result);
-            } else {
-              // 返回非成功状态码
-              resolve({ success: false, result, error: `WeLink return code: ${result.code || result.errcode}` });
-            }
-          } catch (error) {
-            // 解析失败，可能是 HTML 错误页面
-            resolve({ success: false, error: 'Response parse error', raw: responseData.substring(0, 200) });
-          }
-        });
-      });
-
-      req.on('error', (error) => {
-        reject(error);
-      });
-
-      req.setTimeout(15000);
-      req.on('timeout', () => {
-        req.destroy();
-        resolve({ success: false, error: 'Request timeout' });
-      });
-
-      req.write(payload);
-      req.end();
-    });
+    }
   }
 
   /**
