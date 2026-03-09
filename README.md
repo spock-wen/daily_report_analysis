@@ -2,9 +2,9 @@
 
 ## 项目状态
 
-**当前分支**: `feature/new-architecture` - 新架构开发分支
+**当前分支**: `main` - 稳定版本
 
-本项目正在进行架构重构，目标是建立清晰、模块化、可扩展的报告生成系统。
+本项目已完成架构重构，建立清晰、模块化、可扩展的报告生成系统。
 
 ## 项目定位
 
@@ -132,7 +132,27 @@ npm run generate:index
 
 - **[部署与开发指南](docs/GUIDE.md)** - 快速开始、Git 配置、自动化部署
 - **[API 文档](docs/API.md)** - 详细的 API 使用说明
-- **[更新指南](docs/index-update-guide.md)** - 首页更新说明
+- **[配置说明](docs/CONFIG.md)** - 环境变量和配置文件说明
+
+## 首页更新
+
+首页 (`reports/index.html`) 是报告系统的导航中心，支持多种更新方式：
+
+```bash
+# 方式 1：生成所有报告时自动更新首页
+npm run generate:all
+
+# 方式 2：单独更新首页
+npm run generate:index
+```
+
+**定时任务示例**（Linux cron）：
+```bash
+# 每 6 小时更新首页
+0 */6 * * * cd /path/to/daily_report_analysis && npm run generate:index
+```
+
+首页直接从 `data/briefs/` 目录读取 JSON 数据生成，不依赖已生成的 HTML 文件。
 
 ## 开发与测试
 
@@ -190,11 +210,9 @@ LLM_MODEL=qwen-plus
 📋 **当前状态**：
 
 - ✅ 主入口文件已创建
-- ✅ 测试目录结构已重组
-- ✅ 数据目录结构已完善
-- ✅ 临时文件已清理
-- ✅ API 文档已创建
-- ✅ 部署指南已创建
+- ✅ 测试体系完善
+- ✅ 数据目录结构完善
+- ✅ 文档体系完善
 
 ## License
 

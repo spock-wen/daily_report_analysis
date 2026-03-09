@@ -153,10 +153,11 @@ class DataLoader {
       trending_repos: projects.map(project => {
         // 提取 analysis 中的核心功能、使用场景和热度趋势数据
         const analysis = project.analysis || null;
+        const name = project.name || project.fullName;
         return {
-          name: project.fullName || project.name,
+          name: name,
           description: project.descZh || project.desc || '',
-          url: project.url || `https://github.com/${project.fullName}`,
+          url: project.url || (name ? `https://github.com/${name}` : ''),
           stars: project.stars || 0,
           forks: project.forks || 0,
           language: project.language || '',

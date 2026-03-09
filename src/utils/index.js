@@ -7,6 +7,7 @@ const logger = require('./logger');
 const fs = require('./fs');
 const llm = require('./llm');
 const template = require('./template');
+const config = require('./config');
 
 module.exports = {
   path,
@@ -14,4 +15,5 @@ module.exports = {
   fs,
   llm,
   template,
+  config,
 };

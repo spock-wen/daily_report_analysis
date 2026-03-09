@@ -3,33 +3,14 @@ const fetch = globalThis.fetch;
 const https = require('https');
 
 const logger = require('../utils/logger');
+const { getConfig, getEnvBool } = require('../utils/config');
 
-// 确保环境变量已加载（总是加载 .env 文件）
-require('dotenv').config();
+// 加载配置
+const config = getConfig();
 
-const rawConfig = require('../../config/config.json');
-
-// 替换配置文件中的环境变量
-function replaceEnvVars(obj) {
-  if (typeof obj === 'string') {
-    return obj.replace(/\$\{([^}]+)\}/g, (match, key) => {
-      return process.env[key] || match;
-    });
-  }
-  if (Array.isArray(obj)) {
-    return obj.map(item => replaceEnvVars(item));
-  }
-  if (obj && typeof obj === 'object') {
-    const result = {};
-    for (const key in obj) {
-      result[key] = replaceEnvVars(obj[key]);
-    }
-    return result;
-  }
-  return obj;
-}
-
-const config = replaceEnvVars(rawConfig);
+// 通知服务启用状态
+const FEISHU_ENABLED = getEnvBool('FEISHU_ENABLED', true);
+const WELINK_ENABLED = getEnvBool('WELINK_ENABLED', false);
 
 const FEISHU_API_BASE = 'https://open.feishu.cn/open-apis';
 
@@ -47,6 +28,11 @@ class MessageSender {
    * @returns {Promise<Object>} 发送结果
    */
   async sendFeishu(options) {
+    if (!FEISHU_ENABLED) {
+      logger.warn('飞书通知已禁用，跳过发送');
+      return { success: false, platform: 'feishu', error: '飞书通知已禁用' };
+    }
+
     try {
       logger.info('发送飞书通知...', { type: options.type, title: options.title });
 
@@ -162,6 +148,11 @@ class MessageSender {
    * @returns {Promise<Array>} 发送结果数组
    */
   async sendWeLink(options) {
+    if (!WELINK_ENABLED) {
+      logger.warn('WeLink 通知已禁用，跳过发送');
+      return { success: false, platform: 'welink', error: 'WeLink 通知已禁用' };
+    }
+
     try {
       logger.info('发送 WeLink 通知...', { type: options.type, title: options.title });
 
@@ -175,7 +166,7 @@ class MessageSender {
       );
 
       logger.debug('WeLink 请求结果', { results });
-
+      
       // 检查每个结果的实际状态
       const processedResults = results.map((result, index) => {
         // sendWebhookRequest 返回的结果中，success 字段表示是否成功
