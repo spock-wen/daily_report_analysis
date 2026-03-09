@@ -92,13 +92,15 @@ class HTMLGenerator {
   <style>
     :root {
       --bg-primary: #0a0a0a;
-      --bg-secondary: #111111;
-      --bg-card: #1a1a1a;
-      --text-primary: #e0e0e0;
-      --text-secondary: #a0a0a0;
+      --bg-secondary: #0f0f0f;
+      --bg-card: #141414;
+      --text-primary: #f0f0f0;
+      --text-secondary: #888888;
+      --text-muted: #666666;
       --accent: #00ff41;
       --accent-dim: #00cc33;
-      --border: #333333;
+      --border: #1f1f1f;
+      --border-light: #2a2a2a;
       --success: #00ff41;
       --warning: #ffaa00;
     }
@@ -110,144 +112,223 @@ class HTMLGenerator {
     }
     
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
       background: var(--bg-primary);
       color: var(--text-primary);
       line-height: 1.6;
-      padding: 20px;
+      padding: 24px 16px;
+      font-size: 14px;
     }
     
     .container {
-      max-width: 1200px;
+      max-width: 1024px;
       margin: 0 auto;
     }
     
     header {
       text-align: center;
-      padding: 40px 0;
-      border-bottom: 2px solid var(--accent);
+      padding: 48px 0 32px;
+      border-bottom: 1px solid var(--border);
       margin-bottom: 40px;
     }
     
     h1 {
-      font-size: 2.5rem;
-      color: var(--accent);
-      margin-bottom: 10px;
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
     }
     
     .date {
       color: var(--text-secondary);
-      font-size: 1.1rem;
+      font-size: 0.875rem;
+      font-weight: 400;
     }
     
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      margin-bottom: 40px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 32px;
     }
     
     .stat-card {
       background: var(--bg-card);
-      padding: 20px;
+      padding: 16px;
       border-radius: 8px;
       border: 1px solid var(--border);
       text-align: center;
+      transition: all 0.2s;
+    }
+    
+    .stat-card:hover {
+      border-color: var(--border-light);
+      background: var(--bg-secondary);
     }
     
     .stat-value {
-      font-size: 2rem;
-      font-weight: bold;
+      font-size: 1.5rem;
+      font-weight: 600;
       color: var(--accent);
+      line-height: 1.2;
     }
     
     .stat-label {
       color: var(--text-secondary);
-      margin-top: 5px;
+      margin-top: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
     
     section {
-      margin-bottom: 40px;
+      margin-bottom: 32px;
     }
     
     h2 {
-      font-size: 1.8rem;
-      color: var(--accent);
-      margin-bottom: 20px;
-      padding-bottom: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
       border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .section-icon {
+      width: 18px;
+      height: 18px;
+      color: var(--accent);
     }
     
     .project-list {
-      display: grid;
-      gap: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
     
     .project-card {
       background: var(--bg-card);
-      padding: 20px;
+      padding: 16px;
       border-radius: 8px;
       border: 1px solid var(--border);
-      transition: transform 0.2s;
+      transition: all 0.2s;
     }
     
     .project-card:hover {
-      transform: translateX(5px);
-      border-color: var(--accent);
+      border-color: var(--border-light);
+      background: var(--bg-secondary);
     }
     
     .project-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 12px;
     }
     
     .project-name {
-      font-size: 1.3rem;
-      color: var(--accent);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--text-primary);
       text-decoration: none;
+      line-height: 1.4;
     }
     
     .project-name:hover {
-      text-decoration: underline;
+      color: var(--accent);
     }
     
     .project-stats {
       display: flex;
-      gap: 15px;
-      font-size: 0.9rem;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg-secondary);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
       color: var(--text-secondary);
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    
+    .stat-icon {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      color: var(--text-muted);
+    }
+    
+    .stat-icon-hot {
+      color: #ff6b35;
+    }
+    
+    .stat-value {
+      font-weight: 500;
+      color: var(--text-primary);
     }
     
     .project-description {
-      color: var(--text-primary);
-      margin-bottom: 15px;
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+    
+    .toggle-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    
+    .toggle-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
     }
     
     .project-details {
       display: none;
-      margin-top: 15px;
-      padding-top: 15px;
+      margin-top: 16px;
+      padding-top: 16px;
       border-top: 1px solid var(--border);
     }
     
     .project-details.active {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
+      gap: 12px;
     }
     
     .detail-column {
       background: var(--bg-secondary);
-      padding: 15px;
+      padding: 12px;
       border-radius: 6px;
     }
     
     .detail-column h4 {
-      color: var(--accent);
-      margin-bottom: 10px;
-      font-size: 1rem;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
     
     .detail-column ul {
@@ -256,65 +337,90 @@ class HTMLGenerator {
     
     .detail-column li {
       color: var(--text-secondary);
-      padding: 5px 0;
-      font-size: 0.9rem;
-    }
-    
-    .toggle-btn {
-      background: transparent;
-      border: 1px solid var(--accent);
-      color: var(--accent);
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: all 0.2s;
-    }
-    
-    .toggle-btn:hover {
-      background: var(--accent);
-      color: var(--bg-primary);
+      padding: 4px 0;
+      font-size: 0.8125rem;
+      line-height: 1.5;
     }
     
     .ai-insights {
       background: var(--bg-card);
-      padding: 30px;
+      padding: 20px;
       border-radius: 8px;
       border: 1px solid var(--border);
     }
     
     .ai-insights h3 {
-      color: var(--accent);
-      margin-bottom: 15px;
-      font-size: 1.3rem;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      font-size: 0.875rem;
+      font-weight: 600;
     }
     
     .ai-insights p {
-      color: var(--text-primary);
-      margin-bottom: 20px;
-      line-height: 1.8;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      line-height: 1.7;
+      font-size: 0.875rem;
+    }
+    
+    .ai-insights ul {
+      margin-bottom: 16px;
+      padding-left: 20px;
+    }
+    
+    .ai-insights li {
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      font-size: 0.875rem;
+      line-height: 1.6;
     }
     
     .project-link {
       color: var(--accent);
       text-decoration: none;
+      font-weight: 500;
     }
     
     .project-link:hover {
       text-decoration: underline;
     }
     
+    .hype-card {
+      margin-bottom: 16px;
+      padding: 12px;
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      border-left: 2px solid var(--accent);
+    }
+    
+    .hype-title {
+      color: var(--accent);
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    
+    .hype-reason {
+      color: var(--text-secondary);
+      font-size: 0.8125rem;
+      line-height: 1.6;
+    }
+    
     @media (max-width: 768px) {
-      .project-details.active {
-        grid-template-columns: 1fr;
-      }
-      
       .stats-grid {
         grid-template-columns: repeat(2, 1fr);
       }
       
+      .project-header {
+        flex-direction: column;
+      }
+      
+      .project-details.active {
+        grid-template-columns: 1fr;
+      }
+      
       h1 {
-        font-size: 1.8rem;
+        font-size: 1.5rem;
       }
     }
   </style>
@@ -322,7 +428,7 @@ class HTMLGenerator {
 <body>
   <div class="container">
     <header>
-      <h1>🚀 GitHub AI Trending 日报</h1>
+      <h1>GitHub AI Trending 日报</h1>
       <div class="date">${date}</div>
     </header>
 
@@ -350,17 +456,36 @@ class HTMLGenerator {
    */
   renderStatsSection(stats) {
     const statItems = [
-      { label: '上榜项目', value: stats.total_projects || 0 },
-      { label: 'AI 项目', value: stats.ai_projects || 0 },
-      { label: '平均 Stars', value: stats.avg_stars || 0 },
-      { label: '高热项目', value: stats.hot_projects || 0 }
+      { 
+        label: '上榜项目', 
+        value: stats.total_projects || 0,
+        icon: `<svg class="stat-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17 17h-2v2c0 .55-.45 1-1 1s-1-.45-1-1v-2H9v2c0 .55-.45 1-1 1s-1-.45-1-1v-2H5c-.55 0-1-.45-1-1V5c0-.55.45-1 1-1h2V2c0-.55.45-1 1-1s1 .45 1 1v2h4V2c0-.55.45-1 1-1s1 .45 1 1v2h2c.55 0 1 .45 1 1v12c0 .55-.45 1-1 1zM5 5v10h2V5H5zm6 0v10h2V5h-2zm6 0v10h2V5h-2z"/></svg>`
+      },
+      { 
+        label: 'AI 项目', 
+        value: stats.ai_projects || 0,
+        icon: `<svg class="stat-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2M7.5 13A2.5 2.5 0 0 0 5 15.5 2.5 2.5 0 0 0 7.5 18a2.5 2.5 0 0 0 2.5-2.5A2.5 2.5 0 0 0 7.5 13m9 0a2.5 2.5 0 0 0-2.5 2.5 2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5 2.5 2.5 0 0 0-2.5-2.5"/></svg>`
+      },
+      { 
+        label: '平均 Stars', 
+        value: stats.avg_stars || 0,
+        icon: `<svg class="stat-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`
+      },
+      { 
+        label: '高热项目', 
+        value: stats.hot_projects || 0,
+        icon: `<svg class="stat-icon stat-icon-hot" viewBox="0 0 24 24" fill="currentColor"><path d="M12 23c-4.97 0-9-3.58-9-8 0-2.52 1.17-5.32 3.19-7.23.28-.27.69-.35 1.05-.2.36.15.6.5.6.9 0 .87-.35 1.7-.97 2.32-.69.69-1.08 1.62-1.08 2.61 0 3.42 2.78 6.2 6.21 6.2s6.21-2.78 6.21-6.2c0-1.52-.55-2.96-1.56-4.08-.28-.31-.33-.77-.13-1.14.2-.37.62-.58 1.03-.53 4.27.54 7.66 4.15 7.66 8.55 0 4.42-4.03 8-9 8z"/></svg>`
+      }
     ];
 
     return `
       <section class="stats-grid">
         ${statItems.map(stat => `
           <div class="stat-card">
-            <div class="stat-value">${stat.value}</div>
+            <div class="stat-value">
+              ${stat.icon}
+              <span>${stat.value}</span>
+            </div>
             <div class="stat-label">${stat.label}</div>
           </div>
         `).join('')}
@@ -378,7 +503,12 @@ class HTMLGenerator {
 
     return `
       <section>
-        <h2>📊 项目榜单</h2>
+        <h2>
+          <svg class="section-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+          </svg>
+          项目榜单
+        </h2>
         <div class="project-list">
           ${projects.map((project, index) => `
             <div class="project-card">
@@ -387,10 +517,32 @@ class HTMLGenerator {
                   ${index + 1}. ${project.name}
                 </a>
                 <div class="project-stats">
-                  <span title="总星数">⭐ ${project.stars || 0}</span>
-                  <span title="今日星数">🔥 ${project.todayStars || 0}</span>
-                  <span title="分支数">🌿 ${project.forks || 0}</span>
-                  ${project.language ? `<span>📝 ${project.language}</span>` : ''}
+                  <span class="stat-item" title="总星数">
+                    <svg class="stat-icon" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <span class="stat-value">${project.stars || 0}</span>
+                  </span>
+                  <span class="stat-item" title="今日星数">
+                    <svg class="stat-icon stat-icon-hot" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 23c-4.97 0-9-3.58-9-8 0-2.52 1.17-5.32 3.19-7.23.28-.27.69-.35 1.05-.2.36.15.6.5.6.9 0 .87-.35 1.7-.97 2.32-.69.69-1.08 1.62-1.08 2.61 0 3.42 2.78 6.2 6.21 6.2s6.21-2.78 6.21-6.2c0-1.52-.55-2.96-1.56-4.08-.28-.31-.33-.77-.13-1.14.2-.37.62-.58 1.03-.53 4.27.54 7.66 4.15 7.66 8.55 0 4.42-4.03 8-9 8z"/>
+                    </svg>
+                    <span class="stat-value">+${project.todayStars || 0}</span>
+                  </span>
+                  <span class="stat-item" title="分支数">
+                    <svg class="stat-icon" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M17 17h-2v2c0 .55-.45 1-1 1s-1-.45-1-1v-2H9v2c0 .55-.45 1-1 1s-1-.45-1-1v-2H5c-.55 0-1-.45-1-1V5c0-.55.45-1 1-1h2V2c0-.55.45-1 1-1s1 .45 1 1v2h4V2c0-.55.45-1 1-1s1 .45 1 1v2h2c.55 0 1 .45 1 1v12c0 .55-.45 1-1 1zM5 5v10h2V5H5zm6 0v10h2V5h-2zm6 0v10h2V5h-2z"/>
+                    </svg>
+                    <span class="stat-value">${project.forks || 0}</span>
+                  </span>
+                  ${project.language ? `
+                    <span class="stat-item" title="编程语言">
+                      <svg class="stat-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                      </svg>
+                      <span class="stat-value">${project.language}</span>
+                    </span>
+                  ` : ''}
                 </div>
               </div>
               <div class="project-description">${project.description || '暂无描述'}</div>
@@ -478,45 +630,50 @@ class HTMLGenerator {
 
     return `
       <section class="ai-insights">
-        <h2>🤖 AI 深度洞察</h2>
+        <h2>
+          <svg class="section-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2M7.5 13A2.5 2.5 0 0 0 5 15.5 2.5 2.5 0 0 0 7.5 18a2.5 2.5 0 0 0 2.5-2.5A2.5 2.5 0 0 0 7.5 13m9 0a2.5 2.5 0 0 0-2.5 2.5 2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5 2.5 2.5 0 0 0-2.5-2.5"/>
+          </svg>
+          AI 深度洞察
+        </h2>
         ${summary ? `<p>${markdownToHtml(summary)}</p>` : ''}
         
         ${hypeIndex ? `
-          <div style="margin-bottom: 20px; padding: 15px; background: var(--bg-secondary); border-radius: 6px; border-left: 3px solid var(--accent);">
-            <h4 style="color: var(--accent); margin-bottom: 8px;">🔥 热度指数：${hypeIndex.score}/5</h4>
-            <p style="color: var(--text-secondary);">${linkifyProjectName(hypeIndex.reason) || ''}</p>
+          <div class="hype-card">
+            <div class="hype-title">🔥 热度指数：${hypeIndex.score}/5</div>
+            <div class="hype-reason">${linkifyProjectName(hypeIndex.reason) || ''}</div>
           </div>
         ` : ''}
         
         ${hot && hot.length > 0 ? `
           <h3>🔥 热点项目</h3>
-          <ul style="color: var(--text-secondary); padding-left: 20px; margin-bottom: 20px;">
-            ${hot.map(item => `<li style="margin-bottom: 8px;">${linkifyProjectName(item)}</li>`).join('')}
+          <ul>
+            ${hot.map(item => `<li>${linkifyProjectName(item)}</li>`).join('')}
           </ul>
         ` : ''}
         
         ${projectInsights.length > 0 ? `
           <h3>🎯 重点项目分析</h3>
           ${projectInsights.map(insight => `
-            <div style="margin-bottom: 20px;">
-              <h4 style="color: var(--accent); margin-bottom: 8px;">
+            <div style="margin-bottom: 16px;">
+              <h4 style="margin-bottom: 6px;">
                 ${insight.project_name ? `<a href="${insight.github_url || '#'}" class="project-link" target="_blank">${insight.project_name}</a>` : ''}
               </h4>
-              <p style="color: var(--text-secondary);">${insight.analysis || ''}</p>
+              <p>${insight.analysis || ''}</p>
             </div>
           `).join('')}
         ` : ''}
         
         ${trends.length > 0 ? `
           <h3>📈 趋势观察</h3>
-          <ul style="color: var(--text-secondary); padding-left: 20px; margin-bottom: 20px;">
+          <ul>
             ${Array.isArray(trends) ? trends.map(trend => `<li>${linkifyProjectName(trend)}</li>`).join('') : ''}
           </ul>
         ` : ''}
         
         ${recommendations.length > 0 ? `
           <h3>💡 推荐建议</h3>
-          <ul style="color: var(--text-secondary); padding-left: 20px;">
+          <ul>
             ${Array.isArray(recommendations) ? recommendations.map(rec => `<li>${linkifyProjectName(rec)}</li>`).join('') : ''}
           </ul>
         ` : ''}
