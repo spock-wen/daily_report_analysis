@@ -4,10 +4,8 @@ const https = require('https');
 
 const logger = require('../utils/logger');
 
-// 确保环境变量已加载
-if (!process.env.FEISHU_APP_ID) {
-  require('dotenv').config();
-}
+// 确保环境变量已加载（总是加载 .env 文件）
+require('dotenv').config();
 
 const rawConfig = require('../../config/config.json');
 
@@ -170,9 +168,13 @@ class MessageSender {
       const message = this.buildWeLinkMessage(options);
       const webhookUrls = config.notifier.welink.webhookUrls.split(',').map(url => url.trim());
       
+      logger.debug('WeLink 配置', { webhookUrls, messageText: message.content.text.substring(0, 50) });
+      
       const results = await Promise.all(
         webhookUrls.map(url => this.sendWebhookRequest(url, message))
       );
+
+      logger.debug('WeLink 请求结果', { results });
 
       // 检查每个结果的实际状态
       const processedResults = results.map((result, index) => {
@@ -208,7 +210,10 @@ class MessageSender {
       
       return processedResults;
     } catch (error) {
-      logger.error(`WeLink 通知发送失败：${error.message}`, options);
+      logger.error(`WeLink 通知发送异常：${error.message}`, { 
+        type: options.type, 
+        stack: error.stack 
+      });
       return [{ success: false, platform: 'welink', error: error.message }];
     }
   }
@@ -219,11 +224,12 @@ class MessageSender {
    * @returns {Promise<Array>} 发送结果
    */
   async sendAll(options) {
-    const results = await Promise.all([
-      this.sendFeishu(options),
-      this.sendWeLink(options)
+    // 顺序执行，避免共享状态问题
+    const [feishuResult, welinkResult] = await Promise.all([
+      this.sendFeishu({ ...options }),
+      this.sendWeLink({ ...options })
     ]);
-    return results;
+    return [feishuResult, welinkResult].flat();
   }
 
   /**
