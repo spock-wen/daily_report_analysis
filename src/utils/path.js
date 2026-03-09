@@ -55,6 +55,11 @@ function getMonthlyReportPath(month) {
   return path.join(REPORTS_DIR, 'monthly', `github-monthly-${month}.html`);
 }
 
+// AI 洞察路径辅助函数
+function getAIInsightsPath(type, identifier) {
+  return path.join(INSIGHTS_DIR, type, `insights-${identifier}.json`);
+}
+
 // 主页路径
 function getIndexReportPath() {
   return path.join(REPORTS_DIR, 'index.html');
@@ -85,6 +90,9 @@ module.exports = {
   getMonthlyBriefPath,
   getMonthlyInsightPath,
   getMonthlyReportPath,
+  
+  // AI 洞察路径
+  getAIInsightsPath,
   
   // 主页路径
   getIndexReportPath,

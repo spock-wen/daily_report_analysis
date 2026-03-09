@@ -35,7 +35,10 @@ async function callLLM(prompt, options = {}) {
 
   return new Promise((resolve, reject) => {
     const url = new URL(config.baseUrl);
-    url.pathname = '/chat/completions';
+    // 确保路径正确
+    if (!url.pathname.endsWith('/chat/completions')) {
+      url.pathname = url.pathname.replace(/\/$/, '') + '/chat/completions';
+    }
 
     const requestBody = JSON.stringify({
       model,
@@ -82,7 +85,10 @@ async function callLLM(prompt, options = {}) {
             reject(error);
           }
         } catch (error) {
-          logger.error('解析 LLM 响应失败', { error: error.message });
+          logger.error('解析 LLM 响应失败', { 
+            error: error.message,
+            rawData: data 
+          });
           reject(error);
         }
       });

@@ -145,6 +145,22 @@ async function listDir(dirPath) {
   }
 }
 
+/**
+ * 写入 HTML 文件
+ * @param {string} filePath - 文件路径
+ * @param {string} html - HTML 内容
+ */
+async function writeHtml(filePath, html) {
+  try {
+    await ensureDir(path.dirname(filePath));
+    await fs.writeFile(filePath, html, 'utf8');
+    logger.debug(`HTML 文件已写入：${filePath}`);
+  } catch (error) {
+    logger.error(`写入 HTML 文件失败：${filePath}`, { error: error.message });
+    throw error;
+  }
+}
+
 module.exports = {
   ensureDir,
   readJson,
@@ -155,4 +171,5 @@ module.exports = {
   copyFile,
   deleteFile,
   listDir,
+  writeHtml,
 };
