@@ -48,8 +48,8 @@ const checks = [
     type: 'file'
   },
   {
-    name: '部署指南',
-    path: 'docs/DEPLOYMENT.md',
+    name: '部署与开发指南',
+    path: 'docs/GUIDE.md',
     type: 'file'
   }
 ];
