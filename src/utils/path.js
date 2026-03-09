@@ -31,7 +31,7 @@ function getDailyReportPath(date) {
 
 // 周报路径辅助函数
 function getWeeklyBriefPath(week) {
-  return path.join(BRIEFS_DIR, 'weekly', `data-week-${week}.json`);
+  return path.join(BRIEFS_DIR, 'weekly', `data-weekly-${week}.json`);
 }
 
 function getWeeklyInsightPath(week) {

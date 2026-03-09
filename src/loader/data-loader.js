@@ -68,7 +68,8 @@ class DataLoader {
         throw new Error(`周报数据文件不存在：${briefPath}`);
       }
 
-      const briefData = await readJson(briefPath);
+      const rawData = await readJson(briefPath);
+      const briefData = this.normalizeDataFormat(rawData);
       
       let aiInsights = null;
       if (await fileExists(aiInsightsPath)) {
