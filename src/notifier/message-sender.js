@@ -174,14 +174,39 @@ class MessageSender {
         webhookUrls.map(url => this.sendWebhookRequest(url, message))
       );
 
-      logger.success(`WeLink 通知发送成功，共 ${results.length} 个群组`, { type: options.type });
-      return results.map((result, index) => ({
-        success: true,
-        platform: 'welink',
-        webhookIndex: index,
-        webhookUrl: webhookUrls[index],
-        result
-      }));
+      // 检查每个结果的实际状态
+      const processedResults = results.map((result, index) => {
+        // sendWebhookRequest 返回的结果中，success 字段表示是否成功
+        const isSuccess = result.success !== false && 
+                         (result.code === '0' || result.code === 0 || result.errcode === 0 || result.result?.code === '0');
+        
+        if (isSuccess) {
+          logger.info(`WeLink 群组 ${index + 1} 推送成功`, { webhookUrl: webhookUrls[index] });
+        } else {
+          logger.warn(`WeLink 群组 ${index + 1} 推送失败`, { 
+            webhookUrl: webhookUrls[index],
+            result 
+          });
+        }
+        
+        return {
+          success: isSuccess,
+          platform: 'welink',
+          webhookIndex: index,
+          webhookUrl: webhookUrls[index],
+          result,
+          error: isSuccess ? null : (result.error || 'WeLink server error')
+        };
+      });
+
+      const successCount = processedResults.filter(r => r.success).length;
+      if (successCount > 0) {
+        logger.success(`WeLink 通知发送成功：${successCount}/${results.length}`, { type: options.type });
+      } else {
+        logger.error(`WeLink 通知全部失败`, { type: options.type });
+      }
+      
+      return processedResults;
     } catch (error) {
       logger.error(`WeLink 通知发送失败：${error.message}`, options);
       return [{ success: false, platform: 'welink', error: error.message }];
