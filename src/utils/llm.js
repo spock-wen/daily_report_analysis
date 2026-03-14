@@ -4,6 +4,7 @@
  * 支持 Ollama 云端 API 和 OpenAI 兼容 API
  */
 
+require('dotenv').config();
 const https = require('https');
 const logger = require('./logger');
 
