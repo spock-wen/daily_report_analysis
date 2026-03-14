@@ -2,9 +2,13 @@
 
 /**
  * 周报生成脚本
- * 用法：node scripts/generate-weekly.js <week>
+ * 用法：node scripts/generate-weekly.js <week> [--no-push]
  * 示例：node scripts/generate-weekly.js 2026-W10
  *        node scripts/generate-weekly.js 2026-03-02 (周起始日期)
+ *        node scripts/generate-weekly.js 2026-W10 --no-push
+ * 
+ * 参数说明：
+ *   --no-push  跳过推送通知（调试模式）
  */
 
 // 加载环境变量
@@ -18,14 +22,20 @@ const HTMLGenerator = require('../src/generator/html-generator');
 const MessageSender = require('../src/notifier/message-sender');
 const logger = require('../src/utils/logger');
 
-// 获取周参数
-const week = process.argv[2];
+// 解析命令行参数
+const args = process.argv.slice(2);
+const noPush = args.includes('--no-push');
+
+// 过滤掉参数，只保留周标识
+const weekArg = args.find(arg => !arg.startsWith('--'));
+const week = weekArg;
 
 if (!week) {
   console.error('❌ 错误：请提供周参数');
-  console.error('用法：node scripts/generate-weekly.js <week>');
+  console.error('用法：node scripts/generate-weekly.js <week> [--no-push]');
   console.error('示例：node scripts/generate-weekly.js 2026-W10');
   console.error('      node scripts/generate-weekly.js 2026-03-02 (周起始日期)');
+  console.error('      node scripts/generate-weekly.js 2026-W10 --no-push');
   process.exit(1);
 }
 
@@ -35,6 +45,10 @@ const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 if (!weekRegex.test(week) && !dateRegex.test(week)) {
   console.error('❌ 错误：周格式必须是 YYYY-W10 或 YYYY-MM-DD (周起始日期)');
   process.exit(1);
+}
+
+if (noPush) {
+  console.log('ℹ️  调试模式：已禁用推送通知');
 }
 
 async function generateWeeklyReport() {
@@ -76,62 +90,67 @@ async function generateWeeklyReport() {
 
     // 步骤 4: 发送通知（可选）
     console.log('📤 步骤 4/4: 发送通知...');
-    const sender = new MessageSender();
-    let results = [];
     
-    // 加载洞察数据
-    const insightsPath = path.join(__dirname, '..', 'data', 'insights', 'weekly', `insights-${week}.json`);
-    let insights = null;
-    let notificationContent = null;
-    
-    if (fs.existsSync(insightsPath)) {
-      try {
-        insights = JSON.parse(fs.readFileSync(insightsPath, 'utf-8'));
-        console.log(`   ✅ 洞察数据已加载：${insightsPath}`);
-      } catch (error) {
-        console.warn(`   ⚠️  洞察数据加载失败，使用降级模式：${error.message}`);
-      }
+    if (noPush) {
+      console.log('   ⏭️  已跳过推送通知（--no-push）\n');
     } else {
-      console.warn(`   ⚠️  洞察数据不存在，使用降级模式：${insightsPath}`);
-    }
-    
-    // 发送周报通知（使用专用方法）
-    if (insights) {
-      try {
-        // 确保 weeklyData 有 week 字段
-        const weeklyDataForNotification = {
-          ...weeklyData,
-          week: weeklyData.week || week
-        };
-        
-        const results = await sender.sendWeeklyAll(weeklyDataForNotification, insights, {
-          platforms: ['feishu', 'welink']
-        });
-        
-        // 构建报告 URL
-        notificationContent = sender.generateNotificationContent('weekly', weeklyDataForNotification, insights);
-        
-        console.log(`   ✅ 通知发送完成`);
-        console.log(`      - 飞书：${results.feishu?.success ? '成功' : '失败'}`);
-        console.log(`      - WeLink: ${results.welink ? (Array.isArray(results.welink) ? results.welink.filter(r => r.success).length + '成功' : results.welink.success ? '成功' : '失败') : '未发送'}\n`);
-      } catch (error) {
-        console.error(`   ❌ 通知发送失败：${error.message}`);
-      }
-    } else {
-      // 降级模式：使用旧版通知方式
-      console.log('   ℹ️  使用降级模式发送通知...');
-      notificationContent = sender.generateNotificationContent('weekly', weeklyData);
+      const sender = new MessageSender();
+      let results = [];
       
-      const notifyOptions = {
-        type: 'weekly',
-        title: notificationContent.title,
-        content: notificationContent.content,
-        reportUrl: notificationContent.reportUrl
-      };
+      // 加载洞察数据
+      const insightsPath = path.join(__dirname, '..', 'data', 'insights', 'weekly', `insights-${week}.json`);
+      let insights = null;
+      let notificationContent = null;
+      
+      if (fs.existsSync(insightsPath)) {
+        try {
+          insights = JSON.parse(fs.readFileSync(insightsPath, 'utf-8'));
+          console.log(`   ✅ 洞察数据已加载：${insightsPath}`);
+        } catch (error) {
+          console.warn(`   ⚠️  洞察数据加载失败，使用降级模式：${error.message}`);
+        }
+      } else {
+        console.warn(`   ⚠️  洞察数据不存在，使用降级模式：${insightsPath}`);
+      }
+      
+      // 发送周报通知（使用专用方法）
+      if (insights) {
+        try {
+          // 确保 weeklyData 有 week 字段
+          const weeklyDataForNotification = {
+            ...weeklyData,
+            week: weeklyData.week || week
+          };
+          
+          const results = await sender.sendWeeklyAll(weeklyDataForNotification, insights, {
+            platforms: ['feishu', 'welink']
+          });
+          
+          // 构建报告 URL
+          notificationContent = sender.generateNotificationContent('weekly', weeklyDataForNotification, insights);
+          
+          console.log(`   ✅ 通知发送完成`);
+          console.log(`      - 飞书：${results.feishu?.success ? '成功' : '失败'}`);
+          console.log(`      - WeLink: ${results.welink ? (Array.isArray(results.welink) ? results.welink.filter(r => r.success).length + '成功' : results.welink.success ? '成功' : '失败') : '未发送'}\n`);
+        } catch (error) {
+          console.error(`   ❌ 通知发送失败：${error.message}`);
+        }
+      } else {
+        // 降级模式：使用旧版通知方式
+        console.log('   ℹ️  使用降级模式发送通知...');
+        notificationContent = sender.generateNotificationContent('weekly', weeklyData);
+        
+        const notifyOptions = {
+          type: 'weekly',
+          title: notificationContent.title,
+          content: notificationContent.content,
+          reportUrl: notificationContent.reportUrl
+        };
 
-      const results = await sender.sendAll(notifyOptions);
-      const successCount = results.filter(r => r.success).length;
-      console.log(`   ✅ 通知发送（降级）：${successCount}/${results.length} 成功\n`);
+        const results = await sender.sendAll(notifyOptions);
+        const successCount = results.filter(r => r.success).length;
+        console.log(`   ✅ 通知发送（降级）：${successCount}/${results.length} 成功\n`);
+      }
     }
 
     // 完成

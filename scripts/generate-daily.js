@@ -2,8 +2,12 @@
 
 /**
  * 日报生成脚本
- * 用法：node scripts/generate-daily.js <date>
+ * 用法：node scripts/generate-daily.js <date> [--no-push]
  * 示例：node scripts/generate-daily.js 2026-03-08
+ *       node scripts/generate-daily.js 2026-03-08 --no-push
+ * 
+ * 参数说明：
+ *   --no-push  跳过推送通知（调试模式）
  * 
  * 时区处理说明：
  * - 前置项目使用 UTC 时间，生成的数据文件使用 UTC 日期戳
@@ -23,15 +27,25 @@ const MessageSender = require('../src/notifier/message-sender');
 const logger = require('../src/utils/logger');
 const { getDailyBriefPath } = require('../src/utils/path');
 
-// 获取日期参数
-let date = process.argv[2];
+// 解析命令行参数
+const args = process.argv.slice(2);
+const noPush = args.includes('--no-push');
+
+// 过滤掉参数，只保留日期
+const dateArg = args.find(arg => !arg.startsWith('--'));
+let date = dateArg;
 let actualDate = date; // 实际使用的日期（可能回退）
 
 if (!date) {
   console.error('❌ 错误：请提供日期参数');
-  console.error('用法：node scripts/generate-daily.js <date>');
+  console.error('用法：node scripts/generate-daily.js <date> [--no-push]');
   console.error('示例：node scripts/generate-daily.js 2026-03-08');
+  console.error('      node scripts/generate-daily.js 2026-03-08 --no-push');
   process.exit(1);
+}
+
+if (noPush) {
+  console.log('ℹ️  调试模式：已禁用推送通知');
 }
 
 // 验证日期格式 (YYYY-MM-DD)
@@ -180,24 +194,31 @@ async function generateDailyReport() {
 
     // 步骤 4: 发送通知（可选）
     console.log('📤 步骤 4/4: 发送通知...');
+    
+    // 先生成通知内容（用于获取报告 URL）
     const sender = new MessageSender();
     const notificationContent = sender.generateNotificationContent('daily', dailyData);
+    let results = [];
     
-    // 构建通知消息（包含 TOP5 和核心洞察）
-    const notifyOptions = {
-      type: 'daily',
-      title: notificationContent.title,
-      content: notificationContent.content,
-      reportUrl: notificationContent.reportUrl,
-      summary: notificationContent.summary,
-      top5: notificationContent.top5,
-      insight: notificationContent.insight
-    };
+    if (noPush) {
+      console.log('   ⏭️  已跳过推送通知（--no-push）\n');
+    } else {
+      // 构建通知消息（包含 TOP5 和核心洞察）
+      const notifyOptions = {
+        type: 'daily',
+        title: notificationContent.title,
+        content: notificationContent.content,
+        reportUrl: notificationContent.reportUrl,
+        summary: notificationContent.summary,
+        top5: notificationContent.top5,
+        insight: notificationContent.insight
+      };
 
-    // 发送通知（如果配置了 webhook）
-    const results = await sender.sendAll(notifyOptions);
-    const successCount = results.filter(r => r.success).length;
-    console.log(`   ✅ 通知发送：${successCount}/${results.length} 成功\n`);
+      // 发送通知（如果配置了 webhook）
+      results = await sender.sendAll(notifyOptions);
+      const successCount = results.filter(r => r.success).length;
+      console.log(`   ✅ 通知发送：${successCount}/${results.length} 成功\n`);
+    }
 
     // 完成
     console.log('='.repeat(60));

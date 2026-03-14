@@ -2,8 +2,12 @@
 
 /**
  * 月报生成脚本
- * 用法：node scripts/generate-monthly.js <month>
+ * 用法：node scripts/generate-monthly.js <month> [--no-push]
  * 示例：node scripts/generate-monthly.js 2026-03
+ *        node scripts/generate-monthly.js 2026-03 --no-push
+ * 
+ * 参数说明：
+ *   --no-push  跳过推送通知（调试模式）
  */
 
 // 加载环境变量
@@ -16,13 +20,19 @@ const HTMLGenerator = require('../src/generator/html-generator');
 const MessageSender = require('../src/notifier/message-sender');
 const logger = require('../src/utils/logger');
 
-// 获取月份参数
-const month = process.argv[2];
+// 解析命令行参数
+const args = process.argv.slice(2);
+const noPush = args.includes('--no-push');
+
+// 过滤掉参数，只保留月份
+const monthArg = args.find(arg => !arg.startsWith('--'));
+const month = monthArg;
 
 if (!month) {
   console.error('❌ 错误：请提供月份参数');
-  console.error('用法：node scripts/generate-monthly.js <month>');
+  console.error('用法：node scripts/generate-monthly.js <month> [--no-push]');
   console.error('示例：node scripts/generate-monthly.js 2026-03');
+  console.error('      node scripts/generate-monthly.js 2026-03 --no-push');
   process.exit(1);
 }
 
@@ -31,6 +41,10 @@ const monthRegex = /^\d{4}-\d{2}$/;
 if (!monthRegex.test(month)) {
   console.error('❌ 错误：月份格式必须是 YYYY-MM');
   process.exit(1);
+}
+
+if (noPush) {
+  console.log('ℹ️  调试模式：已禁用推送通知');
 }
 
 async function generateMonthlyReport() {
@@ -72,21 +86,28 @@ async function generateMonthlyReport() {
 
     // 步骤 4: 发送通知（可选）
     console.log('📤 步骤 4/4: 发送通知...');
+    
+    // 先生成通知内容（用于获取报告 URL）
     const sender = new MessageSender();
     const notificationContent = sender.generateNotificationContent('monthly', monthlyData);
+    let results = [];
     
-    // 构建通知消息
-    const notifyOptions = {
-      type: 'monthly',
-      title: notificationContent.title,
-      content: notificationContent.content,
-      reportUrl: notificationContent.reportUrl
-    };
+    if (noPush) {
+      console.log('   ⏭️  已跳过推送通知（--no-push）\n');
+    } else {
+      // 构建通知消息
+      const notifyOptions = {
+        type: 'monthly',
+        title: notificationContent.title,
+        content: notificationContent.content,
+        reportUrl: notificationContent.reportUrl
+      };
 
-    // 发送通知（如果配置了 webhook）
-    const results = await sender.sendAll(notifyOptions);
-    const successCount = results.filter(r => r.success).length;
-    console.log(`   ✅ 通知发送：${successCount}/${results.length} 成功\n`);
+      // 发送通知（如果配置了 webhook）
+      results = await sender.sendAll(notifyOptions);
+      const successCount = results.filter(r => r.success).length;
+      console.log(`   ✅ 通知发送：${successCount}/${results.length} 成功\n`);
+    }
 
     // 完成
     console.log('='.repeat(60));
