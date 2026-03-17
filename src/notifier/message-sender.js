@@ -351,22 +351,10 @@ class MessageSender {
     const timeStamp = Date.now();
     const uuid = this.generateUUID();
 
-    // 如果 content 已经是完整消息（周报模式），直接使用
-    if (typeof content === 'string' && content.length > 50) {
-      const message = {
-        messageType: 'text',
-        content: {
-          text: content
-        },
-        timeStamp,
-        uuid
-      };
-      
-      logger.debug('WeLink 消息构建完成（直接使用 content）', { textLength: content.length });
-      return message;
-    }
+    // WeLink 文本消息最大长度限制
+    const WELINK_MAX_LENGTH = 500;
 
-    // 否则构建详细的 WeLink 消息（日报/月报模式）
+    // 构建精简的 WeLink 消息（不直接复用飞书内容）
     let messageText = `${title}\n\n`;
     
     // 今日概览
@@ -376,7 +364,7 @@ class MessageSender {
     
     // TOP5 项目
     if (top5 && top5.length > 0) {
-      messageText += `🔥 TOP5 项目：\n`;
+      messageText += `🔥 TOP5：\n`;
       const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
       top5.forEach((repo, i) => {
         const medal = medals[i] || `${i + 1}️⃣`;
@@ -386,13 +374,19 @@ class MessageSender {
       messageText += '\n';
     }
     
-    // 核心洞察
+    // 核心洞察（截断到80字）
     if (insight) {
-      messageText += `💡 核心洞察：\n${insight}\n\n`;
+      const truncatedInsight = insight.length > 80 ? insight.substring(0, 80) + '...' : insight;
+      messageText += `💡 ${truncatedInsight}\n\n`;
     }
     
     // 报告链接
-    messageText += `📋 完整报告：\n${reportUrl}`;
+    messageText += `📋 ${reportUrl}`;
+
+    // 确保消息不超过 WeLink 限制
+    if (messageText.length > WELINK_MAX_LENGTH) {
+      messageText = messageText.substring(0, WELINK_MAX_LENGTH - 3) + '...';
+    }
 
     // WeLink 消息格式（文本类型）
     const message = {
@@ -404,6 +398,7 @@ class MessageSender {
       uuid
     };
 
+    logger.debug('WeLink 消息构建完成', { textLength: messageText.length });
     return message;
   }
 
