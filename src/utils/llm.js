@@ -61,7 +61,6 @@ async function callLLM(prompt, options = {}) {
   // 添加 max_tokens (OpenAI) 或 num_predict (Ollama)
   if (isOllama) {
     requestBody.options = {
-      num_predict: maxTokens,
       temperature: temperature
     };
   } else {
@@ -134,19 +133,25 @@ async function callLLM(prompt, options = {}) {
 
           const data = JSON.parse(jsonStr);
           
-          if (data.message && data.message.content) {
-            // Ollama 格式
-            fullContent += data.message.content;
-            process.stdout.write(data.message.content); // 实时打印，证明它活着
-          } else if (data.choices && data.choices[0].delta && data.choices[0].delta.content) {
-            // OpenAI 格式
-            fullContent += data.choices[0].delta.content;
-            process.stdout.write(data.choices[0].delta.content);
-          }
-          
-          if (data.done) {
-             // Ollama 完成标志
-          }
+          if (data.message) {
+              // Ollama 格式：检查 content 是否存在（注意空字符串也是 falsy）
+              if (data.message.content !== undefined && data.message.content !== null) {
+                fullContent += data.message.content;
+                process.stdout.write(data.message.content);
+              } else if (data.message.thinking) {
+                // 只有 thinking 没有 content，打印提示但不累加
+                process.stdout.write('[thinking]');
+              }
+            } else if (data.choices && data.choices[0].delta && data.choices[0].delta.content) {
+              // OpenAI 格式
+              fullContent += data.choices[0].delta.content;
+              process.stdout.write(data.choices[0].delta.content);
+            }
+
+            // done=true 时退出循环（放在这里确保所有消息类型都能正确退出）
+            if (data.done) {
+              break;
+            }
         } catch (e) {
           // 忽略解析错误，继续处理下一行
         }
