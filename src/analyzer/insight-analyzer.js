@@ -36,7 +36,7 @@ class InsightAnalyzer {
       // 保存结果
       await this.saveInsights('daily', dailyData.date, insights);
 
-      logger.success('日报 AI 分析完成', { 
+      logger.success('日报 AI 分析完成', {
         date: dailyData.date,
         projects_analyzed: insights.project_insights?.length || 0
       });
@@ -98,19 +98,19 @@ class InsightAnalyzer {
       // 不要抛出异常，返回基础结构以允许流程继续
       return {
         weeklyTheme: {
-            oneLiner: "生成报告时发生错误",
-            detailed: "AI 分析服务暂时不可用，无法生成详细洞察。"
+          oneLiner: "生成报告时发生错误",
+          detailed: "AI 分析服务暂时不可用，无法生成详细洞察。"
         },
         hypeIndex: { score: 0, reason: error.message },
         hot: [],
         highlights: [],
         trends: {
-            shortTerm: []
+          shortTerm: []
         },
         emergingFields: [],
         recommendations: {
-            developers: [],
-            enterprises: []
+          developers: [],
+          enterprises: []
         },
         topProjects: [],
         action: []
@@ -168,7 +168,7 @@ class InsightAnalyzer {
 
       // 准备上下文数据：将每日项目列表格式化为文本
       const dailyDataText = dailyDataList.map(day => {
-        const projects = day.projects.slice(0, 15).map(p => 
+        const projects = day.projects.slice(0, 15).map(p =>
           `- ${p.fullName}: ${p.description} (AI: ${p.isAI}, Trends: ${p.trend_data ? p.trend_data.join(', ') : ''})`
         ).join('\n');
         return `### ${day.date} (Day ${day.dayIndex + 1})\n${projects}`;
@@ -189,7 +189,7 @@ class InsightAnalyzer {
 
       // 解析结果
       const deepTrends = this.parseDeepTrends(result);
-      
+
       // 保存结果（作为周报 insights 的一部分或独立文件，这里暂存日志）
       logger.success('深度趋势分析完成', { title: deepTrends?.title });
 
@@ -209,11 +209,11 @@ class InsightAnalyzer {
       let jsonContent = cleanResponse;
       const markdownMatch = cleanResponse.match(/```(?:json)?\s*([\s\S]*?)```/);
       if (markdownMatch) jsonContent = markdownMatch[1];
-      
+
       const firstBrace = jsonContent.indexOf('{');
       const lastBrace = jsonContent.lastIndexOf('}');
       if (firstBrace === -1 || lastBrace === -1) throw new Error('无效的 JSON 结构');
-      
+
       return JSON.parse(jsonContent.substring(firstBrace, lastBrace + 1));
     } catch (error) {
       logger.warn(`解析深度趋势 JSON 失败: ${error.message}`);
@@ -228,25 +228,40 @@ class InsightAnalyzer {
    */
   prepareContextData(briefData) {
     const trendingRepos = briefData.trending_repos || [];
-    
+
+    logger.debug('准备上下文数据', {
+      trendingReposCount: trendingRepos.length,
+      sampleRepo: trendingRepos[0]
+    });
+
     // 提取项目关键信息
     const projects = trendingRepos.map(repo => ({
-      name: repo.fullName || repo.name,
-      description: repo.description || '',
+      name: repo.name || repo.fullName,
+      fullName: repo.fullName || repo.name,
+      description: repo.description || repo.desc || '',
       stars: repo.stars || 0,
       forks: repo.forks || 0,
       language: repo.language || '',
-      topics: repo.topics || []
+      topics: repo.topics || [],
+      url: repo.url || '',
+      isAI: repo.isAI || false
     }));
 
     // 统计信息
     const stats = briefData.stats || {};
 
-    return {
+    const result = {
       projects,
       stats,
       generatedAt: briefData.generated_at || new Date().toISOString()
     };
+
+    logger.debug('上下文数据准备完成', {
+      projectsCount: result.projects.length,
+      sampleProject: result.projects[0]
+    });
+
+    return result;
   }
 
   /**
@@ -258,12 +273,24 @@ class InsightAnalyzer {
   buildPrompt(template, contextData) {
     // 支持两种模板格式：{variable} 和 {{variable}}
     let prompt = template;
-    
+
     // 替换基础变量
     prompt = prompt.replace('{date}', contextData.generatedAt || new Date().toISOString());
     prompt = prompt.replace('{projectCount}', contextData.projects.length);
-    prompt = prompt.replace('{projects}', JSON.stringify(contextData.projects, null, 2));
-    
+
+    // 确保项目数据格式正确
+    const projectsForPrompt = contextData.projects.map(p => ({
+      name: p.name,
+      fullName: p.fullName || p.name,
+      description: p.description || '',
+      stars: p.stars || 0,
+      language: p.language || '',
+      url: p.url || '',
+      isAI: p.isAI || false
+    }));
+
+    prompt = prompt.replace('{projects}', JSON.stringify(projectsForPrompt, null, 2));
+
     // 替换统计变量
     if (contextData.stats) {
       prompt = prompt.replace('{totalProjects}', contextData.stats.total_projects || contextData.stats.total || 0);
@@ -273,11 +300,11 @@ class InsightAnalyzer {
       prompt = prompt.replace('{week}', contextData.generatedAt || '');
       prompt = prompt.replace('{month}', contextData.generatedAt?.substring(0, 7) || '');
     }
-    
+
     // 支持双大括号格式（向后兼容）
     prompt = prompt.replace('{{projects_count}}', contextData.projects.length);
     prompt = prompt.replace('{{projects_json}}', JSON.stringify(contextData.projects, null, 2));
-    
+
     if (contextData.stats && prompt.includes('{{stats_json}}')) {
       prompt = prompt.replace('{{stats_json}}', JSON.stringify(contextData.stats, null, 2));
     }
@@ -293,28 +320,43 @@ class InsightAnalyzer {
    */
   parseInsights(llmResponse, briefData) {
     try {
+      // 记录原始响应（调试用）
+      logger.debug('AI 原始响应', {
+        length: llmResponse.length,
+        preview: llmResponse.substring(0, 500)
+      });
+
       // 预处理：移除可能的 <think>...</think> 标签内容
       let cleanResponse = llmResponse.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
-      
+
+      // 记录清理后的响应
+      logger.debug('清理后响应', {
+        length: cleanResponse.length,
+        preview: cleanResponse.substring(0, 500)
+      });
+
       // 尝试提取 JSON 内容（处理 markdown 代码块包裹的情况）
       let jsonContent = cleanResponse;
-      
+
       // 如果响应包含 markdown 代码块，提取 JSON 部分
       const markdownMatch = cleanResponse.match(/```(?:json)?\s*([\s\S]*?)```/);
       if (markdownMatch) {
         jsonContent = markdownMatch[1];
+        logger.debug('从 Markdown 代码块中提取 JSON');
       }
-      
+
       // 尝试从内容中提取 JSON 对象
       // 使用更宽松的正则，找到第一个 { 和最后一个 }
       const firstBrace = jsonContent.indexOf('{');
       const lastBrace = jsonContent.lastIndexOf('}');
-      
+
       if (firstBrace === -1 || lastBrace === -1 || lastBrace < firstBrace) {
+        logger.error('无法提取 JSON，响应内容:', { jsonContent });
         throw new Error('无法从响应中提取 JSON：未找到有效的 JSON 对象结构');
       }
-      
+
       jsonContent = jsonContent.substring(firstBrace, lastBrace + 1);
+      logger.debug('提取的 JSON 内容', { jsonContent: jsonContent.substring(0, 300) });
 
       const insights = JSON.parse(jsonContent);
 
