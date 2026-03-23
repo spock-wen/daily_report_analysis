@@ -12,6 +12,7 @@
 
 const logger = require('../utils/logger');
 const { writeJson } = require('../utils/fs');
+const fs = require('fs');
 const { 
   getDailyBriefPath, 
   getWeeklyBriefPath, 
@@ -98,12 +99,7 @@ class ReportPipeline {
         Object.assign(data, enhancedData);
       }, result);
 
-      // 步骤 2: 保存原始数据 JSON
-      await this.executeStep('save-data', async () => {
-        await this.saveRawData(data, type);
-      }, result);
-
-      // 步骤 3: 调用 AI 分析生成洞察
+      // 步骤 2: 调用 AI 分析生成洞察
       if (this.enableAI) {
         await this.executeStep('ai-analysis', async () => {
           result.insights = await this.generateAIInsights(data, type);
@@ -111,6 +107,15 @@ class ReportPipeline {
       } else {
         logger.info('[ReportPipeline] AI 分析已禁用，跳过');
       }
+
+      // 步骤 3: 保存数据 JSON（包含 AI 洞察）
+      await this.executeStep('save-data', async () => {
+        // 如果有 AI 洞察，合并到数据中保存
+        if (result.insights) {
+          data.aiInsights = result.insights;
+        }
+        await this.saveRawData(data, type);
+      }, result);
 
       // 步骤 4: 生成 HTML 报告
       if (this.enableHTML) {
@@ -325,6 +330,11 @@ class ReportPipeline {
     // 生成 summary
     formatted.summary = this.generateSummary(formatted);
     
+    // 保留 AI 洞察（如果有）
+    if (data.aiInsights) {
+      formatted.aiInsights = data.aiInsights;
+    }
+    
     return formatted;
   }
 
@@ -453,10 +463,21 @@ class ReportPipeline {
       return data.weekStart;
     }
     
-    // 使用 scrapedAt 计算当前周
+    // 使用 scrapedAt 计算周标识符
     const scrapeDate = data.scrapedAt ? new Date(data.scrapedAt) : new Date();
-    const year = scrapeDate.getFullYear();
-    const weekNumber = this.getISOWeek(scrapeDate);
+    
+    // 如果是周一，应该生成上周的周报（汇总上周一到周日的数据）
+    const dayOfWeek = scrapeDate.getDay(); // 0=周日, 1=周一, ..., 6=周六
+    let targetDate = new Date(scrapeDate);
+    
+    if (dayOfWeek === 1) {
+      // 周一：生成上周的周报（减去7天）
+      targetDate.setDate(targetDate.getDate() - 7);
+    }
+    // 其他时间：生成本周的周报
+    
+    const year = targetDate.getFullYear();
+    const weekNumber = this.getISOWeek(targetDate);
     const weekStr = String(weekNumber).padStart(2, '0');
     
     return `${year}-W${weekStr}`;
@@ -498,7 +519,35 @@ class ReportPipeline {
       if (type === 'daily') {
         insights = await this.analyzer.analyzeDaily(analysisData);
       } else if (type === 'weekly') {
-        insights = await this.analyzer.analyzeWeekly(analysisData);
+        // 周报分析：同时进行周度分析和深度趋势分析
+        const weeklyInsights = await this.analyzer.analyzeWeekly(analysisData);
+        
+        // 加载上周的日报数据进行深度趋势分析
+        const weekStart = data.weekStart || this.getWeeklyIdentifier(data);
+        const dailyData = await this.loadWeeklyDailyData(weekStart);
+        
+        if (dailyData && dailyData.length > 0) {
+          logger.info(`[ReportPipeline] 加载了 ${dailyData.length} 天的日报数据，进行深度趋势分析...`);
+          
+          // 构建周范围
+          const weekRange = {
+            start: dailyData[0].date,
+            end: dailyData[dailyData.length - 1].date
+          };
+          
+          const deepTrends = await this.analyzer.analyzeDeepTrends(dailyData, weekRange);
+          
+          if (deepTrends) {
+            insights = {
+              ...weeklyInsights,
+              deepTrends
+            };
+          } else {
+            insights = weeklyInsights;
+          }
+        } else {
+          insights = weeklyInsights;
+        }
       } else if (type === 'monthly') {
         insights = await this.analyzer.analyzeMonthly(analysisData);
       } else {
@@ -521,6 +570,67 @@ class ReportPipeline {
         topProjects: [],
         error: error.message
       };
+    }
+  }
+
+  /**
+   * 加载指定周的日报数据
+   * @param {string} weekIdentifier - 周标识符（如：2026-W12）
+   * @returns {Promise<Array>} 日报数据列表
+   */
+  async loadWeeklyDailyData(weekIdentifier) {
+    try {
+      logger.info(`[ReportPipeline] 加载周 ${weekIdentifier} 的日报数据...`);
+      
+      // 解析周标识符
+      const match = weekIdentifier.match(/^(\d{4})-W(\d{2})$/);
+      if (!match) {
+        logger.warn(`[ReportPipeline] 无效的周标识符：${weekIdentifier}`);
+        return [];
+      }
+      
+      const year = parseInt(match[1]);
+      const week = parseInt(match[2]);
+      
+      // 计算该周的起始日期（周一）
+      const jan1 = new Date(year, 0, 1);
+      const dayOfWeek = jan1.getDay() || 7; // 1=周一, ..., 7=周日
+      const daysToFirstMonday = dayOfWeek <= 4 ? 1 - dayOfWeek : 8 - dayOfWeek;
+      const firstMonday = new Date(year, 0, 1 + daysToFirstMonday);
+      const weekStart = new Date(firstMonday);
+      weekStart.setDate(firstMonday.getDate() + (week - 1) * 7);
+      
+      // 加载该周的7天数据
+      const dailyData = [];
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(weekStart);
+        date.setDate(weekStart.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        try {
+          const filePath = getDailyBriefPath(dateStr);
+          logger.debug(`[ReportPipeline] 检查日报文件：${filePath}`);
+          if (fs.existsSync(filePath)) {
+            logger.debug(`[ReportPipeline] 找到日报文件：${filePath}`);
+            const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+            dailyData.push({
+              date: dateStr,
+              dayIndex: i,
+              projects: data.projects || data.trending_repos || []
+            });
+          } else {
+            logger.debug(`[ReportPipeline] 日报文件不存在：${filePath}`);
+          }
+        } catch (err) {
+          logger.warn(`[ReportPipeline] 加载 ${dateStr} 日报数据失败：${err.message}`);
+        }
+      }
+      
+      logger.info(`[ReportPipeline] 成功加载 ${dailyData.length} 天的日报数据`);
+      return dailyData;
+    } catch (error) {
+      logger.error(`[ReportPipeline] 加载日报数据失败：${error.message}`);
+      return [];
     }
   }
 
