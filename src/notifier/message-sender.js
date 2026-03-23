@@ -487,7 +487,8 @@ class MessageSender {
     };
 
     const date = data.date || data.weekStart || data.month;
-    const trendingRepos = data.brief?.trending_repos || data.trending_repos || [];
+    // 支持多种数据格式：projects（新格式）、trending_repos、brief.trending_repos
+    const trendingRepos = data.projects || data.brief?.trending_repos || data.trending_repos || [];
     const aiInsights = data.aiInsights || {};
     
     // 构建标题
@@ -568,10 +569,17 @@ class MessageSender {
     // 将文本中的项目名转换为链接（只匹配实际存在的项目）
     const linkifyRepos = (text) => {
       let result = text;
-      repoNames.forEach(repoName => {
-        // 使用词边界匹配，避免部分匹配
-        const regex = new RegExp(`\\b${repoName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'g');
-        result = result.replace(regex, `[${repoName}](https://github.com/${repoName})`);
+      // 按 repoName 长度降序排序，避免短名称匹配到长名称的一部分
+      const sortedRepoNames = Array.from(repoNames).sort((a, b) => b.length - a.length);
+      sortedRepoNames.forEach(repoName => {
+        // 使用前后瞻断言确保完整匹配，避免部分匹配
+        // 对于 owner/repo 格式，使用更精确的匹配模式
+        const escapedRepoName = repoName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // 匹配项目名，前面是行首或空格/标点，后面是行尾或空格/标点
+        const regex = new RegExp(`(^|[\\s\\(\\[\\{])${escapedRepoName}($|[\\s\\)\\]\\},.;:])`, 'g');
+        result = result.replace(regex, (match, prefix, suffix) => {
+          return `${prefix}[${repoName}](https://github.com/${repoName})${suffix}`;
+        });
       });
       return result;
     };
