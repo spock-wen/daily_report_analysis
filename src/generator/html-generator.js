@@ -672,7 +672,7 @@ class HTMLGenerator {
         <div class="top-projects-grid">
           ${topProjects.map((project, index) => {
             const fullProject = projects.find(p => (p.repo || p.fullName) === project.repo);
-            const desc = fullProject?.desc || fullProject?.description || project.reason || '';
+            const desc = fullProject?.descZh || fullProject?.desc || fullProject?.description || project.reason || '';
             const projectUrl = `https://github.com/${project.repo}`;
             
             return `

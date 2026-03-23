@@ -1,83 +1,61 @@
 # GitHub Trending 报告系统
 
-## 项目状态
+## 项目简介
 
-**当前分支**: `main` - 稳定版本
-
-本项目是一个**完整的 GitHub Trending 报告系统**，包含数据抓取、AI 分析、报告生成全流程。
-
-## 项目定位
-
-本系统是一个**一站式报告生成系统**，无需依赖其他项目：
-
-- ✅ **数据抓取**：直接抓取 GitHub Trending 日榜/周榜/月榜
-- ✅ **AI 深度分析**：使用 LLM 对趋势项目进行智能分析
-- ✅ **HTML 报告生成**：生成美观的日报/周报/月报
-- ✅ **统一主页管理**：一个页面管理所有报告
-- ✅ **可选推送通知**：支持飞书、WeLink 等渠道推送
+本项目是一个**完整的 GitHub Trending 报告系统**，自动抓取 GitHub 热门项目，通过 AI 进行深度分析，生成美观的日报、周报和月报。
 
 ## 核心功能
 
-✨ **已实现的功能**：
-
-- ✅ **完整爬虫**：内置 GitHub Trending 数据抓取，支持缓存、重试机制
-- ✅ **统一架构**：日报、周报、月报使用相同的生成流程
-- ✅ **统一 AI 分析**：所有报告类型共享 AI 分析模块
-- ✅ **统一主页**：一个页面管理所有报告
-- ✅ **模块化设计**：数据加载、AI 分析、HTML 生成、推送通知完全解耦
-- ✅ **统一 CLI**：简单的命令行接口
-- ✅ **灵活配置**：环境变量管理敏感信息，支持服务启用/禁用控制
-- ✅ **完善测试**：核心模块全覆盖的测试体系
-- ✅ **Ollama 云端集成**：支持 Ollama 云端 API，无需本地 GPU 即可运行 AI 分析
+- ✅ **数据抓取**：自动抓取 GitHub Trending 日榜/周榜/月榜
+- ✅ **GitHub API 增强**：获取项目详细信息（星数、fork、语言等）
+- ✅ **AI 深度分析**：使用 LLM 对趋势项目进行智能分析
+- ✅ **项目分析**：自动翻译项目描述，生成核心功能、适用场景、热度趋势
+- ✅ **HTML 报告生成**：生成美观的日报/周报/月报
+- ✅ **统一主页管理**：一个页面管理所有报告
+- ✅ **可选推送通知**：支持飞书、WeLink 等渠道推送
 
 ## 目录结构
 
 ```
 项目根目录/
 ├── src/                      # 源代码
-│   ├── crawler/              # 数据抓取模块
-│   │   ├── crawl.js          # 爬虫主入口
-│   │   ├── fetcher.js        # 页面获取
-│   │   ├── parser.js         # HTML 解析
-│   │   ├── github_api.js     # GitHub API 增强
-│   │   ├── generator.js      # JSON 数据生成
-│   │   ├── retry.js          # 重试机制
-│   │   └── utils.js          # 工具函数
+│   ├── scraper/              # 数据抓取模块（新版）
+│   │   ├── index.js          # 抓取器入口
+│   │   ├── complete-workflow.js  # 完整工作流
+│   │   ├── report-pipeline.js    # 报告生成流水线
+│   │   ├── github-api.js     # GitHub API 集成
+│   │   ├── project-analyzer.js   # 项目分析器（翻译+分析）
+│   │   ├── strategies/       # 抓取策略
+│   │   │   ├── daily-scraper.js
+│   │   │   ├── weekly-scraper.js
+│   │   │   └── monthly-scraper.js
+│   │   └── parsers/          # HTML 解析器
+│   │       └── github-trending-parser.js
 │   ├── analyzer/             # AI 分析
+│   │   └── insight-analyzer.js
 │   ├── generator/            # HTML 生成
+│   │   └── html-generator.js
 │   ├── notifier/             # 推送通知
-│   ├── utils/                # 工具函数
-│   └── index.js              # 主入口文件
+│   └── utils/                # 工具函数
 ├── scripts/                  # 可执行脚本
-│   ├── generate-daily.js     # 生成日报（从已有数据）
-│   ├── generate-weekly.js    # 生成周报（从已有数据）
-│   ├── generate-monthly.js   # 生成月报（从已有数据）
-│   ├── generate-all.js       # 生成所有报告
+│   ├── run-daily-workflow.js     # 日报完整工作流
+│   ├── run-weekly-workflow.js    # 周报完整工作流
 │   └── generate-index.js     # 生成首页
-├── tests/                    # 测试文件
 ├── data/                     # 数据目录
 │   ├── briefs/               # 输入数据
 │   │   ├── daily/
 │   │   ├── weekly/
 │   │   └── monthly/
 │   └── insights/             # AI 分析结果
-│       ├── daily/
-│       └── weekly/
-├── cache/                    # 爬虫缓存
 ├── reports/                  # HTML 输出
 │   ├── daily/
 │   ├── weekly/
 │   ├── monthly/
-│   └── index.html            # 统一主页
+│   └── index.html
 ├── public/                   # 静态资源
-│   └── css/                  # 样式文件
+│   └── css/
 ├── config/                   # 配置文件
-│   ├── config.json           # 项目配置（可安全提交）
 │   └── prompts.json          # AI 提示词
-├── docs/                     # 文档
-│   ├── API.md                # API 文档
-│   ├── GUIDE.md              # 部署与开发指南
-│   └── CONFIG.md             # 配置说明
 └── .env.example              # 环境变量示例
 ```
 
@@ -99,150 +77,129 @@ cp .env.example .env
 **必要配置项**：
 
 - `LLM_API_KEY` - LLM API 密钥（必需）
-- `LLM_BASE_URL` - LLM API 基础 URL（默认：<https://ollama.com）>
+- `LLM_BASE_URL` - LLM API 基础 URL（默认：https://ollama.com）
 - `LLM_MODEL` - 模型名称（默认：qwen3.5）
 - `GITHUB_TOKEN` - GitHub Token（可选，用于获取项目详细信息）
-- `FEISHU_*` - 飞书通知配置（可选）
-- `WELINK_*` - WeLink 通知配置（可选）
 
-> 📖 详细配置说明请参考 **[配置文档](docs/CONFIG.md)**
+### 3. 运行工作流
 
-> 💡 **提示**：本项目已集成 **Ollama 云端 API**，无需本地 GPU 即可使用 AI 分析功能。配置说明请参考 **[Ollama 集成指南](docs/OLLAMA_INTEGRATION.md)**
-
-### 3. 抓取并生成报告
-
-#### 方式一：一站式抓取+生成（推荐）
+#### 日报工作流
 
 ```bash
-# 抓取并生成今天的日报（不推送通知）
-npm run crawl -- daily --no-push
-
-# 抓取并生成周报
-npm run crawl -- weekly --no-push
-
-# 抓取并生成月报
-npm run crawl -- monthly --no-push
-
-# 抓取并生成日报 + 推送通知
-npm run crawl -- daily
+# 抓取并生成今天的日报
+node scripts/run-daily-workflow.js
 ```
 
-#### 方式二：从已有数据生成报告
+日报工作流程：
+1. 抓取 GitHub Trending Daily
+2. 解析项目信息（名称、描述、星数等）
+3. 调用 GitHub API 获取详细信息
+4. 项目分析（翻译描述 + 生成详细分析）
+5. AI 分析生成洞察
+6. 生成 HTML 报告
+7. 更新首页
+
+#### 周报工作流
 
 ```bash
-# 从已有数据生成日报
-npm run generate:daily -- 2026-03-22
-
-# 生成周报
-npm run generate:weekly -- 2026-W11
-
-# 生成月报
-npm run generate:monthly -- 2026-03
-
-# 生成所有报告
-npm run generate:all
-
-# 生成首页
-npm run generate:index
+# 抓取并生成本周的周报
+node scripts/run-weekly-workflow.js
 ```
+
+周报工作流程：
+1. 抓取 GitHub Trending Weekly
+2. 解析项目信息
+3. 调用 GitHub API 获取详细信息
+4. 项目分析（翻译描述 + 生成详细分析）
+5. AI 分析生成洞察（包含深度趋势分析）
+6. 生成 HTML 报告
+7. 更新首页
+
+**注意**：周一运行时会生成上周（W12）的周报，汇总上周一到周日的数据。
 
 ### 4. 查看报告
 
-用浏览器打开 `reports/index.html` 查看首页，或直接打开 `reports/daily/github-ai-trending-2026-03-22.html` 等具体报告。
+用浏览器打开 `reports/index.html` 查看首页，或打开具体报告：
+- 日报：`reports/daily/github-ai-trending-YYYY-MM-DD.html`
+- 周报：`reports/weekly/github-weekly-YYYY-WXX.html`
 
-## 爬虫使用说明
+## 工作流程详解
 
-### 命令格式
+### 日报流程
 
-```bash
-npm run crawl -- <类型> [选项]
+```
+抓取 GitHub Trending Daily
+    ↓
+解析 HTML 提取项目信息
+    ↓
+GitHub API 增强（获取详细星数、fork、语言等）
+    ↓
+项目分析（MyMemory API 翻译 + 生成核心功能/适用场景/趋势）
+    ↓
+AI 分析（生成热点、趋势、推荐建议）
+    ↓
+生成 HTML 报告
+    ↓
+更新首页
 ```
 
-### 参数说明
+### 周报流程
 
-- **类型**：`daily` | `weekly` | `monthly`
-- **选项**：
-  - `--no-push`：禁用推送通知（调试模式）
-
-### 工作流程
-
-爬虫执行以下 6 个步骤：
-
-1. **获取 GitHub Trending 数据**：从 <https://github.com/trending> 抓取页面
-2. **解析项目信息**：提取项目名称、描述、Stars 等信息
-3. **获取 GitHub API 详细数据**（可选）：使用 GITHUB\_TOKEN 获取更详细信息
-4. **生成 JSON 数据**：保存到 `data/briefs/{type}/` 目录
-5. **AI 分析**：使用 LLM 分析趋势并生成洞察
-6. **生成 HTML 报告**：保存到 `reports/{type}/` 目录
-7. **推送通知**（可选）：发送到飞书、WeLink 等渠道
-
-## 文档
-
-- **[部署与开发指南](docs/GUIDE.md)** - 快速开始、Git 配置、自动化部署
-- **[API 文档](docs/API.md)** - 详细的 API 使用说明
-- **[配置说明](docs/CONFIG.md)** - 环境变量和配置文件说明
-- **[Ollama 集成指南](docs/OLLAMA_INTEGRATION.md)** - Ollama 云端 API 配置与使用说明
-- **[Ollama 快速开始](docs/OLLAMA_QUICKSTART.md)** - 5 分钟快速上手 Ollama 云端 API
-
-> 📖 **建议**：首次使用请先阅读 [配置文档](docs/CONFIG.md) 了解环境变量配置。使用 Ollama 云端 API 请参考 [Ollama 快速开始](docs/OLLAMA_QUICKSTART.md)。
-
-## 首页更新
-
-首页 (`reports/index.html`) 是报告系统的导航中心，支持多种更新方式：
-
-```bash
-# 方式 1：生成所有报告时自动更新首页
-npm run generate:all
-
-# 方式 2：单独更新首页
-npm run generate:index
+```
+抓取 GitHub Trending Weekly
+    ↓
+解析 HTML 提取项目信息
+    ↓
+GitHub API 增强
+    ↓
+项目分析（翻译 + 详细分析）
+    ↓
+加载上周 7 天的日报数据
+    ↓
+AI 分析（周度主题 + 深度趋势分析）
+    ↓
+生成 HTML 报告（包含深度趋势章节）
+    ↓
+更新首页
 ```
 
-**定时任务示例**（Linux cron）：
+## 项目分析功能
+
+系统会自动对每个项目进行分析：
+
+1. **描述翻译**：使用 MyMemory API 将英文描述翻译为中文
+2. **项目类型检测**：自动识别 Agent、RAG、LLM、语音处理等项目类型
+3. **核心功能生成**：根据项目类型和描述生成 4 条核心功能
+4. **适用场景生成**：生成 4 条适用场景
+5. **热度趋势分析**：基于星数、今日星数等数据分析趋势
+6. **社区活跃度评估**：评估项目社区活跃程度
+
+## 定时任务配置
+
+### Linux/Mac (crontab)
 
 ```bash
-# 每日 7:00 抓取并生成日报
-0 7 * * * cd /path/to/daily_report_analysis && npm run crawl -- daily
+# 编辑 crontab
+crontab -e
 
-# 每周一 6:00 抓取并生成周报
-0 6 * * 1 cd /path/to/daily_report_analysis && npm run crawl -- weekly
+# 每日 7:00 生成日报
+0 7 * * * cd /path/to/daily_report_analysis && node scripts/run-daily-workflow.js
 
-# 每月 1 日 6:00 抓取并生成月报
-0 6 1 * * cd /path/to/daily_report_analysis && npm run crawl -- monthly
-
-# 每 6 小时更新首页
-0 */6 * * * cd /path/to/daily_report_analysis && npm run generate:index
+# 每周一 6:00 生成周报（生成上周的周报）
+0 6 * * 1 cd /path/to/daily_report_analysis && node scripts/run-weekly-workflow.js
 ```
 
-首页直接从 `data/briefs/` 目录读取 JSON 数据生成，不依赖已生成的 HTML 文件。
+### Windows (任务计划程序)
 
-## 开发与测试
-
-### 运行测试
-
-```bash
-# 运行所有测试
-npm test
-```
-
-### 代码检查
-
-```bash
-# 检查代码格式
-npm run lint
-
-# 格式化代码
-npm run format
-```
+1. 打开任务计划程序
+2. 创建基本任务
+3. 设置触发器（每日/每周）
+4. 设置操作：启动程序 `node.exe`，参数 `scripts/run-daily-workflow.js`
 
 ## 环境变量
 
-详细的环境变量配置说明请参考 **[配置文档](docs/CONFIG.md)**。
-
-**核心配置**：
-
 ```bash
-# LLM 配置（必需）- 已集成 Ollama 云端 API
+# LLM 配置（必需）
 LLM_API_KEY=your-api-key
 LLM_BASE_URL=https://ollama.com
 LLM_MODEL=qwen3.5
@@ -267,35 +224,30 @@ WELINK_ENABLED=false
 REPORT_BASE_URL=https://report.wenspock.site
 ```
 
-> 💡 **提示**：
->
-> - `.env` 文件包含敏感信息，已添加到 `.gitignore`，不会被提交到 Git
-> - 使用 Ollama 云端 API 请参考 [Ollama 集成指南](docs/OLLAMA_INTEGRATION.md)
-> - 获取 Ollama API Key: <https://ollama.com/settings/keys>
+## 技术栈
 
-## 项目状态
+- **Node.js** - 运行时环境
+- **Cheerio** - HTML 解析
+- **node-fetch** - HTTP 请求
+- **Ollama API** - AI 分析
+- **MyMemory API** - 翻译服务
+- **GitHub API** - 项目信息增强
 
-✅ **已完成**：
+## 开发说明
 
-1. ✅ 完整爬虫系统（数据抓取、解析、缓存、重试）
-2. ✅ 基础架构搭建（Phase 1）
-3. ✅ 核心模块实现（Phase 2）
-4. ✅ 脚本工具实现（Phase 3）
-5. ✅ 测试体系建立（Phase 4）
-6. ✅ 文档与优化（Phase 5）
-7. ✅ 配置优化与代码清理（Phase 6）
+### 运行测试
 
-📋 **当前状态**：
+```bash
+npm test
+```
 
-- ✅ 完整爬虫功能已集成
-- ✅ 主入口文件已创建
-- ✅ 测试体系完善（核心模块全覆盖）
-- ✅ 数据目录结构完善
-- ✅ 文档体系完善（API、部署指南、配置说明）
-- ✅ 配置管理优化（环境变量、敏感信息保护）
-- ✅ 代码清理完成（删除临时文件、精简文档）
-- ✅ **Ollama 云端 API 集成完成**（支持云端 AI 分析，无需本地 GPU）
+### 代码检查
 
-## License
+```bash
+npm run lint
+npm run format
+```
+
+## 许可证
 
 MIT License
