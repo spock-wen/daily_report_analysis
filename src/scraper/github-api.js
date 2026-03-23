@@ -10,6 +10,35 @@ const logger = require('../utils/logger');
 const GITHUB_API_BASE = 'https://api.github.com';
 
 /**
+ * AI 项目关键词列表
+ */
+const AI_KEYWORDS = [
+  'ai', 'artificial intelligence', 'machine learning', 'deep learning',
+  'neural network', 'nlp', 'natural language processing', 'computer vision',
+  'gpt', 'llm', 'large language model', 'transformer', 'bert', 'chatgpt',
+  'openai', 'langchain', 'llama', 'stable diffusion', 'midjourney',
+  'hugging face', 'huggingface', 'pytorch', 'tensorflow', 'keras',
+  'reinforcement learning', 'gan', 'generative', 'embedding', 'vector',
+  'rag', 'retrieval augmented', 'fine-tuning', 'finetuning',
+  'autogpt', 'agent', 'copilot', 'assistant', 'chatbot',
+  'speech recognition', 'text-to-speech', 'tts', 'asr', 'ocr',
+  'object detection', 'image generation', 'text generation',
+  'prompt', 'inference', 'training', 'model', 'dataset',
+  '人工智能', '机器学习', '深度学习', '神经网络', '自然语言处理',
+  '计算机视觉', '大模型', '生成式', '智能'
+];
+
+/**
+ * 检测项目是否为 AI 项目
+ * @param {Object} repo - 仓库数据
+ * @returns {boolean} 是否为 AI 项目
+ */
+function detectAIProject(repo) {
+  const textToCheck = `${repo.name || ''} ${repo.description || ''} ${repo.language || ''} ${(repo.topics || []).join(' ')}`.toLowerCase();
+  return AI_KEYWORDS.some(keyword => textToCheck.includes(keyword.toLowerCase()));
+}
+
+/**
  * 延迟函数，避免 API 限流
  */
 function sleep(ms) {
@@ -204,7 +233,7 @@ async function enhanceRepositories(repositories, token = null) {
           defaultBranch: details.defaultBranch,
           
           hasApiData: true,
-          isAI: repo.isAI || false,
+          isAI: detectAIProject({ ...repo, ...details }),
           url: repo.url || `https://github.com/${repo.fullName}`
         };
 
@@ -222,18 +251,20 @@ async function enhanceRepositories(repositories, token = null) {
 
         enhanced.push(enhancedRepo);
       } else {
-        // API 失败时返回基础数据
+        // API 失败时返回基础数据，但仍进行 AI 检测
         enhanced.push({
           ...repo,
           repo: repo.fullName,
-          hasApiData: false
+          hasApiData: false,
+          isAI: detectAIProject(repo)
         });
       }
     } catch (error) {
       logger.error(`[GitHubAPI] 处理 ${repo.fullName} 失败：${error.message}`);
       enhanced.push({
         ...repo,
-        hasApiData: false
+        hasApiData: false,
+        isAI: detectAIProject(repo)
       });
     }
   }

@@ -95,50 +95,88 @@ class GitHubTrendingParser {
       const languageElement = $element.find('[itemprop="programmingLanguage"]');
       const language = languageElement.length > 0 ? languageElement.text().trim() : null;
 
-      // 提取星数
-      const starsElements = $element.find('a.mr-3.Link--muted');
+      // 提取星数 - 使用多种方法尝试获取
       let stars = 0;
       let todayStars = 0;
+      let forks = 0;
 
-      starsElements.each((_, el) => {
-        const text = $(el).text().trim();
-        const starMatch = text.match(/([\d,.kKmM]+)\s*stars?/i);
-        
-        if (starMatch) {
-          const starCount = this.parseStarCount(starMatch[1]);
-          
-          // 如果有 fork 信息在前面，则这是总星数
-          if (text.includes('fork')) {
-            return;
+      // 获取元素的 HTML 内容用于正则匹配
+      const htmlContent = $element.prop('outerHTML') || '';
+      
+      // 提取总星数 - 匹配 stargazers 链接
+      const starsMatch = htmlContent.match(/href="\/[^"]*\/stargazers"[^>]*>([\s\S]*?)<\/a>/);
+      if (starsMatch) {
+        const starsText = this.cleanHtml(starsMatch[1]).replace(/\s+/g, '');
+        stars = this.parseStarCount(starsText);
+      }
+      
+      // 如果方法1失败，尝试方法2: 通过选择器查找
+      if (stars === 0) {
+        $element.find('a[href*="stargazers"]').each((index, el) => {
+          const text = $element.find(el).text().trim();
+          const match = text.match(/([\d,.kKmM]+)/);
+          if (match) {
+            stars = this.parseStarCount(match[1]);
+            return false; // 找到后停止
           }
-          
-          // 判断是总星数还是今日星数
-          if (stars === 0) {
-            stars = starCount;
-          }
-        }
-      });
+        });
+      }
 
-      // 提取今日新增星数（通常在星数后面）
-      const todayStarsElement = $element.find('span.d-inline-block.float-sm-left');
-      if (todayStarsElement.length > 0) {
-        const todayText = todayStarsElement.text().trim();
-        const todayMatch = todayText.match(/([\d,.kKmM]+)\s*stars?\s*today/i);
+      // 提取 fork 数 - 匹配 forks 链接
+      const forksMatch = htmlContent.match(/href="\/[^"]*\/forks"[^>]*>([\s\S]*?)<\/a>/);
+      if (forksMatch) {
+        const forksText = this.cleanHtml(forksMatch[1]).replace(/\s+/g, '');
+        forks = this.parseStarCount(forksText);
+      }
+      
+      // 如果方法1失败，尝试方法2: 通过选择器查找
+      if (forks === 0) {
+        $element.find('a[href*="forks"]').each((index, el) => {
+          const text = $element.find(el).text().trim();
+          const match = text.match(/([\d,.kKmM]+)/);
+          if (match) {
+            forks = this.parseStarCount(match[1]);
+            return false; // 找到后停止
+          }
+        });
+      }
+
+      // 提取今日新增星数
+      // 方法1: 通过正则匹配 "X stars today" 或 "X stars this week" 等
+      const sinceLabel = this.since === 'daily' ? 'today' : 
+                        this.since === 'weekly' ? 'this week' : 'this month';
+      const todayStarsRegex = new RegExp(`([\d,.kKmM]+)\s*stars?\\s*${sinceLabel}`, 'i');
+      const todayStarsMatch = htmlContent.match(todayStarsRegex);
+      if (todayStarsMatch) {
+        todayStars = this.parseStarCount(todayStarsMatch[1]);
+      }
+      
+      // 方法2: 查找包含 "today" 或 "this week" 的元素
+      if (todayStars === 0) {
+        $element.find('span, div').each((index, el) => {
+          const text = $element.find(el).text().trim();
+          const match = text.match(/([\d,.kKmM]+)\s*stars?\s*(today|this week|this month)/i);
+          if (match) {
+            todayStars = this.parseStarCount(match[1]);
+            return false; // 找到后停止
+          }
+        });
+      }
+
+      // 方法3: 查找数字后跟 "today" 文本
+      if (todayStars === 0) {
+        const todayMatch = htmlContent.match(/>(\d[\d,kKmM]*)\s*star/i);
         if (todayMatch) {
           todayStars = this.parseStarCount(todayMatch[1]);
         }
       }
 
-      // 如果无法从页面提取今日星数，尝试从总星数推断（降级处理）
-      if (todayStars === 0 && stars > 0) {
-        // 无法推断，保持为 0
-        logger.debug(`仓库 ${fullName} 无法获取今日星数`);
-      }
+      logger.debug(`仓库 ${fullName} | Stars: ${stars} | Today: ${todayStars} | Forks: ${forks}`);
 
       // 提取主题标签
       const topics = [];
-      $element.find('a.topic-tag-link').each((_, el) => {
-        const topic = $(el).text().trim();
+      $element.find('a.topic-tag-link').each((index, el) => {
+        const topic = $element.find(el).text().trim();
         if (topic) {
           topics.push(topic);
         }
@@ -147,17 +185,6 @@ class GitHubTrendingParser {
       // 提取仓库链接
       const url = nameElement.attr('href');
       const fullUrl = url ? `https://github.com${url}` : '';
-
-      // 提取 fork 数量
-      const forkElement = $element.find('a.Link--muted:contains("fork")');
-      let forks = 0;
-      if (forkElement.length > 0) {
-        const forkText = forkElement.text().trim();
-        const forkMatch = forkText.match(/([\d,.kKmM]+)\s*forks?/i);
-        if (forkMatch) {
-          forks = this.parseStarCount(forkMatch[1]);
-        }
-      }
 
       // 构建仓库数据对象
       const repoData = {
@@ -182,6 +209,23 @@ class GitHubTrendingParser {
       logger.warn(`解析仓库卡片失败：${error.message}`);
       return null;
     }
+  }
+
+  /**
+   * 清理 HTML 标签和实体
+   * @param {string} text - 包含 HTML 的文本
+   * @returns {string} 清理后的纯文本
+   */
+  cleanHtml(text) {
+    if (!text) return '';
+    return text
+      .replace(/<[^>]*>/g, '')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .trim();
   }
 
   /**

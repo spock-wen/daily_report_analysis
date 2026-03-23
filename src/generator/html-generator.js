@@ -56,10 +56,12 @@ class HTMLGenerator {
   }
 
   renderDailyHTML(data) {
-    const { aiInsights, date, period } = data;
+    const { aiInsights, date } = data;
     // 支持多种数据格式：根级别 projects/trending_repos 或 brief.trending_repos
     const projects = data.projects || data.trending_repos || data.brief?.trending_repos || [];
     const stats = data.stats || data.brief?.stats || {};
+    // 从多个可能的位置获取 period 字段
+    const period = data.period || data.brief?.period || '每日';
     
     // 根据 period 字段判断是日报还是周报
     const reportType = period === '每周' ? '周报' : period === '每月' ? '月报' : '日报';

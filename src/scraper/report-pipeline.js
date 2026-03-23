@@ -22,6 +22,7 @@ const {
 const InsightAnalyzer = require('../analyzer/insight-analyzer');
 const HTMLGenerator = require('../generator/html-generator');
 const MessageSender = require('../notifier/message-sender');
+const ProjectAnalyzer = require('./project-analyzer');
 const { enhanceRepositories } = require('./github-api');
 const { exec } = require('child_process');
 const { promisify } = require('util');
@@ -50,6 +51,7 @@ class ReportPipeline {
     this.analyzer = new InsightAnalyzer();
     this.htmlGenerator = new HTMLGenerator();
     this.notifier = new MessageSender();
+    this.projectAnalyzer = new ProjectAnalyzer();
     
     // 流水线执行记录
     this.executionLog = [];
@@ -238,15 +240,19 @@ class ReportPipeline {
       return data;
     }
     
-    // 增强仓库信息
+    // 步骤 1: 调用 GitHub API 获取详细信息
     const enhancedRepos = await enhanceRepositories(repositories, token);
     
-    logger.info(`[ReportPipeline] 仓库数据增强完成，共 ${enhancedRepos.length} 个仓库`);
+    // 步骤 2: 分析项目（翻译描述 + 生成详细分析）
+    logger.info('[ReportPipeline] 开始分析项目...');
+    const analyzedRepos = await this.projectAnalyzer.analyzeProjects(enhancedRepos);
+    
+    logger.info(`[ReportPipeline] 仓库数据增强完成，共 ${analyzedRepos.length} 个仓库`);
     
     return {
       ...data,
-      repositories: enhancedRepos,
-      projects: enhancedRepos // 同时设置 projects 字段以兼容旧版
+      repositories: analyzedRepos,
+      projects: analyzedRepos // 同时设置 projects 字段以兼容旧版
     };
   }
 
@@ -479,12 +485,22 @@ class ReportPipeline {
     try {
       let insights;
       
+      // 构建兼容的数据结构，包含 brief 字段
+      const analysisData = {
+        ...data,
+        brief: {
+          projects: data.projects || data.repositories || [],
+          stats: data.stats || {},
+          generatedAt: data.generatedAt || new Date().toISOString()
+        }
+      };
+      
       if (type === 'daily') {
-        insights = await this.analyzer.analyzeDaily(data);
+        insights = await this.analyzer.analyzeDaily(analysisData);
       } else if (type === 'weekly') {
-        insights = await this.analyzer.analyzeWeekly(data);
+        insights = await this.analyzer.analyzeWeekly(analysisData);
       } else if (type === 'monthly') {
-        insights = await this.analyzer.analyzeMonthly(data);
+        insights = await this.analyzer.analyzeMonthly(analysisData);
       } else {
         throw new Error(`不支持的报告类型：${type}`);
       }
@@ -520,13 +536,38 @@ class ReportPipeline {
     
     // 标准化数据结构 - 同时设置根级别和 brief 字段以兼容 HTML 生成器
     const projects = data.projects || data.repositories || [];
+    
+    // 根据类型确定日期字段
+    let date;
+    if (type === 'daily') {
+      date = data.date || new Date().toISOString().split('T')[0];
+    } else if (type === 'weekly') {
+      date = data.weekStart || this.getWeeklyIdentifier(data);
+    } else if (type === 'monthly') {
+      date = data.month || new Date().toISOString().slice(0, 7);
+    }
+    
+    // 计算统计数据
+    const stats = data.stats || {
+      totalProjects: projects.length,
+      aiProjects: projects.filter(r => r.isAI).length,
+      avgStars: this.calculateAvgStars(projects),
+      hotProjects: projects.filter(r => {
+        const todayStars = parseInt(r.todayStars || r.today_stars || 0);
+        return todayStars > 100;
+      }).length
+    };
+    
     const reportData = {
       ...data,
+      date: date, // 确保设置 date 字段
       projects: projects, // 根级别，HTML 生成器需要
       trending_repos: projects, // 兼容性字段
+      stats: stats, // 根级别 stats，HTML 生成器需要
       brief: {
         trending_repos: projects,
-        stats: data.stats || {},
+        stats: stats,
+        period: type === 'daily' ? '每日' : type === 'weekly' ? '每周' : '每月',
         generated_at: data.generatedAt || new Date().toISOString()
       }
     };
