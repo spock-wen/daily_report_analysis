@@ -170,6 +170,7 @@ class DataLoader {
       return {
         weekStart,
         type: 'weekly',
+        period: briefData.period || '每周',
         brief: briefData,
         aiInsights,
         loadedAt: new Date().toISOString()

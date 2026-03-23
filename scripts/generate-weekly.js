@@ -82,48 +82,61 @@ async function generateWeeklyReport() {
       const basicInsightsPromise = analyzer.analyzeWeekly(weeklyData);
       
       // 尝试加载过去一周的日报数据进行深度分析
-      // 假设 weekStart 是周一，加载包括周一在内的 7 天
+      // 优先基于实际存在的日报数据计算周范围
       let deepTrends = null;
-      if (weeklyData.weekStart) {
+      try {
         console.log('   - 正在执行深度趋势分析 (Cross-day)...');
-        try {
-          const pastDailyData = await loader.loadPastWeekDailyData(weeklyData.weekStart);
-          if (pastDailyData && pastDailyData.length > 0) {
-            // 计算周结束日期 (假设周一作为起始日期)
-            let startDate;
-            if (weeklyData.weekStart.includes('-W')) {
-              const parts = weeklyData.weekStart.split('-W');
-              const year = parseInt(parts[0]);
-              const week = parseInt(parts[1]);
-              
-              // 计算该周周一的日期 (ISO week date algorithm)
-              const jan4 = new Date(year, 0, 4);
-              const dayOfWeek = jan4.getDay() || 7; 
-              const firstMonday = new Date(jan4);
-              firstMonday.setDate(jan4.getDate() - dayOfWeek + 1);
-              
-              startDate = new Date(firstMonday);
-              startDate.setDate(firstMonday.getDate() + (week - 1) * 7);
-            } else {
-              startDate = new Date(weeklyData.weekStart);
-            }
-
-            const endDate = new Date(startDate);
-            endDate.setDate(startDate.getDate() + 6);
-            
-            // 格式化为 YYYY-MM-DD
-            const startStr = startDate.toISOString().split('T')[0];
-            const endStr = endDate.toISOString().split('T')[0];
-            
-            deepTrends = await analyzer.analyzeDeepTrends(pastDailyData, {
-              start: startStr,
-              end: endStr
-            });
-          }
-        } catch (err) {
-          console.warn(`   ⚠️ 深度趋势分析失败（非致命）：${err.message}`);
-          console.warn(err.stack);
+        
+        // 计算周一起始日期
+        let startDate;
+        if (weeklyData.weekStart && weeklyData.weekStart.includes('-W')) {
+          const parts = weeklyData.weekStart.split('-W');
+          const year = parseInt(parts[0]);
+          const week = parseInt(parts[1]);
+          
+          // 计算该周周一的日期 (ISO week date algorithm)
+          const jan4 = new Date(year, 0, 4);
+          const dayOfWeek = jan4.getDay() || 7; 
+          const firstMonday = new Date(jan4);
+          firstMonday.setDate(jan4.getDate() - dayOfWeek + 1);
+          
+          startDate = new Date(firstMonday);
+          startDate.setDate(firstMonday.getDate() + (week - 1) * 7);
+        } else if (weeklyData.weekStart) {
+          startDate = new Date(weeklyData.weekStart);
+        } else {
+          // 如果没有 weekStart，使用周报数据的日期
+          startDate = weeklyData.generatedAt ? new Date(weeklyData.generatedAt) : new Date();
+          // 回退到最近的周一
+          const day = startDate.getDay() || 7;
+          startDate.setDate(startDate.getDate() - day + 1);
         }
+
+        const endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 6);
+        
+        // 格式化为 YYYY-MM-DD
+        const startStr = startDate.toISOString().split('T')[0];
+        const endStr = endDate.toISOString().split('T')[0];
+        
+        console.log(`   - 周范围：${startStr} 到 ${endStr}`);
+        
+        // 加载过去 7 天的日报数据
+        const pastDailyData = await loader.loadPastWeekDailyData(startStr);
+        
+        if (pastDailyData && pastDailyData.length > 0) {
+          console.log(`   - 成功加载 ${pastDailyData.length} 天的日报数据`);
+          
+          deepTrends = await analyzer.analyzeDeepTrends(pastDailyData, {
+            start: startStr,
+            end: endStr
+          });
+        } else {
+          console.warn(`   ⚠️ 未找到日报数据，跳过深度分析`);
+        }
+      } catch (err) {
+        console.warn(`   ⚠️ 深度趋势分析失败（非致命）：${err.message}`);
+        console.warn(err.stack);
       }
 
       // 合并分析结果
@@ -133,7 +146,7 @@ async function generateWeeklyReport() {
         deepTrends: deepTrends // 将深度趋势注入到 insights 对象中
       };
       
-      // 保存合并后的结果 (analyzeWeekly 内部已经保存了一次，这里需要覆盖保存包含 deepTrends 的版本)
+      // 保存合并后的结果
       await analyzer.saveInsights('weekly', weeklyData.weekStart, weeklyData.aiInsights);
       
       console.log('   ✅ AI 分析完成\n');

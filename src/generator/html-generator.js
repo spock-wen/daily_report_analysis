@@ -56,22 +56,26 @@ class HTMLGenerator {
   }
 
   renderDailyHTML(data) {
-    const { aiInsights, date } = data;
-    const projects = data.projects || data.trending_repos || [];
-    const stats = data.stats || {};
+    const { aiInsights, date, period } = data;
+    // 支持多种数据格式：根级别 projects/trending_repos 或 brief.trending_repos
+    const projects = data.projects || data.trending_repos || data.brief?.trending_repos || [];
+    const stats = data.stats || data.brief?.stats || {};
+    
+    // 根据 period 字段判断是日报还是周报
+    const reportType = period === '每周' ? '周报' : period === '每月' ? '月报' : '日报';
 
     return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GitHub AI Trending 日报 - ${date}</title>
+  <title>GitHub AI Trending ${reportType} - ${date}</title>
   <link rel="stylesheet" href="../../public/css/style.css">
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>GitHub AI Trending 日报</h1>
+      <h1>GitHub AI Trending ${reportType}</h1>
       <div class="date">${date}</div>
     </header>
 
@@ -152,12 +156,16 @@ class HTMLGenerator {
     const coreFeatures = analysis.coreFunctions || [];
     const useCases = analysis.useCases || [];
     const trends = analysis.trends || [];
+    
+    // 确保项目名称有 GitHub 链接
+    const projectName = project.fullName || project.repo || project.name || '';
+    const projectUrl = project.url || (projectName ? `https://github.com/${projectName}` : '#');
 
     return `
       <div class="project-card">
         <div class="project-header">
-          <a href="${project.url || '#'}" class="project-name" target="_blank">
-            ${index + 1}. ${project.fullName || project.repo || project.name}
+          <a href="${projectUrl}" class="project-name" target="_blank">
+            ${index + 1}. ${projectName}
           </a>
           <div class="project-stats">
             <span class="stat-badge" title="总星数">
@@ -215,9 +223,111 @@ class HTMLGenerator {
     `;
   }
 
+  escapeHtml(text) {
+    if (!text) return '';
+    const htmlEntities = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    };
+    return String(text).replace(/[&<>"']/g, char => htmlEntities[char]);
+  }
+
+  linkifyProjects(text, projects = []) {
+    if (!text) return '';
+    
+    let result = text;
+    
+    // 辅助函数：在非链接部分执行替换
+    const replaceOutsideLinks = (input, regex, replacer) => {
+      const linkRegex = /(<a[^>]*>.*?<\/a>)/g;
+      const parts = input.split(linkRegex);
+      return parts.map((part, index) => {
+        // 偶数索引是非链接部分，奇数索引是链接部分
+        if (index % 2 === 1) {
+          return part; // 保持链接部分不变
+        }
+        return part.replace(regex, replacer);
+      }).join('');
+    };
+    
+    // 1. 处理反引号包裹的项目（如 `owner/repo`）
+    result = result.replace(/`([^`]+)`/g, (match, content) => {
+      if (content.includes('/')) {
+        return `<a href="https://github.com/${content}" target="_blank">${content}</a>`;
+      }
+      return match;
+    });
+    
+    // 2. 直接匹配文本中的 owner/repo 格式
+    // 支持：行首、空格、中文标点、英文标点后的 owner/repo
+    const ownerRepoRegex = /(^|[\s（(,:：;；，。！？、\-])((?:[a-zA-Z0-9][a-zA-Z0-9-]*\/[a-zA-Z0-9_.-]+))/gm;
+    result = replaceOutsideLinks(result, ownerRepoRegex, (match, prefix, repoPath) => {
+      // 排除日期格式（如 03-17），但保留 ai/deepagents 这种格式
+      const firstPart = repoPath.split('/')[0];
+      // 如果第一部分是纯数字（两位数），认为是日期，跳过
+      if (/^\d{2}$/.test(firstPart)) {
+        return match;
+      }
+      return `${prefix}<a href="https://github.com/${repoPath}" target="_blank">${repoPath}</a>`;
+    });
+    
+    // 3. 使用项目列表匹配项目名（如 "BettaFish" 匹配到 "666ghj/BettaFish"）
+    if (projects && projects.length > 0) {
+      // 构建项目名称到完整路径的映射
+      const projectNameMap = new Map();
+      projects.forEach(project => {
+        const fullName = project.fullName || project.repo || project.name;
+        if (fullName && fullName.includes('/')) {
+          const nameOnly = fullName.split('/')[1];
+          if (nameOnly) {
+            projectNameMap.set(nameOnly, fullName);
+          }
+        }
+      });
+      
+      // 按名称长度降序排序，避免短名匹配到长名的一部分
+      const sortedNames = Array.from(projectNameMap.keys()).sort((a, b) => b.length - a.length);
+      
+      // 只在非链接部分匹配项目名
+      sortedNames.forEach(nameOnly => {
+        const fullName = projectNameMap.get(nameOnly);
+        const nameRegex = new RegExp(`(^|[^a-zA-Z0-9_-])${this.escapeRegex(nameOnly)}(?![a-zA-Z0-9_-])`, 'g');
+        result = replaceOutsideLinks(result, nameRegex, `$1<a href="https://github.com/${fullName}" target="_blank">${nameOnly}</a>`);
+      });
+    }
+    
+    return result;
+  }
+  
+  escapeRegex(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  escapeAndLinkify(text, projects = []) {
+    if (!text) return '';
+    
+    // 检查文本是否已经包含 GitHub 链接
+    if (text.includes('href="https://github.com/')) {
+      // 已经有链接，直接返回（不转义，避免破坏已有 HTML）
+      return text;
+    }
+    
+    // 如果没有链接，进行链接化
+    return this.linkifyProjects(text, projects);
+  }
+
   formatNumber(num) {
-    if (typeof num === 'string') return num;
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    if (num === null || num === undefined) return '0';
+    if (typeof num === 'string') num = parseInt(num, 10);
+    if (num >= 10000) {
+      return (num / 10000).toFixed(1) + 'w';
+    } else if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'k';
+    }
+    return num.toLocaleString();
   }
 
   renderDetailItems(items) {
@@ -310,11 +420,327 @@ class HTMLGenerator {
   }
 
   renderWeeklyHTML(data) {
-    return this.renderDailyHTML({ ...data, date: data.weekStart || data.month });
+    const { aiInsights, date, weekStart } = data;
+    const projects = data.projects || data.trending_repos || data.brief?.trending_repos || [];
+    const stats = data.stats || data.brief?.stats || {};
+    const summary = data.summary || {};
+
+    // 按类型分组
+    const groupedProjects = this.groupProjectsByType(projects);
+
+    return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub AI Trending 周报 - ${weekStart || date}</title>
+  <link rel="stylesheet" href="../../public/css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>GitHub AI Trending 周报</h1>
+      <div class="date">${weekStart || date}</div>
+    </header>
+
+    ${this.renderWeeklyStatsSection(stats, summary)}
+    ${this.renderWeeklyThemeSection(aiInsights, projects)}
+    ${this.renderDeepTrendsSection(aiInsights, projects)}
+    ${this.renderWeeklyInsightsSection(aiInsights, projects)}
+    ${this.renderTopProjectsSection(aiInsights, projects)}
+    ${this.renderGroupedProjectsSection(groupedProjects)}
+  </div>
+
+  <script>
+    function toggleDetails(projectId) {
+      const details = document.getElementById('details-' + projectId);
+      const btn = document.getElementById('btn-' + projectId);
+      if (details && btn) {
+        details.classList.toggle('active');
+        btn.textContent = details.classList.contains('active') ? '收起详情' : '查看详情';
+      }
+    }
+  </script>
+</body>
+</html>`;
   }
 
-  renderMonthlyHTML(data) {
-    return this.renderDailyHTML({ ...data, date: data.month });
+  renderWeeklyStatsSection(stats, summary) {
+    const totalProjects = stats.totalProjects || stats.total_projects || summary.total || 0;
+    const aiProjects = stats.aiProjects || stats.ai_projects || summary.aiCount || 0;
+    const aiPercentage = totalProjects > 0 ? Math.round((aiProjects / totalProjects) * 100) : 0;
+    const avgStars = stats.avgStars || stats.avg_stars || summary.avgStars || '0';
+    const maxTodayStars = summary.maxTodayStars || 0;
+    const hotProject = summary.topProject || '';
+
+    return `
+      <section class="weekly-overview">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value">${totalProjects}</div>
+            <div class="stat-label">上榜项目</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${avgStars}</div>
+            <div class="stat-label">平均 Stars</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${aiPercentage}%</div>
+            <div class="stat-label">AI 项目</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${maxTodayStars.toLocaleString()}</div>
+            <div class="stat-label">最大黑马</div>
+            <div class="stat-subtitle">${hotProject.split('/')[1] || hotProject}</div>
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  renderWeeklyThemeSection(aiInsights, projects = []) {
+    if (!aiInsights || !aiInsights.weeklyTheme) {
+      return '';
+    }
+
+    const { oneLiner, detailed } = aiInsights.weeklyTheme;
+
+    return `
+      <section class="weekly-theme">
+        <h2>周度主题</h2>
+        <div class="theme-content">
+          <div class="theme-title">${this.escapeAndLinkify(oneLiner, projects)}</div>
+          <div class="theme-description">${this.escapeAndLinkify(detailed, projects)}</div>
+        </div>
+      </section>
+    `;
+  }
+
+  renderDeepTrendsSection(aiInsights, projects = []) {
+    if (!aiInsights || !aiInsights.deepTrends) {
+      return '';
+    }
+
+    const deepTrends = aiInsights.deepTrends;
+    
+    // 解析文本内容为多个段落
+    const paragraphs = deepTrends.content
+      ? deepTrends.content.split('\n\n').filter(p => p.trim())
+      : [];
+
+    return `
+      <section class="deep-trend-section">
+        <div class="trend-header">
+          ${deepTrends.title ? `<div class="trend-title">${deepTrends.title}</div>` : ''}
+          ${deepTrends.summary ? `<div class="trend-summary">${deepTrends.summary}</div>` : ''}
+        </div>
+        
+        <div class="trend-content">
+          ${paragraphs.map(p => `<p>${this.escapeAndLinkify(p, projects)}</p>`).join('')}
+        </div>
+
+        ${deepTrends.evidence && deepTrends.evidence.length > 0 ? `
+          <div class="evidence-list">
+            <div class="evidence-title">关键佐证 (Evidence)</div>
+            <div class="evidence-items">
+              ${deepTrends.evidence.map(ev => `
+                <div class="evidence-item">
+                  <div class="evidence-day">${ev.day}</div>
+                  <div>
+                    <a href="https://github.com/${ev.name}" class="evidence-link" target="_blank">${ev.name}</a>
+                    <div class="evidence-reason">${ev.reason}</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+      </section>
+    `;
+  }
+
+  renderWeeklyStatsSection(stats, summary) {
+    const totalProjects = stats.totalProjects || stats.total_projects || summary.total || 0;
+    const aiProjects = stats.aiProjects || stats.ai_projects || summary.aiCount || 0;
+    const aiPercentage = totalProjects > 0 ? Math.round((aiProjects / totalProjects) * 100) : 0;
+    const avgStars = stats.avgStars || stats.avg_stars || summary.avgStars || '0';
+    const maxTodayStars = summary.maxTodayStars || 0;
+    const hotProject = summary.topProject || '';
+
+    return `
+      <section class="weekly-overview">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value">${totalProjects}</div>
+            <div class="stat-label">上榜项目</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${avgStars}</div>
+            <div class="stat-label">平均 Stars</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${aiPercentage}%</div>
+            <div class="stat-label">AI 项目</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${maxTodayStars.toLocaleString()}</div>
+            <div class="stat-label">最大黑马</div>
+            <div class="stat-subtitle">${hotProject.split('/')[1] || hotProject}</div>
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  renderWeeklyInsightsSection(aiInsights, projects = []) {
+    if (!aiInsights) {
+      return '';
+    }
+
+    const highlights = aiInsights.highlights || [];
+    const trends = aiInsights.trends || {};
+    const emergingFields = aiInsights.emergingFields || [];
+    const recommendations = aiInsights.recommendations || {};
+
+    return `
+      <section class="ai-insights weekly">
+        <h2>AI 深度洞察</h2>
+        
+        ${highlights.length > 0 ? `
+          <div class="insights-block">
+            <h3>🔥 本周热点</h3>
+            <ul class="highlights-list">
+              ${highlights.map(highlight => `<li>${this.escapeAndLinkify(highlight, projects)}</li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+
+        ${trends.shortTerm && trends.shortTerm.length > 0 ? `
+          <div class="insights-block">
+            <h3>📈 短期趋势</h3>
+            <ul class="trends-list">
+              ${trends.shortTerm.map(trend => `<li>${this.escapeAndLinkify(trend, projects)}</li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+
+        ${emergingFields.length > 0 ? `
+          <div class="insights-block">
+            <h3>🆕 新兴领域</h3>
+            ${emergingFields.map(field => `
+              <div class="emerging-field">
+                <div class="field-name">${this.escapeAndLinkify(field.field, projects)}</div>
+                <div class="field-description">${this.escapeAndLinkify(field.description, projects)}</div>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        ${(recommendations.developers && recommendations.developers.length > 0) || (recommendations.enterprises && recommendations.enterprises.length > 0) ? `
+          <div class="insights-block">
+            <h3>🎯 行动建议</h3>
+            ${recommendations.developers && recommendations.developers.length > 0 ? `
+              <h4>开发者建议</h4>
+              <ul class="recommendations-list">
+                ${recommendations.developers.map(rec => `<li>${this.escapeAndLinkify(rec, projects)}</li>`).join('')}
+              </ul>
+            ` : ''}
+            ${recommendations.enterprises && recommendations.enterprises.length > 0 ? `
+              <h4>企业建议</h4>
+              <ul class="recommendations-list">
+                ${recommendations.enterprises.map(rec => `<li>${this.escapeAndLinkify(rec, projects)}</li>`).join('')}
+              </ul>
+            ` : ''}
+          </div>
+        ` : ''}
+      </section>
+    `;
+  }
+
+  renderTopProjectsSection(aiInsights, projects) {
+    if (!aiInsights || !aiInsights.topProjects || aiInsights.topProjects.length === 0) {
+      return '';
+    }
+
+    const topProjects = aiInsights.topProjects.slice(0, 3);
+
+    return `
+      <section class="top-projects">
+        <h2>重点项目推荐</h2>
+        <div class="top-projects-grid">
+          ${topProjects.map((project, index) => {
+            const fullProject = projects.find(p => (p.repo || p.fullName) === project.repo);
+            const desc = fullProject?.desc || fullProject?.description || project.reason || '';
+            const projectUrl = `https://github.com/${project.repo}`;
+            
+            return `
+              <div class="top-project-card">
+                <div class="top-project-header">
+                  <a href="${projectUrl}" target="_blank" class="top-project-name">
+                    ${index + 1}. ${project.repo}
+                  </a>
+                  ${project.category ? `<span class="category-badge">${project.category}</span>` : ''}
+                </div>
+                <div class="top-project-desc">${desc}</div>
+                <div class="top-project-reason">
+                  <div class="reason-label">入选理由</div>
+                  <div class="reason-text">${project.reason}</div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </section>
+    `;
+  }
+
+  renderGroupedProjectsSection(groupedProjects) {
+    if (!groupedProjects || Object.keys(groupedProjects).length === 0) {
+      return '';
+    }
+
+    return `
+      <section class="grouped-projects">
+        <h2>完整项目列表</h2>
+        ${Object.entries(groupedProjects).map(([typeName, typeProjects]) => {
+          const typeInfo = this.getTypeInfo(typeName);
+          
+          return `
+            <div class="project-group">
+              <h3>${typeInfo.name}（${typeProjects.length}个）</h3>
+              <div class="project-list">
+                ${typeProjects.map((project, index) => this.renderProjectCard(project, index)).join('')}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </section>
+    `;
+  }
+
+  getTypeInfo(typeName) {
+    const typeMap = {
+      'agent': { name: 'Agent 系统', icon: '🤖' },
+      'llm': { name: 'LLM 工具/框架', icon: '🧠' },
+      'speech': { name: '语音处理', icon: '🎤' },
+      'general': { name: '通用工具', icon: '🛠️' },
+      'vision': { name: '视觉处理', icon: '👁️' },
+      'code': { name: '代码工具', icon: '💻' },
+      'data': { name: '数据处理', icon: '📊' }
+    };
+    return typeMap[typeName] || { name: typeName, icon: '📦' };
+  }
+
+  groupProjectsByType(projects) {
+    const grouped = {};
+    projects.forEach(project => {
+      const type = project.analysis?.type || project.type || 'general';
+      if (!grouped[type]) {
+        grouped[type] = [];
+      }
+      grouped[type].push(project);
+    });
+    return grouped;
   }
 }
 
