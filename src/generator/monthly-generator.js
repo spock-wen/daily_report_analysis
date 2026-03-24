@@ -326,14 +326,28 @@ class MonthlyGenerator {
           <div class="type-group">
             <h3>${this.getTypeName(type)}</h3>
             <div class="project-list">
-              ${projects.map(p => `
+              ${projects.map(p => {
+                // 处理描述：优先中文，其次英文，最后显示提示
+                let descText = p.descZh || p.description || '';
+                const hasChineseDesc = !!(p.descZh);
+                const hasEnglishDesc = !!(p.description);
+                const showTranslateTip = hasEnglishDesc && !hasChineseDesc;
+
+                if (!descText) {
+                  descText = '<span style="color: var(--text-muted); font-style: italic;">暂无描述</span>';
+                } else if (showTranslateTip) {
+                  descText = `<span title="${descText}">${descText.substring(0, 80)}${descText.length > 80 ? '...' : ''}</span>`;
+                }
+
+                return `
                 <div class="project-item">
                   <div class="name">
                     <a href="https://github.com/${p.repo}" target="_blank">${p.repo}</a>
                   </div>
-                  <div class="desc">${p.description || '暂无描述'}</div>
+                  <div class="desc">${descText}</div>
                 </div>
-              `).join('')}
+              `;
+              }).join('')}
             </div>
           </div>
         `).join('')}

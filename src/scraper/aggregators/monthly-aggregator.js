@@ -330,18 +330,61 @@ class MonthlyAggregator {
   }
 
   /**
-   * 检测项目类型
+   * 检测项目类型（优化版：更准确的分类）
    */
   detectProjectType(project) {
     const desc = (project.description || '').toLowerCase();
-    const name = (project.name || '').toLowerCase();
+    const name = (project.fullName || project.name || '').toLowerCase();
     const text = `${desc} ${name}`;
 
-    if (text.includes('agent') || text.includes('autonomous')) return 'agent';
-    if (text.includes('llm') || text.includes('language model') || text.includes('gpt')) return 'llm';
-    if (text.includes('vision') || text.includes('image') || text.includes('computer vision')) return 'vision';
-    if (text.includes('speech') || text.includes('audio') || text.includes('voice')) return 'speech';
-    if (text.includes('dev') || text.includes('tool') || text.includes('cli')) return 'devtools';
+    // Agent 相关（优先级最高）
+    if (text.includes('agent') || text.includes('autonomous') || text.includes('auto') ||
+        text.includes('workflow') || text.includes('orchestrat') || text.includes('multi-agent') ||
+        text.includes('copilot') || text.includes('assistant') || text.includes('bot')) {
+      return 'agent';
+    }
+
+    // LLM/模型相关
+    if (text.includes('llm') || text.includes('language model') || text.includes('gpt') ||
+        text.includes('transformer') || text.includes('fine-tune') || text.includes('prompt') ||
+        text.includes('claude') || text.includes('qwen') || text.includes('llama') ||
+        text.includes('model') || text.includes('inference')) {
+      return 'llm';
+    }
+
+    // 视觉相关
+    if (text.includes('vision') || text.includes('image') || text.includes('computer vision') ||
+        text.includes('ocr') || text.includes('detection') || text.includes('segmentation') ||
+        text.includes('visual') || text.includes('video') || text.includes('render')) {
+      return 'vision';
+    }
+
+    // 语音/音频相关
+    if (text.includes('speech') || text.includes('audio') || text.includes('voice') ||
+        text.includes('tts') || text.includes('asr') || text.includes('stt') ||
+        text.includes('sound') || text.includes('music') || text.includes('synthes')) {
+      return 'speech';
+    }
+
+    // 开发工具相关
+    if (text.includes('dev') || text.includes('tool') || text.includes('cli') ||
+        text.includes('build') || text.includes('debug') || text.includes('test') ||
+        text.includes('ci/cd') || text.includes('linter') || text.includes('formatter') ||
+        text.includes('webpack') || text.includes('vite') || text.includes('eslint')) {
+      return 'devtools';
+    }
+
+    // 框架/库
+    if (text.includes('framework') || text.includes('library') || text.includes('sdk') ||
+        text.includes('api') || text.includes('wrapper') || text.includes('kit')) {
+      return 'llm';
+    }
+
+    // 数据分析/科学
+    if (text.includes('data') || text.includes('analytics') || text.includes('science') ||
+        text.includes('ml') || text.includes('machine learning') || text.includes('statistics')) {
+      return 'llm';
+    }
 
     return 'other';
   }
