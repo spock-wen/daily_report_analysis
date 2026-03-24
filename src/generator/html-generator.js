@@ -2,6 +2,7 @@ const { writeHtml } = require('../utils/fs');
 const { getDailyReportPath, getWeeklyReportPath, getMonthlyReportPath } = require('../utils/path');
 const { renderTemplate, markdownToHtml } = require('../utils/template');
 const logger = require('../utils/logger');
+const MonthlyGenerator = require('./monthly-generator');
 
 class HTMLGenerator {
   async generateDaily(dailyData) {
@@ -42,10 +43,9 @@ class HTMLGenerator {
     try {
       logger.info('生成月报 HTML...', { month: monthlyData.month });
 
-      const html = this.renderMonthlyHTML(monthlyData);
-      const filePath = getMonthlyReportPath(monthlyData.month);
-
-      await writeHtml(filePath, html);
+      // 使用新的 MonthlyGenerator 生成月报
+      const generator = new MonthlyGenerator();
+      const filePath = await generator.generate(monthlyData);
 
       logger.success(`月报 HTML 已生成：${filePath}`);
       return filePath;
