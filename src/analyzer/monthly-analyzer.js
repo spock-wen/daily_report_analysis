@@ -233,7 +233,20 @@ ${contextData.topProjectCandidates.map(p =>
       }
 
       jsonContent = jsonContent.substring(firstBrace, lastBrace + 1);
-      const insights = JSON.parse(jsonContent);
+
+      // 尝试解析 JSON，处理常见格式问题
+      let insights;
+      try {
+        insights = JSON.parse(jsonContent);
+      } catch (parseError) {
+        logger.warn('JSON 解析失败，尝试修复...', { error: parseError.message });
+        // 尝试清理可能的格式问题
+        jsonContent = jsonContent
+          .replace(/，/g, ',')  // 中文逗号
+          .replace(/"/g, '"')   // 中文双引号
+          .replace(/:/g, ':');   // 中文冒号
+        insights = JSON.parse(jsonContent);
+      }
 
       // 补充项目链接等元数据
       const trendingRepos = monthlyData.aggregation?.topGainers || [];

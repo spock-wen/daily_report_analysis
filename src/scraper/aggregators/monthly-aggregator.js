@@ -8,7 +8,8 @@ const logger = require('../../utils/logger');
  */
 class MonthlyAggregator {
   constructor() {
-    this.dataDir = path.join(__dirname, '../../data');
+    // 使用项目根目录的 data 文件夹
+    this.dataDir = path.join(__dirname, '../../../data');
   }
 
   /**
