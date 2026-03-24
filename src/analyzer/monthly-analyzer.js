@@ -240,12 +240,36 @@ ${contextData.topProjectCandidates.map(p =>
         insights = JSON.parse(jsonContent);
       } catch (parseError) {
         logger.warn('JSON 解析失败，尝试修复...', { error: parseError.message });
-        // 尝试清理可能的格式问题
-        jsonContent = jsonContent
+
+        // 尝试 1: 清理中文标点
+        let cleaned = jsonContent
           .replace(/，/g, ',')  // 中文逗号
           .replace(/"/g, '"')   // 中文双引号
           .replace(/:/g, ':');   // 中文冒号
-        insights = JSON.parse(jsonContent);
+        try {
+          insights = JSON.parse(cleaned);
+        } catch (parseError2) {
+          // 尝试 2: 使用更严格的括号匹配重新提取
+          logger.warn('修复中文标点后仍失败，尝试重新提取 JSON...');
+          let braceCount = 0;
+          let endPos = 0;
+          for (let i = firstBrace; i < jsonContent.length; i++) {
+            if (jsonContent[i] === '{') braceCount++;
+            else if (jsonContent[i] === '}') braceCount--;
+            if (braceCount === 0) {
+              endPos = i + 1;
+              break;
+            }
+          }
+          cleaned = jsonContent.substring(0, endPos);
+          try {
+            insights = JSON.parse(cleaned);
+          } catch (parseError3) {
+            // 尝试 3: 移除字符串中的换行和多余空格
+            cleaned = cleaned.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ');
+            insights = JSON.parse(cleaned);
+          }
+        }
       }
 
       // 补充项目链接等元数据

@@ -209,11 +209,15 @@ class MonthlyGenerator {
         <h2>月度 TOP 项目</h2>
         ${topProjects.slice(0, 5).map((project, index) => `
           <div class="top-project-card">
-            <span class="rank">${index + 1}</span>
-            <span class="score">${project.score || 0}</span>
-            <div class="repo-name">
-              <a href="https://github.com/${project.repo}" target="_blank">${project.repo}</a>
-              <span class="category">${project.category || '技术创新'}</span>
+            <div class="top-project-header">
+              <div>
+                <span class="rank">${index + 1}</span>
+                <span class="repo-name">
+                  <a href="https://github.com/${project.repo}" target="_blank">${project.repo}</a>
+                </span>
+                <span class="category">${project.category || '技术创新'}</span>
+              </div>
+              <span class="score">${project.score || 0}</span>
             </div>
             <div class="description">${project.value || project.description || ''}</div>
             ${project.reasons && project.reasons.length > 0 ? `
