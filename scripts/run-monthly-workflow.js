@@ -1,5 +1,5 @@
 /**
- * 日报完整工作流脚本
+ * 月报完整工作流脚本
  * 执行抓取 → AI分析 → 生成HTML → 发送通知
  * 支持失败自动重试
  */
@@ -11,9 +11,9 @@ const logger = require('../src/utils/logger');
 const MAX_RETRIES = 3;
 const RETRY_INTERVAL_MS = 5 * 60 * 1000; // 5 分钟
 
-async function runDailyWorkflow() {
+async function runMonthlyWorkflow() {
   logger.info('============================================');
-  logger.info('🚀 开始执行日报完整工作流');
+  logger.info('🚀 开始执行月报完整工作流');
   logger.info('============================================');
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
@@ -31,12 +31,12 @@ async function runDailyWorkflow() {
         enableNotification: true  // 发送飞书/WeLink 通知
       });
 
-      // 执行日报抓取和报告生成
-      const result = await workflow.triggerManual('daily');
+      // 执行月报抓取和报告生成
+      const result = await workflow.triggerManual('monthly');
 
       if (result.success) {
         logger.success('============================================');
-        logger.success('✅ 日报工作流执行完成！');
+        logger.success('✅ 月报工作流执行完成！');
         logger.success(`📄 报告路径: ${result.htmlPath || 'N/A'}`);
         logger.success(`⏱️ 耗时: ${result.duration || 'N/A'}`);
         if (attempt > 1) {
@@ -66,13 +66,13 @@ async function runDailyWorkflow() {
 
   // 所有重试都失败
   logger.error('============================================');
-  logger.error(`❌ 日报工作流执行失败，已重试 ${MAX_RETRIES} 次`);
+  logger.error(`❌ 月报工作流执行失败，已重试 ${MAX_RETRIES} 次`);
   logger.error('============================================');
   return { success: false, error: `重试 ${MAX_RETRIES} 次后仍失败` };
 }
 
 // 执行工作流
-runDailyWorkflow()
+runMonthlyWorkflow()
   .then((result) => {
     process.exit(result.success ? 0 : 1);
   })

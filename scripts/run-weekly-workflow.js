@@ -1,56 +1,80 @@
 /**
  * 周报完整工作流脚本
  * 执行抓取 → AI分析 → 生成HTML → 发送通知
+ * 支持失败自动重试
  */
 
 const { createWorkflow } = require('../src/scraper/complete-workflow');
 const logger = require('../src/utils/logger');
+
+// 重试配置
+const MAX_RETRIES = 3;
+const RETRY_INTERVAL_MS = 5 * 60 * 1000; // 5 分钟
 
 async function runWeeklyWorkflow() {
   logger.info('============================================');
   logger.info('🚀 开始执行周报完整工作流');
   logger.info('============================================');
 
-  try {
-    // 创建工作流实例
-    const workflow = createWorkflow({
-      enableScheduler: false,  // 不启用定时调度
-      enableAI: true,          // 启用 AI 分析
-      enableHTML: true,        // 生成 HTML
-      enableIndex: true,       // 更新首页
-      enableNotification: false // 不发送通知（测试阶段）
-    });
-
-    // 执行周报抓取和报告生成
-    const result = await workflow.triggerManual('weekly');
-
-    if (result.success) {
-      logger.success('============================================');
-      logger.success('✅ 周报工作流执行完成！');
-      logger.success(`📄 报告路径: ${result.htmlPath || 'N/A'}`);
-      logger.success(`⏱️ 耗时: ${result.duration || 'N/A'}`);
-      logger.success('============================================');
-    } else {
-      logger.error('============================================');
-      logger.error('❌ 周报工作流执行失败');
-      logger.error(`错误: ${result.error}`);
-      logger.error('============================================');
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    if (attempt > 1) {
+      logger.info(`\n⏳ 第 ${attempt}/${MAX_RETRIES} 次重试...`);
     }
 
-    return result;
-  } catch (error) {
-    logger.error('============================================');
-    logger.error('❌ 周报工作流执行失败');
-    logger.error(`错误: ${error.message}`);
-    logger.error('============================================');
-    throw error;
+    try {
+      // 创建工作流实例
+      const workflow = createWorkflow({
+        enableScheduler: false,  // 不启用定时调度
+        enableAI: true,          // 启用 AI 分析
+        enableHTML: true,        // 生成 HTML
+        enableIndex: true,       // 更新首页
+        enableNotification: true  // 发送飞书/WeLink 通知
+      });
+
+      // 执行周报抓取和报告生成
+      const result = await workflow.triggerManual('weekly');
+
+      if (result.success) {
+        logger.success('============================================');
+        logger.success('✅ 周报工作流执行完成！');
+        logger.success(`📄 报告路径: ${result.htmlPath || 'N/A'}`);
+        logger.success(`⏱️ 耗时: ${result.duration || 'N/A'}`);
+        if (attempt > 1) {
+          logger.success(`🔄 重试次数: ${attempt - 1}`);
+        }
+        logger.success('============================================');
+        return result;
+      } else {
+        logger.error(`❌ 第 ${attempt} 次尝试失败: ${result.error}`);
+        
+        if (attempt < MAX_RETRIES) {
+          logger.info(`⏳ 等待 ${RETRY_INTERVAL_MS / 60000} 分钟后重试...`);
+          await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL_MS));
+        }
+      }
+    } catch (error) {
+      logger.error(`❌ 第 ${attempt} 次尝试异常: ${error.message}`);
+      
+      if (attempt < MAX_RETRIES) {
+        logger.info(`⏳ 等待 ${RETRY_INTERVAL_MS / 60000} 分钟后重试...`);
+        await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL_MS));
+      } else {
+        throw error;
+      }
+    }
   }
+
+  // 所有重试都失败
+  logger.error('============================================');
+  logger.error(`❌ 周报工作流执行失败，已重试 ${MAX_RETRIES} 次`);
+  logger.error('============================================');
+  return { success: false, error: `重试 ${MAX_RETRIES} 次后仍失败` };
 }
 
 // 执行工作流
 runWeeklyWorkflow()
-  .then(() => {
-    process.exit(0);
+  .then((result) => {
+    process.exit(result.success ? 0 : 1);
   })
   .catch((error) => {
     console.error(error);
