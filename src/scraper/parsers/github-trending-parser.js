@@ -293,10 +293,12 @@ class GitHubTrendingParser {
    * @returns {Object} 标准化的数据结构
    */
   standardize(repositories) {
+    const date = new Date().toISOString().split('T')[0];
     return {
       success: true,
       count: repositories.length,
       scrapedAt: new Date().toISOString(),
+      date: date,
       source: 'GitHub Trending',
       language: this.language || 'all',
       period: this.since,

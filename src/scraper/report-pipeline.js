@@ -139,7 +139,9 @@ class ReportPipeline {
       // 步骤 6: 发送推送通知
       if (this.enableNotification) {
         await this.executeStep('send-notification', async () => {
-          result.notificationResults = await this.sendNotification(data, result.insights, type);
+          // 使用准备好的报告数据，确保包含 date 字段
+          const reportData = this.prepareReportData(data, result.insights, type);
+          result.notificationResults = await this.sendNotification(reportData, result.insights, type);
         }, result);
       } else {
         logger.info('[ReportPipeline] 推送通知已禁用，跳过');
