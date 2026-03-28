@@ -31,16 +31,26 @@
 │   │   │   └── monthly-scraper.js
 │   │   └── parsers/          # HTML 解析器
 │   │       └── github-trending-parser.js
+│   │   └── aggregators/      # 数据聚合器
+│   │       └── monthly-aggregator.js
 │   ├── analyzer/             # AI 分析
-│   │   └── insight-analyzer.js
+│   │   ├── insight-analyzer.js
+│   │   └── monthly-analyzer.js
 │   ├── generator/            # HTML 生成
-│   │   └── html-generator.js
+│   │   ├── html-generator.js
+│   │   └── monthly-generator.js
 │   ├── notifier/             # 推送通知
+│   │   ├── message-sender.js
+│   │   └── monthly-templates.js
 │   └── utils/                # 工具函数
+│       ├── logger.js
+│       ├── path.js
+│       └── index.js
 ├── scripts/                  # 可执行脚本
 │   ├── run-daily-workflow.js     # 日报完整工作流
 │   ├── run-weekly-workflow.js    # 周报完整工作流
-│   └── generate-index.js     # 生成首页
+│   ├── run-monthly-workflow.js   # 月报完整工作流
+│   └── generate-index.js         # 生成首页
 ├── data/                     # 数据目录
 │   ├── briefs/               # 输入数据
 │   │   ├── daily/
@@ -51,11 +61,13 @@
 │   ├── daily/
 │   ├── weekly/
 │   ├── monthly/
-│   └── index.html
+│   └── index.html           # 统一门户首页
 ├── public/                   # 静态资源
 │   └── css/
 ├── config/                   # 配置文件
-│   └── prompts.json          # AI 提示词
+│   └── prompts.json         # AI 提示词
+├── docs/                     # 文档
+│   └── superpowers/specs/   # 设计文档
 └── .env.example              # 环境变量示例
 ```
 
@@ -97,7 +109,7 @@ node scripts/run-daily-workflow.js
 4. 项目分析（翻译描述 + 生成详细分析）
 5. AI 分析生成洞察
 6. 生成 HTML 报告
-7. 更新首页
+7. 自动更新首页
 
 #### 周报工作流
 
@@ -111,9 +123,10 @@ node scripts/run-weekly-workflow.js
 2. 解析项目信息
 3. 调用 GitHub API 获取详细信息
 4. 项目分析（翻译描述 + 生成详细分析）
-5. AI 分析生成洞察（包含深度趋势分析）
-6. 生成 HTML 报告
-7. 更新首页
+5. 加载上周 7 天的日报数据
+6. AI 分析（周度主题 + 深度趋势分析）
+7. 生成 HTML 报告
+8. 自动更新首页
 
 **注意**：周一运行时会生成上周（W12）的周报，汇总上周一到周日的数据。
 
@@ -132,16 +145,30 @@ node scripts/run-monthly-workflow.js 2026-03
 5. 计算趋势演变（上/中/下旬三段式分析）
 6. AI 深度分析（月度主题、TOP 项目评测、新兴领域、下月预测）
 7. 生成 HTML 报告（包含 Chart.js 数据可视化）
-8. 更新首页
+8. 自动更新首页
 
 **注意**：月报是深度分析型报告，适合公开发布到公众号/博客等平台。
 
 ### 4. 查看报告
 
 用浏览器打开 `reports/index.html` 查看首页，或打开具体报告：
-- 日报：`reports/daily/github-ai-trending-YYYY-MM-DD.html`
-- 周报：`reports/weekly/github-weekly-YYYY-WXX.html`
-- 月报：`reports/monthly/github-monthly-YYYY-MM.html`
+
+- **首页**：`reports/index.html` - 统一门户页面，展示最新报告、统计数据、趋势图表、Top 5 热榜
+- **日报**：`reports/daily/github-ai-trending-YYYY-MM-DD.html`
+- **周报**：`reports/weekly/github-weekly-YYYY-WXX.html`
+- **月报**：`reports/monthly/github-monthly-YYYY-MM.html`
+
+## 首页功能
+
+首页是一个**对外展示的门户页面**，包含以下模块：
+
+| 模块 | 描述 |
+|------|------|
+| 📊 系统状态 | 6 个统计卡片（日报/周报/月报数量、项目数、AI 占比、平均 Stars） |
+| 🆕 最新报告 | 3 个卡片展示最新日报/周报/月报摘要和主题 |
+| 📈 实时趋势 | Chart.js 可交互趋势图表（可切换新增项目数/星数总量/AI 占比） |
+| 🔥 Top 5 热榜 | 所有项目的综合排名（按 Stars 排序） |
+| 📁 报告存档 | 折叠面板，展示历史报告链接 |
 
 ## 工作流程详解
 
@@ -160,7 +187,7 @@ AI 分析（生成热点、趋势、推荐建议）
     ↓
 生成 HTML 报告
     ↓
-更新首页
+自动更新首页
 ```
 
 ### 周报流程
@@ -180,7 +207,7 @@ AI 分析（周度主题 + 深度趋势分析）
     ↓
 生成 HTML 报告（包含深度趋势章节）
     ↓
-更新首页
+自动更新首页
 ```
 
 ### 月报流程
@@ -214,7 +241,7 @@ AI 深度分析
     ├── 语言 TOP5 柱状图
     └── 趋势演变图
     ↓
-更新首页
+自动更新首页
 ```
 
 ## 项目分析功能
@@ -286,6 +313,7 @@ REPORT_BASE_URL=https://report.wenspock.site
 - **Ollama API** - AI 分析
 - **MyMemory API** - 翻译服务
 - **GitHub API** - 项目信息增强
+- **Chart.js** - 数据可视化
 
 ## 开发说明
 
