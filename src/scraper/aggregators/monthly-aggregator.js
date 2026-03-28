@@ -128,7 +128,24 @@ class MonthlyAggregator {
         const date = data.date || '';
         // 从数据中提取日期，可能需要去掉前缀 "data-"
         const cleanDate = date.replace(/^data-/, '');
+
+        let belongsToMonth = false;
+
+        // 支持两种格式：
+        // 1. "2026-03-15" 格式：直接用 startsWith 匹配月份
         if (cleanDate.startsWith(month)) {
+          belongsToMonth = true;
+        }
+        // 2. "2026-W12" 格式：从文件名解析周数，计算该周是否在本月内
+        else if (cleanDate.match(/^(\d{4})-W(\d{2})$/)) {
+          const match = cleanDate.match(/^(\d{4})-W(\d{2})$/);
+          const [_, weekYear, weekNum] = match;
+          const weekStart = this.getWeekStartDate(weekYear, weekNum);
+          // 检查周开始日期是否在本月内
+          belongsToMonth = weekStart >= monthStart && weekStart <= monthEnd;
+        }
+
+        if (belongsToMonth) {
           weeklyDataList.push({
             date: cleanDate,
             projects: data.projects || data.trending_repos || [],
@@ -141,6 +158,26 @@ class MonthlyAggregator {
     }
 
     return weeklyDataList;
+  }
+
+  /**
+   * 根据年份和周数计算周开始日期（周一）
+   * @param {string} year - 年份
+   * @param {string} weekNum - 周数
+   * @returns {Date} 周开始日期
+   */
+  getWeekStartDate(year, weekNum) {
+    const week = parseInt(weekNum);
+    const jan1 = new Date(parseInt(year), 0, 1);
+    // 计算第一周的周一（ISO 周定义）
+    const dayOfWeek = jan1.getDay() || 7;
+    const daysToFirstMonday = dayOfWeek <= 4 ? 1 - dayOfWeek : 7 - dayOfWeek + 1;
+    const firstMonday = new Date(jan1);
+    firstMonday.setDate(jan1.getDate() + daysToFirstMonday);
+    // 计算目标周的周一
+    const weekStart = new Date(firstMonday);
+    weekStart.setDate(firstMonday.getDate() + (week - 1) * 7);
+    return weekStart;
   }
 
   /**
