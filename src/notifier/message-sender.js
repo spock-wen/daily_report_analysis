@@ -5,6 +5,7 @@ const https = require('https');
 const logger = require('../utils/logger');
 const { getConfig, getEnvBool } = require('../utils/config');
 const { generateFeishuWeekly, generateWeLinkWeekly } = require('./weekly-templates');
+const { generateFeishuMonthly, generateWeLinkMonthly } = require('./monthly-templates');
 
 // 加载配置
 const config = getConfig();
@@ -115,6 +116,11 @@ class MessageSender {
       content: JSON.stringify(message)
     };
 
+    logger.debug('飞书消息 payload', {
+      contentLength: payload.content.length,
+      messageElements: message.elements?.length
+    });
+
     let response;
     try {
       response = await fetch(`${FEISHU_API_BASE}/im/v1/messages?receive_id_type=${receiveIdType}`, {
@@ -131,7 +137,8 @@ class MessageSender {
     }
 
     if (!response.ok) {
-      throw new Error(`飞书消息发送失败：HTTP ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(`飞书消息发送失败：HTTP ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     const result = await response.json();
@@ -289,6 +296,74 @@ class MessageSender {
       throw error;
     }
     
+    return results;
+  }
+
+  /**
+   * 发送月报到所有平台
+   * @param {Object} monthlyData - 月报数据
+   * @param {Object} insights - AI 洞察数据
+   * @param {Object} options - 配置选项
+   * @returns {Promise<Object>} { feishu: Object, welink: Object, logs: string[] }
+   */
+  async sendMonthlyAll(monthlyData, insights, options = {}) {
+    const results = {
+      feishu: null,
+      welink: null,
+      logs: []
+    };
+
+    try {
+      // 生成内容（使用月报专用模板）
+      const feishuContent = generateFeishuMonthly(monthlyData, insights);
+      const welinkContent = generateWeLinkMonthly(monthlyData, insights);
+
+      // 发送飞书
+      if (options.platforms?.includes('feishu') || !options.platforms) {
+        const feishuOptions = {
+          type: 'monthly',
+          title: 'GitHub 月报洞察',
+          content: feishuContent
+        };
+
+        results.feishu = await this.sendFeishu(feishuOptions);
+        results.logs.push(`Feishu: ${results.feishu.success ? 'success' : 'failed'}`);
+
+        if (results.feishu.success) {
+          logger.info('✅ Feishu monthly notification sent successfully');
+        } else {
+          logger.error('❌ Feishu monthly notification failed', results.feishu.error);
+        }
+      }
+
+      // 发送 WeLink
+      if (options.platforms?.includes('welink') || !options.platforms) {
+        const welinkOptions = {
+          type: 'monthly',
+          title: 'GitHub 趋势月报',
+          content: welinkContent
+        };
+
+        results.welink = await this.sendWeLink(welinkOptions);
+
+        const successCount = Array.isArray(results.welink)
+          ? results.welink.filter(r => r.success).length
+          : (results.welink.success ? 1 : 0);
+
+        results.logs.push(`WeLink: ${successCount > 0 ? 'success' : 'failed'}`);
+
+        if (successCount > 0) {
+          logger.info('✅ WeLink monthly notification sent successfully');
+        } else {
+          logger.error('❌ WeLink monthly notification failed', results.welink);
+        }
+      }
+
+    } catch (error) {
+      logger.error('sendMonthlyAll error:', error);
+      throw error;
+    }
+
     return results;
   }
 
