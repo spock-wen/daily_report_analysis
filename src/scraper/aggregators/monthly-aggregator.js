@@ -78,9 +78,11 @@ class MonthlyAggregator {
 
         // 检查日期是否属于指定月份
         const date = data.date || file.replace('.json', '');
-        if (date.startsWith(month)) {
+        // 从文件名或数据中提取日期（格式：YYYY-MM-DD），可能需要去掉前缀 "data-"
+        const cleanDate = date.replace(/^data-/, '');
+        if (cleanDate.startsWith(month)) {
           dailyDataList.push({
-            date,
+            date: cleanDate,
             projects: data.projects || data.trending_repos || [],
             stats: data.stats || {}
           });
@@ -122,12 +124,13 @@ class MonthlyAggregator {
         const filePath = path.join(weeklyDir, file);
         const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
 
-        // 检查周报是否属于指定月份
-        const weekStart = data.weekStart || data.week_start || '';
-        if (weekStart.startsWith(month)) {
+        // 检查周报是否属于指定月份（周报使用 date 字段）
+        const date = data.date || '';
+        // 从数据中提取日期，可能需要去掉前缀 "data-"
+        const cleanDate = date.replace(/^data-/, '');
+        if (cleanDate.startsWith(month)) {
           weeklyDataList.push({
-            weekStart,
-            weekEnd: data.weekEnd || data.week_end || '',
+            date: cleanDate,
             projects: data.projects || data.trending_repos || [],
             stats: data.stats || {}
           });
@@ -163,7 +166,7 @@ class MonthlyAggregator {
         projects.push({
           ...project,
           source: 'weekly',
-          weekStart: week.weekStart
+          date: week.date
         });
       });
     });
@@ -245,7 +248,7 @@ class MonthlyAggregator {
       // 记录出现
       const entry = seen.get(key);
       entry.appearances.push({
-        date: project.date || project.weekStart,
+        date: project.date,
         source: project.source
       });
     });
@@ -277,8 +280,8 @@ class MonthlyAggregator {
 
       const entry = projectCount.get(key);
       entry.count++;
-      if (project.date || project.weekStart) {
-        entry.dates.push(project.date || project.weekStart);
+      if (project.date) {
+        entry.dates.push(project.date);
       }
     });
 

@@ -92,6 +92,14 @@ class MonthlyAnalyzer {
       })) || []
     ];
 
+    // 准备所有上榜项目列表（用于验证 AI 生成的项目）
+    const allRepos = [
+      ...new Set([
+        ...(aggregation.topGainers?.map(p => p.repo) || []),
+        ...(aggregation.recurringProjects?.map(p => p.repo) || [])
+      ])
+    ];
+
     return {
       dailyCount: monthlyData.dailyDataList?.length || 0,
       weeklyCount: monthlyData.weeklyDataList?.length || 0,
@@ -101,7 +109,8 @@ class MonthlyAnalyzer {
       typeDistribution: aggregation.typeDistribution || {},
       languageDistribution: aggregation.languageDistribution || {},
       periodProjects,
-      topProjectCandidates
+      topProjectCandidates,
+      allRepos
     };
   }
 
@@ -139,10 +148,19 @@ ${contextData.periodProjects.map(p =>
 `${p.period}: ${p.keyProjects.join(', ')}`
 ).join('\n')}
 
-【TOP 项目候选】
+【TOP 项目候选】（注意：longTermValue 必须从这里选择）
 ${contextData.topProjectCandidates.map(p =>
 `- ${p.repo}: ${p.stars ? p.stars + '⭐' : ''}${p.appearanceCount ? ` (出现${p.appearanceCount}次)` : ''}`
 ).join('\n')}
+
+【所有上榜项目列表】（trendEvolution 和 emergingFields 的项目必须从这里选择）
+${contextData.allRepos.slice(0, 50).map(repo => `- ${repo}`).join('\n')}
+
+重要约束：
+1. longTermValue 中的 repo 必须从【TOP 项目候选】列表中选择，不能创造新的项目
+2. trendEvolution 的 keyProjects 和 emergingFields 的 projects 必须从【所有上榜项目列表】中选择
+3. 不允许创造任何不在上述列表中的项目名称
+4. 如果候选项目不足以支撑分析，请基于现有项目进行深入分析，而不是编造新项目
 
 请按以下 JSON 格式输出：
 {
@@ -272,26 +290,88 @@ ${contextData.topProjectCandidates.map(p =>
         }
       }
 
-      // 补充项目链接等元数据
+      // 补充项目链接等元数据，并验证项目是否存在于实际数据中
       const trendingRepos = monthlyData.aggregation?.topGainers || [];
+      const recurringRepos = monthlyData.aggregation?.recurringProjects || [];
+      const allValidRepos = new Set([
+        ...trendingRepos.map(p => p.repo),
+        ...recurringRepos.map(p => p.repo)
+      ]);
 
+      logger.info('验证 AI 生成的项目是否存在于实际数据中...', {
+        validReposCount: allValidRepos.size,
+        longTermValueCount: insights.longTermValue?.length || 0
+      });
+
+      // 验证并过滤 longTermValue 中的项目
       if (insights.longTermValue) {
-        insights.longTermValue = insights.longTermValue.map(item => {
-          const repo = trendingRepos.find(r => r.repo === item.repo);
-          return {
-            ...item,
-            stars: repo?.stars || 0,
-            language: repo?.language || '',
-            description: repo?.description || ''
-          };
-        });
+        insights.longTermValue = insights.longTermValue
+          .filter(item => {
+            if (!allValidRepos.has(item.repo)) {
+              logger.warn(`过滤掉不存在的项目：${item.repo}`);
+              return false;
+            }
+            return true;
+          })
+          .map(item => {
+            const repo = trendingRepos.find(r => r.repo === item.repo) ||
+                         recurringRepos.find(r => r.repo === item.repo);
+            return {
+              ...item,
+              stars: repo?.stars || repo?.totalStars || 0,
+              language: repo?.language || '',
+              description: repo?.description || ''
+            };
+          });
       }
 
-      if (insights.darkHorse) {
-        const darkHorseRepo = trendingRepos.find(r => r.repo === insights.darkHorse.repo);
+      // 验证并过滤 trendEvolution 中的项目
+      if (insights.trendEvolution) {
+        insights.trendEvolution = insights.trendEvolution.map(period => ({
+          ...period,
+          keyProjects: (period.keyProjects || []).filter(repo => {
+            if (!allValidRepos.has(repo)) {
+              logger.warn(`过滤掉 trendEvolution 中不存在的项目：${repo}`);
+              return false;
+            }
+            return true;
+          })
+        }));
+      }
+
+      // 验证并过滤 emergingFields 中的项目
+      if (insights.emergingFields) {
+        insights.emergingFields = insights.emergingFields.map(field => ({
+          ...field,
+          projects: (field.projects || []).filter(repo => {
+            if (!allValidRepos.has(repo)) {
+              logger.warn(`过滤掉 emergingFields 中不存在的项目：${repo}`);
+              return false;
+            }
+            return true;
+          })
+        }));
+      }
+
+      // 验证并过滤 darkHorse
+      if (insights.darkHorse && !allValidRepos.has(insights.darkHorse.repo)) {
+        logger.warn(`过滤掉 darkHorse 不存在的项目：${insights.darkHorse.repo}`);
+        // 选择星数最高的项目作为 darkHorse
+        const topRepo = trendingRepos[0];
+        if (topRepo) {
+          insights.darkHorse = {
+            repo: topRepo.repo,
+            reason: '本月星数增长最快的项目'
+          };
+        } else {
+          insights.darkHorse = null;
+        }
+      } else if (insights.darkHorse) {
+        const darkHorseRepo = trendingRepos.find(r => r.repo === insights.darkHorse.repo) ||
+                              recurringRepos.find(r => r.repo === insights.darkHorse.repo);
         insights.darkHorse = {
           ...insights.darkHorse,
-          stars: darkHorseRepo?.stars || 0,
+          stars: darkHorseRepo?.stars || darkHorseRepo?.totalStars || 0,
           language: darkHorseRepo?.language || ''
         };
       }

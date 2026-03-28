@@ -147,7 +147,7 @@ class MonthlyGenerator {
                   <div class="key-projects">
                     <h4>关键项目</h4>
                     <ul>
-                      ${item.keyProjects.map(p => `<li>${p}</li>`).join('')}
+                      ${item.keyProjects.map(p => `<li><a href="https://github.com/${p}" target="_blank" class="repo-link">${p}</a></li>`).join('')}
                     </ul>
                   </div>
                 ` : ''}
@@ -257,7 +257,7 @@ class MonthlyGenerator {
               <div class="projects">
                 <h4>代表项目</h4>
                 <ul>
-                  ${field.projects.map(p => `<li>${p}</li>`).join('')}
+                  ${field.projects.map(p => `<li><a href="https://github.com/${p}" target="_blank" class="repo-link">${p}</a></li>`).join('')}
                 </ul>
               </div>
             ` : ''}

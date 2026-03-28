@@ -232,11 +232,13 @@ class CompleteWorkflow {
   /**
    * 手动触发抓取并生成报告（端到端流程）
    * @param {string} type - 报告类型 (daily/weekly/monthly)
+   * @param {Object} options - 选项
+   * @param {Object} options.data - 预获取的数据（可选，用于月报等聚合场景）
    * @returns {Promise<Object>} 执行结果
    */
-  async triggerManual(type) {
+  async triggerManual(type, options = {}) {
     logger.title(`[CompleteWorkflow] 手动触发${type}报告生成流程`);
-    
+
     if (!this.scrapers[type]) {
       logger.error('[CompleteWorkflow] 未找到指定的抓取器', { type });
       return {
@@ -244,33 +246,44 @@ class CompleteWorkflow {
         error: `未找到${type}类型的抓取器`
       };
     }
-    
+
     try {
-      // 步骤 1: 执行抓取
-      logger.info('[CompleteWorkflow] 步骤 1/2: 执行抓取...');
-      const scraper = this.scrapers[type];
-      const data = await scraper.execute({ saveToFile: true });
-      
-      if (!data) {
-        throw new Error('抓取返回空数据');
+      let data;
+
+      // 如果提供了预获取的数据，直接使用（用于月报聚合场景）
+      if (options.data) {
+        logger.info('[CompleteWorkflow] 使用预获取的数据...', {
+          type,
+          projectsCount: options.data.projects?.length || 0
+        });
+        data = options.data;
+      } else {
+        // 步骤 1: 执行抓取
+        logger.info('[CompleteWorkflow] 步骤 1/2: 执行抓取...');
+        const scraper = this.scrapers[type];
+        data = await scraper.execute({ saveToFile: true });
+
+        if (!data) {
+          throw new Error('抓取返回空数据');
+        }
+
+        logger.success('[CompleteWorkflow] 抓取完成', {
+          type,
+          projectsCount: data.projects?.length || 0
+        });
       }
-      
-      logger.success('[CompleteWorkflow] 抓取完成', { 
-        type, 
-        projectsCount: data.projects?.length || 0 
-      });
-      
+
       // 步骤 2: 生成报告
       logger.info('[CompleteWorkflow] 步骤 2/2: 生成报告...');
       const result = await this.executePipeline(data, type);
-      
+
       logger.success('[CompleteWorkflow] 手动触发流程完成', {
         type,
         success: result.success,
         htmlPath: result.htmlPath,
         duration: `${result.duration}ms`
       });
-      
+
       return result;
     } catch (error) {
       logger.error('[CompleteWorkflow] 手动触发失败', {
@@ -278,7 +291,7 @@ class CompleteWorkflow {
         error: error.message,
         stack: error.stack
       });
-      
+
       return {
         success: false,
         error: error.message,

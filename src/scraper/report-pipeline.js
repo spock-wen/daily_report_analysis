@@ -101,9 +101,15 @@ class ReportPipeline {
 
       // 步骤 2: 调用 AI 分析生成洞察
       if (this.enableAI) {
-        await this.executeStep('ai-analysis', async () => {
-          result.insights = await this.generateAIInsights(data, type);
-        }, result);
+        // 如果数据中已有 AI 洞察（如月报预生成），则跳过 AI 分析
+        if (data.aiInsights) {
+          logger.info('[ReportPipeline] 检测到已有 AI 洞察，跳过 AI 分析');
+          result.insights = data.aiInsights;
+        } else {
+          await this.executeStep('ai-analysis', async () => {
+            result.insights = await this.generateAIInsights(data, type);
+          }, result);
+        }
       } else {
         logger.info('[ReportPipeline] AI 分析已禁用，跳过');
       }
@@ -673,6 +679,7 @@ class ReportPipeline {
     const reportData = {
       ...data,
       date: date, // 确保设置 date 字段
+      month: type === 'monthly' ? date : undefined, // 月报需要 month 字段
       projects: projects, // 根级别，HTML 生成器需要
       trending_repos: projects, // 兼容性字段
       stats: stats, // 根级别 stats，HTML 生成器需要
@@ -755,21 +762,31 @@ class ReportPipeline {
    */
   async sendNotification(data, insights, type) {
     logger.info('[ReportPipeline] 开始发送推送通知...');
-    
+
     try {
       // 周报使用专用方法
       if (type === 'weekly') {
         const results = await this.notifier.sendWeeklyAll(data, insights, {
           platforms: ['feishu', 'welink']
         });
-        
+
         logger.info('[ReportPipeline] 周报推送完成', { results });
         return results;
       }
-      
-      // 日报/月报使用通用方法
+
+      // 月报使用专用方法
+      if (type === 'monthly') {
+        const results = await this.notifier.sendMonthlyAll(data, insights, {
+          platforms: ['feishu', 'welink']
+        });
+
+        logger.info('[ReportPipeline] 月报推送完成', { results });
+        return results;
+      }
+
+      // 日报使用通用方法
       const notificationContent = this.notifier.generateNotificationContent(type, data, insights);
-      
+
       const results = await this.notifier.sendAll({
         type,
         title: notificationContent.title,
@@ -778,7 +795,7 @@ class ReportPipeline {
         top5: notificationContent.top5,
         insight: notificationContent.insight
       });
-      
+
       logger.info('[ReportPipeline] 推送通知发送完成', { results });
       return results;
     } catch (error) {

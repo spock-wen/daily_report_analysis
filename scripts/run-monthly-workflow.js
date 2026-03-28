@@ -44,7 +44,7 @@ async function runMonthlyWorkflow(month) {
 
     try {
       // Step 1: 数据聚合
-      logger.section('📊 步骤 1: 数据聚合');
+      logger.title('📊 步骤 1: 数据聚合');
       const aggregator = new MonthlyAggregator();
       const monthlyData = await aggregator.aggregate(month);
 
@@ -55,7 +55,7 @@ async function runMonthlyWorkflow(month) {
       });
 
       // Step 2: AI 分析
-      logger.section('🤖 步骤 2: AI 分析');
+      logger.title('🤖 步骤 2: AI 分析');
       const analyzer = new MonthlyAnalyzer();
       const aiInsights = await analyzer.analyze(monthlyData);
 
@@ -68,7 +68,7 @@ async function runMonthlyWorkflow(month) {
       });
 
       // Step 3: HTML 生成（使用完整工作流的配置）
-      logger.section('📄 步骤 3: HTML 生成');
+      logger.title('📄 步骤 3: HTML 生成');
 
       // 创建工作流实例（支持通知等功能）
       const workflow = createWorkflow({
@@ -80,7 +80,8 @@ async function runMonthlyWorkflow(month) {
       });
 
       // 使用工作流生成 HTML（包含通知功能）
-      const result = await workflow.triggerManual('monthly', { monthlyData });
+      // 传递聚合后的月度数据，包含 aggregation 字段（topGainers, recurringProjects 等）
+      const result = await workflow.triggerManual('monthly', { data: monthlyData });
 
       if (result.success) {
         logger.success('============================================');
