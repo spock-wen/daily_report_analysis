@@ -183,7 +183,9 @@ function collectReportsData() {
         type: 'monthly',
         projectCount: data.aggregation?.totalProjects || data.projects?.length || 0,
         aiProjectCount: data.aggregation?.aiProjects || data.projects?.filter(p => p.isAI).length || 0,
-        avgStars: calculateAvgStars(data.projects),
+        avgStars: data.aggregation?.topGainers?.length > 0 || data.projects?.length > 0
+          ? calculateAvgStars(data.aggregation?.topGainers || data.projects || [])
+          : '0',
         theme,
         projects: data.projects || []
       });

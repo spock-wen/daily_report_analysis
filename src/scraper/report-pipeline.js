@@ -94,10 +94,15 @@ class ReportPipeline {
       }
 
       // 步骤 1: 增强仓库数据（调用 GitHub API）
-      await this.executeStep('enhance-data', async () => {
-        const enhancedData = await this.enhanceRepositoryData(data, type);
-        Object.assign(data, enhancedData);
-      }, result);
+      // 月报数据是聚合数据，不需要增强
+      if (type !== 'monthly') {
+        await this.executeStep('enhance-data', async () => {
+          const enhancedData = await this.enhanceRepositoryData(data, type);
+          Object.assign(data, enhancedData);
+        }, result);
+      } else {
+        logger.info('[ReportPipeline] 月报数据为聚合数据，跳过仓库增强');
+      }
 
       // 步骤 2: 调用 AI 分析生成洞察
       if (this.enableAI) {
@@ -342,7 +347,12 @@ class ReportPipeline {
     if (data.aiInsights) {
       formatted.aiInsights = data.aiInsights;
     }
-    
+
+    // 月报保留聚合数据（aggregation）
+    if (type === 'monthly' && data.aggregation) {
+      formatted.aggregation = data.aggregation;
+    }
+
     return formatted;
   }
 
