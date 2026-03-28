@@ -808,6 +808,7 @@ class MessageSender {
     } else if (type === 'weekly') {
       return `github-weekly-${identifier}.html`;
     } else if (type === 'monthly') {
+      // 月报使用 YYYY-MM 格式，不要移除连字符
       return `github-monthly-${identifier}.html`;
     }
     return `${type}-${identifier}.html`;

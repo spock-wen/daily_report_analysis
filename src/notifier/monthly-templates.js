@@ -114,7 +114,7 @@ function generateFeishuMonthly(monthlyData, insights) {
 
   const month = monthlyData.month || monthlyData.date;
   const monthRange = getMonthRange(month);
-  const reportUrl = `https://report.wenspock.site/monthly/github-monthly-${month.replace('-', '')}.html`;
+  const reportUrl = `https://report.wenspock.site/monthly/github-monthly-${month}.html`;
   const generatedAt = new Date().toLocaleString('zh-CN', {
     timeZone: 'Asia/Shanghai',
     year: 'numeric',
@@ -280,7 +280,7 @@ function generateWeLinkMonthly(monthlyData, insights) {
 
   const month = monthlyData.month || monthlyData.date;
   const monthRange = getMonthRange(month);
-  const reportUrl = `https://report.wenspock.site/monthly/github-monthly-${month.replace('-', '')}.html`;
+  const reportUrl = `https://report.wenspock.site/monthly/github-monthly-${month}.html`;
 
   // 构建消息内容（WeLink 限制 500 字）
   let content = `📊 GitHub 月报洞察\n${monthRange}\n\n`;
