@@ -339,7 +339,7 @@ class GitHubScraper extends BaseScraper {
   }
 
   /**
-   * 执行完整的抓取流程（带 API 回退）
+   * 执行完整的抓取流程（带 API 回退和重试机制）
    * @param {Object} options - 执行选项
    * @returns {Promise<Object>} 抓取并解析后的数据
    */
@@ -362,37 +362,55 @@ class GitHubScraper extends BaseScraper {
       logger.success(`[${this.name}] 抓取任务完成`);
       return data;
     } catch (webError) {
-      logger.warn(`[${this.name}] 网页抓取失败：${webError.message}，尝试使用 API 回退...`);
-      
-      // 2. 网页抓取失败，尝试 API 回退
+      logger.warn(`[${this.name}] 网页抓取失败：${webError.message}`);
+
+      // 2. 如果配置了重试处理器，先尝试通过重试处理器重试网页抓取
+      if (this.retryHandler) {
+        logger.info(`[${this.name}] 尝试通过重试处理器重试网页抓取...`);
+        const shouldRetry = await this.retryHandler.handleRetry({
+          scraper: this,
+          url,
+          error: webError,
+          options
+        });
+
+        if (shouldRetry) {
+          logger.info(`[${this.name}] 重试处理器已接管，等待重试...`);
+          return null;
+        }
+      }
+
+      // 3. 网页抓取失败，尝试 API 回退
       try {
+        logger.warn(`[${this.name}] 尝试使用 API 回退...`);
         const data = await this.fetchFromAPI(25);
-        
+
         if (saveToFile && outputPath) {
           await this.save(data, outputPath);
         }
-        
+
         logger.success(`[${this.name}] API 回退成功`);
         return data;
       } catch (apiError) {
         logger.error(`[${this.name}] API 回退也失败：${apiError.message}`);
-        
-        // 如果配置了重试处理器，尝试重试
+
+        // 4. API 也失败，再次尝试重试处理器
         if (this.retryHandler) {
-          logger.info(`[${this.name}] 准备通过重试处理器进行重试...`);
+          logger.info(`[${this.name}] 尝试通过重试处理器重试 API 抓取...`);
           const shouldRetry = await this.retryHandler.handleRetry({
             scraper: this,
             url,
             error: apiError,
-            options
+            options,
+            isApiFallback: true
           });
-          
+
           if (shouldRetry) {
             logger.info(`[${this.name}] 重试处理器已接管，等待重试...`);
             return null;
           }
         }
-        
+
         throw apiError;
       }
     }
