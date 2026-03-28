@@ -4,8 +4,9 @@
  * 支持失败自动重试
  *
  * 使用方法：
- *   node scripts/run-monthly-workflow.js 2026-03           # 正常执行（含推送）
- *   node scripts/run-monthly-workflow.js 2026-03 --no-push # 不发送推送通知
+ *   node scripts/run-monthly-workflow.js              # 生成上个月的月报
+ *   node scripts/run-monthly-workflow.js 2026-03    # 指定月份
+ *   node scripts/run-monthly-workflow.js --no-push  # 不发送推送通知
  */
 
 const path = require('path');
@@ -19,16 +20,18 @@ const MonthlyGenerator = require('../src/generator/monthly-generator');
 const args = process.argv.slice(2);
 const noPush = args.includes('--no-push');
 
+// 自动推断月份：默认上个月，支持手动指定
+const month = args[0] || (() => {
+  const lastMonth = new Date();
+  lastMonth.setMonth(lastMonth.getMonth() - 1);
+  return `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`;
+})();
+
 // 重试配置
 const MAX_RETRIES = 3;
 const RETRY_INTERVAL_MS = 5 * 60 * 1000; // 5 分钟
 
 async function runMonthlyWorkflow(month) {
-  if (!month) {
-    console.error('❌ 请指定月份参数，格式：YYYY-MM');
-    console.error('示例：node scripts/run-monthly-workflow.js 2026-03');
-    process.exit(1);
-  }
 
   logger.info('============================================');
   logger.info('🚀 开始执行月报完整工作流');
