@@ -2,19 +2,14 @@ const BaseScraper = require('./base-scraper');
 const GitHubTrendingParser = require('./parsers/github-trending-parser');
 const logger = require('../utils/logger');
 
-// GitHub API 基础 URL
-const GITHUB_API_BASE = 'https://api.github.com';
-
 /**
  * GitHubScraper - GitHub Trending 抓取器
  * 继承 BaseScraper，实现 GitHub Trending 页面的抓取逻辑
- * 
+ *
  * 支持类型：
  * - daily: 每日趋势
  * - weekly: 每周趋势
  * - monthly: 每月趋势
- * 
- * 支持回退机制：当网页抓取失败时，使用 GitHub 搜索 API 获取热门仓库
  */
 class GitHubScraper extends BaseScraper {
   /**
@@ -244,102 +239,7 @@ class GitHubScraper extends BaseScraper {
   }
 
   /**
-   * 使用 GitHub API 获取热门仓库（作为网页抓取的回退方案）
-   * @param {number} perPage - 每页数量，默认 25
-   * @returns {Promise<Object>} 标准格式的仓库数据
-   */
-  async fetchFromAPI(perPage = 25) {
-    logger.info(`[${this.name}] 使用 GitHub API 获取热门仓库...`);
-    logger.warn(`[${this.name}] ⚠️ API 回退模式：数据可能不完整，todayStars 将不可用`);
-    
-    // 计算日期范围
-    const now = new Date();
-    let since;
-    
-    switch (this.type) {
-      case 'weekly':
-        since = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        break;
-      case 'monthly':
-        since = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        break;
-      default: // daily
-        since = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    }
-    
-    const sinceStr = since.toISOString().split('T')[0];
-    
-    // 构建搜索查询 - 使用 pushed:> 和 stars:> 获取活跃的热门仓库
-    // 注意：GitHub Search API 不支持获取真正的 trending 数据
-    // 使用 pushed:> 获取最近有更新的仓库，stars:>100 过滤掉冷门项目
-    let query = `pushed:>${sinceStr} stars:>100`;
-    if (this.language) {
-      query += ` language:${this.language}`;
-    }
-    
-    const url = `${GITHUB_API_BASE}/search/repositories?q=${encodeURIComponent(query)}&sort=stars&order=desc&per_page=${perPage}`;
-    
-    const headers = {
-      'Accept': 'application/vnd.github.v3+json',
-      'User-Agent': 'GitHub-Trending-System'
-    };
-    
-    if (this.githubToken) {
-      headers['Authorization'] = `token ${this.githubToken}`;
-    }
-    
-    try {
-      const response = await fetch(url, { headers });
-      
-      if (!response.ok) {
-        if (response.status === 403) {
-          throw new Error('GitHub API 速率限制已达，请设置 GITHUB_TOKEN 环境变量');
-        }
-        throw new Error(`GitHub API 返回错误：${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      // 转换为标准格式
-      // 注意：API 回退模式下，todayStars 不可用，设为 0
-      const repositories = data.items.map(item => ({
-        fullName: item.full_name,
-        name: item.name,
-        owner: item.owner.login,
-        description: item.description || '',
-        language: item.language || '',
-        stars: item.stargazers_count,
-        forks: item.forks_count,
-        todayStars: 0, // API 无法获取今日新增星数，设为 0
-        url: item.html_url,
-        topics: item.topics || [],
-        isApiFallback: true // 标记数据来源为 API 回退
-      }));
-      
-      const result = {
-        success: true,
-        count: repositories.length,
-        scrapedAt: new Date().toISOString(),
-        source: 'github-api-fallback', // 明确标记为 API 回退
-        isApiFallback: true,
-        period: this.type,
-        language: this.language || 'all',
-        repositories,
-        validated: { isValid: true, errors: [], warnings: ['API 回退模式：todayStars 数据不可用'], checks: {} }
-      };
-      
-      logger.success(`[${this.name}] API 获取成功，共 ${repositories.length} 个仓库`);
-      logger.warn(`[${this.name}] ⚠️ 注意：API 回退数据不包含今日星数增长信息`);
-      return result;
-      
-    } catch (error) {
-      logger.error(`[${this.name}] API 获取失败：${error.message}`);
-      throw error;
-    }
-  }
-
-  /**
-   * 执行完整的抓取流程（带 API 回退和重试机制）
+   * 执行完整的抓取流程（依赖重试机制处理失败）
    * @param {Object} options - 执行选项
    * @returns {Promise<Object>} 抓取并解析后的数据
    */
@@ -361,16 +261,16 @@ class GitHubScraper extends BaseScraper {
 
       logger.success(`[${this.name}] 抓取任务完成`);
       return data;
-    } catch (webError) {
-      logger.warn(`[${this.name}] 网页抓取失败：${webError.message}`);
+    } catch (error) {
+      logger.error(`[${this.name}] 抓取失败：${error.message}`);
 
-      // 2. 如果配置了重试处理器，先尝试通过重试处理器重试网页抓取
+      // 2. 如果配置了重试处理器，尝试通过重试处理器重试
       if (this.retryHandler) {
-        logger.info(`[${this.name}] 尝试通过重试处理器重试网页抓取...`);
+        logger.info(`[${this.name}] 尝试通过重试处理器重试...`);
         const shouldRetry = await this.retryHandler.handleRetry({
           scraper: this,
           url,
-          error: webError,
+          error,
           options
         });
 
@@ -380,39 +280,8 @@ class GitHubScraper extends BaseScraper {
         }
       }
 
-      // 3. 网页抓取失败，尝试 API 回退
-      try {
-        logger.warn(`[${this.name}] 尝试使用 API 回退...`);
-        const data = await this.fetchFromAPI(25);
-
-        if (saveToFile && outputPath) {
-          await this.save(data, outputPath);
-        }
-
-        logger.success(`[${this.name}] API 回退成功`);
-        return data;
-      } catch (apiError) {
-        logger.error(`[${this.name}] API 回退也失败：${apiError.message}`);
-
-        // 4. API 也失败，再次尝试重试处理器
-        if (this.retryHandler) {
-          logger.info(`[${this.name}] 尝试通过重试处理器重试 API 抓取...`);
-          const shouldRetry = await this.retryHandler.handleRetry({
-            scraper: this,
-            url,
-            error: apiError,
-            options,
-            isApiFallback: true
-          });
-
-          if (shouldRetry) {
-            logger.info(`[${this.name}] 重试处理器已接管，等待重试...`);
-            return null;
-          }
-        }
-
-        throw apiError;
-      }
+      // 3. 重试处理器不可用或已完成，抛出错误
+      throw error;
     }
   }
 }
