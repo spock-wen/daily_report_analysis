@@ -429,6 +429,20 @@ class MessageSender {
     // WeLink 文本消息最大长度限制
     const WELINK_MAX_LENGTH = 500;
 
+    // 如果 content 是字符串（已生成的完整消息），直接使用
+    if (content && typeof content === 'string') {
+      const message = {
+        messageType: 'text',
+        content: {
+          text: content.length > WELINK_MAX_LENGTH ? content.substring(0, WELINK_MAX_LENGTH - 3) + '...' : content
+        },
+        timeStamp,
+        uuid
+      };
+      logger.debug('WeLink 消息构建完成（使用传入的 content）', { textLength: message.content.text.length });
+      return message;
+    }
+
     // 构建精简的 WeLink 消息（不直接复用飞书内容）
     let messageText = `${title}\n\n`;
     
