@@ -20,6 +20,7 @@
 - **URL**: `https://github.com/spock-wen/Daily-HuggingFace-AI-Papers/blob/main/data/latest.json`
 - **更新频率**: 每日 00:00 UTC
 - **数据格式**: JSON 包含论文列表
+- **原始数据保留**: 所有论文（Stars > 0）原始数据必须完整保留
 
 ---
 
@@ -57,12 +58,28 @@ data/papers/daily/papers-latest.json      # 最新数据（软链接或复制）
   "date": "2026-04-01",
   "papers": [...],
   "aiInsights": {
-    "oneLiner": "今日核心趋势（一句话）",
-    "hotPapers": ["论文1", "论文2"],
-    "researchTrends": ["趋势1", "趋势2"],
-    "technicalInsights": [...],
-    "communityValue": [...],
-    "applicationOutlook": [...]
+    "oneLiner": "今日核心观察（一句话）",
+    "languageDistribution": {
+      "Python": 15,
+      "PyTorch": 8,
+      "TensorFlow": 3
+    },
+    "technicalInsights": [
+      {
+        "paper": "owner/repo",
+        "innovation": "技术创新点",
+        "method": "核心方法",
+        "results": "实验结果"
+      }
+    ],
+    "communityValue": [
+      "社区价值点1",
+      "社区价值点2"
+    ],
+    "applicationOutlook": [
+      "应用前景1",
+      "应用前景2"
+    ]
   }
 }
 ```
@@ -93,12 +110,12 @@ scripts/
 ```
 1. paper-downloader.js
    └─> 下载 latest.json
-   └─> 保存到 data/papers/daily/papers-latest.json
+   └─> 保存到 data/papers/daily/papers-latest.json (原始完整数据)
 
 2. papers-scraper.js
-   └─> 加载 latest.json
-   └─> 过滤 Stars > 10 的论文（用于推送）
-   └─> 保存到 data/papers/daily/papers-YYYY-MM-DD.json
+   └─> 加载 papers-latest.json
+   └─> 保存到 data/papers/daily/papers-YYYY-MM-DD.json (全量数据，Stars > 0)
+   └─> (过滤逻辑仅在推送时应用，不修改存储数据)
 
 3. paper-analyzer.js
    └─> 调用 LLM 生成 AI 洞察
@@ -109,8 +126,10 @@ scripts/
    └─> 保存到 reports/papers/daily/papers-YYYY-MM-DD.html
 
 5. paper-notification.js
-   └─> 生成飞书消息（Stars > 10）
-   └─> 生成 WeLink 消息（<500 字，Stars > 10）
+   └─> 从 papers-YYYY-MM-DD.json 读取数据
+   └─> 过滤 Stars > 10 用于推送
+   └─> 生成飞书消息
+   └─> 生成 WeLink 消息 (<500 字)
    └─> 发送到对应平台
 ```
 
@@ -148,13 +167,14 @@ const data = await downloader.download();
 **功能**：
 - 加载 latest.json
 - 清洗数据
-- 过滤 Stars > 10（用于推送）
+- **保存全量数据**（Stars > 0）到 papers-YYYY-MM-DD.json
+- 过滤逻辑仅在推送时应用
 
 **配置**：
 ```javascript
 {
   type: 'paper',
-  minStars: 10,  // 推送阈值
+  minStars: 10,  // 推送阈值（仅用于通知，不影响存储）
   name: 'PapersScraper',
   outputDir: 'data/papers/daily'
 }
@@ -175,9 +195,10 @@ const data = await downloader.download();
 
 请按以下格式输出 JSON：
 {
-  "oneLiner": "一句话总结今日论文趋势（30字以内）",
-  "hotPapers": ["论文1", "论文2", "论文3"],
-  "researchTrends": ["趋势1", "趋势2"],
+  "oneLiner": "一句话总结今日论文观察（30字以内）",
+  "languageDistribution": {
+    "编程语言/框架名": 论文数量
+  },
   "technicalInsights": [
     {
       "paper": "owner/repo",
@@ -200,6 +221,7 @@ const data = await downloader.download();
 **说明**：
 - AI 洞察**仅在 HTML 中展示**
 - 飞书/WeLink 不显示详细 AI 洞察
+- 不使用"趋势"等概念，专注于具体论文的分析
 
 ---
 
@@ -235,6 +257,7 @@ const data = await downloader.download();
 **功能**：发送飞书和 WeLink 通知
 
 #### 4.5.1 飞书消息（详细版）
+- **数据来源**: 从 papers-YYYY-MM-DD.json 读取，过滤 Stars > 10
 ```json
 {
   "header": {
@@ -242,7 +265,7 @@ const data = await downloader.download();
     "subtitle": "2026-04-01 · {count} 篇热门论文"
   },
   "elements": [
-    { "tag": "div", "text": "📊 今日概览\nStars > 10 的论文共 {count} 篇" },
+    { "tag": "div", "text": "📊 今日概览\nHuggingFace 最新论文共 {totalCount} 篇，热门论文(Stars>10) {count} 篇" },
     { "tag": "hr" },
     { "tag": "div", "text": "🔥 热门论文 TOP 5\n1. Paper Title 🌟42\n2. ..." },
     { "tag": "hr" },
@@ -258,7 +281,7 @@ const data = await downloader.download();
 ```
 ✅ HuggingFace AI Papers 日报 (2026-04-01)
 
-🔥 热门论文 TOP 5：
+🔥 热门论文 TOP 5 (Stars>10)：
 1. Paper Title 🌟42
    GitHub: github.com/owner/repo
 
@@ -268,7 +291,7 @@ const data = await downloader.download();
 3. Paper Title 🌟25
    ...
 
-💡 核心趋势：当前热点方向...
+💡 语言分布：Python(15), PyTorch(8), ...
 
 📋 完整报告：report.url
 ```
@@ -356,11 +379,7 @@ node scripts/run-papers-workflow.js
 node scripts/run-papers-workflow.js --no-push  # 不发送通知
 ```
 
-### 9.2 定时任务（cron）
-```bash
-# 每天 8:00 执行（北京时间）
-0 0 8 * * * cd /path/to/repo && node scripts/run-papers-workflow.js >> /var/log/papers-report.log 2>&1
-```
+**注意**: 定时任务需要用户自行在服务器上配置 cron，脚本本身不包含定时功能。
 
 ---
 
