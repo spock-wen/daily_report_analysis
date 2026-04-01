@@ -369,4 +369,150 @@ FEISHU_RECEIVE_ID=your-open-id
 
 # WeLink 通知（可选）
 WELINK_WEBHOOK_URLS=https://your-webhook-url
+
+# HuggingFace Papers Report（可选）
+PAPER_REPORT_ENABLED=true
+```
+
+---
+
+## HuggingFace Papers 模块 API
+
+### 1. PaperDownloader
+
+**位置**: `src/scraper/paper-downloader.js`
+
+**功能**: 下载 latest.json
+
+```javascript
+const downloader = require('../src/scraper/paper-downloader');
+const data = await downloader.downloadLatestPapers();
+
+// 返回：
+// {
+//   raw: {...},
+//   papers: [{title, paper_url, authors, stars, details, scraped_date}],
+//   downloadedAt: "...",
+//   downloadedDate: "2026-04-01"
+// }
+```
+
+---
+
+### 2. PapersScraper
+
+**位置**: `src/scraper/strategies/papers-scraper.js`
+
+**功能**: 清洗和过滤数据
+
+```javascript
+const PapersScraper = require('../src/scraper/strategies/papers-scraper');
+const scraper = new PapersScraper({ minStars: 10 });
+
+const result = await scraper.execute({ saveToFile: true });
+// 返回：
+// {
+//   success: true,
+//   data: {...},
+//   filteredPapers: [...],
+//   path: "..."
+// }
+```
+
+---
+
+### 3. PaperAnalyzer
+
+**位置**: `src/analyzer/paper-analyzer.js`
+
+**功能**: AI 分析论文
+
+```javascript
+const analyzer = require('../src/analyzer/paper-analyzer');
+const insights = await analyzer.analyze({
+  date: '2026-04-01',
+  papers: [...]
+});
+
+// 返回：
+// {
+//   oneLiner: "...",
+//   languageDistribution: {...},
+//   technicalInsights: [...],
+//   communityValue: [...],
+//   applicationOutlook: [...]
+// }
+```
+
+---
+
+### 4. PaperHtmlGenerator
+
+**位置**: `src/generator/paper-html-generator.js`
+
+**功能**: 生成 HTML 报告
+
+```javascript
+const generator = require('../src/generator/paper-html-generator');
+const path = await generator.generate({
+  date: '2026-04-01',
+  papers: [...],
+  aiInsights: {...}
+});
+// 返回：HTML 文件路径
+```
+
+---
+
+### 5. PaperNotification
+
+**位置**: `src/notifier/paper-notification.js`
+
+**功能**: 发送通知
+
+```javascript
+const notifier = require('../src/notifier/paper-notification');
+
+// 飞书
+await notifier.sendFeishu({
+  date: '2026-04-01',
+  papers: [...],
+  filteredPapers: [...],
+  aiInsights: {...},
+  reportUrl: '...'
+});
+
+// WeLink
+await notifier.sendWeLink({
+  date: '2026-04-01',
+  filteredPapers: [...],
+  aiInsights: {...},
+  reportUrl: '...'
+});
+```
+
+---
+
+### 6. 路径工具 (papers)
+
+```javascript
+const pathUtils = require('./src/utils/path');
+
+// 获取论文数据路径
+pathUtils.getPaperDataPath('2026-04-01');
+pathUtils.getPaperLatestPath();
+pathUtils.getPaperInsightsPath('2026-04-01');
+pathUtils.getPaperReportPath('2026-04-01');
+```
+
+---
+
+## 运行
+
+```bash
+# 生成报告并推送
+node scripts/run-papers-workflow.js
+
+# 仅生成报告，不推送
+node scripts/run-papers-workflow.js --no-push
 ```
