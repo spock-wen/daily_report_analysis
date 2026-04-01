@@ -20,8 +20,9 @@ const MonthlyGenerator = require('../src/generator/monthly-generator');
 const args = process.argv.slice(2);
 const noPush = args.includes('--no-push');
 
-// 自动推断月份：默认上个月，支持手动指定
-const month = args[0] || (() => {
+// 自动推断月份：默认上个月，支持手动指定（跳过 --no-push）
+const monthArg = args.find(a => !a.startsWith('--'));
+const month = monthArg || (() => {
   const lastMonth = new Date();
   lastMonth.setMonth(lastMonth.getMonth() - 1);
   return `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`;
@@ -140,7 +141,6 @@ async function runMonthlyWorkflow(month) {
 
 // 命令行执行
 if (require.main === module) {
-  const month = process.argv[2];
   runMonthlyWorkflow(month)
     .then((result) => {
       process.exit(result.success ? 0 : 1);
