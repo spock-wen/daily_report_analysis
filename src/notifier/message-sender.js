@@ -429,8 +429,9 @@ class MessageSender {
     // WeLink 文本消息最大长度限制
     const WELINK_MAX_LENGTH = 500;
 
-    // 如果 content 是字符串（已生成的完整消息），直接使用
-    if (content && typeof content === 'string') {
+    // 周报：content 是已生成的简版字符串，直接使用
+    // 日报/月报：content 是飞书详细版，需要用 top5/insight 构建简版
+    if (type === 'weekly' && content && typeof content === 'string') {
       const message = {
         messageType: 'text',
         content: {
@@ -439,7 +440,7 @@ class MessageSender {
         timeStamp,
         uuid
       };
-      logger.debug('WeLink 消息构建完成（使用传入的 content）', { textLength: message.content.text.length });
+      logger.debug('WeLink 周报消息构建完成（使用传入的 content）', { textLength: message.content.text.length });
       return message;
     }
 
