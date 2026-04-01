@@ -16,6 +16,11 @@ const REPORTS_DIR = path.join(ROOT_DIR, 'reports');
 const CONFIG_DIR = path.join(ROOT_DIR, 'config');
 const SRC_DIR = path.join(ROOT_DIR, 'src');
 
+// 论文数据目录
+const PAPERS_DATA_DIR = path.join(DATA_DIR, 'papers');
+const PAPERS_DAILY_DIR = path.join(PAPERS_DATA_DIR, 'daily');
+const PAPERS_INSIGHTS_DIR = path.join(PAPERS_DATA_DIR, 'insights');
+
 // 日报路径辅助函数
 function getDailyBriefPath(date) {
   return path.join(BRIEFS_DIR, 'daily', `data-${date}.json`);
@@ -65,6 +70,23 @@ function getIndexReportPath() {
   return path.join(REPORTS_DIR, 'index.html');
 }
 
+// 论文数据路径辅助函数
+function getPaperDataPath(date) {
+  return path.join(PAPERS_DAILY_DIR, `papers-${date}.json`);
+}
+
+function getPaperLatestPath() {
+  return path.join(PAPERS_DAILY_DIR, 'papers-latest.json');
+}
+
+function getPaperInsightsPath(date) {
+  return path.join(PAPERS_INSIGHTS_DIR, `papers-${date}.json`);
+}
+
+function getPaperReportPath(date) {
+  return path.join(REPORTS_DIR, 'papers/daily', `papers-${date}.html`);
+}
+
 // 导出所有路径配置
 module.exports = {
   // 基础目录
@@ -96,4 +118,13 @@ module.exports = {
   
   // 主页路径
   getIndexReportPath,
+
+  // 论文路径
+  PAPERS_DATA_DIR,
+  PAPERS_DAILY_DIR,
+  PAPERS_INSIGHTS_DIR,
+  getPaperDataPath,
+  getPaperLatestPath,
+  getPaperInsightsPath,
+  getPaperReportPath,
 };
