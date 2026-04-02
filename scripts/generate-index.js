@@ -157,9 +157,13 @@ function collectReportsData() {
       const filePath = path.join(monthlyDir, file);
       const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
 
-      // 提取月份
-      const monthMatch = file.match(/data-(?:monthly-)?(\d{4}-\d{2})\.json/);
-      const month = monthMatch ? monthMatch[1] : (data.month || data.date);
+      // 提取月份（只匹配正确的月报格式：data-month-YYYY-MM.json）
+      const monthMatch = file.match(/data-month-(\d{4}-\d{2})\.json/);
+      if (!monthMatch) {
+        console.log(`   ⚠️  跳过非月报文件：${file}`);
+        return;
+      }
+      const month = monthMatch[1];
 
       // 提取 AI 洞察主题（处理对象或字符串）
       const themeInsights = data.aiInsights || {};
