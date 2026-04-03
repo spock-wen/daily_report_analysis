@@ -15,6 +15,9 @@ const FEISHU_API_BASE = 'https://open.feishu.cn/open-apis';
 let cachedToken = null;
 let tokenExpireTime = 0;
 
+// 翻译缓存
+const translationCache = new Map();
+
 class PaperNotification {
   constructor() {
     this.name = 'PaperNotification';
@@ -34,7 +37,7 @@ class PaperNotification {
     try {
       logger.info('[PaperNotification] 发送飞书通知...', { date: options.date });
 
-      const message = this.buildFeishuMessage(options);
+      const message = await this.buildFeishuMessage(options);
       const accessToken = await this.getFeishuAccessToken();
       const receiveId = config.notifier.feishu.receiveId;
       const receiveIdType = config.notifier.feishu.receiveIdType || 'open_id';
@@ -135,7 +138,7 @@ class PaperNotification {
     try {
       logger.info('[PaperNotification] 发送 WeLink 通知...', { date: options.date });
 
-      const message = this.buildWeLinkMessage(options);
+      const message = await this.buildWeLinkMessage(options);
       const webhookUrls = config.notifier.welink.webhookUrls.split(',').map(url => url.trim());
 
       const results = await Promise.all(
@@ -167,7 +170,7 @@ class PaperNotification {
    * @param {Object} options - 通知选项
    * @returns {Object} 飞书消息对象
    */
-  buildFeishuMessage(options) {
+  async buildFeishuMessage(options) {
     const { date, papers, filteredPapers, aiInsights } = options;
     const totalCount = papers.length;
     const filteredCount = filteredPapers.length;
@@ -175,11 +178,15 @@ class PaperNotification {
     // TOP5 论文（按 Stars 排序）
     const top5 = [...filteredPapers].sort((a, b) => b.stars - a.stars).slice(0, 5);
 
+    // 翻译论文标题
+    const titleTranslations = await this.translatePaperTitles(top5);
+
     // 格式化 TOP5
     const top5Text = top5.map((p, i) => {
       const medal = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'][i];
       const repo = p.details?.github_links?.[0]?.split('github.com/')?.[1] || 'N/A';
-      return `${medal} ${p.title} 🌟${p.stars}\n   GitHub: ${repo}`;
+      const titleZh = titleTranslations[p.title] || p.title;
+      return `${medal} ${titleZh} 🌟${p.stars}\n   GitHub: ${repo}`;
     }).join('\n\n');
 
     return {
@@ -192,7 +199,7 @@ class PaperNotification {
       elements: [
         {
           tag: 'div',
-          text: { tag: 'lark_md', content: `📊 今日概览\nHuggingFace 最新论文共 ${totalCount} 篇，热门论文(Stars>10) ${filteredCount} 篇` }
+          text: { tag: 'lark_md', content: `📊 今日概览\nHuggingFace 最新论文共 ${totalCount} 篇，热门论文 (Stars>10) ${filteredCount} 篇` }
         },
         { tag: 'hr' },
         {
@@ -226,12 +233,15 @@ class PaperNotification {
    * @param {Object} options - 通知选项
    * @returns {Object} WeLink 消息对象
    */
-  buildWeLinkMessage(options) {
+  async buildWeLinkMessage(options) {
     const { date, filteredPapers, aiInsights } = options;
     const minStars = options.minStars || 10;
 
     // TOP5 论文
     const top5 = [...filteredPapers].sort((a, b) => b.stars - a.stars).slice(0, 5);
+
+    // 翻译论文标题
+    const titleTranslations = await this.translatePaperTitles(top5);
 
     // 语言分布
     const langDist = aiInsights?.languageDistribution || {};
@@ -247,7 +257,8 @@ class PaperNotification {
     top5.forEach((p, i) => {
       const medal = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'][i];
       const repo = p.details?.github_links?.[0]?.split('github.com/')?.[1] || 'N/A';
-      msg += `\n${medal} ${p.title} 🌟${p.stars}\n   GitHub: github.com/${repo}\n`;
+      const titleZh = titleTranslations[p.title] || p.title;
+      msg += `\n${medal} ${titleZh} 🌟${p.stars}\n   GitHub: github.com/${repo}\n`;
     });
 
     if (langText) {
@@ -312,6 +323,65 @@ class PaperNotification {
     ]);
 
     return [feishuResult].concat(Array.isArray(welinkResults) ? welinkResults : [welinkResults]);
+  }
+
+  /**
+   * 翻译文本
+   * @param {string} text - 英文文本
+   * @returns {Promise<string>} 中文文本
+   */
+  async translateText(text) {
+    if (!text) return '';
+
+    // 检查是否包含中文
+    if (/[\u4e00-\u9fa5]/.test(text)) {
+      return text;
+    }
+
+    // 检查缓存
+    if (translationCache.has(text)) {
+      return translationCache.get(text);
+    }
+
+    try {
+      const cleanText = text.trim();
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(cleanText)}&langpair=en|zh-CN`;
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.responseStatus === 200 && data.responseData?.translatedText) {
+        const translated = data.responseData.translatedText;
+        translationCache.set(text, translated);
+        return translated;
+      } else {
+        throw new Error(data.responseDetails || 'Translation failed');
+      }
+    } catch (error) {
+      logger.warn('[PaperNotification] 翻译失败，返回原文：' + error.message);
+      return text;
+    }
+  }
+
+  /**
+   * 批量翻译论文标题
+   * @param {Array} papers - 论文列表
+   * @returns {Promise<Object>} 翻译后的标题映射
+   */
+  async translatePaperTitles(papers) {
+    const translations = {};
+    for (const paper of papers) {
+      translations[paper.title] = await this.translateText(paper.title);
+    }
+    return translations;
   }
 }
 
