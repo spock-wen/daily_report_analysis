@@ -1,16 +1,29 @@
-# GitHub Trending 报告系统
+# AI 趋势报告系统
 
 ## 项目简介
 
-本项目是一个**完整的 GitHub Trending 报告系统**，自动抓取 GitHub 热门项目，通过 AI 进行深度分析，生成美观的日报、周报和月报。
+本项目是一个**完整的 AI 趋势报告系统**，包含两个独立的子系统：
+
+1. **GitHub Trending 报告** - 自动抓取 GitHub 热门项目，通过 AI 进行深度分析，生成美观的日报、周报和月报
+2. **HuggingFace Papers 日报** - 每日抓取最新 AI 论文，生成 HTML 报告并推送到飞书/WeLink
 
 ## 核心功能
 
+### GitHub Trending 报告
 - ✅ **数据抓取**：自动抓取 GitHub Trending 日榜/周榜/月榜
 - ✅ **GitHub API 增强**：获取项目详细信息（星数、fork、语言等）
 - ✅ **AI 深度分析**：使用 LLM 对趋势项目进行智能分析
 - ✅ **项目分析**：自动翻译项目描述，生成核心功能、适用场景、热度趋势
 - ✅ **HTML 报告生成**：生成美观的日报/周报/月报
+
+### HuggingFace Papers 日报
+- ✅ **论文抓取**：每日自动抓取 HuggingFace 最新 AI 论文
+- ✅ **论文分类**：自动识别综述/工具/研究/数据集等类型
+- ✅ **摘要翻译**：中英对照，完整翻译无截断
+- ✅ **BibTeX 引用**：自动生成标准引用格式
+- ✅ **多端推送**：支持飞书/WeLink 推送热门论文
+
+### 通用功能
 - ✅ **统一主页管理**：一个页面管理所有报告
 - ✅ **可选推送通知**：支持飞书、WeLink 等渠道推送
 
@@ -19,29 +32,29 @@
 ```
 项目根目录/
 ├── src/                      # 源代码
-│   ├── scraper/              # 数据抓取模块（新版）
+│   ├── scraper/              # 数据抓取模块
 │   │   ├── index.js          # 抓取器入口
 │   │   ├── complete-workflow.js  # 完整工作流
 │   │   ├── report-pipeline.js    # 报告生成流水线
 │   │   ├── github-api.js     # GitHub API 集成
-│   │   ├── project-analyzer.js   # 项目分析器（翻译+分析）
+│   │   ├── project-analyzer.js   # 项目分析器（翻译 + 分析）
 │   │   ├── strategies/       # 抓取策略
 │   │   │   ├── daily-scraper.js
 │   │   │   ├── weekly-scraper.js
-│   │   │   └── monthly-scraper.js
+│   │   │   ├── monthly-scraper.js
+│   │   │   └── papers-scraper.js   # Papers 抓取器
 │   │   └── parsers/          # HTML 解析器
-│   │       └── github-trending-parser.js
-│   │   └── aggregators/      # 数据聚合器
-│   │       └── monthly-aggregator.js
 │   ├── analyzer/             # AI 分析
 │   │   ├── insight-analyzer.js
 │   │   └── monthly-analyzer.js
 │   ├── generator/            # HTML 生成
 │   │   ├── html-generator.js
-│   │   └── monthly-generator.js
+│   │   ├── monthly-generator.js
+│   │   └── paper-html-generator.js  # Papers HTML 生成器
 │   ├── notifier/             # 推送通知
 │   │   ├── message-sender.js
-│   │   └── monthly-templates.js
+│   │   ├── monthly-templates.js
+│   │   └── paper-notification.js  # Papers 通知推送
 │   └── utils/                # 工具函数
 │       ├── logger.js
 │       ├── path.js
@@ -50,24 +63,33 @@
 │   ├── run-daily-workflow.js     # 日报完整工作流
 │   ├── run-weekly-workflow.js    # 周报完整工作流
 │   ├── run-monthly-workflow.js   # 月报完整工作流
+│   ├── run-papers-workflow.js    # Papers 日报工作流
 │   └── generate-index.js         # 生成首页
 ├── data/                     # 数据目录
 │   ├── briefs/               # 输入数据
 │   │   ├── daily/
 │   │   ├── weekly/
 │   │   └── monthly/
-│   └── insights/             # AI 分析结果
+│   ├── insights/             # AI 分析结果
+│   │   ├── daily/
+│   │   ├── weekly/
+│   │   ├── monthly/
+│   │   └── papers/
+│   └── papers/               # Papers 数据
+│       ├── daily/
+│       └── insights/
 ├── reports/                  # HTML 输出
 │   ├── daily/
 │   ├── weekly/
 │   ├── monthly/
-│   └── index.html           # 统一门户首页
+│   ├── papers/daily/         # Papers 日报
+│   └── index.html            # 统一门户首页
 ├── public/                   # 静态资源
 │   └── css/
 ├── config/                   # 配置文件
-│   └── prompts.json         # AI 提示词
+│   └── prompts.json          # AI 提示词
 ├── docs/                     # 文档
-│   └── superpowers/specs/   # 设计文档
+│   └── superpowers/specs/    # 设计文档
 └── .env.example              # 环境变量示例
 ```
 
@@ -95,7 +117,7 @@ cp .env.example .env
 
 ### 3. 运行工作流
 
-#### 日报工作流
+#### GitHub Trending 日报工作流
 
 ```bash
 # 抓取并生成今天的日报
@@ -111,7 +133,7 @@ node scripts/run-daily-workflow.js
 6. 生成 HTML 报告
 7. 自动更新首页
 
-#### 周报工作流
+#### GitHub Trending 周报工作流
 
 ```bash
 # 抓取并生成本周的周报
@@ -130,7 +152,7 @@ node scripts/run-weekly-workflow.js
 
 **注意**：周一运行时会生成上周（W12）的周报，汇总上周一到周日的数据。
 
-#### 月报工作流
+#### GitHub Trending 月报工作流
 
 ```bash
 # 生成指定月份的月报
@@ -149,14 +171,32 @@ node scripts/run-monthly-workflow.js 2026-03
 
 **注意**：月报是深度分析型报告，适合公开发布到公众号/博客等平台。
 
+#### HuggingFace Papers 日报工作流
+
+```bash
+# 抓取并生成今天的论文日报
+node scripts/run-papers-workflow.js
+```
+
+Papers 工作流程：
+1. 从 HuggingFace 下载最新论文数据
+2. 解析论文信息（标题、作者、摘要、GitHub 链接等）
+3. 论文分类（综述/工具/研究/数据集）
+4. 摘要翻译（中英对照）
+5. 生成 BibTeX 引用
+6. AI 分析生成洞察
+7. 生成 HTML 报告
+8. 推送到飞书/WeLink（可选）
+
 ### 4. 查看报告
 
 用浏览器打开 `reports/index.html` 查看首页，或打开具体报告：
 
 - **首页**：`reports/index.html` - 统一门户页面，展示最新报告、统计数据、趋势图表、Top 5 热榜
-- **日报**：`reports/daily/github-ai-trending-YYYY-MM-DD.html`
-- **周报**：`reports/weekly/github-weekly-YYYY-WXX.html`
-- **月报**：`reports/monthly/github-monthly-YYYY-MM.html`
+- **GitHub 日报**：`reports/daily/github-ai-trending-YYYY-MM-DD.html`
+- **GitHub 周报**：`reports/weekly/github-weekly-YYYY-WXX.html`
+- **GitHub 月报**：`reports/monthly/github-monthly-YYYY-MM.html`
+- **Papers 日报**：`reports/papers/daily/papers-YYYY-MM-DD.html`
 
 ## 首页功能
 
@@ -244,6 +284,26 @@ AI 深度分析
 自动更新首页
 ```
 
+### Papers 日报流程
+
+```
+下载 HuggingFace latest.json
+    ↓
+解析论文信息
+    ↓
+论文分类（综述/工具/研究/数据集）
+    ↓
+摘要翻译（中英对照，完整无截断）
+    ↓
+生成 BibTeX 引用
+    ↓
+AI 分析生成洞察
+    ↓
+生成 HTML 报告
+    ↓
+推送到飞书/WeLink（可选）
+```
+
 ## 项目分析功能
 
 系统会自动对每个项目进行分析：
@@ -255,6 +315,18 @@ AI 深度分析
 5. **热度趋势分析**：基于星数、今日星数等数据分析趋势
 6. **社区活跃度评估**：评估项目社区活跃程度
 
+## Papers 分类功能
+
+系统会自动对每篇论文进行分类：
+
+1. **类型识别**：通过关键词检测自动识别论文类型
+   - 综述（Survey/Review）
+   - 工具（有 GitHub 实现）
+   - 数据集（Dataset/Benchmark）
+   - 研究论文（默认）
+2. **标签展示**：在 HTML 报告中显示类型标签
+3. **快速操作**：提供 arXiv、PDF、GitHub、引用等快捷链接
+
 ## 定时任务配置
 
 ### Linux/Mac (crontab)
@@ -263,11 +335,14 @@ AI 深度分析
 # 编辑 crontab
 crontab -e
 
-# 每日 7:00 生成日报
+# 每日 7:00 生成 GitHub 日报
 0 7 * * * cd /path/to/daily_report_analysis && node scripts/run-daily-workflow.js
 
-# 每周一 6:00 生成周报（生成上周的周报）
+# 每周一 6:00 生成 GitHub 周报（生成上周的周报）
 0 6 * * 1 cd /path/to/daily_report_analysis && node scripts/run-weekly-workflow.js
+
+# 每日 8:00 生成 Papers 日报
+0 8 * * * cd /path/to/daily_report_analysis && node scripts/run-papers-workflow.js
 ```
 
 ### Windows (任务计划程序)
