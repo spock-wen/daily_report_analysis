@@ -14,6 +14,7 @@ const PaperHtmlGenerator = require('../src/generator/paper-html-generator');
 const PaperNotification = require('../src/notifier/paper-notification');
 const { writeJson } = require('../src/utils/fs');
 const logger = require('../src/utils/logger');
+const { getConfig } = require('../src/utils/config');
 
 // 解析命令行参数
 const args = process.argv.slice(2);
@@ -134,9 +135,13 @@ async function executeWorkflow(disablePush) {
   if (!disablePush) {
     logger.info('[Workflow] 步骤 5/5: 发送通知...');
     const notifier = new PaperNotification();
-    const config = require('../config/config.json');
+    const config = getConfig();
     const baseUrl = config.report?.baseUrl || 'https://report.wenspock.site';
-    const reportUrl = `${baseUrl}/papers/daily/${scraper.getFileName(new Date(downloaded.downloadedDate))}`;
+    const dateObj = new Date(downloaded.downloadedDate);
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const reportUrl = `${baseUrl}/papers/daily/papers-${year}-${month}-${day}.html`;
 
     notificationResults.push({
       type: 'feishu',
