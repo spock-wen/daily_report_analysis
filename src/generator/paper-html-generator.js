@@ -228,11 +228,16 @@ class PaperHtmlGenerator {
         ${aiInsights.technicalInsights && aiInsights.technicalInsights.length > 0 ? `
           <h3>技术亮点</h3>
           <ul>
-            ${aiInsights.technicalInsights.map(insight => `
+            ${aiInsights.technicalInsights.map(insight => {
+              // 去掉 github.com/ 前缀并创建链接
+              let repoName = insight.paper || '';
+              repoName = repoName.replace(/^github\.com\//, '');
+              const githubUrl = `https://github.com/${repoName}`;
+              return `
               <li>
-                <strong>${insight.paper}</strong>: ${insight.innovation}
+                <strong><a href="${githubUrl}" target="_blank" style="color: var(--accent); text-decoration: none;">${repoName}</a></strong>: ${insight.innovation}
               </li>
-            `).join('')}
+            `}).join('')}
           </ul>
         ` : ''}
 
