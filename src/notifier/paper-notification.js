@@ -175,25 +175,32 @@ class PaperNotification {
     const totalCount = papers.length;
     const filteredCount = filteredPapers.length;
 
-    // TOP5 论文（按 Stars 排序）
-    const top5 = [...filteredPapers].sort((a, b) => b.stars - a.stars).slice(0, 5);
+    // 按 Stars 降序排序，取 TOP 10
+    const sorted = [...filteredPapers].sort((a, b) => b.stars - a.stars);
+    const displayPapers = sorted.slice(0, 10);
+    const hasMore = filteredCount > 10;
 
-    // 翻译论文标题
-    const titleTranslations = await this.translatePaperTitles(top5);
+    // 翻译论文标题和摘要
+    const titleTranslations = await this.translatePaperTitles(displayPapers);
+    const abstractTranslations = await this.translatePaperAbstracts(displayPapers);
 
-    // 格式化 TOP5
-    const top5Text = top5.map((p, i) => {
-      const medal = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'][i];
-      const repo = p.details?.github_links?.[0]?.split('github.com/')?.[1] || 'N/A';
+    // 格式化论文列表
+    const paperListText = displayPapers.map((p, i) => {
+      const medal = i < 3 ? ['🥇', '🥈', '🥉'][i] : `${i + 1}️⃣`;
+      const arxivId = p.paper_url?.split('/').pop() || 'N/A';
       const titleZh = titleTranslations[p.title] || p.title;
-      return `${medal} ${titleZh} 🌟${p.stars}\n   GitHub: ${repo}`;
+      const abstractZh = this.truncateAbstract(abstractTranslations[p.title] || '', 50);
+      return `${medal} ${titleZh}\n   arXiv:${arxivId} | 🌟${p.stars} | ${abstractZh}`;
     }).join('\n\n');
+
+    // 超过 10 篇时添加提示
+    const moreText = hasMore ? `\n\n📋 共 ${filteredCount} 篇热门论文，查看完整报告了解更多` : '';
 
     return {
       config: { wide_screen_mode: true },
       header: {
         title: { tag: 'plain_text', content: `✅ HuggingFace AI Papers 日报已生成` },
-        subtitle: { tag: 'plain_text', content: `${date} · ${filteredCount} 篇热门论文` },
+        subtitle: { tag: 'plain_text', content: `${date} · ${filteredCount} 篇热门论文 (Stars>10)` },
         template: 'green'
       },
       elements: [
@@ -204,7 +211,7 @@ class PaperNotification {
         { tag: 'hr' },
         {
           tag: 'div',
-          text: { tag: 'lark_md', content: `🔥 热门论文 TOP 5\n\n${top5Text}` }
+          text: { tag: 'lark_md', content: `🔥 热门论文清单 (Stars>10)\n\n${paperListText}${moreText}` }
         },
         { tag: 'hr' },
         { tag: 'div', text: { tag: 'lark_md', content: `💡 AI 洞察\n${aiInsights?.oneLiner || '暂无'}` } },
@@ -236,41 +243,41 @@ class PaperNotification {
   async buildWeLinkMessage(options) {
     const { date, filteredPapers, aiInsights } = options;
     const minStars = options.minStars || 10;
+    const reportUrl = options.reportUrl;
 
     // TOP5 论文
-    const top5 = [...filteredPapers].sort((a, b) => b.stars - a.stars).slice(0, 5);
+    const sorted = [...filteredPapers].sort((a, b) => b.stars - a.stars);
 
     // 翻译论文标题
-    const titleTranslations = await this.translatePaperTitles(top5);
+    const titleTranslations = await this.translatePaperTitles(sorted);
 
-    // 语言分布
-    const langDist = aiInsights?.languageDistribution || {};
-    const langText = Object.entries(langDist)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([k, v]) => `${k}(${v})`)
-      .join(', ');
-
-    // 构建消息
-    let msg = `✅ HuggingFace AI Papers 日报 (${date})\n\n`;
-    msg += `🔥 热门论文 TOP 5 (Stars>${minStars})：\n`;
-    top5.forEach((p, i) => {
+    // 构建单篇论文格式
+    const buildPaperEntry = (p, i) => {
       const medal = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'][i];
-      const repo = p.details?.github_links?.[0]?.split('github.com/')?.[1] || 'N/A';
+      const arxivId = p.paper_url?.split('/').pop() || 'N/A';
       const titleZh = titleTranslations[p.title] || p.title;
-      msg += `\n${medal} ${titleZh} 🌟${p.stars}\n   GitHub: github.com/${repo}\n`;
-    });
+      return `\n${medal} ${titleZh} 🌟${p.stars}\n   arXiv:${arxivId}\n`;
+    };
 
-    if (langText) {
-      msg += `\n💡 语言分布：${langText}`;
+    // 基础消息模板（不含论文列表）
+    const baseMsg = `✅ HuggingFace AI Papers 日报 (${date})\n\n🔥 热门论文 TOP 5 (Stars>${minStars})：`;
+    const footerMsg = `\n\n📋 完整报告：${reportUrl}`;
+    const baseLength = baseMsg.length + footerMsg.length;
+
+    // 逐篇添加，确保总长度不超过 500
+    let msg = baseMsg;
+    let count = 0;
+    for (let i = 0; i < Math.min(sorted.length, 5); i++) {
+      const entry = buildPaperEntry(sorted[i], i);
+      if (msg.length + entry.length + footerMsg.length <= 490) {
+        msg += entry;
+        count++;
+      } else {
+        break;
+      }
     }
 
-    msg += `\n\n📋 完整报告：${options.reportUrl}`;
-
-    // 截断到 500 字
-    if (msg.length > 500) {
-      msg = msg.substring(0, 500) + '...';
-    }
+    msg += footerMsg;
 
     return {
       messageType: 'text',
@@ -338,14 +345,16 @@ class PaperNotification {
       return text;
     }
 
+    // 截断到 450 字符（API 限制 500）
+    const truncatedText = text.length > 450 ? text.substring(0, 450) + '...' : text;
+
     // 检查缓存
-    if (translationCache.has(text)) {
-      return translationCache.get(text);
+    if (translationCache.has(truncatedText)) {
+      return translationCache.get(truncatedText);
     }
 
     try {
-      const cleanText = text.trim();
-      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(cleanText)}&langpair=en|zh-CN`;
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(truncatedText)}&langpair=en|zh-CN`;
       const response = await fetch(url, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
@@ -360,7 +369,7 @@ class PaperNotification {
 
       if (data.responseStatus === 200 && data.responseData?.translatedText) {
         const translated = data.responseData.translatedText;
-        translationCache.set(text, translated);
+        translationCache.set(truncatedText, translated);
         return translated;
       } else {
         throw new Error(data.responseDetails || 'Translation failed');
@@ -382,6 +391,32 @@ class PaperNotification {
       translations[paper.title] = await this.translateText(paper.title);
     }
     return translations;
+  }
+
+  /**
+   * 批量翻译论文摘要
+   * @param {Array} papers - 论文列表
+   * @returns {Promise<Object>} 翻译后的摘要映射
+   */
+  async translatePaperAbstracts(papers) {
+    const translations = {};
+    for (const paper of papers) {
+      const abstract = paper.details?.abstract || '';
+      translations[paper.title] = await this.translateText(abstract);
+    }
+    return translations;
+  }
+
+  /**
+   * 截断摘要到指定长度
+   * @param {string} text - 文本
+   * @param {number} maxLength - 最大长度
+   * @returns {string} 截断后的文本
+   */
+  truncateAbstract(text, maxLength = 50) {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
   }
 }
 

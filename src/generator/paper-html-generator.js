@@ -34,14 +34,23 @@ class PaperHtmlGenerator {
   async renderHTML(data) {
     const { date, papers, aiInsights } = data;
 
-    // 按星数排序（有星数的在前，无星数的在后）
+    // 按星数排序（Stars 降序，同 Star 数有 GitHub 仓库的优先）
     const sortedPapers = [...papers].sort((a, b) => {
       const starsA = a.stars || 0;
       const starsB = b.stars || 0;
-      if (starsA === 0 && starsB === 0) return 0;
-      if (starsA === 0) return 1;
-      if (starsB === 0) return -1;
-      return starsB - starsA;
+      const hasGithubA = a.details?.github_links?.length > 0;
+      const hasGithubB = b.details?.github_links?.length > 0;
+
+      // 优先按 Stars 排序
+      if (starsA !== starsB) {
+        return starsB - starsA;
+      }
+
+      // Stars 相同，有 GitHub 仓库的优先
+      if (hasGithubA && !hasGithubB) return -1;
+      if (!hasGithubA && hasGithubB) return 1;
+
+      return 0;
     });
 
     // 翻译摘要
@@ -57,9 +66,7 @@ class PaperHtmlGenerator {
     const avgStars = totalCount > 0 ? Math.round(totalStars / totalCount) : 0;
     const papersWithStars = papers.filter(p => p.stars > 0).length;
 
-    // 语言分布
-    const langDist = aiInsights?.languageDistribution || {};
-    const langDistHtml = this.renderLanguageDistribution(langDist);
+    // 语言分布 - 已移除 (对论文无意义)
 
     // AI 洞察
     const aiInsightsHtml = this.renderAiInsights(aiInsights);
@@ -132,7 +139,12 @@ class PaperHtmlGenerator {
     .ai-section li { color: var(--text-secondary); margin-bottom: 4px; font-size: 0.8125rem; line-height: 1.5; }
     .lang-dist { display: flex; flex-wrap: wrap; gap: 10px; }
     .lang-item { background: var(--accent); color: var(--bg-primary); padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }
-    @media (max-width: 768px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .paper-details.active { grid-template-columns: 1fr; } }
+    .paper-type { background: var(--accent-orange); color: var(--bg-primary); padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; margin-left: 6px; }
+    .quick-actions { display: flex; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .action-btn { background: var(--accent); color: var(--bg-primary); padding: 4px 12px; border-radius: 4px; text-decoration: none; font-size: 0.75rem; font-weight: 500; border: none; cursor: pointer; }
+    .action-btn:hover { opacity: 0.9; }
+    .bibtex-block { background: var(--bg-primary); padding: 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.6875rem; color: var(--text-secondary); white-space: pre-wrap; margin-top: 8px; }
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } .paper-details.active { grid-template-columns: 1fr; } .paper-header { flex-direction: column; } }
   </style>
 </head>
 <body>
@@ -164,8 +176,6 @@ class PaperHtmlGenerator {
       </div>
     </section>
 
-    ${langDistHtml}
-
     ${aiInsightsHtml}
 
     <section>
@@ -185,50 +195,23 @@ class PaperHtmlGenerator {
         btn.textContent = details.classList.contains('active') ? '收起详情' : '查看详情';
       }
     }
+
+    function copyBibtex(paperId) {
+      const bibtexBlock = document.getElementById('bibtex-' + paperId);
+      if (bibtexBlock) {
+        navigator.clipboard.writeText(bibtexBlock.textContent).then(() => {
+          const btn = event.target;
+          const originalText = btn.textContent;
+          btn.textContent = '已复制!';
+          setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }).catch(err => {
+          alert('复制失败，请手动复制');
+        });
+      }
+    }
   </script>
 </body>
 </html>`;
-  }
-
-  /**
-   * 渲染统计信息
-   */
-  renderStatsSection(totalCount, totalStars, avgStars) {
-    return `
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-value">${totalCount}</div>
-          <div class="stat-label">论文总数</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">${totalStars.toLocaleString()}</div>
-          <div class="stat-label">总 Stars</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">${avgStars}</div>
-          <div class="stat-label">平均 Stars</div>
-        </div>
-      </div>
-    `;
-  }
-
-  /**
-   * 渲染语言分布
-   */
-  renderLanguageDistribution(dist) {
-    const entries = Object.entries(dist).sort((a, b) => b[1] - a[1]);
-    if (entries.length === 0) return '';
-
-    const items = entries.slice(0, 10).map(([lang, count]) =>
-      `<span class="lang-item">${lang}(${count})</span>`
-    ).join('');
-
-    return `
-      <section class="ai-section">
-        <h3>语言分布</h3>
-        <div class="lang-dist">${items}</div>
-      </section>
-    `;
   }
 
   /**
@@ -279,6 +262,7 @@ class PaperHtmlGenerator {
     const pdfUrl = paper.details?.pdf_url || '';
     const abstract = paper.details?.abstract || '';
     const abstractZh = paper.details?.abstract_zh || abstract;
+    const paperType = this.classifyPaper(paper);
 
     // 提取 repo 名称
     let repoName = 'N/A';
@@ -286,6 +270,12 @@ class PaperHtmlGenerator {
       const match = githubLinks[0].match(/github\.com\/([^/]+\/[^/]+)/);
       if (match) repoName = match[1];
     }
+
+    // 生成 BibTeX
+    const bibtex = this.generateBibTeX(paper);
+
+    // 一句话摘要（列表卡片显示）
+    const shortAbstract = this.truncateAbstract(abstractZh, 120);
 
     return `
       <div class="paper-card">
@@ -299,21 +289,15 @@ class PaperHtmlGenerator {
               ${paper.stars || 0}
             </span>
             ${githubLinks.length > 0 ? `<span class="stat-badge" title="GitHub">${repoName}</span>` : ''}
+            <span class="paper-type" title="论文类型">${paperType}</span>
           </div>
         </div>
 
         ${paper.authors?.length ? `<div class="paper-meta">作者：${paper.authors.join(', ')}</div>` : ''}
 
-        <div class="paper-meta">
-          HuggingFace: <a href="${paper.paper_url}" target="_blank">链接</a> |
-          arXiv: <a href="${arxivUrl}" target="_blank">链接</a>
-          ${pdfUrl ? `| PDF: <a href="${pdfUrl}" target="_blank">下载</a>` : ''}
-          ${githubLinks.length > 0 ? `| GitHub: ${githubLinks.map(url => `<a href="${url}" target="_blank">${url.split('github.com/')[1] || 'code'}</a>`).join(', ')}` : ''}
-        </div>
-
-        ${abstractZh ? `
+        ${shortAbstract ? `
           <div class="paper-abstract">
-            <strong>摘要：</strong>${abstractZh}
+            <strong>摘要：</strong>${shortAbstract}
           </div>
         ` : ''}
 
@@ -321,11 +305,18 @@ class PaperHtmlGenerator {
           查看详情
         </button>
         <div class="paper-details" id="details-${index}">
-          <div class="detail-column">
+          <div class="quick-actions">
+            <a href="${arxivUrl}" target="_blank" class="action-btn">arXiv</a>
+            <a href="${pdfUrl || arxivUrl.replace('/abs/', '/pdf/')}" target="_blank" class="action-btn">PDF</a>
+            ${githubLinks.length > 0 ? `<a href="${githubLinks[0]}" target="_blank" class="action-btn">GitHub</a>` : ''}
+            <button onclick="copyBibtex(${index})" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
             <h4>论文信息</h4>
             <ul>
               <li>标题：${paper.title}</li>
               <li>Stars: ${paper.stars || 0}</li>
+              <li>类型：${paperType}</li>
               ${paper.authors?.length ? `<li>作者：${paper.authors.join(', ')}</li>` : ''}
               <li>HuggingFace: <a href="${paper.paper_url}" target="_blank">${paper.paper_url}</a></li>
               ${arxivUrl ? `<li>arXiv: <a href="${arxivUrl}" target="_blank">${arxivUrl}</a></li>` : ''}
@@ -333,10 +324,18 @@ class PaperHtmlGenerator {
           </div>
           ${abstractZh ? `
             <div class="detail-column">
-              <h4>摘要</h4>
+              <h4>完整翻译</h4>
               <p>${abstractZh}</p>
             </div>
           ` : ''}
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>${abstract}</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-${index}">${bibtex}</div>
+          </div>
         </div>
       </div>
     `;
@@ -385,6 +384,76 @@ class PaperHtmlGenerator {
       logger.warn('[PaperHtmlGenerator] 翻译失败，返回原文: ' + error.message);
       return text;
     }
+  }
+
+  /**
+   * 论文分类（规则引擎）
+   * @param {Object} paper - 论文数据
+   * @returns {string} 论文类型：综述/工具/数据/研究
+   */
+  classifyPaper(paper) {
+    const abstract = (paper.details?.abstract || '').toLowerCase();
+    const title = (paper.title || '').toLowerCase();
+    const hasGithub = paper.details?.github_links?.length > 0;
+
+    // 1. 综述类 - 仅检查标题（标题中的关键词更可靠）
+    const surveyKeywordsInTitle = [
+      'survey', 'review', 'overview', 'comprehensive',
+      'taxonomy', 'state-of-the-art', 'advances', 'progress',
+      'systematic', 'retrospective',
+      'foundation', 'evolution', 'mechanism', 'outlook',
+      'perspective', 'trend', 'challenge', 'opportunity'
+    ];
+
+    if (surveyKeywordsInTitle.some(kw => title.includes(kw))) {
+      return '综述';
+    }
+
+    // 2. 工具/系统类 - 需要 GitHub + 工具关键词
+    const toolKeywords = ['implement', 'system', 'framework', 'tool', 'library', 'package', 'demonstrat'];
+    if (hasGithub && toolKeywords.some(kw => abstract.includes(kw))) {
+      return '工具';
+    }
+
+    // 3. 数据集类
+    if (abstract.includes('dataset') || abstract.includes('benchmark')) {
+      return '数据';
+    }
+
+    // 4. 默认：研究论文
+    return '研究';
+  }
+
+  /**
+   * 生成 BibTeX 引用
+   * @param {Object} paper - 论文数据
+   * @returns {string} BibTeX 格式字符串
+   */
+  generateBibTeX(paper) {
+    const arxivId = paper.paper_url?.split('/').pop() || 'unknown';
+    const year = arxivId.startsWith('26') ? '2026' : '20' + arxivId.substring(0, 2);
+    const firstAuthor = paper.authors?.[0]?.split(' ').pop() || 'unknown';
+    const title = paper.title?.replace(/[{}]/g, '') || 'Unknown Title';
+    const authors = paper.authors?.join(' and ') || 'Unknown';
+
+    return `@article{${firstAuthor.toLowerCase()}${year.replace('20', '')},
+  title = {${title}},
+  author = {${authors}},
+  journal = {arXiv preprint},
+  volume = {arXiv:${arxivId}},
+  year = {${year}}
+}`;
+  }
+
+  /**
+   * 生成一句话摘要（~100 字符）
+   * @param {string} abstract - 完整摘要
+   * @returns {string} 简短摘要
+   */
+  truncateAbstract(abstract, maxLength = 120) {
+    if (!abstract) return '';
+    if (abstract.length <= maxLength) return abstract;
+    return abstract.substring(0, maxLength) + '...';
   }
 }
 
