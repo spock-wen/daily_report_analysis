@@ -42,7 +42,7 @@ async function sendNotification() {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    const reportUrl = `${baseUrl}/papers/daily/papers-${year}-${month}-${day}.html`;
+    const reportUrl = `${baseUrl}/reports/papers/daily/papers-${year}-${month}-${day}.html`;
 
     logger.info(`📄 报告 URL: ${reportUrl}`);
 
