@@ -126,22 +126,22 @@ class ProjectAnalyzer {
    */
   async analyzeProjects(projects) {
     logger.info(`[${this.name}] 开始分析 ${projects.length} 个项目...`);
-    
+
     const analyzedProjects = [];
-    
+
     for (const project of projects) {
       try {
         const analyzed = await this.analyzeProject(project);
         analyzedProjects.push(analyzed);
-        
-        // 添加延迟避免请求过快
-        await this.sleep(100);
+
+        // 添加延迟避免翻译 API 速率限制（HTTP 429）
+        await this.sleep(300);
       } catch (error) {
         logger.warn(`[${this.name}] 分析项目失败：${project.fullName || project.name}`, { error: error.message });
         analyzedProjects.push(project);
       }
     }
-    
+
     logger.info(`[${this.name}] 项目分析完成`);
     return analyzedProjects;
   }
