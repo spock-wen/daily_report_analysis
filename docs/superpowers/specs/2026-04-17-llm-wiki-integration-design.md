@@ -709,9 +709,68 @@ https://wiki.wenspock.site/
 
 ---
 
-## 10. 实施计划
+## 10. 历史数据迁移（新增）
+
+### 10.1 背景
+
+系统已积累约 27 天的日报数据（`data/insights/daily/*.json`），包含：
+- 每日热点项目分析（hot 数组）
+- AI 行动建议（action 数组）
+- 热度指数（hypeIndex）
+
+为充分利用历史数据，需批量生成初始 Wiki，而非从零开始。
+
+### 10.2 迁移策略
+
+**Phase 0: 历史数据迁移**
+
+1. **扫描** - 读取 `data/insights/daily/*.json` 所有文件
+2. **聚合** - 按项目名（owner/repo）聚合历史数据：
+   - 首次上榜日期
+   - 上榜次数
+   - 每次上榜的热点描述
+   - 相关分析内容
+3. **生成** - 为每个项目创建初始 Wiki Markdown 文件
+4. **输出** - `wiki/projects/{owner}_{repo}.md`
+
+### 10.3 迁移脚本
+
+```javascript
+// scripts/migrate-json-to-wiki.js
+const projectHistory = new Map();
+
+// 聚合所有日报数据
+for (const dailyFile of dailyFiles) {
+  const data = JSON.parse(readFile(dailyFile));
+  for (const hotItem of data.hot) {
+    const repo = extractRepoName(hotItem); // "666ghj/MiroFish"
+    projectHistory.get(repo).dates.push(dailyFile.date);
+    projectHistory.get(repo).hotTexts.push(hotItem);
+  }
+}
+
+// 生成 Wiki
+for (const [repo, history] of projectHistory) {
+  const wikiContent = generateProjectWiki(repo, history);
+  writeFile(`wiki/projects/${repo.replace('/', '_')}.md`, wikiContent);
+}
+```
+
+### 10.4 预期结果
+
+- 生成约 200-300 个项目 Wiki
+- 每个 Wiki 包含完整历史版本记录
+- 霸榜项目（如 666ghj/MiroFish）将有 20+ 条版本历史
+
+---
+
+## 11. 实施计划
 
 实施计划将通过 writing-plans skill 另行制定。
+
+---
+
+## 12. 验收标准
 
 ---
 
