@@ -3,8 +3,47 @@ const { getDailyReportPath, getWeeklyReportPath, getMonthlyReportPath } = requir
 const { renderTemplate, markdownToHtml } = require('../utils/template');
 const logger = require('../utils/logger');
 const MonthlyGenerator = require('./monthly-generator');
+const WikiManager = require('../wiki/wiki-manager');
+const path = require('path');
+const fs = require('fs');
 
 class HTMLGenerator {
+  constructor() {
+    this.wikiManager = new WikiManager();
+  }
+
+  /**
+   * 获取项目的 Wiki 信息
+   * @param {string} owner - 仓库所有者
+   * @param {string} repo - 仓库名
+   * @returns {Object|null} Wiki 信息或 null
+   */
+  _getProjectWikiInfo(owner, repo) {
+    try {
+      const wikiPath = path.join(this.wikiManager.projectsDir, `${owner}_${repo}.md`);
+      if (!fs.existsSync(wikiPath)) {
+        return null;
+      }
+
+      const content = fs.readFileSync(wikiPath, 'utf-8');
+
+      // 提取上榜次数
+      const appearancesMatch = content.match(/- 上榜次数：(\d+)/);
+      const firstSeenMatch = content.match(/- 首次上榜：([\d-]+)/);
+      const domainMatch = content.match(/- 领域分类：(.+)/);
+
+      return {
+        exists: true,
+        appearances: appearancesMatch ? parseInt(appearancesMatch[1]) : 1,
+        firstSeen: firstSeenMatch ? firstSeenMatch[1] : null,
+        domain: domainMatch ? domainMatch[1].trim() : null
+      };
+    } catch (error) {
+      logger.debug(`读取 ${owner}/${repo} Wiki 信息失败：${error.message}`);
+      return null;
+    }
+  }
+
   async generateDaily(dailyData) {
     try {
       logger.info('生成日报 HTML...', { date: dailyData.date });
@@ -158,16 +197,29 @@ class HTMLGenerator {
     const coreFeatures = analysis.coreFunctions || [];
     const useCases = analysis.useCases || [];
     const trends = analysis.trends || [];
-    
+
     // 确保项目名称有 GitHub 链接
     const projectName = project.fullName || project.repo || project.name || '';
     const projectUrl = project.url || (projectName ? `https://github.com/${projectName}` : '#');
+
+    // 获取 Wiki 信息
+    let wikiInfo = null;
+    if (projectName && projectName.includes('/')) {
+      const [owner, repo] = projectName.split('/');
+      wikiInfo = this._getProjectWikiInfo(owner, repo);
+    }
 
     return `
       <div class="project-card">
         <div class="project-header">
           <a href="${projectUrl}" class="project-name" target="_blank">
             ${index + 1}. ${projectName}
+            ${wikiInfo ? `
+              <span class="wiki-badge" title="已收录到 Wiki，上榜 ${wikiInfo.appearances} 次">
+                📚 Wiki
+                ${wikiInfo.appearances > 1 ? `<span class="wiki-count">(${wikiInfo.appearances})</span>` : ''}
+              </span>
+            ` : ''}
           </a>
           <div class="project-stats">
             <span class="stat-badge" title="总星数">
