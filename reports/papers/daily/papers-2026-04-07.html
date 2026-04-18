@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuggingFace AI Papers 日报 - 2026-04-07</title>
+  <link rel="stylesheet" href="../../public/css/style.css">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-card: #161b22;
+      --text-primary: #c9d1d9;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-orange: #d29922;
+      --border: #30363d;
+      --border-light: #21262d;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.5; padding: 24px 16px; font-size: 13px; }
+    .container { max-width: 960px; margin: 0 auto; }
+    header { text-align: center; padding: 32px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+    h1 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+    .date { color: var(--text-secondary); font-size: 0.8125rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); padding: 12px; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
+    .stat-value { font-size: 1.25rem; font-weight: 600; color: var(--accent-green); line-height: 1.2; }
+    .stat-value .star-icon { color: #fbbf24; width: 20px; height: 20px; vertical-align: middle; display: inline-block; }
+    .stat-label { color: var(--text-secondary); margin-top: 4px; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    section { margin-bottom: 24px; }
+    h2 { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .project-list { display: flex; flex-direction: column; gap: 8px; }
+    .star-icon { width: 16px; height: 16px; vertical-align: middle; }
+    .paper-card { background: var(--bg-card); border-radius: 6px; padding: 12px; margin: 8px 0; border: 1px solid var(--border); transition: border-color 0.2s; }
+    .paper-card:hover { border-color: var(--text-muted); }
+    .paper-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; }
+    .paper-name { font-size: 0.875rem; font-weight: 600; color: var(--accent); text-decoration: none; line-height: 1.4; }
+    .paper-name:hover { text-decoration: underline; }
+    .paper-stats { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+    .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.6875rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 2px 6px; border-radius: 10px; border: 1px solid var(--border); white-space: nowrap; }
+    .stat-badge .star-icon { color: #fbbf24; width: 12px; height: 12px; }
+    .paper-abstract { background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin: 8px 0; border: 1px solid var(--border); }
+    .paper-abstract strong { color: var(--text-primary); }
+    .paper-meta { color: var(--text-secondary); font-size: 0.75rem; margin: 8px 0; }
+    .paper-meta a { color: var(--accent); text-decoration: none; }
+    .paper-meta a:hover { text-decoration: underline; }
+    .toggle-btn { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.6875rem; font-weight: 500; transition: all 0.2s; }
+    .toggle-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+    .paper-details { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .paper-details.active { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .detail-column { background: var(--bg-secondary); padding: 8px; border-radius: 6px; }
+    .detail-column h4 { color: var(--text-primary); margin-bottom: 6px; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
+    .detail-column ul { list-style: none; }
+    .detail-column li { color: var(--text-secondary); padding: 3px 0; font-size: 0.75rem; line-height: 1.4; }
+    .ai-section { background: var(--bg-card); padding: 16px; border-radius: 6px; border: 1px solid var(--border); }
+    .ai-section h2, .ai-section h3 { color: var(--text-primary); margin: 16px 0 8px; font-size: 0.75rem; font-weight: 600; }
+    .ai-section h2:first-child, .ai-section h3:first-child { margin-top: 0; }
+    .ai-section p { color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; font-size: 0.8125rem; }
+    .ai-section ul { margin-bottom: 12px; padding-left: 16px; }
+    .ai-section li { color: var(--text-secondary); margin-bottom: 4px; font-size: 0.8125rem; line-height: 1.5; }
+    .lang-dist { display: flex; flex-wrap: wrap; gap: 10px; }
+    .lang-item { background: var(--accent); color: var(--bg-primary); padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+    .paper-type { background: var(--accent-orange); color: var(--bg-primary); padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; margin-left: 6px; }
+    .quick-actions { display: flex; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .action-btn { background: var(--accent); color: var(--bg-primary); padding: 4px 12px; border-radius: 4px; text-decoration: none; font-size: 0.75rem; font-weight: 500; border: none; cursor: pointer; }
+    .action-btn:hover { opacity: 0.9; }
+    .bibtex-block { background: var(--bg-primary); padding: 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.6875rem; color: var(--text-secondary); white-space: pre-wrap; margin-top: 8px; }
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } .paper-details.active { grid-template-columns: 1fr; } .paper-header { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>HuggingFace AI Papers 日报</h1>
+      <div class="date">2026-04-07</div>
+    </header>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">17</div>
+        <div class="stat-label">论文总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">6</div>
+        <div class="stat-label">有 Stars 论文</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">
+          <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor" style="width: 20px; height: 20px;"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+          <span style="vertical-align: middle;">72</span>
+        </div>
+        <div class="stat-label">总 Stars</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">4</div>
+        <div class="stat-label">平均 Stars</div>
+      </div>
+    </section>
+
+    
+      <section class="ai-section">
+        <h2>AI 深度洞察</h2>
+        <p>多模态与智能体研究成热点，视频理解与代码生成受关注</p>
+
+        
+          <h3>技术亮点</h3>
+          <ul>
+            
+              <li>
+                <strong><a href="https://github.com/EvolvingLMMs-Lab/SimpleStream" target="_blank" style="color: var(--accent); text-decoration: none;">EvolvingLMMs-Lab/SimpleStream</a></strong>: 提出首个面向流式视频理解的简单高效基线方法，显著降低计算开销。该方法通过时序稀疏采样与轻量融合机制实现实时推理。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/KAIST-Visual-AI-Group/Token-Warping-MLLM" target="_blank" style="color: var(--accent); text-decoration: none;">KAIST-Visual-AI-Group/Token-Warping-MLLM</a></strong>: 引入Token Warping机制，使多模态大模型能模拟从邻近视角观察场景，增强空间一致性理解。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/deepreinforce-ai/codeforces" target="_blank" style="color: var(--accent); text-decoration: none;">deepreinforce-ai/codeforces</a></strong>: 通过智能体强化学习框架实现竞赛级编程能力，首次达到Codeforces Grandmaster水平。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/XingtongGe/Salt" target="_blank" style="color: var(--accent); text-decoration: none;">XingtongGe/Salt</a></strong>: 提出Salt框架，通过自洽分布匹配与缓存感知训练加速视频生成，兼顾理论最优性与实际效率。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/mbzuai-oryx/CoME-VL" target="_blank" style="color: var(--accent); text-decoration: none;">mbzuai-oryx/CoME-VL</a></strong>: 设计互补多编码器架构，有效融合局部细节与全局语义，提升视觉语言表征能力。
+              </li>
+            
+          </ul>
+        
+
+        
+          <h3>社区价值</h3>
+          <ul>
+            <li>多个高质量开源项目覆盖视频理解、多模态推理与代码生成，为社区提供可复现基线</li><li>GitHub仓库普遍包含预训练模型与详细文档，降低研究门槛，促进技术快速迭代</li>
+          </ul>
+        
+
+        
+          <h3>应用前景</h3>
+          <ul>
+            <li>流式视频理解与智能体编程技术有望赋能实时监控、自动驾驶与AI辅助开发等工业场景</li><li>多模态空间建模与隐私评估框架将推动具身智能与可信AI系统在人机协作中的落地</li>
+          </ul>
+        
+      </section>
+    
+
+    <section>
+      <h2>论文列表（共 17 篇）</h2>
+      <div class="project-list">
+        
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.02317" class="paper-name" target="_blank">
+            1. A Simple Baseline for Streaming Video Understanding
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              49
+            </span>
+            <span class="stat-badge" title="GitHub">EvolvingLMMs-Lab/SimpleStream</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>🚀 SimpleStream ：在流媒体视频理解中重新思考内存最近的流媒体视频理解方法越来越依赖于复杂的内存机制。我们重新审视一个简单的问题：我们真的需要它们吗？🔑关键发现仅使用最新N帧的简单滑动窗口基线可以匹配或优于现有的基于内存的方...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(0)" id="btn-0">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-0">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2511.16655" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.02317" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/EvolvingLMMs-Lab/SimpleStream" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(0)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：A Simple Baseline for Streaming Video Understanding</li>
+              <li>Stars: 49</li>
+              <li>类型：数据</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.02317" target="_blank">https://huggingface.co/papers/2604.02317</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2511.16655" target="_blank">https://arxiv.org/abs/2511.16655</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>🚀 SimpleStream ：在流媒体视频理解中重新思考内存最近的流媒体视频理解方法越来越依赖于复杂的内存机制。我们重新审视一个简单的问题：我们真的需要它们吗？🔑关键发现仅使用最新N帧的简单滑动窗口基线可以匹配或优于现有的基于内存的方法。📊亮点仅使用最近的帧（例如， N = 4 ） ，没有显式内存模块实现...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>🚀 SimpleStream: Rethinking Memory in Streaming Video Understanding Recent streaming video understanding methods increasingly rely on complex memory mechanisms. We revisit a simple question: do we really need them? 🔑 Key finding A simple sliding-window baseline using only the most recent N frames can match or outperform existing memory-based approaches. 📊 Highlights Uses only recent frames (e.g., N=4) , without explicit memory modules Achieves 67.7% on OVO-Bench and 80.6% on StreamingBench under real-time evaluation Reveals a consistent perception–memory trade-off : adding more historical context can improve recall, but often weakens real-time perception 💡 Takeaway Performance gains from memory are not guaranteed . We argue that future streaming benchmarks should separate present-scene perception from long-range memory , so improvements from added complexity can be evaluated more clearly. 📄 Paper: https://arxiv.org/abs/2604.02317 💻 Code: https://github.com/EvolvingLMMs-Lab/SimpleStream 🌐 Project: https://simple-stream.github.io/</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-0">@article{unknown26,
+  title = {A Simple Baseline for Streaming Video Understanding},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.02317},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.02870" class="paper-name" target="_blank">
+            2. Token Warping Helps MLLMs Look from Nearby Viewpoints
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              10
+            </span>
+            <span class="stat-badge" title="GitHub">KAIST-Visual-AI-Group/Token-Warping-MLLM</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Juil Koo, Seungwoo Yoo, Mingue Park, Chanho Park, Phillip Y. Lee</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>CVPR 2026论文： https://arxiv.org/abs/2604.02870项目页面： https://token-warping-mllm.github.io/代码： https://github.com/KAIST-Vis...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(1)" id="btn-1">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-1">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.02870" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.02870" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/KAIST-Visual-AI-Group/Token-Warping-MLLM" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(1)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Token Warping Helps MLLMs Look from Nearby Viewpoints</li>
+              <li>Stars: 10</li>
+              <li>类型：研究</li>
+              <li>作者：Juil Koo, Seungwoo Yoo, Mingue Park, Chanho Park, Phillip Y. Lee</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.02870" target="_blank">https://huggingface.co/papers/2604.02870</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.02870" target="_blank">https://arxiv.org/abs/2604.02870</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>CVPR 2026论文： https://arxiv.org/abs/2604.02870项目页面： https://token-warping-mllm.github.io/代码： https://github.com/KAIST-Visual-AI-Group/Token-Warping-MLLM</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>CVPR 2026 Paper: https://arxiv.org/abs/2604.02870 Project Page: https://token-warping-mllm.github.io/ Code: https://github.com/KAIST-Visual-AI-Group/Token-Warping-MLLM</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-1">@article{koo26,
+  title = {Token Warping Helps MLLMs Look from Nearby Viewpoints},
+  author = {Juil Koo and Seungwoo Yoo and Mingue Park and Chanho Park and Phillip Y. Lee},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.02870},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.03231" class="paper-name" target="_blank">
+            3. CoME-VL: Scaling Complementary Multi-Encoder Vision-Language Learning
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              7
+            </span>
+            <span class="stat-badge" title="GitHub">mbzuai-oryx/CoME-VL</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Hisham Cholakkal, Imran Razzak, Xilin He, Komal Kumar, Ankan Deria</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>这是来自图书管理员机器人的自动消息。我发现以下论文与本文相似。以下论文是Semantic Scholar API Stateful Cross-layer Vision Modulation (2026) Hierarchical Pre-...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(2)" id="btn-2">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-2">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.03231" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.03231" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/mbzuai-oryx/CoME-VL" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(2)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：CoME-VL: Scaling Complementary Multi-Encoder Vision-Language Learning</li>
+              <li>Stars: 7</li>
+              <li>类型：研究</li>
+              <li>作者：Hisham Cholakkal, Imran Razzak, Xilin He, Komal Kumar, Ankan Deria</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.03231" target="_blank">https://huggingface.co/papers/2604.03231</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.03231" target="_blank">https://arxiv.org/abs/2604.03231</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>这是来自图书管理员机器人的自动消息。我发现以下论文与本文相似。以下论文是Semantic Scholar API Stateful Cross-layer Vision Modulation (2026) Hierarchical Pre-Training of Vision Encoders with Large Language Models (2026) iGVLM: Dynamic Instruction-Guided Vision Encoding for Question-Aware Multimodal Understanding (2026) VisionPangu: A Compact and Fine-Grained Multimodal A...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>This is an automated message from the Librarian Bot . I found the following papers similar to this paper. The following papers were recommended by the Semantic Scholar API Stateful Cross-layer Vision Modulation (2026) Hierarchical Pre-Training of Vision Encoders with Large Language Models (2026) iGVLM: Dynamic Instruction-Guided Vision Encoding for Question-Aware Multimodal Understanding (2026) VisionPangu: A Compact and Fine-Grained Multimodal Assistant with 1.7B Parameters (2026) Do VLMs Need Vision Transformers? Evaluating State Space Models as Vision Encoders (2026) ReDiPrune: Relevance-Diversity Pre-Projection Token Pruning for Efficient Multimodal LLMs (2026) CoVFT: Context-aware Visual Fine-tuning for Multimodal Large Language Models (2026) Please give a thumbs up to this comment if you found it helpful! If you want recommendations for any Paper on Hugging Face checkout this Space You can directly ask Librarian Bot for paper recommendations by tagging it in a comment: @ librarian-bot recommend</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-2">@article{cholakkal26,
+  title = {CoME-VL: Scaling Complementary Multi-Encoder Vision-Language Learning},
+  author = {Hisham Cholakkal and Imran Razzak and Xilin He and Komal Kumar and Ankan Deria},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.03231},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.01487" class="paper-name" target="_blank">
+            4. AgentSocialBench: Evaluating Privacy Risks in Human-Centered Agentic Social Networks
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              3
+            </span>
+            <span class="stat-badge" title="GitHub">kingofspace0wzz/agentsocialbench</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>随着个性化、持久化的LLM代理框架（如OpenClaw ）的兴起，以人为本的代理社交网络正在成为现实，在这些社交网络中，协作AI代理团队在多个领域的社交网络中为个人用户提供服务。此设置带来了新的隐私挑战：代理必须跨域界限进行协调，在人与人之...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(3)" id="btn-3">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-3">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.01487" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.01487" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/kingofspace0wzz/agentsocialbench" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(3)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：AgentSocialBench: Evaluating Privacy Risks in Human-Centered Agentic Social Networks</li>
+              <li>Stars: 3</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.01487" target="_blank">https://huggingface.co/papers/2604.01487</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.01487" target="_blank">https://arxiv.org/abs/2604.01487</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>随着个性化、持久化的LLM代理框架（如OpenClaw ）的兴起，以人为本的代理社交网络正在成为现实，在这些社交网络中，协作AI代理团队在多个领域的社交网络中为个人用户提供服务。此设置带来了新的隐私挑战：代理必须跨域界限进行协调，在人与人之间进行调解，并与其他用户的代理进行交互，同时保护敏感角色...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>With the rise of personalized, persistent LLM agent frameworks such as OpenClaw, human-centered agentic social networks in which teams of collaborative AI agents serve individual users in a social network across multiple domains are becoming a reality. This setting creates novel privacy challenges: agents must coordinate across domain boundaries, mediate between humans, and interact with other users' agents, all while protecting sensitive personal information. While prior work has evaluated multi-agent coordination and privacy preservation, the dynamics and privacy risks of human-centered agentic social networks remain unexplored. To this end, we introduce AgentSocialBench, the first benchmark to systematically evaluate privacy risk in this setting, comprising scenarios across seven categories spanning dyadic and multi-party interactions, grounded in realistic user profiles with hierarchical sensitivity labels and directed social graphs. Our experiments reveal that privacy in agentic social networks is fundamentally harder than in single-agent settings: (1) cross-domain and cross-user coordination creates persistent leakage pressure even when agents are explicitly instructed to protect information, (2) privacy instructions that teach agents how to abstract sensitive information paradoxically cause them to discuss it more (we call it abstraction paradox). These findings underscore that current LLM agents lack robust mechanisms for privacy preservation in human-centered agentic social networks, and that new approaches beyond prompt engineering are needed to make agent-mediated social coordination safe for real-world deployment.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-3">@article{unknown26,
+  title = {AgentSocialBench: Evaluating Privacy Risks in Human-Centered Agentic Social Networks},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.01487},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.03118" class="paper-name" target="_blank">
+            5. Salt: Self-Consistent Distribution Matching with Cache-Aware Training for Fast Video Generation
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              2
+            </span>
+            <span class="stat-badge" title="GitHub">XingtongGe/Salt</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Xiahong Wang, Dailan He, Yushi Huang, Yi Zhang, Xingtong Ge</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>将视频生成模型提炼到极低的推理预算（例如， 2-4个NFE ）对于实时部署至关重要，但仍然具有挑战性。在复杂的视频动态下，轨迹式稠度蒸馏通常变得保守，产生过度光滑的外观和弱运动。分布匹配蒸馏（ DMD ）可以恢复尖锐的、寻找模式的样本，但其...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(4)" id="btn-4">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-4">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.03118" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.03118" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/XingtongGe/Salt" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(4)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Salt: Self-Consistent Distribution Matching with Cache-Aware Training for Fast Video Generation</li>
+              <li>Stars: 2</li>
+              <li>类型：研究</li>
+              <li>作者：Xiahong Wang, Dailan He, Yushi Huang, Yi Zhang, Xingtong Ge</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.03118" target="_blank">https://huggingface.co/papers/2604.03118</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.03118" target="_blank">https://arxiv.org/abs/2604.03118</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>将视频生成模型提炼到极低的推理预算（例如， 2-4个NFE ）对于实时部署至关重要，但仍然具有挑战性。在复杂的视频动态下，轨迹式稠度蒸馏通常变得保守，产生过度光滑的外观和弱运动。分布匹配蒸馏（ DMD ）可以恢复尖锐的、寻找模式的样本，但其局部训练信号并未明确规范如何...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Distilling video generation models to extremely low inference budgets (e.g., 2--4 NFEs) is crucial for real-time deployment, yet remains challenging. Trajectory-style consistency distillation often becomes conservative under complex video dynamics, yielding an over-smoothed appearance and weak motion. Distribution matching distillation (DMD) can recover sharp, mode-seeking samples, but its local training signals do not explicitly regularize how denoising updates compose across timesteps, making composed rollouts prone to drift. To overcome this challenge, we propose Self-Consistent Distribution Matching Distillation (SC-DMD), which explicitly regularizes the endpoint-consistent composition of consecutive denoising updates. For real-time autoregressive video generation, we further treat the KV cache as a quality parameterized condition and propose Cache-Distribution-Aware training. This training scheme applies SC-DMD over multi-step rollouts and introduces a cache-conditioned feature alignment objective that steers low-quality outputs toward high-quality references. Across extensive experiments on both non-autoregressive backbones (e.g., Wan~2.1) and autoregressive real-time paradigms (e.g., Self Forcing), our method, dubbed Salt , consistently improves low-NFE video generation quality while remaining compatible with diverse KV-cache memory mechanisms. Source code will be released at https://github.com/XingtongGe/Salt</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-4">@article{wang26,
+  title = {Salt: Self-Consistent Distribution Matching with Cache-Aware Training for Fast Video Generation},
+  author = {Xiahong Wang and Dailan He and Yushi Huang and Yi Zhang and Xingtong Ge},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.03118},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.02721" class="paper-name" target="_blank">
+            6. GrandCode: Achieving Grandmaster Level in Competitive Programming via Agentic Reinforcement Learning
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              1
+            </span>
+            <span class="stat-badge" title="GitHub">deepreinforce-ai/codeforces</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>在最近的三场Codeforce现场比赛中，即第1087轮、第1088轮和第1089轮， GrandCode、GrandCode在所有比赛中排名第一，击败了包括传奇大师在内的所有人类参与者。GrandCode是一个专为竞争性编程而设计的多智能...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(5)" id="btn-5">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-5">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.02721" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.02721" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/deepreinforce-ai/codeforces" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(5)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：GrandCode: Achieving Grandmaster Level in Competitive Programming via Agentic Reinforcement Learning</li>
+              <li>Stars: 1</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.02721" target="_blank">https://huggingface.co/papers/2604.02721</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.02721" target="_blank">https://arxiv.org/abs/2604.02721</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>在最近的三场Codeforce现场比赛中，即第1087轮、第1088轮和第1089轮， GrandCode、GrandCode在所有比赛中排名第一，击败了包括传奇大师在内的所有人类参与者。GrandCode是一个专为竞争性编程而设计的多智能体强化学习系统。它协调各种代理模块（假设建议、求解器、测试生成器、总结等）并共同改进它们...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>In the most recent three Codeforces live competitions, i.e., Round 1087, Round 1088, and Round 1089, GrandCode, GrandCode, ranked first in all of them, beating all human participants, including legendary grandmasters. GrandCode is a multi-agent reinforcement learning system designed for competitive programming. It orchestrates a variety of agentic modules (hypothesis proposal, solver, test generator, summarization, etc) and jointly improves them through post-training and online test-time RL. GrandCode is developed based on Qwen.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-5">@article{unknown26,
+  title = {GrandCode: Achieving Grandmaster Level in Competitive Programming via Agentic Reinforcement Learning},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.02721},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2603.27183" class="paper-name" target="_blank">
+            7. Communicating about Space: Language-Mediated Spatial Integration Across Partial Views
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">ankursikarwar/Cosmic</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(6)" id="btn-6">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-6">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2603.27183" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2603.27183" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/ankursikarwar/Cosmic" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(6)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Communicating about Space: Language-Mediated Spatial Integration Across Partial Views</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2603.27183" target="_blank">https://huggingface.co/papers/2603.27183</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2603.27183" target="_blank">https://arxiv.org/abs/2603.27183</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-6">@article{unknown26,
+  title = {Communicating about Space: Language-Mediated Spatial Integration Across Partial Views},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2603.27183},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.01765" class="paper-name" target="_blank">
+            8. DriveDreamer-Policy: A Geometry-Grounded World-Action Model for Unified Generation and Planning
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">youngzhou1999/DriveDreamer-Policy</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>最近，世界-行动模型（ WAM ）已经出现，将视觉-语言-行动（ VLA ）模型和世界模型联系起来，统一了它们的推理和指令遵循能力以及时空世界建模。然而，现有的WAM方法通常侧重于建模2D外观或潜在表示，具有有限的几何接地-这是在物理世界中...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(7)" id="btn-7">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-7">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.01765" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.01765" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/youngzhou1999/DriveDreamer-Policy" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(7)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：DriveDreamer-Policy: A Geometry-Grounded World-Action Model for Unified Generation and Planning</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.01765" target="_blank">https://huggingface.co/papers/2604.01765</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.01765" target="_blank">https://arxiv.org/abs/2604.01765</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>最近，世界-行动模型（ WAM ）已经出现，将视觉-语言-行动（ VLA ）模型和世界模型联系起来，统一了它们的推理和指令遵循能力以及时空世界建模。然而，现有的WAM方法通常侧重于建模2D外观或潜在表示，具有有限的几何接地-这是在物理世界中运行的具体系统的基本元素。我们介绍DriveDreamer-Policy ，...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Recently, world-action models (WAM) have emerged to bridge vision-language-action (VLA) models and world models, unifying their reasoning and instruction-following capabilities and spatio-temporal world modeling. However, existing WAM approaches often focus on modeling 2D appearance or latent representations, with limited geometric grounding-an essential element for embodied systems operating in the physical world. We present DriveDreamer-Policy, a unified driving world-action model that integrates depth generation, future video generation, and motion planning within a single modular architecture. The model employs a large language model to process language instructions, multi-view images, and actions, followed by three lightweight generators that produce depth, future video, and actions. By learning a geometry-aware world representation and using it to guide both future prediction and planning within a unified framework, the proposed model produces more coherent imagined futures and more informed driving actions, while maintaining modularity and controllable latency. Experiments on the Navsim v1 and v2 benchmarks demonstrate that DriveDreamer-Policy achieves strong performance on both closed-loop planning and world generation tasks. In particular, our model reaches 89.2 PDMS on Navsim v1 and 88.7 EPDMS on Navsim v2, outperforming existing world-model-based approaches while producing higher-quality future video and depth predictions. Ablation studies further show that explicit depth learning provides complementary benefits to video imagination and improves planning robustness.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-7">@article{unknown26,
+  title = {DriveDreamer-Policy: A Geometry-Grounded World-Action Model for Unified Generation and Planning},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.01765},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.03128" class="paper-name" target="_blank">
+            9. Self-Distilled RLVR
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Naibin Gu, Minghui Chen, Qingyi Si, Chuanyu Qin, Chenxu Yang</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>如果有人想要tldr https://arxivexplained.com/papers/self-distilled-rlvr ，这里有一个很好的细分，关于rlvr的部分就是我
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(8)" id="btn-8">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-8">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.03128" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.03128" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(8)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Self-Distilled RLVR</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Naibin Gu, Minghui Chen, Qingyi Si, Chuanyu Qin, Chenxu Yang</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.03128" target="_blank">https://huggingface.co/papers/2604.03128</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.03128" target="_blank">https://arxiv.org/abs/2604.03128</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>如果有人想要tldr https://arxivexplained.com/papers/self-distilled-rlvr ，这里有一个很好的细分，关于rlvr的部分就是我</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>nice breakdown of this one here if anyone wants the tldr https://arxivexplained.com/papers/self-distilled-rlvr the part about rlvr is what got me</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-8">@article{gu26,
+  title = {Self-Distilled RLVR},
+  author = {Naibin Gu and Minghui Chen and Qingyi Si and Chuanyu Qin and Chenxu Yang},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.03128},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.03016" class="paper-name" target="_blank">
+            10. Agentic-MME: What Agentic Capability Really Brings to Multimodal Intelligence?
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Binyu Wang, Jinglin Chen, Siyi Wang, Yishan Yang, Qianshan Wei</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>富有洞察力的工作！
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(9)" id="btn-9">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-9">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.03016" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.03016" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(9)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Agentic-MME: What Agentic Capability Really Brings to Multimodal Intelligence?</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Binyu Wang, Jinglin Chen, Siyi Wang, Yishan Yang, Qianshan Wei</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.03016" target="_blank">https://huggingface.co/papers/2604.03016</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.03016" target="_blank">https://arxiv.org/abs/2604.03016</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>富有洞察力的工作！</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Insightful Work!</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-9">@article{wang26,
+  title = {Agentic-MME: What Agentic Capability Really Brings to Multimodal Intelligence?},
+  author = {Binyu Wang and Jinglin Chen and Siyi Wang and Yishan Yang and Qianshan Wei},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.03016},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.01411" class="paper-name" target="_blank">
+            11. Test-Time Scaling Makes Overtraining Compute-Optimal
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>新的LFM2.5-350M超级训练过度—每个人都对他们推动它的程度感到震惊。事实证明，我们为此制定了缩放法。T ² （训练到测试）缩放将Chinchilla预训练缩放与通过重复采样的测试时间缩放相结合，并发现当您考虑推理计算时，激进的过度训...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(10)" id="btn-10">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-10">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.01411" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.01411" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(10)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Test-Time Scaling Makes Overtraining Compute-Optimal</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.01411" target="_blank">https://huggingface.co/papers/2604.01411</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.01411" target="_blank">https://arxiv.org/abs/2604.01411</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>新的LFM2.5-350M超级训练过度—每个人都对他们推动它的程度感到震惊。事实证明，我们为此制定了缩放法。T ² （训练到测试）缩放将Chinchilla预训练缩放与通过重复采样的测试时间缩放相结合，并发现当您考虑推理计算时，激进的过度训练变得计算最佳。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>That new LFM2.5-350M is super overtrained — and everyone was shocked by how far they pushed it. As it turns out, we have a scaling law for that. T² (Train-to-Test) scaling combines Chinchilla pretraining scaling with test-time scaling via repeated sampling, and finds that when you account for inference compute, radical overtraining becomes compute optimal.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-10">@article{unknown26,
+  title = {Test-Time Scaling Makes Overtraining Compute-Optimal},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.01411},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.03144" class="paper-name" target="_blank">
+            12. InCoder-32B-Thinking: Industrial Code World Model for Thinking
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Tuney Zheng, Junhang Cheng, Jiajun Wu, Wei Zhang, Jian Yang</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>这是来自图书管理员机器人的自动消息。我发现以下论文与本文相似。以下论文由语义学者API InCoder-32B推荐：工业场景的代码基础模型（ 2026 ） SiliconMind-V1 ： Verilog代码生成的多代理蒸馏和调试推理工作流...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(11)" id="btn-11">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-11">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.03144" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.03144" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(11)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：InCoder-32B-Thinking: Industrial Code World Model for Thinking</li>
+              <li>Stars: 0</li>
+              <li>类型：数据</li>
+              <li>作者：Tuney Zheng, Junhang Cheng, Jiajun Wu, Wei Zhang, Jian Yang</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.03144" target="_blank">https://huggingface.co/papers/2604.03144</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.03144" target="_blank">https://arxiv.org/abs/2604.03144</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>这是来自图书管理员机器人的自动消息。我发现以下论文与本文相似。以下论文由语义学者API InCoder-32B推荐：工业场景的代码基础模型（ 2026 ） SiliconMind-V1 ： Verilog代码生成的多代理蒸馏和调试推理工作流程（ 2026 ） ACE-RTL ：当代理上下文演进满足RTL专用LLM时（ 2026 ） IQuest-Coder-V1技术报告...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>This is an automated message from the Librarian Bot . I found the following papers similar to this paper. The following papers were recommended by the Semantic Scholar API InCoder-32B: Code Foundation Model for Industrial Scenarios (2026) SiliconMind-V1: Multi-Agent Distillation and Debug-Reasoning Workflows for Verilog Code Generation (2026) ACE-RTL: When Agentic Context Evolution Meets RTL-Specialized LLMs (2026) IQuest-Coder-V1 Technical Report (2026) KernelCraft: Benchmarking for Agentic Close-to-Metal Kernel Generation on Emerging Hardware (2026) AutoVeriFix+: High-Correctness RTL Generation via Trace-Aware Causal Fix and Semantic Redundancy Pruning (2026) Think Anywhere in Code Generation (2026) Please give a thumbs up to this comment if you found it helpful! If you want recommendations for any Paper on Hugging Face checkout this Space You can directly ask Librarian Bot for paper recommendations by tagging it in a comment: @ librarian-bot recommend</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-11">@article{zheng26,
+  title = {InCoder-32B-Thinking: Industrial Code World Model for Thinking},
+  author = {Tuney Zheng and Junhang Cheng and Jiajun Wu and Wei Zhang and Jian Yang},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.03144},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.01609" class="paper-name" target="_blank">
+            13. Swift-SVD: Theoretical Optimality Meets Practical Efficiency in Low-Rank LLM Compression
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>Swift-SVD不是重复SVD或间接构造，而是通过单个特征分解计算最佳激活感知解决方案，使其在LLM规模上可行。
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(12)" id="btn-12">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-12">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.01609" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.01609" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(12)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Swift-SVD: Theoretical Optimality Meets Practical Efficiency in Low-Rank LLM Compression</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.01609" target="_blank">https://huggingface.co/papers/2604.01609</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.01609" target="_blank">https://arxiv.org/abs/2604.01609</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>Swift-SVD不是重复SVD或间接构造，而是通过单个特征分解计算最佳激活感知解决方案，使其在LLM规模上可行。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Instead of repeated SVD or indirect constructions, Swift-SVD computes the optimal activation-aware solution via a single eigendecomposition, making it practical at LLM scale.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-12">@article{unknown26,
+  title = {Swift-SVD: Theoretical Optimality Meets Practical Efficiency in Low-Rank LLM Compression},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.01609},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.02947" class="paper-name" target="_blank">
+            14. AgentHazard: A Benchmark for Evaluating Harmful Behavior in Computer-Use Agents
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Yige Li, Xingjun Ma, Yingshui Tan, Yifan Ding, Yunhao Feng</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>这是来自图书管理员机器人的自动消息。我发现以下论文与本文相似。语义学者API “从助手到双重代理”推荐了以下论文：针对个性化本地AI代理的OpenClaw的正规化和基准攻击（ 2026 ） SkillJect ：使用Trace-Driven...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(13)" id="btn-13">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-13">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.02947" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.02947" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(13)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：AgentHazard: A Benchmark for Evaluating Harmful Behavior in Computer-Use Agents</li>
+              <li>Stars: 0</li>
+              <li>类型：数据</li>
+              <li>作者：Yige Li, Xingjun Ma, Yingshui Tan, Yifan Ding, Yunhao Feng</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.02947" target="_blank">https://huggingface.co/papers/2604.02947</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.02947" target="_blank">https://arxiv.org/abs/2604.02947</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>这是来自图书管理员机器人的自动消息。我发现以下论文与本文相似。语义学者API “从助手到双重代理”推荐了以下论文：针对个性化本地AI代理的OpenClaw的正规化和基准攻击（ 2026 ） SkillJect ：使用Trace-Driven Closed-Loop Refinement （ 2026 ） AgentLAB ：对LLM代理进行基准测试...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>This is an automated message from the Librarian Bot . I found the following papers similar to this paper. The following papers were recommended by the Semantic Scholar API From Assistant to Double Agent: Formalizing and Benchmarking Attacks on OpenClaw for Personalized Local AI Agent (2026) SkillJect: Automating Stealthy Skill-Based Prompt Injection for Coding Agents with Trace-Driven Closed-Loop Refinement (2026) AgentLAB: Benchmarking LLM Agents against Long-Horizon Attacks (2026) ClawSafety:"Safe"LLMs, Unsafe Agents (2026) MUZZLE: Adaptive Agentic Red-Teaming of Web Agents Against Indirect Prompt Injection Attacks (2026) Unsafer in Many Turns: Benchmarking and Defending Multi-Turn Safety Risks in Tool-Using Agents (2026) When Actions Go Off-Task: Detecting and Correcting Misaligned Actions in Computer-Use Agents (2026) Please give a thumbs up to this comment if you found it helpful! If you want recommendations for any Paper on Hugging Face checkout this Space You can directly ask Librarian Bot for paper recommendations by tagging it in a comment: @ librarian-bot recommend</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-13">@article{li26,
+  title = {AgentHazard: A Benchmark for Evaluating Harmful Behavior in Computer-Use Agents},
+  author = {Yige Li and Xingjun Ma and Yingshui Tan and Yifan Ding and Yunhao Feng},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.02947},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.02486" class="paper-name" target="_blank">
+            15. VLMs Need Words: Vision Language Models Ignore Visual Detail In Favor of Semantic Anchors
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Nael Abu-Ghazaleh, Erfan Shayegani, Yu Fu, Xiaofu Chen, Haz Sameen Shahgir</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>🤔 VLM社区长期以来一直认为，以视觉为中心的任务抵制转录成文本对VLM来说更难。是什么让这一点特别令人费解：之前的工作表明，视觉信息存在于LM的表征中。VLM就是不使用它。🔬我们的新工作解释了原因。在自然图像、抽象形状和面部的对应任务...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(14)" id="btn-14">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-14">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.02486" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.02486" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(14)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：VLMs Need Words: Vision Language Models Ignore Visual Detail In Favor of Semantic Anchors</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Nael Abu-Ghazaleh, Erfan Shayegani, Yu Fu, Xiaofu Chen, Haz Sameen Shahgir</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.02486" target="_blank">https://huggingface.co/papers/2604.02486</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.02486" target="_blank">https://arxiv.org/abs/2604.02486</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>🤔 VLM社区长期以来一直认为，以视觉为中心的任务抵制转录成文本对VLM来说更难。是什么让这一点特别令人费解：之前的工作表明，视觉信息存在于LM的表征中。VLM就是不使用它。🔬我们的新工作解释了原因。在自然图像、抽象形状和面部的对应任务中，当目标实体有名称时， VLM的表现要好得多。在...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>🤔 The VLM community has long had the intuition that vision-focused tasks resisting transcription into text are harder for VLMs. What makes this especially puzzling: prior work has shown the visual information IS there inside the LM's representations. VLMs just don't use it. 🔬Our new work explains why. Across correspondence tasks on natural images, abstract shapes, and faces, VLMs perform dramatically better when the target entity has a name. Inspecting the internal representations, we find that VLMs explicitly convert visual entities into their text labels and solve the task linguistically. Teaching arbitrary names for novel shapes confirms this: once a shape has a label, performance jumps. 🚨 But this is not an architectural limitation. Task-specific finetuning teaches a genuinely different mechanism that bypasses language entirely, and generalizes broadly. The problem is the training pipeline, not the transformer.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-14">@article{abu-ghazaleh26,
+  title = {VLMs Need Words: Vision Language Models Ignore Visual Detail In Favor of Semantic Anchors},
+  author = {Nael Abu-Ghazaleh and Erfan Shayegani and Yu Fu and Xiaofu Chen and Haz Sameen Shahgir},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.02486},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.02368" class="paper-name" target="_blank">
+            16. Xpertbench: Expert Level Tasks with Rubrics-Based Evaluation
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Duo Wang, Yongchang Peng, Yuxin Ma, Xin Ma, Xue Liu</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>这是来自图书管理员机器人的自动消息。我发现以下论文与本文相似。语义学者API $ OneMillion-Bench推荐了以下论文：语言代理与人类专家的距离有多远？ （ 2026 ） RubricBench ：将模型生成的评分细则表与人类标准...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(15)" id="btn-15">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-15">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.02368" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.02368" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(15)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Xpertbench: Expert Level Tasks with Rubrics-Based Evaluation</li>
+              <li>Stars: 0</li>
+              <li>类型：数据</li>
+              <li>作者：Duo Wang, Yongchang Peng, Yuxin Ma, Xin Ma, Xue Liu</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.02368" target="_blank">https://huggingface.co/papers/2604.02368</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.02368" target="_blank">https://arxiv.org/abs/2604.02368</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>这是来自图书管理员机器人的自动消息。我发现以下论文与本文相似。语义学者API $ OneMillion-Bench推荐了以下论文：语言代理与人类专家的距离有多远？ （ 2026 ） RubricBench ：将模型生成的评分细则表与人类标准对齐（ 2026 ） QuarkMedBench ：评估大型语言模型的真实场景驱动基准（ 2026 ） LiveMedBench ：污染-Fr...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>This is an automated message from the Librarian Bot . I found the following papers similar to this paper. The following papers were recommended by the Semantic Scholar API $OneMillion-Bench: How Far are Language Agents from Human Experts? (2026) RubricBench: Aligning Model-Generated Rubrics with Human Standards (2026) QuarkMedBench: A Real-World Scenario Driven Benchmark for Evaluating Large Language Models (2026) LiveMedBench: A Contamination-Free Medical Benchmark for LLMs with Automated Rubric Evaluation (2026) Super Research: Answering Highly Complex Questions with Large Language Models through Super Deep and Super Wide Research (2026) FIRE: A Comprehensive Benchmark for Financial Intelligence and Reasoning Evaluation (2026) VTC-Bench: Evaluating Agentic Multimodal Models via Compositional Visual Tool Chaining (2026) Please give a thumbs up to this comment if you found it helpful! If you want recommendations for any Paper on Hugging Face checkout this Space You can directly ask Librarian Bot for paper recommendations by tagging it in a comment: @ librarian-bot recommend</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-15">@article{wang26,
+  title = {Xpertbench: Expert Level Tasks with Rubrics-Based Evaluation},
+  author = {Duo Wang and Yongchang Peng and Yuxin Ma and Xin Ma and Xue Liu},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.02368},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2603.22078" class="paper-name" target="_blank">
+            17. Do World Action Models Generalize Better than VLAs? A Robustness Study
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Yintao Ma, Rui Heng Yang, Behnam Rahmati, Zhiyuan Li, Zhanguang Zhang</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>现实世界中的机器人动作计划具有挑战性，因为它不仅需要了解环境的当前状态，还需要预测它将如何响应动作而演变。视觉语言行动（ VLA ）将大规模视觉语言模型重新用于使用动作专家生成机器人动作，已经在各种机器人任务中取得了显着成功。尽管如此，它们...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(16)" id="btn-16">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-16">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2603.22078" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2603.22078" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(16)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Do World Action Models Generalize Better than VLAs? A Robustness Study</li>
+              <li>Stars: 0</li>
+              <li>类型：数据</li>
+              <li>作者：Yintao Ma, Rui Heng Yang, Behnam Rahmati, Zhiyuan Li, Zhanguang Zhang</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2603.22078" target="_blank">https://huggingface.co/papers/2603.22078</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2603.22078" target="_blank">https://arxiv.org/abs/2603.22078</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>现实世界中的机器人动作计划具有挑战性，因为它不仅需要了解环境的当前状态，还需要预测它将如何响应动作而演变。视觉语言行动（ VLA ）将大规模视觉语言模型重新用于使用动作专家生成机器人动作，已经在各种机器人任务中取得了显着成功。尽管如此，它们的性能仍然受到SC的限制……</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Robot action planning in the real world is challenging as it requires not only understanding the current state of the environment but also predicting how it will evolve in response to actions. Vision-language-action (VLA), which repurpose large-scale vision-language models for robot action generation using action experts, have achieved notable success across a variety of robotic tasks. Nevertheless, their performance remains constrained by the scope of their training data, exhibiting limited generalization to unseen scenarios and vulnerability to diverse contextual perturbations. More recently, world models have been revisited as an alternative to VLAs. These models, referred to as world action models (WAMs), are built upon world models that are trained on large corpora of video data to predict future states. With minor adaptations, their latent representation can be decoded into robot actions. It has been suggested that their explicit dynamic prediction capacity, combined with spatiotemporal priors acquired from web-scale video pretraining, enables WAMs to generalize more effectively than VLAs. In this paper, we conduct a comparative study of prominent state-of-the-art VLA policies and recently released WAMs. We evaluate their performance on the LIBERO-Plus and RoboTwin 2.0-Plus benchmarks under various visual and language perturbations. Our results show that WAMs achieve strong robustness, with LingBot-VA reaching 74.2% success rate on RoboTwin 2.0-Plus and Cosmos-Policy achieving 82.2% on LIBERO-Plus. While VLAs such as  can achieve comparable robustness on certain tasks, they typically require extensive training with diverse robotic datasets and varied learning objectives. Hybrid approaches that partially incorporate video-based dynamic learning exhibit intermediate robustness, highlighting the importance of how video priors are integrated.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-16">@article{ma26,
+  title = {Do World Action Models Generalize Better than VLAs? A Robustness Study},
+  author = {Yintao Ma and Rui Heng Yang and Behnam Rahmati and Zhiyuan Li and Zhanguang Zhang},
+  journal = {arXiv preprint},
+  volume = {arXiv:2603.22078},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function toggleDetails(paperId) {
+      const details = document.getElementById('details-' + paperId);
+      const btn = document.getElementById('btn-' + paperId);
+      if (details && btn) {
+        details.classList.toggle('active');
+        btn.textContent = details.classList.contains('active') ? '收起详情' : '查看详情';
+      }
+    }
+
+    function copyBibtex(paperId) {
+      const bibtexBlock = document.getElementById('bibtex-' + paperId);
+      if (bibtexBlock) {
+        navigator.clipboard.writeText(bibtexBlock.textContent).then(() => {
+          const btn = event.target;
+          const originalText = btn.textContent;
+          btn.textContent = '已复制!';
+          setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }).catch(err => {
+          alert('复制失败，请手动复制');
+        });
+      }
+    }
+  </script>
+</body>
+</html>

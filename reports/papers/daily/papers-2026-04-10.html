@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuggingFace AI Papers 日报 - 2026-04-10</title>
+  <link rel="stylesheet" href="../../public/css/style.css">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-card: #161b22;
+      --text-primary: #c9d1d9;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-orange: #d29922;
+      --border: #30363d;
+      --border-light: #21262d;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.5; padding: 24px 16px; font-size: 13px; }
+    .container { max-width: 960px; margin: 0 auto; }
+    header { text-align: center; padding: 32px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+    h1 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+    .date { color: var(--text-secondary); font-size: 0.8125rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); padding: 12px; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
+    .stat-value { font-size: 1.25rem; font-weight: 600; color: var(--accent-green); line-height: 1.2; }
+    .stat-value .star-icon { color: #fbbf24; width: 20px; height: 20px; vertical-align: middle; display: inline-block; }
+    .stat-label { color: var(--text-secondary); margin-top: 4px; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    section { margin-bottom: 24px; }
+    h2 { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .project-list { display: flex; flex-direction: column; gap: 8px; }
+    .star-icon { width: 16px; height: 16px; vertical-align: middle; }
+    .paper-card { background: var(--bg-card); border-radius: 6px; padding: 12px; margin: 8px 0; border: 1px solid var(--border); transition: border-color 0.2s; }
+    .paper-card:hover { border-color: var(--text-muted); }
+    .paper-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; }
+    .paper-name { font-size: 0.875rem; font-weight: 600; color: var(--accent); text-decoration: none; line-height: 1.4; }
+    .paper-name:hover { text-decoration: underline; }
+    .paper-stats { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+    .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.6875rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 2px 6px; border-radius: 10px; border: 1px solid var(--border); white-space: nowrap; }
+    .stat-badge .star-icon { color: #fbbf24; width: 12px; height: 12px; }
+    .paper-abstract { background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin: 8px 0; border: 1px solid var(--border); }
+    .paper-abstract strong { color: var(--text-primary); }
+    .paper-meta { color: var(--text-secondary); font-size: 0.75rem; margin: 8px 0; }
+    .paper-meta a { color: var(--accent); text-decoration: none; }
+    .paper-meta a:hover { text-decoration: underline; }
+    .toggle-btn { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.6875rem; font-weight: 500; transition: all 0.2s; }
+    .toggle-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+    .paper-details { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .paper-details.active { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .detail-column { background: var(--bg-secondary); padding: 8px; border-radius: 6px; }
+    .detail-column h4 { color: var(--text-primary); margin-bottom: 6px; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
+    .detail-column ul { list-style: none; }
+    .detail-column li { color: var(--text-secondary); padding: 3px 0; font-size: 0.75rem; line-height: 1.4; }
+    .ai-section { background: var(--bg-card); padding: 16px; border-radius: 6px; border: 1px solid var(--border); }
+    .ai-section h2, .ai-section h3 { color: var(--text-primary); margin: 16px 0 8px; font-size: 0.75rem; font-weight: 600; }
+    .ai-section h2:first-child, .ai-section h3:first-child { margin-top: 0; }
+    .ai-section p { color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; font-size: 0.8125rem; }
+    .ai-section ul { margin-bottom: 12px; padding-left: 16px; }
+    .ai-section li { color: var(--text-secondary); margin-bottom: 4px; font-size: 0.8125rem; line-height: 1.5; }
+    .lang-dist { display: flex; flex-wrap: wrap; gap: 10px; }
+    .lang-item { background: var(--accent); color: var(--bg-primary); padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+    .paper-type { background: var(--accent-orange); color: var(--bg-primary); padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; margin-left: 6px; }
+    .quick-actions { display: flex; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .action-btn { background: var(--accent); color: var(--bg-primary); padding: 4px 12px; border-radius: 4px; text-decoration: none; font-size: 0.75rem; font-weight: 500; border: none; cursor: pointer; }
+    .action-btn:hover { opacity: 0.9; }
+    .bibtex-block { background: var(--bg-primary); padding: 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.6875rem; color: var(--text-secondary); white-space: pre-wrap; margin-top: 8px; }
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } .paper-details.active { grid-template-columns: 1fr; } .paper-header { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>HuggingFace AI Papers 日报</h1>
+      <div class="date">2026-04-10</div>
+    </header>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">9</div>
+        <div class="stat-label">论文总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">0</div>
+        <div class="stat-label">有 Stars 论文</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">
+          <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor" style="width: 20px; height: 20px;"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+          <span style="vertical-align: middle;">0</span>
+        </div>
+        <div class="stat-label">总 Stars</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">0</div>
+        <div class="stat-label">平均 Stars</div>
+      </div>
+    </section>
+
+    
+      <section class="ai-section">
+        <h2>AI 深度洞察</h2>
+        <p>聚焦智能体架构、多模态推理与高效推理优化</p>
+
+        
+          <h3>技术亮点</h3>
+          <ul>
+            
+              <li>
+                <strong><a href="https://github.com/davidliuk/graph-of-skills" target="_blank" style="color: var(--accent); text-decoration: none;">davidliuk/graph-of-skills</a></strong>: 提出技能图结构，实现依赖感知的大规模智能体技能检索。突破传统扁平化技能库限制，提升任务规划效率。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/czg1225/DMax" target="_blank" style="color: var(--accent); text-decoration: none;">czg1225/DMax</a></strong>: 设计激进并行解码策略，显著加速分布式大语言模型（dLLMs）推理过程。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/qqtang-code/FluxAttention" target="_blank" style="color: var(--accent); text-decoration: none;">qqtang-code/FluxAttention</a></strong>: 提出上下文感知的混合注意力机制，在保持性能的同时大幅降低LLM推理开销。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/aim-uofa/OmniJigsaw" target="_blank" style="color: var(--accent); text-decoration: none;">aim-uofa/OmniJigsaw</a></strong>: 通过模态协同重排序增强全模态推理能力，解决多模态信息融合中的时序错位问题。
+              </li>
+            
+          </ul>
+        
+
+        
+          <h3>社区价值</h3>
+          <ul>
+            <li>多篇论文配套高质量开源代码与预训练模型，降低智能体与多模态研究门槛</li><li>提供新型评测基准（如KnowU-Bench、OmniBehavior），推动真实场景下AI评估标准化</li>
+          </ul>
+        
+
+        
+          <h3>应用前景</h3>
+          <ul>
+            <li>面向手机端的个性化主动智能体（如KnowU-Bench所支持）将加速个人助理产品演进</li><li>高效推理技术（如DMax、FluxAttention）有望部署于边缘设备，赋能实时交互应用</li>
+          </ul>
+        
+      </section>
+    
+
+    <section>
+      <h2>论文列表（共 9 篇）</h2>
+      <div class="project-list">
+        
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.05333" class="paper-name" target="_blank">
+            1. Graph of Skills: Dependency-Aware Structural Retrieval for Massive Agent Skills
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">davidliuk/graph-of-skills</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>技能使用已成为现代客服代表系统的核心组成部分，可以大大提高客服代表完成复杂任务的能力。在现实环境中，代理必须监控众多个人应用程序、Web浏览器和其他环境界面并与之交互，技能库可以扩展到成千上万的可重用技能。扩展到更大的技能组合引入了两个关键...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(0)" id="btn-0">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-0">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.05333" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.05333" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/davidliuk/graph-of-skills" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(0)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Graph of Skills: Dependency-Aware Structural Retrieval for Massive Agent Skills</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.05333" target="_blank">https://huggingface.co/papers/2604.05333</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.05333" target="_blank">https://arxiv.org/abs/2604.05333</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>技能使用已成为现代客服代表系统的核心组成部分，可以大大提高客服代表完成复杂任务的能力。在现实环境中，代理必须监控众多个人应用程序、Web浏览器和其他环境界面并与之交互，技能库可以扩展到成千上万的可重用技能。扩展到更大的技能组合引入了两个关键挑战。首先，加载全套技能会使……饱和</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Skill usage has become a core component of modern agent systems and can substantially improve agents' ability to complete complex tasks. In real-world settings, where agents must monitor and interact with numerous personal applications, web browsers, and other environment interfaces, skill libraries can scale to thousands of reusable skills. Scaling to larger skill sets introduces two key challenges. First, loading the full skill set saturates the context window, driving up token costs, hallucination, and latency. In this paper, we present Graph of Skills (GoS), an inference-time structural retrieval layer for large skill libraries. GoS constructs an executable skill graph offline from skill packages, then at inference time retrieves a bounded, dependency-aware skill bundle through hybrid semantic-lexical seeding, reverse-weighted Personalized PageRank, and context-budgeted hydration. On SkillsBench and ALFWorld, GoS improves average reward by 43.6% over the vanilla full skill-loading baseline while reducing input tokens by 37.8%, and generalizes across three model families: Claude Sonnet, GPT-5.2 Codex, and MiniMax. Additional ablation studies across skill libraries ranging from 200 to 2,000 skills further demonstrate that GoS consistently outperforms both vanilla skills loading and simple vector retrieval in balancing reward, token efficiency, and runtime.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-0">@article{unknown26,
+  title = {Graph of Skills: Dependency-Aware Structural Retrieval for Massive Agent Skills},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.05333},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.08455" class="paper-name" target="_blank">
+            2. KnowU-Bench: Towards Interactive, Proactive, and Personalized Mobile Agent Evaluation
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">ZJU-REAL/KnowU-Bench</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Shaohan Zhao, Guocheng Shao, Zhan Xu, Zhengxi Lu, Tongbo Chen</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>我们介绍了KnowU-Bench ，这是一个基于可重现Android仿真环境的移动代理在线交互式个性化基准。我们发现，即使像Claude Sonnet 4.6这样的前沿模型也会在模糊的指令下与我们的个性化和主动任务作斗争：核心瓶颈不是GUI...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(1)" id="btn-1">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-1">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.08455" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.08455" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/ZJU-REAL/KnowU-Bench" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(1)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：KnowU-Bench: Towards Interactive, Proactive, and Personalized Mobile Agent Evaluation</li>
+              <li>Stars: 0</li>
+              <li>类型：数据</li>
+              <li>作者：Shaohan Zhao, Guocheng Shao, Zhan Xu, Zhengxi Lu, Tongbo Chen</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.08455" target="_blank">https://huggingface.co/papers/2604.08455</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.08455" target="_blank">https://arxiv.org/abs/2604.08455</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>我们介绍了KnowU-Bench ，这是一个基于可重现Android仿真环境的移动代理在线交互式个性化基准。我们发现，即使像Claude Sonnet 4.6这样的前沿模型也会在模糊的指令下与我们的个性化和主动任务作斗争：核心瓶颈不是GUI导航，而是偏好获取和干预校准，这暴露了GUI操作与值得信赖的个人之间的巨大差距...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>We introduce KnowU-Bench, an online, interactive personalization benchmark for mobile agents built on a reproducible Android emulation environment. We find that even frontier models like Claude Sonnet 4.6 struggle with our personalized and proactive tasks under vague instructions: the core bottlenecks are not GUI navigation but preference acquisition and intervention calibration, exposing a large gap between GUI operation and trustworthy personal assistance.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-1">@article{zhao26,
+  title = {KnowU-Bench: Towards Interactive, Proactive, and Personalized Mobile Agent Evaluation},
+  author = {Shaohan Zhao and Guocheng Shao and Zhan Xu and Zhengxi Lu and Tongbo Chen},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.08455},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.08302" class="paper-name" target="_blank">
+            3. DMax: Aggressive Parallel Decoding for dLLMs
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">czg1225/DMax</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>DMax是一种新的dLLM范式，在保持生成质量的同时实现了积极的并行解码。论文： https://arxiv.org/pdf/2604.08302代码： https://github.com/czg1225/DMax型号： https://...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(2)" id="btn-2">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-2">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.08302" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.08302" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/czg1225/DMax" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(2)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：DMax: Aggressive Parallel Decoding for dLLMs</li>
+              <li>Stars: 0</li>
+              <li>类型：数据</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.08302" target="_blank">https://huggingface.co/papers/2604.08302</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.08302" target="_blank">https://arxiv.org/abs/2604.08302</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>DMax是一种新的dLLM范式，在保持生成质量的同时实现了积极的并行解码。论文： https://arxiv.org/pdf/2604.08302代码： https://github.com/czg1225/DMax型号： https://huggingface.co/collections/Zigeng/dmax-models数据集： https://huggingface.co/collections/Zigeng/dmax-training-data</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>DMax is a new dLLM paradigm achieving aggressive parallel decoding while preserving generation quality. Paper: https://arxiv.org/pdf/2604.08302 Code: https://github.com/czg1225/DMax Models: https://huggingface.co/collections/Zigeng/dmax-models Datasets: https://huggingface.co/collections/Zigeng/dmax-training-data</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-2">@article{unknown26,
+  title = {DMax: Aggressive Parallel Decoding for dLLMs},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.08302},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.08362" class="paper-name" target="_blank">
+            4. Towards Real-world Human Behavior Simulation: Benchmarking Large Language Models on Long-horizon, Cross-scenario, Heterogeneous Behavior Traces
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">icip-cas/OmniBehavior</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Yunfei Zhang, Ruotong Pan, Boxi Cao, Ruoxi Xu, Jiawei Chen</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>据我们所知，我们引入了OmniBehavior ，这是第一个完全基于真实用户交互日志构建的用户模拟基准，将长视野、跨场景和异构行为跟踪集成到一个统一的框架中。我们对真实世界的用户行为进行了大规模的系统分析，证明了跨场景依赖性、长视野结构和异...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(3)" id="btn-3">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-3">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.08362" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.08362" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/icip-cas/OmniBehavior" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(3)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Towards Real-world Human Behavior Simulation: Benchmarking Large Language Models on Long-horizon, Cross-scenario, Heterogeneous Behavior Traces</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              <li>作者：Yunfei Zhang, Ruotong Pan, Boxi Cao, Ruoxi Xu, Jiawei Chen</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.08362" target="_blank">https://huggingface.co/papers/2604.08362</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.08362" target="_blank">https://arxiv.org/abs/2604.08362</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>据我们所知，我们引入了OmniBehavior ，这是第一个完全基于真实用户交互日志构建的用户模拟基准，将长视野、跨场景和异构行为跟踪集成到一个统一的框架中。我们对真实世界的用户行为进行了大规模的系统分析，证明了跨场景依赖性、长视野结构和异构信号是准确偏好的基础……</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>We introduce OmniBehavior, to our knowledge, the first user simulation benchmark constructed entirely from authentic user interaction logs, integrating long-horizon, cross-scenario and heterogeneous behavior traces into a unified framework. We provide the systematic analysis of real-world user behavior at scale, demonstrating that cross-scenario dependencies, long-horizon structures and heterogeneous signals are fundamental to accurate preference modeling. We conduct a comprehensive evaluation of SOTA LLMs, revealing substantial capability gaps in modeling realistic user behavior, even with extended context lengths, and establishing strong baselines for future research. We reveal a structural bias in LLM-based simulators, termed positivity-and-average bias, where models overestimate engagement, homogenize user behaviors, and suppress negative and long-tail interactions, fundamentally limiting their applicability in real-world settings.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-3">@article{zhang26,
+  title = {Towards Real-world Human Behavior Simulation: Benchmarking Large Language Models on Long-horizon, Cross-scenario, Heterogeneous Behavior Traces},
+  author = {Yunfei Zhang and Ruotong Pan and Boxi Cao and Ruoxi Xu and Jiawei Chen},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.08362},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.08209" class="paper-name" target="_blank">
+            5. OmniJigsaw: Enhancing Omni-Modal Reasoning via Modality-Orchestrated Reordering
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">aim-uofa/OmniJigsaw</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>我们推出了OmniJigsaw ，这是一种用于全模式模型的自我监督强化学习后训练框架。核心思想是一个时间拼图代理任务：通过三种模态编排策略（ JMI/SMS/CMM ）从洗牌的视听剪辑中重建时间顺序，以鼓励真正的跨模态集成。我们还分析了完全...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(4)" id="btn-4">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-4">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.08209" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.08209" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/aim-uofa/OmniJigsaw" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(4)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：OmniJigsaw: Enhancing Omni-Modal Reasoning via Modality-Orchestrated Reordering</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.08209" target="_blank">https://huggingface.co/papers/2604.08209</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.08209" target="_blank">https://arxiv.org/abs/2604.08209</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>我们推出了OmniJigsaw ，这是一种用于全模式模型的自我监督强化学习后训练框架。核心思想是一个时间拼图代理任务：通过三种模态编排策略（ JMI/SMS/CMM ）从洗牌的视听剪辑中重建时间顺序，以鼓励真正的跨模态集成。我们还分析了完全多模态线索下的双模态快捷方式，并表明剪辑级模态掩蔽（ CMM ）有助于缓解它。强势增益acro...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>We introduce OmniJigsaw, a self-supervised RL post-training framework for omni-modal models. The core idea is a temporal jigsaw proxy task: reconstruct chronology from shuffled audio–visual clips, with three modality-orchestration strategies (JMI / SMS / CMM) to encourage real cross-modal integration. We also analyze a bi-modal shortcut under full multimodal cues and show that clip-level modality masking (CMM) helps mitigate it. Strong gains across 15 video / audio / omni-modal reasoning benchmarks.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-4">@article{unknown26,
+  title = {OmniJigsaw: Enhancing Omni-Modal Reasoning via Modality-Orchestrated Reordering},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.08209},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.07430" class="paper-name" target="_blank">
+            6. HY-Embodied-0.5: Embodied Foundation Models for Real-World Agents
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">Tencent-Hunyuan/HY-Embodied</span>
+            <span class="paper-type" title="论文类型">综述</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>GitHub ： https://github.com/Tencent-Hunyuan/HY-Embodied HuggingFace ： https://huggingface.co/tencent/HY-Embodied-0.5
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(5)" id="btn-5">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-5">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.07430" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.07430" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/Tencent-Hunyuan/HY-Embodied" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(5)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：HY-Embodied-0.5: Embodied Foundation Models for Real-World Agents</li>
+              <li>Stars: 0</li>
+              <li>类型：综述</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.07430" target="_blank">https://huggingface.co/papers/2604.07430</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.07430" target="_blank">https://arxiv.org/abs/2604.07430</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>GitHub ： https://github.com/Tencent-Hunyuan/HY-Embodied HuggingFace ： https://huggingface.co/tencent/HY-Embodied-0.5</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>GitHub: https://github.com/Tencent-Hunyuan/HY-Embodied HuggingFace: https://huggingface.co/tencent/HY-Embodied-0.5</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-5">@article{unknown26,
+  title = {HY-Embodied-0.5: Embodied Foundation Models for Real-World Agents},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.07430},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.07394" class="paper-name" target="_blank">
+            7. Flux Attention: Context-Aware Hybrid Attention for Efficient LLMs Inference
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">qqtang-code/FluxAttention</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>论文标题： Flux Attention: Context-Aware Hybrid Attention for Efficient LLMs Inference Link: arXiv: 2604.07394 (Preprint) 【TL...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(6)" id="btn-6">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-6">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.07394" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.07394" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/qqtang-code/FluxAttention" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(6)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Flux Attention: Context-Aware Hybrid Attention for Efficient LLMs Inference</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.07394" target="_blank">https://huggingface.co/papers/2604.07394</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.07394" target="_blank">https://arxiv.org/abs/2604.07394</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>论文标题： Flux Attention: Context-Aware Hybrid Attention for Efficient LLMs Inference Link: arXiv: 2604.07394 (Preprint) 【TL; DR/One-Sentence Summary】 ⭐⭐⭐⭐⭐ (强烈推荐).一种出色的硬件感知协同设计，通过将稀疏注意力调度从“头级”转移到“层级”来优化长上下文LLM推理，有效地消除了同步瓶颈并实现了显著的壁钟加速。【核心...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Paper Title: Flux Attention: Context-Aware Hybrid Attention for Efficient LLMs Inference Link: arXiv:2604.07394 (Preprint) 【TL;DR / One-Sentence Summary】 ⭐⭐⭐⭐⭐ (Highly Recommended). A brilliant hardware-aware co-design that optimizes Long-Context LLM inference by shifting sparse attention scheduling from the "Head-level" to the "Layer-level," effectively eliminating synchronization bottlenecks and achieving significant wall-clock speedups. 【Core Highlights】 Hardware-Friendly Layer-level Routing : Unlike previous hybrid attention methods (e.g., Elastic Attention) that operate at a fine-grained head level—causing GPU thread divergence and idle time—Flux Attention introduces a lightweight Layer Router . It decides whether an entire layer uses Full Attention (FA) or Sparse Attention (SA). This coarse-grained approach ensures contiguous memory access, translating theoretical FLOPs reduction into actual speedups (up to 2.8x in Prefill and 2.0x in Decode). Efficient & Non-Invasive Training : The framework keeps the backbone LLM (e.g., Qwen-3, Llama-3.1) frozen and only trains the routing modules. By using Gumbel-Softmax for differentiable routing and a Lagrangian-based sparsity penalty, the model converges in just 12 hours on a single 8x A800 node, making it highly practical for industrial deployment. Context-Aware Adaptability : The router dynamically adjusts the sparsity ratio based on the input context (e.g., higher density for complex retrieval, higher sparsity for simple semantics), maintaining high fidelity while reducing costs. 【Limitations & Critiques】 Coarse-grained Trade-off : By forcing an entire layer to be either FA or SA, the model might sacrifice the functional heterogeneity of individual heads within a layer. There may be a slight performance ceiling compared to an "ideal" fine-grained routing strategy. Requirement for Preliminary Tuning on OOD Tasks : For Out-of-Distribution (OOD) tasks not covered in the training set, the framework requires re-running preliminary experiments to identify the task type and calibrate appropriate budget targets, which may limit its immediate "plug-and-play" adaptability to entirely new domains.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-6">@article{unknown26,
+  title = {Flux Attention: Context-Aware Hybrid Attention for Efficient LLMs Inference},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.07394},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.08224" class="paper-name" target="_blank">
+            8. Externalization in LLM Agents: A Unified Review of Memory, Skills, Protocols and Harness Engineering
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">综述</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Rong Shan, Zihan Guo, Wenteng Chen, Huacan Chai, Chenyu Zhou</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>大型语言模型（ LLM ）代理越来越少地通过改变模型权重而不是重组其周围的运行时来构建。早期系统期望模型在内部恢复的功能现在被外部化到内存存储、可重用技能、交互协议以及使这些模块在实践中可靠的周围线束中。本文从外部化的角度回顾了这种转变。借...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(7)" id="btn-7">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-7">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.08224" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.08224" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(7)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Externalization in LLM Agents: A Unified Review of Memory, Skills, Protocols and Harness Engineering</li>
+              <li>Stars: 0</li>
+              <li>类型：综述</li>
+              <li>作者：Rong Shan, Zihan Guo, Wenteng Chen, Huacan Chai, Chenyu Zhou</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.08224" target="_blank">https://huggingface.co/papers/2604.08224</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.08224" target="_blank">https://arxiv.org/abs/2604.08224</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>大型语言模型（ LLM ）代理越来越少地通过改变模型权重而不是重组其周围的运行时来构建。早期系统期望模型在内部恢复的功能现在被外部化到内存存储、可重用技能、交互协议以及使这些模块在实践中可靠的周围线束中。本文从外部化的角度回顾了这种转变。借鉴理念……</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Large language model (LLM) agents are increasingly built less by changing model weights than by reorganizing the runtime around them. Capabilities that earlier systems expected the model to recover internally are now externalized into memory stores, reusable skills, interaction protocols, and the surrounding harness that makes these modules reliable in practice. This paper reviews that shift through the lens of externalization. Drawing on the idea of cognitive artifacts, we argue that agent infrastructure matters not merely because it adds auxiliary components, but because it transforms hard cognitive burdens into forms that the model can solve more reliably. Under this view, memory externalizes state across time, skills externalize procedural expertise, protocols externalize interaction structure, and harness engineering serves as the unification layer that coordinates them into governed execution. We trace a historical progression from weights to context to harness, analyze memory, skills, and protocols as three distinct but coupled forms of externalization, and examine how they interact inside a larger agent system. We further discuss the trade-off between parametric and externalized capability, identify emerging directions such as self-evolving harnesses and shared agent infrastructure, and discuss open challenges in evaluation, governance, and the long-term co-evolution of models and external infrastructure. The result is a systems-level framework for explaining why practical agent progress increasingly depends not only on stronger models, but on better external cognitive infrastructure.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-7">@article{shan26,
+  title = {Externalization in LLM Agents: A Unified Review of Memory, Skills, Protocols and Harness Engineering},
+  author = {Rong Shan and Zihan Guo and Wenteng Chen and Huacan Chai and Chenyu Zhou},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.08224},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.08539" class="paper-name" target="_blank">
+            9. OpenVLThinkerV2: A Generalist Multimodal Reasoning Model for Multi-domain Visual Tasks
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Nanyun Peng, Yihe Deng, Yan Gao-Tian, Xin Chen, Wenbo Hu</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(8)" id="btn-8">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-8">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.08539" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.08539" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(8)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：OpenVLThinkerV2: A Generalist Multimodal Reasoning Model for Multi-domain Visual Tasks</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Nanyun Peng, Yihe Deng, Yan Gao-Tian, Xin Chen, Wenbo Hu</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.08539" target="_blank">https://huggingface.co/papers/2604.08539</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.08539" target="_blank">https://arxiv.org/abs/2604.08539</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-8">@article{peng26,
+  title = {OpenVLThinkerV2: A Generalist Multimodal Reasoning Model for Multi-domain Visual Tasks},
+  author = {Nanyun Peng and Yihe Deng and Yan Gao-Tian and Xin Chen and Wenbo Hu},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.08539},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function toggleDetails(paperId) {
+      const details = document.getElementById('details-' + paperId);
+      const btn = document.getElementById('btn-' + paperId);
+      if (details && btn) {
+        details.classList.toggle('active');
+        btn.textContent = details.classList.contains('active') ? '收起详情' : '查看详情';
+      }
+    }
+
+    function copyBibtex(paperId) {
+      const bibtexBlock = document.getElementById('bibtex-' + paperId);
+      if (bibtexBlock) {
+        navigator.clipboard.writeText(bibtexBlock.textContent).then(() => {
+          const btn = event.target;
+          const originalText = btn.textContent;
+          btn.textContent = '已复制!';
+          setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }).catch(err => {
+          alert('复制失败，请手动复制');
+        });
+      }
+    }
+  </script>
+</body>
+</html>
