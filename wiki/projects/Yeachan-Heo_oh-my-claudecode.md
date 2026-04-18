@@ -24,5 +24,10 @@
 **来源**: [日报 2026-03-27](../../reports/daily/github-ai-trending-2026-03-27.html)
 **分析**: Yeachan-Heo/oh-my-claudecode: 团队优先多 Agent 编排，优化 Claude Code 协作流 - 集成 microsoft/VibeVoice 到现有应用，测试前沿语音交互体验
 
+
+### 2026-03-27（日报收录）
+**来源**: [日报 2026-03-27](../../reports/daily/github-ai-trending-2026-03-27.html)
+**分析**: Yeachan-Heo/oh-my-claudecode: 团队优先多 Agent 编排，优化 Claude Code 协作流 - 集成 microsoft/VibeVoice 到现有应用，测试前沿语音交互体验
+
 ## 跨项目关联
 （待分析）

@@ -34,5 +34,15 @@
 **来源**: [日报 2026-03-31](../../reports/daily/github-ai-trending-2026-03-31.html)
 **分析**: sherlock-project/sherlock: 7.5 万星，跨平台社交媒体账号追踪工具 - 集成文档解析能力：部署 PaddlePaddle/PaddleOCR 处理非结构化数据
 
+
+### 2026-03-30（日报收录）
+**来源**: [日报 2026-03-30](../../reports/daily/github-ai-trending-2026-03-30.html)
+**分析**: sherlock-project/sherlock：增强版账号追踪工具，融合 AI 提升跨平台信息检索效率 - 集成 microsoft/VibeVoice 构建低延迟语音交互界面，优化用户自然语言输入体验
+
+
+### 2026-03-31（日报收录）
+**来源**: [日报 2026-03-31](../../reports/daily/github-ai-trending-2026-03-31.html)
+**分析**: sherlock-project/sherlock: 7.5 万星，跨平台社交媒体账号追踪工具 - 集成文档解析能力：部署 PaddlePaddle/PaddleOCR 处理非结构化数据
+
 ## 跨项目关联
 （待分析）

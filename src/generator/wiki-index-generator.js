@@ -235,10 +235,19 @@ class WikiIndexGenerator {
       rag: '🔍',
       llm: '🧠',
       speech: '🎤',
-      database: '💾',
-      security: '🛡️',
+      vision: '👁️',
       browser: '🌐',
-      devtool: '🛠️'
+      devtool: '🛠️',
+      'dev-tool': '🛠️',
+      platform: '🎛️',
+      infrastructure: '☁️',
+      education: '📚',
+      game: '🎮',
+      physics: '⚛️',
+      finance: '💰',
+      security: '🔒',
+      data: '📊',
+      other: '📦'
     };
     return icons[domain.toLowerCase()] || '📦';
   }

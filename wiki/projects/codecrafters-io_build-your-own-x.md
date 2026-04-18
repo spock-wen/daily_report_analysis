@@ -24,5 +24,10 @@
 **来源**: [日报 2026-03-17](../../reports/daily/github-ai-trending-2026-03-17.html)
 **分析**: codecrafters-io/build-your-own-x 的编程 mastery 教程 - 使用 langchain-ai/deepagents 构建复杂代理任务
 
+
+### 2026-03-17（日报收录）
+**来源**: [日报 2026-03-17](../../reports/daily/github-ai-trending-2026-03-17.html)
+**分析**: codecrafters-io/build-your-own-x 的编程 mastery 教程 - 使用 langchain-ai/deepagents 构建复杂代理任务
+
 ## 跨项目关联
 （待分析）

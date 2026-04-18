@@ -44,14 +44,52 @@ function extractReposFromAction(actionItem) {
  */
 function detectDomain(name, hotText = '') {
   const text = (name + ' ' + hotText).toLowerCase();
+
+  // Agent 相关
   if (text.includes('agent') || text.includes('multi') || text.includes('swarm')) return 'agent';
-  if (text.includes('rag') || text.includes('retrieval')) return 'rag';
-  if (text.includes('llm') || text.includes('language model')) return 'llm';
+
+  // RAG 相关
+  if (text.includes('rag') || text.includes('retrieval') || text.includes('augment')) return 'rag';
+
+  // LLM/基础模型相关
+  if (text.includes('llm') || text.includes('language model') || text.includes('minimind')) return 'llm';
+
+  // 语音/音频相关
   if (text.includes('speech') || text.includes('audio') || text.includes('voice')) return 'speech';
-  if (text.includes('code') || text.includes('dev') || text.includes('auto')) return 'dev-tool';
+
+  // 计算机视觉/多模态
+  if (text.includes('vision') || text.includes('image') || text.includes('face') || text.includes('live-cam')) return 'vision';
+
+  // 浏览器/自动化
+  if (text.includes('browser') || text.includes('automate') || text.includes('playwright')) return 'browser';
+
+  // 开发工具
+  if (text.includes('code') || text.includes('dev') || text.includes('mcp') || text.includes('tool') || text.includes('sdk')) return 'dev-tool';
+
+  // 平台/低代码/可视化
+  if (text.includes('flow') || text.includes('platform') || text.includes('studio') || text.includes('ui')) return 'platform';
+
+  // 基础设施/边缘计算/运行时
+  if (text.includes('infrastructure') || text.includes('edge') || text.includes('runtime') || text.includes('worker') || text.includes('cloud')) return 'infrastructure';
+
+  // 教育/学习资源
+  if (text.includes('learn') || text.includes('tutorial') || text.includes('beginner') || text.includes('course') || text.includes('teaching')) return 'education';
+
+  // 游戏相关
   if (text.includes('game') || text.includes('minecraft')) return 'game';
+
+  // 物理/机器人
   if (text.includes('physics') || text.includes('robot')) return 'physics';
+
+  // 金融/交易
   if (text.includes('finance') || text.includes('trading')) return 'finance';
+
+  // 安全/隐私
+  if (text.includes('security') || text.includes('privacy') || text.includes('scan') || text.includes('protect')) return 'security';
+
+  // 数据/数据库
+  if (text.includes('data') || text.includes('database') || text.includes('vector') || text.includes('index')) return 'data';
+
   return 'other';
 }
 

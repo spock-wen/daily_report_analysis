@@ -24,5 +24,10 @@
 **来源**: [日报 2026-03-29](../../reports/daily/github-ai-trending-2026-03-29.html)
 **分析**: thedotmack/claude-mem: Claude Code 记忆插件，自动压缩注入上下文 - 采用 obra/superpowers 重构现有工作流，提升自动化能力
 
+
+### 2026-03-29（日报收录）
+**来源**: [日报 2026-03-29](../../reports/daily/github-ai-trending-2026-03-29.html)
+**分析**: thedotmack/claude-mem: Claude Code 记忆插件，自动压缩注入上下文 - 采用 obra/superpowers 重构现有工作流，提升自动化能力
+
 ## 跨项目关联
 （待分析）
