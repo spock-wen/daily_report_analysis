@@ -140,7 +140,7 @@ class WikiManager {
       firstRecorded: data.firstRecorded || new Date().toISOString().split('T')[0],
       paperType: data.paperType || 'Research',
       domain: data.domain || 'General',
-      authors: data.authors ? data.authors.join(', ') : '',
+      authors: Array.isArray(data.authors) ? data.authors.join(', ') : (data.authors || ''),
       contributions: data.contributions ? data.contributions.map(c => `- ${c}`).join('\n') : '',
       githubLinks: data.githubLinks || '',
       analysis: data.analysis || '',
@@ -233,7 +233,7 @@ class WikiManager {
     // 更新 Stars
     if (newData.stars) {
       content = content.replace(
-        /- GitHub Stars: [\d,]+/,
+        /- GitHub Stars: [\d,]+(?:（最后更新：[\d-]+）)?/,
         `- GitHub Stars: ${newData.stars}（最后更新：${newData.starsDate || new Date().toISOString().split('T')[0]}）`
       );
     }

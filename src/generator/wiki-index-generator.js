@@ -34,6 +34,10 @@ class WikiIndexGenerator {
       // 获取领域 Wiki 列表
       const domainWikis = await this._listDomainWikis();
 
+      // 修正领域数量统计
+      stats.domains = domainWikis.length;
+      stats.total = stats.projects + stats.papers + stats.domains;
+
       // 生成 HTML
       const html = this._renderHTML(stats, projectWikis, paperWikis, domainWikis);
 
@@ -120,20 +124,31 @@ class WikiIndexGenerator {
    * 列出所有领域 Wiki
    */
   async _listDomainWikis() {
-    const domainsDir = this.wikiManager.domainsDir;
-    if (!fs.existsSync(domainsDir)) return [];
+    const projectsDir = this.wikiManager.projectsDir;
+    if (!fs.existsSync(projectsDir)) return [];
 
-    const files = fs.readdirSync(domainsDir).filter(f => f.endsWith('.md'));
-    const wikis = [];
+    // 从项目 Wiki 中聚合领域信息
+    const files = fs.readdirSync(projectsDir).filter(f => f.endsWith('.md'));
+    const domainMap = {};
 
     for (const file of files) {
-      const content = fs.readFileSync(path.join(domainsDir, file), 'utf-8');
-      const domainName = file.replace('.md', '');
+      const content = fs.readFileSync(path.join(projectsDir, file), 'utf-8');
+      const domain = this._extractField(content, '领域分类');
+      if (domain) {
+        const domainKey = domain.toLowerCase();
+        if (!domainMap[domainKey]) {
+          domainMap[domainKey] = 0;
+        }
+        domainMap[domainKey]++;
+      }
+    }
 
+    const wikis = [];
+    for (const [domainName, projectCount] of Object.entries(domainMap)) {
       wikis.push({
         name: domainName,
-        fileName: file,
-        projectCount: (content.match(/owner\/repo/g) || []).length / 2
+        fileName: `${domainName}.html`,
+        projectCount
       });
     }
 
@@ -151,7 +166,8 @@ class WikiIndexGenerator {
       return match ? match[1].trim() : '';
     }
 
-    const regex = new RegExp(`- ${pattern}：(.+)\\n`);
+    // 同时支持中文冒号（：）和英文冒号（:）
+    const regex = new RegExp(`- ${pattern}[：:](.+)\\n`);
     const match = content.match(regex);
     return match ? match[1].trim() : '';
   }
