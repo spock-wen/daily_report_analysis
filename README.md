@@ -24,8 +24,8 @@
 - ✅ **多端推送**：支持飞书/WeLink 推送热门论文
 
 ### 通用功能
-- ✅ **统一主页管理**：一个页面管理所有报告
 - ✅ **可选推送通知**：支持飞书、WeLink 等渠道推送
+- ✅ **LLM Wiki 知识库**：基于 Karpathy 理念构建的项目/论文 Wiki 系统
 
 ## 目录结构
 
@@ -50,7 +50,13 @@
 │   ├── generator/            # HTML 生成
 │   │   ├── html-generator.js
 │   │   ├── monthly-generator.js
+│   │   ├── wiki-index-generator.js  # Wiki 索引生成器
+│   │   ├── comparison-generator.js  # 项目对比生成器
 │   │   └── paper-html-generator.js  # Papers HTML 生成器
+│   ├── wiki/                 # Wiki 模块
+│   │   ├── wiki-manager.js   # Wiki 核心管理类
+│   │   ├── wiki-templates.js # Wiki 模板
+│   │   └── cross-reference.js # 跨项目关联分析
 │   ├── notifier/             # 推送通知
 │   │   ├── message-sender.js
 │   │   ├── monthly-templates.js
@@ -64,7 +70,9 @@
 │   ├── run-weekly-workflow.js    # 周报完整工作流
 │   ├── run-monthly-workflow.js   # 月报完整工作流
 │   ├── run-papers-workflow.js    # Papers 日报工作流
-│   └── generate-index.js         # 生成首页
+│   ├── generate-index.js         # 生成首页
+│   ├── migrate-json-to-wiki.js   # JSON 到 Wiki 迁移
+│   └── generate-wiki-index.js    # 生成 Wiki 索引页
 ├── data/                     # 数据目录
 │   ├── briefs/               # 输入数据
 │   │   ├── daily/
@@ -78,17 +86,28 @@
 │   └── papers/               # Papers 数据
 │       ├── daily/
 │       └── insights/
+├── wiki/                     # Wiki 知识库
+│   ├── projects/             # 项目 Wiki
+│   ├── papers/               # 论文 Wiki
+│   └── domains/              # 领域 Wiki
 ├── reports/                  # HTML 输出
 │   ├── daily/
 │   ├── weekly/
 │   ├── monthly/
 │   ├── papers/daily/         # Papers 日报
+│   ├── wiki-index.html       # Wiki 索引页
+│   ├── comparison/           # 项目对比页
 │   └── index.html            # 统一门户首页
 ├── public/                   # 静态资源
 │   └── css/
 ├── config/                   # 配置文件
 │   └── prompts.json          # AI 提示词
+├── tests/                    # 测试
+│   ├── wiki/                 # Wiki 模块测试
+│   ├── generator/            # 生成器测试
+│   └── e2e/                  # 端到端测试
 ├── docs/                     # 文档
+│   ├── WIKI.md               # Wiki 系统文档
 │   └── superpowers/specs/    # 设计文档
 └── .env.example              # 环境变量示例
 ```
@@ -184,9 +203,33 @@ Papers 工作流程：
 3. 论文分类（综述/工具/研究/数据集）
 4. 摘要翻译（中英对照）
 5. 生成 BibTeX 引用
-6. AI 分析生成洞察
-7. 生成 HTML 报告
-8. 推送到飞书/WeLink（可选）
+6. **自动创建/更新论文 Wiki**
+7. AI 分析生成洞察
+8. 生成 HTML 报告
+9. 推送到飞书/WeLink（可选）
+
+### LLM Wiki 知识库
+
+LLM Wiki 是基于 Karpathy LLM Wiki 理念构建的知识库系统。
+
+**相关脚本**：
+
+```bash
+# 历史数据迁移（仅首次运行）
+node scripts/migrate-json-to-wiki.js
+
+# 生成 Wiki 索引页
+node scripts/generate-wiki-index.js
+```
+
+**Wiki 功能**：
+- **项目 Wiki**：自动记录项目上榜历史、版本演变
+- **论文 Wiki**：自动收录论文信息、代码链接
+- **领域 Wiki**：按领域分类聚合相关项目
+- **HTML 徽章**：报告卡片显示 📚 Wiki 徽章和上榜次数
+- **项目对比**：生成多维度对比页面
+
+**详细文档**：参见 [docs/WIKI.md](docs/WIKI.md)
 
 ### 4. 查看报告
 
