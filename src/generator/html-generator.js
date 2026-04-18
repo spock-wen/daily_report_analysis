@@ -31,12 +31,48 @@ class HTMLGenerator {
       const appearancesMatch = content.match(/- 上榜次数：(\d+)/);
       const firstSeenMatch = content.match(/- 首次上榜：([\d-]+)/);
       const domainMatch = content.match(/- 领域分类：(.+)/);
+      const languageMatch = content.match(/- 语言：(.+)/);
+
+      // 领域图标映射
+      const domainIcons = {
+        'agent': '🤖',
+        'llm': '🧠',
+        'rag': '🔍',
+        'speech': '🎤',
+        'vision': '👁️',
+        'code': '💻',
+        'devtool': '🛠️',
+        'database': '💾',
+        'data': '📊',
+        'security': '🔒',
+        'education': '📚',
+        'platform': '🎛️',
+        'infrastructure': '☁️',
+        'browser': '🌐',
+        'general': '📦'
+      };
+
+      const domain = domainMatch ? domainMatch[1].trim() : null;
+      const domainIcon = domainIcons[domain?.toLowerCase()] || '📚';
+
+      // 提取版本历史（最近 3 条）
+      const versionHistory = [];
+      const versionRegex = /### (\d{4}-\d{2}-\d{2}).+?\*\*分析\*\*: (.+?)(?=\n###|\n##|$)/gs;
+      let match;
+      while ((match = versionRegex.exec(content)) !== null) {
+        versionHistory.push({ date: match[1], analysis: match[2].trim() });
+      }
+      // 只保留最近 3 条
+      const recentHistory = versionHistory.slice(0, 3);
 
       return {
         exists: true,
         appearances: appearancesMatch ? parseInt(appearancesMatch[1]) : 1,
         firstSeen: firstSeenMatch ? firstSeenMatch[1] : null,
-        domain: domainMatch ? domainMatch[1].trim() : null
+        domain: domain,
+        domainIcon: domainIcon,
+        language: languageMatch ? languageMatch[1].trim() : null,
+        versionHistory: recentHistory
       };
     } catch (error) {
       logger.debug(`读取 ${owner}/${repo} Wiki 信息失败：${error.message}`);
@@ -204,22 +240,26 @@ class HTMLGenerator {
 
     // 获取 Wiki 信息
     let wikiInfo = null;
+    let owner = '';
+    let repo = '';
     if (projectName && projectName.includes('/')) {
-      const [owner, repo] = projectName.split('/');
+      [owner, repo] = projectName.split('/');
       wikiInfo = this._getProjectWikiInfo(owner, repo);
     }
+
+    // Wiki 徽章显示：仅显示领域和上榜次数，无链接
+    const wikiBadge = wikiInfo && owner && repo ? `
+      <span class="wiki-badge" data-domain="${wikiInfo.domain || 'general'}" title="上榜 ${wikiInfo.appearances} 次">
+        ${wikiInfo.domainIcon || '📚'} ×${wikiInfo.appearances}
+      </span>
+    ` : '';
 
     return `
       <div class="project-card">
         <div class="project-header">
           <a href="${projectUrl}" class="project-name" target="_blank">
             ${index + 1}. ${projectName}
-            ${wikiInfo ? `
-              <span class="wiki-badge" title="已收录到 Wiki，上榜 ${wikiInfo.appearances} 次">
-                📚 Wiki
-                ${wikiInfo.appearances > 1 ? `<span class="wiki-count">(${wikiInfo.appearances})</span>` : ''}
-              </span>
-            ` : ''}
+            ${wikiBadge}
           </a>
           <div class="project-stats">
             <span class="stat-badge" title="总星数">
