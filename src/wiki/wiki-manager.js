@@ -1,6 +1,6 @@
 /**
  * Wiki Manager - Wiki 读写管理
- * 负责 GitHub 项目和论文 Wiki 的创建、读取、更新
+ * 负责 GitHub 项目和领域 Wiki 的创建、读取、更新
  */
 
 const fs = require('fs');
@@ -12,7 +12,6 @@ class WikiManager {
   constructor(options = {}) {
     this.baseDir = options.baseDir || path.join(process.cwd(), 'wiki');
     this.projectsDir = path.join(this.baseDir, 'projects');
-    this.papersDir = path.join(this.baseDir, 'papers');
     this.domainsDir = path.join(this.baseDir, 'domains');
 
     // 确保目录存在
@@ -20,7 +19,7 @@ class WikiManager {
   }
 
   ensureDirectories() {
-    [this.projectsDir, this.papersDir, this.domainsDir].forEach(dir => {
+    [this.projectsDir, this.domainsDir].forEach(dir => {
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
       }
@@ -62,29 +61,6 @@ class WikiManager {
   }
 
   /**
-   * 读取论文 Wiki（如果不存在则返回 null）
-   * @param {string} arxivId - arXiv ID
-   * @returns {Promise<Object|null>}
-   */
-  async getPaperWiki(arxivId) {
-    const fileName = `${arxivId}.md`;
-    const wikiPath = path.join(this.papersDir, fileName);
-
-    if (fs.existsSync(wikiPath)) {
-      const content = fs.readFileSync(wikiPath, 'utf-8');
-      return {
-        exists: true,
-        path: wikiPath,
-        fileName,
-        content,
-        arxivId
-      };
-    }
-
-    return null;
-  }
-
-  /**
    * 创建项目 Wiki
    * @param {string} owner - 仓库所有者
    * @param {string} repo - 仓库名
@@ -114,42 +90,6 @@ class WikiManager {
 
     fs.writeFileSync(wikiPath, content, 'utf-8');
     logger.success(`创建项目 Wiki: ${owner}/${repo}`);
-    return wikiPath;
-  }
-
-  /**
-   * 创建论文 Wiki
-   * @param {string} arxivId - arXiv ID
-   * @param {Object} data - 论文数据
-   * @returns {Promise<string>} Wiki 文件路径
-   */
-  async createPaperWiki(arxivId, data) {
-    const existing = await this.getPaperWiki(arxivId);
-    if (existing) {
-      logger.warn(`论文 Wiki 已存在：${arxivId}`);
-      return existing.path;
-    }
-
-    const fileName = `${arxivId}.md`;
-    const wikiPath = path.join(this.papersDir, fileName);
-
-    const content = renderTemplate('paper', {
-      title: data.title || 'Untitled',
-      arxivId,
-      publishDate: data.publishDate || '',
-      firstRecorded: data.firstRecorded || new Date().toISOString().split('T')[0],
-      paperType: data.paperType || 'Research',
-      domain: data.domain || 'General',
-      authors: Array.isArray(data.authors) ? data.authors.join(', ') : (data.authors || ''),
-      contributions: data.contributions ? data.contributions.map(c => `- ${c}`).join('\n') : '',
-      githubLinks: data.githubLinks || '',
-      analysis: data.analysis || '',
-      crossReferences: data.crossReferences || '',
-      bibtex: data.bibtex || ''
-    });
-
-    fs.writeFileSync(wikiPath, content, 'utf-8');
-    logger.success(`创建论文 Wiki: ${arxivId}`);
     return wikiPath;
   }
 
@@ -294,39 +234,6 @@ class WikiManager {
   }
 
   /**
-   * 更新跨论文关联（被引用时）
-   * @param {string} citedArxivId - 被引用的论文 ID
-   * @param {string} citingArxivId - 引用方的论文 ID
-   * @returns {Promise<void>}
-   */
-  async addCitationLink(citedArxivId, citingArxivId) {
-    const wiki = await this.getPaperWiki(citedArxivId);
-    if (!wiki) {
-      logger.warn(`被引用论文 Wiki 不存在：${citedArxivId}`);
-      return;
-    }
-
-    let content = wiki.content;
-    const citationLink = `[${citingArxivId}](${citingArxivId}.md)`;
-
-    // 检查是否已存在关联
-    if (content.includes(citationLink)) {
-      return;
-    }
-
-    // 添加被引用关联
-    if (content.includes('## 跨论文关联')) {
-      content = content.replace(
-        /(## 跨论文关联\n)/,
-        `- 被引用：${citationLink}（${new Date().toISOString().split('T')[0]}）\n$1`
-      );
-    }
-
-    fs.writeFileSync(wiki.path, content, 'utf-8');
-    logger.debug(`添加引用关联：${citedArxivId} <- ${citingArxivId}`);
-  }
-
-  /**
    * 获取 Wiki 统计信息
    * @returns {Promise<Object>} 统计信息
    */
@@ -338,9 +245,8 @@ class WikiManager {
 
     return {
       projects: countFiles(this.projectsDir),
-      papers: countFiles(this.papersDir),
       domains: countFiles(this.domainsDir),
-      total: countFiles(this.projectsDir) + countFiles(this.papersDir) + countFiles(this.domainsDir)
+      total: countFiles(this.projectsDir) + countFiles(this.domainsDir)
     };
   }
 }

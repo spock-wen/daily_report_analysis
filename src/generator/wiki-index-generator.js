@@ -28,18 +28,15 @@ class WikiIndexGenerator {
       // 获取所有项目 Wiki 列表
       const projectWikis = await this._listProjectWikis();
 
-      // 获取所有论文 Wiki 列表
-      const paperWikis = await this._listPaperWikis();
-
       // 获取领域 Wiki 列表
       const domainWikis = await this._listDomainWikis();
 
       // 修正领域数量统计
       stats.domains = domainWikis.length;
-      stats.total = stats.projects + stats.papers + stats.domains;
+      stats.total = stats.projects + stats.domains;
 
       // 生成 HTML
-      const html = this._renderHTML(stats, projectWikis, paperWikis, domainWikis);
+      const html = this._renderHTML(stats, projectWikis, domainWikis);
 
       // 写入文件
       const outputPath = path.join(this.outputDir, 'wiki-index.html');
@@ -88,35 +85,6 @@ class WikiIndexGenerator {
 
     // 按上榜次数降序排序
     wikis.sort((a, b) => b.appearances - a.appearances);
-    return wikis;
-  }
-
-  /**
-   * 列出所有论文 Wiki
-   */
-  async _listPaperWikis() {
-    const papersDir = this.wikiManager.papersDir;
-    if (!fs.existsSync(papersDir)) return [];
-
-    const files = fs.readdirSync(papersDir).filter(f => f.endsWith('.md'));
-    const wikis = [];
-
-    for (const file of files) {
-      const content = fs.readFileSync(path.join(papersDir, file), 'utf-8');
-      const arxivId = file.replace('.md', '');
-
-      wikis.push({
-        arxivId,
-        fileName: file,
-        title: this._extractField(content, '# ')?.replace('# ', '').trim() || 'Untitled',
-        firstRecorded: this._extractField(content, '首次收录'),
-        paperType: this._extractField(content, '论文类型'),
-        domain: this._extractField(content, '领域分类')
-      });
-    }
-
-    // 按收录日期降序排序
-    wikis.sort((a, b) => new Date(b.firstRecorded) - new Date(a.firstRecorded));
     return wikis;
   }
 
@@ -175,9 +143,8 @@ class WikiIndexGenerator {
   /**
    * 渲染 HTML 页面
    */
-  _renderHTML(stats, projectWikis, paperWikis, domainWikis) {
+  _renderHTML(stats, projectWikis, domainWikis) {
     const topProjects = projectWikis.slice(0, 10);
-    const latestPapers = paperWikis.slice(0, 10);
 
     return `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -196,7 +163,6 @@ class WikiIndexGenerator {
   <nav class="nav">
     <a href="index.html">报告首页</a>
     <a href="#projects">项目 Wiki</a>
-    <a href="#papers">论文 Wiki</a>
     <a href="#domains">领域 Wiki</a>
   </nav>
 
@@ -206,10 +172,6 @@ class WikiIndexGenerator {
       <div class="stat-card">
         <div class="stat-value">${stats.projects}</div>
         <div class="stat-label">收录项目</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value">${stats.papers}</div>
-        <div class="stat-label">收录论文</div>
       </div>
       <div class="stat-card">
         <div class="stat-value">${stats.domains}</div>
@@ -254,32 +216,6 @@ class WikiIndexGenerator {
             <td>${p.domain}</td>
             <td>${p.appearances}</td>
             <td>${p.stars}</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  </section>
-
-  <section id="papers" class="paper-section">
-    <h2>📄 最新收录论文</h2>
-    <table class="paper-table">
-      <thead>
-        <tr>
-          <th>arXiv ID</th>
-          <th>标题</th>
-          <th>类型</th>
-          <th>领域</th>
-          <th>收录日期</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${latestPapers.map(p => `
-          <tr>
-            <td><a href="papers/${p.fileName.replace('.md', '')}.html">${p.arxivId}</a></td>
-            <td>${p.title}</td>
-            <td>${p.paperType}</td>
-            <td>${p.domain}</td>
-            <td>${p.firstRecorded}</td>
           </tr>
         `).join('')}
       </tbody>
