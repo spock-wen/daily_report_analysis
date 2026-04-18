@@ -16,6 +16,8 @@
 
 ## Phase 1: Wiki 模块核心功能开发
 
+> **说明**: Phase 1 必须先于历史数据迁移执行，因为迁移脚本依赖 WikiManager 和 WikiTemplates。
+
 ### Task 1: Wiki 目录结构和模板
 
 **Files:**

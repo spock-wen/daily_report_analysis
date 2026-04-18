@@ -249,6 +249,50 @@ class WikiManager {
       total: countFiles(this.projectsDir) + countFiles(this.domainsDir)
     };
   }
+
+  /**
+   * 读取项目最近 N 条版本历史
+   * @param {string} owner - 仓库所有者
+   * @param {string} repo - 仓库名
+   * @param {number} limit - 返回条数上限
+   * @returns {Promise<Array>} 历史记录数组
+   */
+  async getRecentHistory(owner, repo, limit = 3) {
+    const wiki = await this.getOrCreateWiki(owner, repo);
+    if (!wiki.exists || !wiki.content) {
+      return [];
+    }
+
+    const history = [];
+    const seen = new Set(); // 用于去重：key = "date-eventType"
+
+    // 解析版本历史 - 匹配 ### YYYY-MM-DD（事件类型）格式
+    const versionRegex = /### (\d{4}-\d{2}-\d{2})（([^)]+)）\s*\*\*来源\*\*:([\s\S]*?)\*\*分析\*\*:(.+?)(?=\n###|\n##|$)/gs;
+    let match;
+
+    while ((match = versionRegex.exec(wiki.content)) !== null) {
+      const date = match[1];
+      const eventType = match[2].trim();
+      const analysis = match[4].trim();
+      const key = `${date}-${eventType}`;
+
+      // 跳过重复记录
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+
+      history.push({
+        date,
+        eventType,
+        analysis
+      });
+    }
+
+    // 按日期倒序排序，返回最近 N 条
+    history.sort((a, b) => b.date.localeCompare(a.date));
+    return history.slice(0, limit);
+  }
 }
 
 module.exports = WikiManager;

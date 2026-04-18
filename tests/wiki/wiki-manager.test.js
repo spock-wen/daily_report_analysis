@@ -47,7 +47,6 @@ async function runTests() {
     assert(newWiki.repo === 'repo', 'repo 正确');
 
     // getOrCreateWiki 不创建文件，只有 createProjectWiki 才创建
-    // 所以再次读取仍然不存在
     const stillNotExists = await wikiManager.getOrCreateWiki('owner', 'repo');
     assert(stillNotExists.exists === false, '未创建前 exists 仍为 false');
 
@@ -96,30 +95,6 @@ async function runTests() {
     assert(updatedContent.includes('项目持续增长，新增多 Agent 协作功能'), '包含版本分析');
     assert(updatedContent.includes('## 版本历史'), '包含版本历史章节');
 
-    // ==================== getPaperWiki 测试 ====================
-    console.log('\n📦 getPaperWiki 测试：\n');
-
-    const nullWiki = await wikiManager.getPaperWiki('2401.12345');
-    assert(nullWiki === null, '不存在的论文 Wiki 返回 null');
-
-    // ==================== createPaperWiki 测试 ====================
-    console.log('\n📦 createPaperWiki 测试：\n');
-
-    const paperPath = await wikiManager.createPaperWiki('2401.12345', {
-      title: 'Test Paper Title',
-      publishDate: '2024-01-15',
-      paperType: 'Research',
-      domain: 'LLM',
-      authors: ['Author One', 'Author Two'],
-      bibtex: '@article{test2024,\n  title={Test},\n  year={2024}\n}'
-    });
-
-    assert(fs.existsSync(paperPath), '论文 Wiki 文件创建成功');
-    const paperContent = fs.readFileSync(paperPath, 'utf-8');
-    assert(paperContent.includes('# Test Paper Title'), '包含论文标题');
-    assert(paperContent.includes('arXiv ID: 2401.12345'), '包含 arXiv ID');
-    assert(paperContent.includes('论文类型：Research'), '包含论文类型');
-
     // ==================== updateBasicInfo 测试 ====================
     console.log('\n📦 updateBasicInfo 测试：\n');
 
@@ -140,10 +115,78 @@ async function runTests() {
 
     const stats = await wikiManager.getStats();
     assert(typeof stats.projects === 'number', 'projects 是数字');
-    assert(typeof stats.papers === 'number', 'papers 是数字');
     assert(typeof stats.total === 'number', 'total 是数字');
     assert(stats.projects >= 1, '至少有一个项目 Wiki');
-    assert(stats.papers >= 1, '至少有一个论文 Wiki');
+
+    // ==================== getRecentHistory 测试 ====================
+    console.log('\n📦 getRecentHistory 测试：\n');
+
+    // 创建包含多条版本历史的测试 Wiki
+    const testWikiContent = `# Test/HistoryProject
+
+## 基本信息
+- 首次上榜：2026-04-01
+- 最近上榜：2026-04-15
+- 上榜次数：10
+
+## 版本历史
+
+### 2026-04-15（周报收录）
+**来源**: [周报](../../reports/weekly/github-weekly-2026-04-15.html)
+**分析**: 第三次分析内容
+
+### 2026-04-10（日报收录）
+**来源**: [日报](../../reports/daily/github-ai-trending-2026-04-10.html)
+**分析**: 第二次分析内容
+
+### 2026-04-05（日报收录）
+**来源**: [日报](../../reports/daily/github-ai-trending-2026-04-05.html)
+**分析**: 第一次分析内容
+
+### 2026-04-05（日报收录）
+**来源**: [日报](../../reports/daily/github-ai-trending-2026-04-05.html)
+**分析**: 重复记录应该被过滤
+
+## 跨项目关联
+（待分析）
+`;
+    const testWikiPath = path.join(testWikiDir, 'projects', 'Test_HistoryProject.md');
+    fs.writeFileSync(testWikiPath, testWikiContent);
+
+    // 测试 1: 返回最近 N 条历史
+    const history = await wikiManager.getRecentHistory('Test', 'HistoryProject', 3);
+    assert(Array.isArray(history), '返回数组');
+    assert(history.length <= 3, '最多返回 3 条');
+    assert(history[0].date === '2026-04-15', '第一条是最新的 (2026-04-15)');
+    assert(history[0].eventType === '周报收录', '事件类型正确');
+    assert(history[0].analysis.includes('第三次分析'), '分析内容正确');
+
+    // 测试 2: 去重逻辑
+    const fullHistory = await wikiManager.getRecentHistory('Test', 'HistoryProject', 10);
+    const dateEventSet = new Set(fullHistory.map(h => `${h.date}-${h.eventType}`));
+    assert(dateEventSet.size === fullHistory.length, '同一天同一事件去重');
+    // 2026-04-05 的日报收录应该有且仅有一条
+    const april5Records = fullHistory.filter(h => h.date === '2026-04-05' && h.eventType === '日报收录');
+    assert(april5Records.length === 1, '重复记录被过滤');
+
+    // 测试 3: Wiki 不存在时返回空数组
+    const nullHistory = await wikiManager.getRecentHistory('NonExistent', 'Repo', 3);
+    assert(Array.isArray(nullHistory), '返回数组');
+    assert(nullHistory.length === 0, '不存在的 Wiki 返回空数组');
+
+    // 测试 4: 无版本历史时返回空数组
+    const emptyWikiPath = path.join(testWikiDir, 'projects', 'Empty_NoHistory.md');
+    fs.writeFileSync(emptyWikiPath, `# Empty/NoHistory
+
+## 基本信息
+- 首次上榜：2026-04-01
+
+## 核心功能
+无内容
+`);
+    const emptyHistory = await wikiManager.getRecentHistory('Empty', 'NoHistory', 3);
+    assert(Array.isArray(emptyHistory), '返回数组');
+    assert(emptyHistory.length === 0, '无版本历史返回空数组');
 
   } catch (error) {
     console.error(`\n❌ 测试执行失败：${error.message}`);

@@ -3,6 +3,7 @@ const { writeJson } = require('../utils/fs');
 const { getAIInsightsPath } = require('../utils/path');
 const logger = require('../utils/logger');
 const prompts = require('../../config/prompts.json');
+const WikiManager = require('../wiki/wiki-manager');
 
 const AI_RETRY_CONFIG = {
   maxRetries: 3,
@@ -46,11 +47,15 @@ async function callLLMWithRetry(prompt, options = {}) {
 }
 
 class InsightAnalyzer {
+  constructor(options = {}) {
+    this.wikiManager = new WikiManager(options);
+  }
+
   async analyzeDaily(dailyData) {
     try {
       logger.info('开始分析日报数据...', { date: dailyData.date });
 
-      const contextData = this.prepareContextData(dailyData.brief);
+      const contextData = await this.prepareContextData(dailyData.brief);
       const promptTemplate = prompts.daily.userPrompt;
       const prompt = this.buildPrompt(promptTemplate, contextData);
 
@@ -79,7 +84,7 @@ class InsightAnalyzer {
     try {
       logger.info('开始分析周报数据...', { weekStart: weeklyData.weekStart });
 
-      const contextData = this.prepareContextData(weeklyData.brief);
+      const contextData = await this.prepareContextData(weeklyData.brief);
       const promptTemplate = prompts.weekly.userPrompt;
       const prompt = this.buildPrompt(promptTemplate, contextData);
       logger.info('Prompt 构建完成，准备调用 LLM...', { promptLength: prompt.length });
@@ -115,7 +120,7 @@ class InsightAnalyzer {
     try {
       logger.info('开始分析月报数据...', { month: monthlyData.month });
 
-      const contextData = this.prepareContextData(monthlyData.brief);
+      const contextData = await this.prepareContextData(monthlyData.brief);
       const promptTemplate = prompts.monthly.userPrompt;
       const prompt = this.buildPrompt(promptTemplate, contextData);
 
@@ -214,7 +219,7 @@ class InsightAnalyzer {
     };
   }
 
-  prepareContextData(briefData) {
+  async prepareContextData(briefData) {
     const trendingRepos = briefData.projects || briefData.trending_repos || [];
 
     logger.debug('准备上下文数据', {
@@ -222,22 +227,38 @@ class InsightAnalyzer {
       sampleRepo: trendingRepos[0]
     });
 
-    const projects = trendingRepos.map(repo => ({
-      name: repo.name || repo.fullName,
-      fullName: repo.fullName || repo.name,
-      description: repo.description || repo.desc || '',
-      stars: repo.stars || 0,
-      forks: repo.forks || 0,
-      language: repo.language || '',
-      topics: repo.topics || [],
-      url: repo.url || '',
-      isAI: repo.isAI || false
-    }));
+    // 并发读取所有项目的 Wiki 历史
+    const projectsWithHistory = await Promise.all(
+      trendingRepos.map(async (repo) => {
+        const fullName = repo.fullName || repo.name;
+        const [owner, repoName] = fullName.split('/');
+
+        let wikiHistory = [];
+        try {
+          wikiHistory = await this.wikiManager.getRecentHistory(owner, repoName, 3);
+        } catch (error) {
+          logger.warn(`读取 Wiki 历史失败：${fullName} - ${error.message}`);
+        }
+
+        return {
+          name: fullName,
+          fullName,
+          description: repo.description || repo.desc || '',
+          stars: repo.stars || 0,
+          forks: repo.forks || 0,
+          language: repo.language || '',
+          topics: repo.topics || [],
+          url: repo.url || '',
+          isAI: repo.isAI || false,
+          wikiHistory // 新增字段
+        };
+      })
+    );
 
     const stats = briefData.stats || {};
 
     const result = {
-      projects,
+      projects: projectsWithHistory,
       stats,
       generatedAt: briefData.generatedAt || briefData.generated_at || new Date().toISOString()
     };
@@ -268,6 +289,10 @@ class InsightAnalyzer {
 
     prompt = prompt.replace('{projects}', JSON.stringify(projectsForPrompt, null, 2));
 
+    // 新增：生成 Wiki 历史上下文
+    const wikiHistoryContext = this.buildWikiHistoryContext(contextData.projects);
+    prompt = prompt.replace('{wikiHistoryContext}', wikiHistoryContext);
+
     if (contextData.stats) {
       prompt = prompt.replace('{totalProjects}', contextData.stats.total_projects || contextData.stats.total || 0);
       prompt = prompt.replace('{aiProjects}', contextData.stats.ai_projects || 0);
@@ -285,6 +310,29 @@ class InsightAnalyzer {
     }
 
     return prompt;
+  }
+
+  /**
+   * 构建 Wiki 历史上下文字符串
+   * @param {Array} projects - 包含 wikiHistory 的项目数组
+   * @returns {string} 格式化的历史上下文
+   */
+  buildWikiHistoryContext(projects) {
+    const hasHistory = projects.some(p => p.wikiHistory && p.wikiHistory.length > 0);
+    if (!hasHistory) {
+      return '（无历史记录）';
+    }
+
+    let context = '';
+    for (const project of projects) {
+      if (project.wikiHistory && project.wikiHistory.length > 0) {
+        context += `\n- ${project.fullName}:\n`;
+        for (const record of project.wikiHistory) {
+          context += `  · ${record.date} (${record.eventType}): ${record.analysis}\n`;
+        }
+      }
+    }
+    return context || '（无历史记录）';
   }
 
   parseInsights(llmResponse, briefData) {
