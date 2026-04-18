@@ -3,8 +3,83 @@ const { getDailyReportPath, getWeeklyReportPath, getMonthlyReportPath } = requir
 const { renderTemplate, markdownToHtml } = require('../utils/template');
 const logger = require('../utils/logger');
 const MonthlyGenerator = require('./monthly-generator');
+const WikiManager = require('../wiki/wiki-manager');
+const path = require('path');
+const fs = require('fs');
 
 class HTMLGenerator {
+  constructor() {
+    this.wikiManager = new WikiManager();
+  }
+
+  /**
+   * 获取项目的 Wiki 信息
+   * @param {string} owner - 仓库所有者
+   * @param {string} repo - 仓库名
+   * @returns {Object|null} Wiki 信息或 null
+   */
+  _getProjectWikiInfo(owner, repo) {
+    try {
+      const wikiPath = path.join(this.wikiManager.projectsDir, `${owner}_${repo}.md`);
+      if (!fs.existsSync(wikiPath)) {
+        return null;
+      }
+
+      const content = fs.readFileSync(wikiPath, 'utf-8');
+
+      // 提取上榜次数
+      const appearancesMatch = content.match(/- 上榜次数：(\d+)/);
+      const firstSeenMatch = content.match(/- 首次上榜：([\d-]+)/);
+      const domainMatch = content.match(/- 领域分类：(.+)/);
+      const languageMatch = content.match(/- 语言：(.+)/);
+
+      // 领域图标映射
+      const domainIcons = {
+        'agent': '🤖',
+        'llm': '🧠',
+        'rag': '🔍',
+        'speech': '🎤',
+        'vision': '👁️',
+        'code': '💻',
+        'devtool': '🛠️',
+        'database': '💾',
+        'data': '📊',
+        'security': '🔒',
+        'education': '📚',
+        'platform': '🎛️',
+        'infrastructure': '☁️',
+        'browser': '🌐',
+        'general': '📦'
+      };
+
+      const domain = domainMatch ? domainMatch[1].trim() : null;
+      const domainIcon = domainIcons[domain?.toLowerCase()] || '📚';
+
+      // 提取版本历史（最近 3 条）
+      const versionHistory = [];
+      const versionRegex = /### (\d{4}-\d{2}-\d{2}).+?\*\*分析\*\*: (.+?)(?=\n###|\n##|$)/gs;
+      let match;
+      while ((match = versionRegex.exec(content)) !== null) {
+        versionHistory.push({ date: match[1], analysis: match[2].trim() });
+      }
+      // 只保留最近 3 条
+      const recentHistory = versionHistory.slice(0, 3);
+
+      return {
+        exists: true,
+        appearances: appearancesMatch ? parseInt(appearancesMatch[1]) : 1,
+        firstSeen: firstSeenMatch ? firstSeenMatch[1] : null,
+        domain: domain,
+        domainIcon: domainIcon,
+        language: languageMatch ? languageMatch[1].trim() : null,
+        versionHistory: recentHistory
+      };
+    } catch (error) {
+      logger.debug(`读取 ${owner}/${repo} Wiki 信息失败：${error.message}`);
+      return null;
+    }
+  }
+
   async generateDaily(dailyData) {
     try {
       logger.info('生成日报 HTML...', { date: dailyData.date });
@@ -158,16 +233,33 @@ class HTMLGenerator {
     const coreFeatures = analysis.coreFunctions || [];
     const useCases = analysis.useCases || [];
     const trends = analysis.trends || [];
-    
+
     // 确保项目名称有 GitHub 链接
     const projectName = project.fullName || project.repo || project.name || '';
     const projectUrl = project.url || (projectName ? `https://github.com/${projectName}` : '#');
+
+    // 获取 Wiki 信息
+    let wikiInfo = null;
+    let owner = '';
+    let repo = '';
+    if (projectName && projectName.includes('/')) {
+      [owner, repo] = projectName.split('/');
+      wikiInfo = this._getProjectWikiInfo(owner, repo);
+    }
+
+    // Wiki 徽章显示：仅显示领域和上榜次数，无链接
+    const wikiBadge = wikiInfo && owner && repo ? `
+      <span class="wiki-badge" data-domain="${wikiInfo.domain || 'general'}" title="上榜 ${wikiInfo.appearances} 次">
+        ${wikiInfo.domainIcon || '📚'} ×${wikiInfo.appearances}
+      </span>
+    ` : '';
 
     return `
       <div class="project-card">
         <div class="project-header">
           <a href="${projectUrl}" class="project-name" target="_blank">
             ${index + 1}. ${projectName}
+            ${wikiBadge}
           </a>
           <div class="project-stats">
             <span class="stat-badge" title="总星数">

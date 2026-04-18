@@ -13,10 +13,10 @@
 const logger = require('../utils/logger');
 const { writeJson } = require('../utils/fs');
 const fs = require('fs');
-const { 
-  getDailyBriefPath, 
-  getWeeklyBriefPath, 
-  getMonthlyBriefPath 
+const {
+  getDailyBriefPath,
+  getWeeklyBriefPath,
+  getMonthlyBriefPath
 } = require('../utils/path');
 
 // 导入依赖模块
@@ -24,6 +24,7 @@ const InsightAnalyzer = require('../analyzer/insight-analyzer');
 const HTMLGenerator = require('../generator/html-generator');
 const MessageSender = require('../notifier/message-sender');
 const ProjectAnalyzer = require('./project-analyzer');
+const WikiManager = require('../wiki/wiki-manager');
 const { enhanceRepositories } = require('./github-api');
 const { exec } = require('child_process');
 const { promisify } = require('util');
@@ -47,16 +48,17 @@ class ReportPipeline {
     this.enableHTML = options.enableHTML !== undefined ? options.enableHTML : true;
     this.enableIndex = options.enableIndex !== undefined ? options.enableIndex : true;
     this.enableNotification = options.enableNotification !== undefined ? options.enableNotification : true;
-    
+
     // 初始化子模块
     this.analyzer = new InsightAnalyzer();
     this.htmlGenerator = new HTMLGenerator();
     this.notifier = new MessageSender();
     this.projectAnalyzer = new ProjectAnalyzer();
-    
+    this.wikiManager = new WikiManager();
+
     // 流水线执行记录
     this.executionLog = [];
-    
+
     logger.info('[ReportPipeline] 报告生成流水线初始化完成', {
       enableAI: this.enableAI,
       enableHTML: this.enableHTML,
@@ -127,6 +129,13 @@ class ReportPipeline {
         }
         await this.saveRawData(data, type);
       }, result);
+
+      // 步骤 3.5: 更新 Wiki（仅日报和周报）
+      if (type === 'daily' || type === 'weekly') {
+        await this.executeStep('update-wiki', async () => {
+          await this.updateProjectWikis(data, result.insights, type);
+        }, result);
+      }
 
       // 步骤 4: 生成 HTML 报告
       if (this.enableHTML) {
@@ -840,12 +849,68 @@ class ReportPipeline {
   }
 
   /**
+   * 更新项目 Wiki（日报/周报收录时自动更新版本历史）
+   * @param {Object} data - 原始数据
+   * @param {Object} insights - AI 洞察
+   * @param {string} type - 报告类型 (daily/weekly)
+   */
+  async updateProjectWikis(data, insights, type) {
+    logger.info('[ReportPipeline] 开始更新项目 Wiki...');
+
+    const repositories = data.repositories || data.projects || [];
+    const hotItems = insights?.hot || [];
+    const date = data.date || new Date().toISOString().split('T')[0];
+
+    let updatedCount = 0;
+    let skippedCount = 0;
+
+    for (const repo of repositories) {
+      const owner = repo.owner || repo.owner_login;
+      const repoName = repo.name || repo.repo;
+
+      if (!owner || !repoName) {
+        logger.debug(`[ReportPipeline] 跳过无效仓库：${JSON.stringify(repo)}`);
+        skippedCount++;
+        continue;
+      }
+
+      try {
+        // 查找对应的热点分析（如果有）
+        const hotItem = hotItems.find(h => h.includes(`${owner}/${repoName}`));
+
+        // 更新版本历史
+        await this.wikiManager.appendVersion(owner, repoName, {
+          date,
+          eventType: type === 'daily' ? '日报收录' : '周报收录',
+          source: `[${type === 'daily' ? '日报' : '周报'} ${date}](../../${type}/github-ai-trending-${date}.html)`,
+          analysis: hotItem || repo.desc || repo.description || '暂无分析'
+        });
+
+        // 更新基本信息（星星数、语言等）
+        await this.wikiManager.updateBasicInfo(owner, repoName, {
+          stars: String(repo.stars || 0),
+          language: repo.language || 'Unknown',
+          domain: repo.analysis?.type || 'general',
+          lastUpdated: date
+        });
+
+        updatedCount++;
+        logger.debug(`[ReportPipeline] Wiki 已更新：${owner}/${repoName}`);
+      } catch (error) {
+        logger.warn(`[ReportPipeline] 更新 ${owner}/${repoName} Wiki 失败：${error.message}`);
+      }
+    }
+
+    logger.info(`[ReportPipeline] Wiki 更新完成：${updatedCount} 个仓库已更新，${skippedCount} 个跳过`);
+  }
+
+  /**
    * 清理资源（回滚或清理临时文件）
    * @param {Object} result - 执行结果
    */
   async cleanup(result) {
     logger.info('[ReportPipeline] 执行清理操作...');
-    
+
     // 如果 HTML 生成失败但已创建部分文件，清理临时文件
     if (!result.success && result.htmlPath) {
       try {
@@ -856,7 +921,7 @@ class ReportPipeline {
         logger.warn('[ReportPipeline] 清理临时文件失败', { error: error.message });
       }
     }
-    
+
     logger.info('[ReportPipeline] 清理操作完成');
   }
 }
