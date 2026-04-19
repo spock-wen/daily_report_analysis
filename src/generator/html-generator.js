@@ -331,9 +331,27 @@ class HTMLGenerator {
 
   linkifyProjects(text, projects = []) {
     if (!text) return '';
-    
+
     let result = text;
-    
+
+    // 1. 处理反引号包裹的项目（如 `owner/repo`）
+    result = result.replace(/`([^`]+)`/g, (match, content) => {
+      if (content.includes('/')) {
+        return `<a href="https://github.com/${content}" target="_blank">${content}</a>`;
+      }
+      return match;
+    });
+
+    // 2. 处理中文引号《owner/repo》格式，保留引号
+    result = result.replace(/《((?:[a-zA-Z0-9][a-zA-Z0-9-]*\/[a-zA-Z0-9_.-]+))》/g, (match, repoPath) => {
+      const firstPart = repoPath.split('/')[0];
+      if (/^\d{2}$/.test(firstPart)) {
+        return match; // 排除日期格式
+      }
+      return `《<a href="https://github.com/${repoPath}" target="_blank">${repoPath}</a>》`;
+    });
+
+    // 3. 处理普通文本中的 owner/repo 格式（无引号包裹）
     // 辅助函数：在非链接部分执行替换
     const replaceOutsideLinks = (input, regex, replacer) => {
       const linkRegex = /(<a[^>]*>.*?<\/a>)/g;
@@ -346,24 +364,12 @@ class HTMLGenerator {
         return part.replace(regex, replacer);
       }).join('');
     };
-    
-    // 1. 处理反引号包裹的项目（如 `owner/repo`）
-    result = result.replace(/`([^`]+)`/g, (match, content) => {
-      if (content.includes('/')) {
-        return `<a href="https://github.com/${content}" target="_blank">${content}</a>`;
-      }
-      return match;
-    });
-    
-    // 2. 直接匹配文本中的 owner/repo 格式
-    // 支持：行首、空格、中文标点（含《》）、英文标点后的 owner/repo
-    const ownerRepoRegex = /(^|[\s（(,:：;；，。！？、《\-])((?:[a-zA-Z0-9][a-zA-Z0-9-]*\/[a-zA-Z0-9_.-]+))(》)?/gm;
-    result = replaceOutsideLinks(result, ownerRepoRegex, (match, prefix, repoPath, trailingQuote) => {
-      // 排除日期格式（如 03-17），但保留 ai/deepagents 这种格式
+
+    const ownerRepoRegex = /(^|[\s（(,:：;；，。！？、\-.])((?:[a-zA-Z0-9][a-zA-Z0-9-]*\/[a-zA-Z0-9_.-]+))(?=[\s）),:：;；，。！？、。.]|$)/gm;
+    result = replaceOutsideLinks(result, ownerRepoRegex, (match, prefix, repoPath) => {
       const firstPart = repoPath.split('/')[0];
-      // 如果第一部分是纯数字（两位数），认为是日期，跳过
       if (/^\d{2}$/.test(firstPart)) {
-        return match;
+        return match; // 排除日期格式
       }
       return `${prefix}<a href="https://github.com/${repoPath}" target="_blank">${repoPath}</a>`;
     });
