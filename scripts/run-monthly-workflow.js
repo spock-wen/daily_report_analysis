@@ -81,11 +81,14 @@ async function runMonthlyWorkflow(month) {
         enableHTML: true,        // 生成 HTML
         enableIndex: true,       // 更新首页
         enableNotification: !noPush  // 根据参数决定是否发送通知
+        // enableWikiPostProcessing defaults to true in ReportPipeline
       });
 
       // 使用工作流生成 HTML（包含通知功能）
       // 传递聚合后的月度数据，包含 aggregation 字段（topGainers, recurringProjects 等）
       const result = await workflow.triggerManual('monthly', { data: monthlyData });
+
+      logger.info('📚 Wiki 后处理将在报告流水线中自动触发');
 
       if (result.success) {
         logger.success('============================================');

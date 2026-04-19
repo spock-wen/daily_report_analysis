@@ -136,13 +136,13 @@ class ReportPipeline {
         await this.saveRawData(data, type);
       }, result);
 
-      // 步骤 3.5: 更新 Wiki（仅日报和周报）
-      if (type === 'daily' || type === 'weekly') {
+      // 步骤 3.5: 更新 Wiki（日报、周报、月报）
+      if (type === 'daily' || type === 'weekly' || type === 'monthly') {
         await this.executeStep('update-wiki', async () => {
           await this.updateProjectWikis(data, result.insights, type);
         }, result);
 
-        // 步骤 3.6: Wiki 后处理（仅日报和周报）
+        // 步骤 3.6: Wiki 后处理（日报、周报、月报）
         if (this.enableWikiPostProcessing) {
           await this.executeStep('wiki-post-processing', async () => {
             try {
