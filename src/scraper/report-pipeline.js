@@ -900,12 +900,33 @@ class ReportPipeline {
         // 查找对应的热点分析（如果有）
         const hotItem = hotItems.find(h => h.includes(`${owner}/${repoName}`));
 
-        // 更新版本历史
+        // 生成版本历史分析内容
+        const versionAnalysis = [];
+        if (hotItem) {
+          versionAnalysis.push(`🔥 ${hotItem}`);
+        }
+        if (repo.analysis?.trends) {
+          versionAnalysis.push(...repo.analysis.trends);
+        }
+        if (repo.analysis?.community) {
+          versionAnalysis.push(`👥 社区活跃度：${repo.analysis.community.level} - ${repo.analysis.community.desc}`);
+        }
+        const analysisText = versionAnalysis.length > 0
+          ? versionAnalysis.join('\n')
+          : (repo.desc || repo.description || '暂无分析');
+
+        // 更新版本历史（传入完整分析数据）
         await this.wikiManager.appendVersion(owner, repoName, {
           date,
           eventType: type === 'daily' ? '日报收录' : '周报收录',
           source: `[${type === 'daily' ? '日报' : '周报'} ${date}](../../${type}/github-ai-trending-${date}.html)`,
-          analysis: hotItem || repo.desc || repo.description || '暂无分析'
+          analysis: analysisText,
+          // 新项目创建时需要的完整数据
+          stars: String(repo.stars || 0),
+          language: repo.language || 'Unknown',
+          domain: repo.analysis?.type || 'general',
+          coreFunctions: repo.analysis?.coreFunctions,
+          useCases: repo.analysis?.useCases
         });
 
         // 更新基本信息（星星数、语言等）
@@ -915,6 +936,15 @@ class ReportPipeline {
           domain: repo.analysis?.type || 'general',
           lastUpdated: date
         });
+
+        // 如果 Wiki 刚创建，需要更新核心功能等分析数据
+        if (repo.analysis?.coreFunctions) {
+          await this.wikiManager.updateAnalysisInfo(owner, repoName, {
+            coreFunctions: repo.analysis.coreFunctions,
+            useCases: repo.analysis.useCases,
+            trends: repo.analysis.trends
+          });
+        }
 
         updatedCount++;
         logger.debug(`[ReportPipeline] Wiki 已更新：${owner}/${repoName}`);
