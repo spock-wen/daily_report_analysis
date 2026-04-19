@@ -109,7 +109,7 @@ class WikiManager {
       await this.createProjectWiki(owner, repo, {
         firstSeen: versionData.date,
         lastSeen: versionData.date,
-        appearances: '1',
+        appearances: versionData.appearances || '1',
         stars: versionData.stars || '0',
         language: versionData.language || 'Unknown',
         domain: versionData.domain || 'General',

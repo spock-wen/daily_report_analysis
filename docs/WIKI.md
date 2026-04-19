@@ -308,11 +308,148 @@ WIKI_OUTPUT_DIR=./reports
 
 ## 未来扩展
 
+- [x] 月报 Wiki 深度集成（领域趋势分析 + 项目月度汇总 + Wiki 追踪模块）
 - [ ] LLM 自动生成项目分析摘要
 - [ ] 项目关系图谱可视化
 - [ ] Wiki 变更通知
 - [ ] 领域 Wiki 自动聚合
 - [ ] 与主报告系统的深度集成
+
+## 月报 Wiki 深度集成
+
+### 功能概述
+
+月报 Wiki 深度集成在月度报告生成时自动增强 Wiki 维度，包含三个层面：
+
+1. **项目 Wiki 月度汇总** - 为重复上榜≥2 次的项目添加月度版本记录
+2. **领域 Wiki 趋势分析** - LLM 生成月度趋势分析文案 + 演变表格
+3. **月报 HTML Wiki 追踪模块** - 新增展示板块，链接到项目和领域 Wiki
+
+### 月度 Wiki 数据流
+
+```
+月报聚合数据 → buildMonthlyWikiData() → WikiPostProcessor.process()
+                                            ├── 领域趋势分析 (LLM)
+                                            ├── 更新领域 Wiki
+                                            └── 更新项目 Wiki 月度汇总
+```
+
+### 核心 API
+
+#### WikiPostProcessor.process() 月度处理
+
+```javascript
+const processor = new WikiPostProcessor();
+
+// 月报处理（带 LLM 趋势分析）
+await processor.process(
+  projects,           // 项目数组
+  'monthly',          // 报告类型
+  monthlyData,        // 月度聚合数据
+  async (domain, monthlyData) => {
+    // LLM 趋势分析生成函数
+    const domainProjects = projects.filter(p => p.domain === domain);
+    const avgAppearances = domainProjects.reduce((s, p) => s + p.appearances, 0) / domainProjects.length;
+    return `${domain} 领域持续高温，平均上榜次数${avgAppearances.toFixed(1)}次`;
+  }
+);
+```
+
+#### ReportPipeline.buildMonthlyWikiData()
+
+```javascript
+// 从月报聚合数据提取 Wiki 所需数据
+const wikiData = pipeline.buildMonthlyWikiData(monthlyData, 'monthly');
+// 返回：
+// {
+//   month: '2026-03',
+//   periodStats: {
+//     early: { projectCount: 15, topType: 'agent' },
+//     mid: { projectCount: 22, topType: 'agent' },
+//     late: { projectCount: 18, topType: 'llm' }
+//   },
+//   domainStats: {
+//     newProjects: 5,
+//     recurringProjects: 12,
+//     totalStarsGrowth: 125000
+//   }
+// }
+```
+
+### 领域 Wiki 月度趋势格式
+
+```markdown
+# 🤖 agent 领域
+
+## 领域概览
+
+- 项目总数：10
+- 最近更新：2026-04-19
+
+## 代表项目（按上榜次数排序）
+
+| 排名 | 项目 | 首次上榜 | 上榜次数 | Stars |
+|------|------|----------|----------|-------|
+| 1 | [microsoft/autogen](...) | 2026-03-01 | 8 | 30,000 |
+
+## 📈 2026-03 月度趋势
+
+**领域热度**: Agent 领域持续高温，多 Agent 协作成为主流方向...
+
+**趋势演变**:
+| 时期 | 项目数 | 主导类型 |
+|------|--------|----------|
+| 上旬 | 15 | agent |
+| 中旬 | 22 | agent |
+| 下旬 | 18 | llm |
+
+**月度统计**:
+- 新上榜项目：5 个
+- 重复上榜项目：12 个
+- 总 Star 增长：+125.0k
+```
+
+### 月报 HTML Wiki 追踪模块
+
+月报 HTML 自动添加 Wiki 追踪章节：
+
+```html
+<section class="wiki-tracking">
+  <h2>📚 Wiki 知识追踪</h2>
+  <div class="domain-list">
+    <div class="domain-card">
+      <div class="domain-header">
+        <h3>🤖 Agent 智能体</h3>
+        <span class="project-count">2 个项目</span>
+      </div>
+      <ul class="wiki-project-list">
+        <li class="wiki-project-item">
+          <a href="../wiki/projects/microsoft_autogen.md">microsoft/autogen</a>
+          <span class="wiki-appearances">上榜 8 次</span>
+        </li>
+      </ul>
+      <div class="domain-footer">
+        <a href="../wiki/domains/agent.md">查看 agent 领域 Wiki →</a>
+      </div>
+    </div>
+  </div>
+</section>
+```
+
+### 测试
+
+运行月报 Wiki 深度集成端到端测试：
+
+```bash
+node tests/e2e/monthly-wiki-integration.test.js
+```
+
+测试覆盖：
+- ReportPipeline 月报处理流程
+- 领域 Wiki 趋势分析生成
+- 项目 Wiki 月度汇总创建
+- Wiki 索引页生成
+- 数据去重验证（重复执行不添加重复内容）
 
 ## 参考
 

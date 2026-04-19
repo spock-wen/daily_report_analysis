@@ -180,17 +180,48 @@ node scripts/generate-wiki-index.js
 
 1. **Wiki 索引页** - 自动更新项目统计、领域导航、热门项目排行榜
 2. **领域 Wiki** - 自动按领域（agent/rag/llm 等）聚合项目列表
+3. **项目 Wiki** - 追加版本历史记录上榜次数和 Star 变化
 
 输出位置：
 - `reports/wiki-index.html` - Wiki 索引页
 - `wiki/domains/{domain}.md` - 领域 Wiki 页面
+- `wiki/projects/{owner}_{repo}.md` - 项目 Wiki 页面
+
+### 月报 Wiki 深度集成
+
+月报生成时自动增强 Wiki 维度，包含三个层面：
+
+1. **项目 Wiki 月度汇总** - 为重复上榜≥2 次的项目添加月度版本记录
+2. **领域 Wiki 趋势分析** - LLM 生成月度趋势分析文案 + 演变表格
+3. **月报 HTML Wiki 追踪模块** - 新增展示板块，链接到项目和领域 Wiki
+
+**领域 Wiki 月度趋势示例**：
+- 领域热度分析（LLM 生成）
+- 趋势演变表格（上旬/中旬/下旬）
+- 月度统计（新上榜项目、重复上榜项目、Star 增长）
+
+**月报 HTML Wiki 追踪模块**：
+- 按领域分组展示上榜项目
+- 显示每个项目的上榜次数
+- 链接到项目 Wiki 和领域 Wiki
+
+输出位置：
+- `reports/monthly/github-monthly-YYYY-MM.html` - 月报 HTML（含 Wiki 追踪模块）
+- `wiki/domains/{domain}.md` - 领域 Wiki（含月度趋势）
+- `wiki/projects/{owner}_{repo}.md` - 项目 Wiki（含月度汇总）
+
+**测试验证**：
+```bash
+# 运行月报 Wiki 深度集成端到端测试
+node tests/e2e/monthly-wiki-integration.test.js
+```
+
+**详细文档**：参见 [docs/WIKI.md](docs/WIKI.md)
 
 ### Wiki 核心理念
 - **Pure Markdown**: 所有 Wiki 以纯 Markdown 格式存储，便于版本控制
 - **版本追加**: 不覆盖原有内容，每次更新追加新版本历史记录
 - **版本控制**: Wiki 文件存储在 git 中，可追溯历史变更
-
-**详细文档**：参见 [docs/WIKI.md](docs/WIKI.md)
 
 ---
 

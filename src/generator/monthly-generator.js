@@ -60,6 +60,7 @@ class MonthlyGenerator {
     ${this.renderTheme(aiInsights?.monthlyTheme)}
     ${this.renderTrendEvolution(aiInsights?.trendEvolution)}
     ${this.renderCharts(aggregation)}
+    ${this.renderWikiTracking(aggregation)}
     ${this.renderLongTermValue(aiInsights?.longTermValue)}
     ${this.renderEmergingFields(aiInsights?.emergingFields)}
     ${this.renderDarkHorse(aiInsights?.darkHorse)}
@@ -193,6 +194,70 @@ class MonthlyGenerator {
               showLegend: false
             })}
           </div>
+        </div>
+      </section>
+    `;
+  }
+
+  /**
+   * 渲染 Wiki 追踪模块
+   */
+  renderWikiTracking(aggregation) {
+    if (!aggregation) return '';
+
+    const projects = aggregation.topGainers || aggregation.recurringProjects || [];
+    const domains = {};
+
+    // 按领域分组
+    projects.forEach(p => {
+      const domain = p.type || p.domain || 'other';
+      if (!domains[domain]) {
+        domains[domain] = [];
+      }
+      domains[domain].push(p);
+    });
+
+    // 领域名称映射
+    const domainNames = {
+      agent: '🤖 Agent 智能体',
+      llm: '🧠 LLM 大模型',
+      rag: '🔍 RAG 检索增强',
+      vision: '👁️ 视觉处理',
+      speech: '🎤 语音音频',
+      devtools: '🛠️ 开发工具',
+      other: '📦 其他领域'
+    };
+
+    return `
+      <section class="wiki-tracking">
+        <h2>📚 Wiki 知识追踪</h2>
+        <div class="wiki-intro">
+          本月上榜项目已收录至 <a href="../wiki/index.html" class="wiki-link">AI Project Wiki</a>，点击查看详细版本历史与领域分析
+        </div>
+        <div class="domain-list">
+          ${Object.entries(domains).map(([domain, domainProjects]) => `
+            <div class="domain-card">
+              <div class="domain-header">
+                <h3>${domainNames[domain] || domain}</h3>
+                <span class="project-count">${domainProjects.length} 个项目</span>
+              </div>
+              <div class="domain-projects">
+                <ul class="wiki-project-list">
+                  ${domainProjects.slice(0, 5).map(p => `
+                    <li class="wiki-project-item">
+                      <a href="../wiki/projects/${p.repo.replace('/', '_')}.md" class="wiki-project-link">
+                        ${p.repo}
+                      </a>
+                      <span class="wiki-appearances">上榜 ${p.appearances || 1} 次</span>
+                    </li>
+                  `).join('')}
+                </ul>
+              </div>
+              <div class="domain-footer">
+                <a href="../wiki/domains/${domain}.md" class="wiki-domain-link">查看 ${domain} 领域 Wiki →</a>
+              </div>
+            </div>
+          `).join('')}
         </div>
       </section>
     `;

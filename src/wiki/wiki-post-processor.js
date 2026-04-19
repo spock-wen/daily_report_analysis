@@ -27,9 +27,11 @@ class WikiPostProcessor {
    * 处理项目列表，生成 Wiki 索引和领域 Wiki
    * @param {Array} projects - 项目数组
    * @param {string} type - 报告类型 (daily/weekly/monthly)
+   * @param {Object} monthlyData - 月度数据（仅月报时需要）
+   * @param {Function} generateTrendAnalysis - LLM 趋势分析生成函数（可选）
    * @returns {Promise<Object>} 处理结果
    */
-  async process(projects, type) {
+  async process(projects, type, monthlyData = null, generateTrendAnalysis = null) {
     try {
       logger.info(`开始 Wiki 后处理 (${type})...`);
 
@@ -49,7 +51,14 @@ class WikiPostProcessor {
 
       // 2. 更新每个领域的 Wiki
       for (const [domain, domainProjects] of Object.entries(projectsByDomain)) {
-        await this._updateDomainWiki(domain, domainProjects, type);
+        if (type === 'monthly' && generateTrendAnalysis) {
+          // 月报：生成 LLM 趋势分析文案
+          const trendAnalysis = await generateTrendAnalysis(domain, monthlyData);
+          await this._updateDomainWikiWithTrend(domain, domainProjects, monthlyData, trendAnalysis);
+        } else {
+          // 日报/周报：使用原有逻辑
+          await this._updateDomainWiki(domain, domainProjects, type);
+        }
       }
 
       // 3. 生成 Wiki 索引页
@@ -67,6 +76,152 @@ class WikiPostProcessor {
       logger.error(`Wiki 后处理失败：${error.message}`);
       throw error;
     }
+  }
+
+  /**
+   * 更新领域 Wiki 并添加月度趋势分析
+   * @param {string} domain - 领域名称
+   * @param {Array} projects - 项目数组
+   * @param {Object} monthlyData - 月度数据
+   * @param {string} trendAnalysis - LLM 生成的趋势分析文案
+   * @returns {Promise<void>}
+   */
+  async _updateDomainWikiWithTrend(domain, projects, monthlyData, trendAnalysis) {
+    const domainFilePath = path.join(this.domainsDir, `${domain}.md`);
+
+    // 获取该领域所有项目（包括已有的和新加入的）
+    const allDomainProjects = await this._getAllDomainProjects(domain, projects);
+
+    // 生成领域 Wiki 内容（包含月度趋势）
+    const content = this._generateDomainWikiContentWithTrend(
+      domain,
+      allDomainProjects,
+      monthlyData,
+      trendAnalysis
+    );
+
+    // 确保领域目录存在
+    if (!require('fs').existsSync(this.domainsDir)) {
+      require('fs').mkdirSync(this.domainsDir, { recursive: true });
+    }
+
+    require('fs').writeFileSync(domainFilePath, content, 'utf-8');
+    logger.debug(`更新领域 Wiki: ${domain} (${allDomainProjects.length} 个项目)`);
+  }
+
+  /**
+   * 生成领域 Wiki 内容（包含月度趋势分析）
+   * @param {string} domain - 领域名称
+   * @param {Array} projects - 项目数组
+   * @param {Object} monthlyData - 月度数据
+   * @param {string} trendAnalysis - LLM 趋势分析文案
+   * @returns {string} Wiki 内容
+   */
+  _generateDomainWikiContentWithTrend(domain, projects, monthlyData, trendAnalysis) {
+    const today = new Date().toISOString().split('T')[0];
+    const icon = this._getDomainIcon(domain);
+
+    // 计算统计数据
+    const totalProjects = projects.length;
+    const topProjects = projects.slice(0, 10);
+
+    // 生成项目表格
+    const projectTable = topProjects.map((p, index) => {
+      const firstSeen = p.firstSeen || today;
+      const appearances = p.appearances || 1;
+      const stars = p.stars || '0';
+      return `| ${index + 1} | [${p.owner}/${p.repo}](../../wiki/projects/${p.owner}_${p.repo}.md) | ${firstSeen} | ${appearances} | ${stars} |`;
+    }).join('\n');
+
+    // 生成趋势演变表格
+    const trendTable = monthlyData?.periodStats ? `
+| 时期 | 项目数 | 主导类型 |
+|------|--------|----------|
+| 上旬 | ${monthlyData.periodStats.early.projectCount} | ${monthlyData.periodStats.early.topType} |
+| 中旬 | ${monthlyData.periodStats.mid.projectCount} | ${monthlyData.periodStats.mid.topType} |
+| 下旬 | ${monthlyData.periodStats.late.projectCount} | ${monthlyData.periodStats.late.topType} |
+` : '';
+
+    // 生成月度统计
+    const monthlyStats = monthlyData?.domainStats ? `
+- 新上榜项目：${monthlyData.domainStats.newProjects} 个
+- 重复上榜项目：${monthlyData.domainStats.recurringProjects} 个
+- 总 Star 增长：+${this._formatNumber(monthlyData.domainStats.totalStarsGrowth || 0)}
+` : '';
+
+    return `# ${icon} ${domain} 领域
+
+## 领域概览
+
+- 项目总数：${totalProjects}
+- 最近更新：${today}
+
+${domain} 领域收录了与${this._domainDescription(domain)}相关的项目。
+
+## 代表项目（按上榜次数排序）
+
+| 排名 | 项目 | 首次上榜 | 上榜次数 | Stars |
+|------|------|----------|----------|-------|
+${projectTable}
+
+## 📈 ${monthlyData?.month || '本月'} 月度趋势
+
+**领域热度**: ${trendAnalysis}
+
+**趋势演变**:
+${trendTable}
+
+**月度统计**:
+${monthlyStats}
+
+## 领域趋势
+
+${this._generateDomainTrend(domain, projects)}
+
+---
+
+*本页面由 WikiPostProcessor 自动生成*
+`;
+  }
+
+  /**
+   * 格式化数字（添加 k 后缀）
+   * @param {number} num - 数字
+   * @returns {string} 格式化后的字符串
+   */
+  _formatNumber(num) {
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'k';
+    }
+    return String(num);
+  }
+
+  /**
+   * 获取领域图标
+   * @param {string} domain - 领域名称
+   * @returns {string} 图标 emoji
+   */
+  _getDomainIcon(domain) {
+    const icons = {
+      agent: '🤖',
+      rag: '🔍',
+      llm: '🧠',
+      speech: '🎤',
+      vision: '👁️',
+      browser: '🌐',
+      devtool: '🛠️',
+      'dev-tool': '🛠️',
+      platform: '🎛️',
+      infrastructure: '☁️',
+      education: '📚',
+      game: '🎮',
+      physics: '⚛️',
+      finance: '💰',
+      security: '🔒',
+      data: '📊',
+      other: '📦'
+    };
+    return icons[domain.toLowerCase()] || '📦';
   }
 
   /**

@@ -147,7 +147,29 @@ class ReportPipeline {
           await this.executeStep('wiki-post-processing', async () => {
             try {
               const projects = data.repositories || data.projects || [];
-              await this.wikiPostProcessor.process(projects, type);
+
+              // 月报：传递月度聚合数据和趋势分析函数
+              if (type === 'monthly') {
+                // 构建月度数据对象
+                const monthlyData = this.buildMonthlyWikiData(data, type);
+
+                // LLM 趋势分析生成函数（简化版本）
+                const generateTrendAnalysis = async (domain, monthlyData) => {
+                  // 从月度数据中获取该领域的趋势信息
+                  const domainProjects = projects.filter(p => (p.domain || p.analysis?.type || 'other').toLowerCase() === domain.toLowerCase());
+                  const totalAppearances = domainProjects.reduce((sum, p) => sum + (p.appearances || 1), 0);
+                  const avgAppearances = (totalAppearances / (domainProjects.length || 1)).toFixed(1);
+
+                  // 生成简单的趋势描述
+                  const trendDesc = avgAppearances >= 3 ? '持续高温' : avgAppearances >= 2 ? '稳定发展' : '新兴领域';
+                  return `${domain} 领域${trendDesc}，平均上榜次数${avgAppearances}次，代表项目${domainProjects.slice(0, 2).map(p => p.repo || p.name).join('、')}`;
+                };
+
+                await this.wikiPostProcessor.process(projects, type, monthlyData, generateTrendAnalysis);
+              } else {
+                // 日报/周报：使用原有逻辑
+                await this.wikiPostProcessor.process(projects, type);
+              }
             } catch (error) {
               logger.warn('[ReportPipeline] Wiki 后处理失败，不影响主报告流程', {
                 error: error.message,
@@ -918,15 +940,16 @@ class ReportPipeline {
         // 更新版本历史（传入完整分析数据）
         await this.wikiManager.appendVersion(owner, repoName, {
           date,
-          eventType: type === 'daily' ? '日报收录' : '周报收录',
-          source: `[${type === 'daily' ? '日报' : '周报'} ${date}](../../${type}/github-ai-trending-${date}.html)`,
+          eventType: type === 'daily' ? '日报收录' : type === 'weekly' ? '周报收录' : '月报收录',
+          source: `[${type === 'daily' ? '日报' : type === 'weekly' ? '周报' : '月报'} ${date}](../../${type}/${type === 'monthly' ? 'github-monthly-' : 'github-ai-trending-'}${date}.html)`,
           analysis: analysisText,
           // 新项目创建时需要的完整数据
           stars: String(repo.stars || 0),
           language: repo.language || 'Unknown',
           domain: repo.analysis?.type || 'general',
           coreFunctions: repo.analysis?.coreFunctions,
-          useCases: repo.analysis?.useCases
+          useCases: repo.analysis?.useCases,
+          appearances: String(repo.appearances || 1)
         });
 
         // 更新基本信息（星星数、语言等）
@@ -954,6 +977,42 @@ class ReportPipeline {
     }
 
     logger.info(`[ReportPipeline] Wiki 更新完成：${updatedCount} 个仓库已更新，${skippedCount} 个跳过`);
+  }
+
+  /**
+   * 构建月度 Wiki 数据对象
+   * @param {Object} data - 原始数据
+   * @param {string} type - 报告类型
+   * @returns {Object} 月度 Wiki 数据
+   */
+  buildMonthlyWikiData(data, type) {
+    // 从月报数据中提取 periodStats（上旬/中旬/下旬）
+    const periodStats = data.aggregation?.periodStats || {
+      early: { projectCount: 0, topType: 'unknown' },
+      mid: { projectCount: 0, topType: 'unknown' },
+      late: { projectCount: 0, topType: 'unknown' }
+    };
+
+    // 计算领域统计
+    const projects = data.projects || data.repositories || [];
+    const newProjects = projects.filter(p => p.firstSeen && p.firstSeen.startsWith(data.month || '')).length;
+    const recurringProjects = projects.length - newProjects;
+
+    // 计算总 Star 增长（简化处理）
+    const totalStarsGrowth = projects.reduce((sum, p) => {
+      const stars = parseInt(String(p.stars || '0').replace(/,/g, ''));
+      return sum + stars;
+    }, 0);
+
+    return {
+      month: data.month || new Date().toISOString().slice(0, 7),
+      periodStats,
+      domainStats: {
+        newProjects,
+        recurringProjects,
+        totalStarsGrowth
+      }
+    };
   }
 
   /**
