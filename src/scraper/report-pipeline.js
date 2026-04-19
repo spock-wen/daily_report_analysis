@@ -25,6 +25,7 @@ const HTMLGenerator = require('../generator/html-generator');
 const MessageSender = require('../notifier/message-sender');
 const ProjectAnalyzer = require('./project-analyzer');
 const WikiManager = require('../wiki/wiki-manager');
+const WikiPostProcessor = require('../wiki/wiki-post-processor');
 const { enhanceRepositories } = require('./github-api');
 const { exec } = require('child_process');
 const { promisify } = require('util');
@@ -48,6 +49,7 @@ class ReportPipeline {
     this.enableHTML = options.enableHTML !== undefined ? options.enableHTML : true;
     this.enableIndex = options.enableIndex !== undefined ? options.enableIndex : true;
     this.enableNotification = options.enableNotification !== undefined ? options.enableNotification : true;
+    this.enableWikiPostProcessing = options.enableWikiPostProcessing !== undefined ? options.enableWikiPostProcessing : true;
 
     // 初始化子模块
     this.analyzer = new InsightAnalyzer();
@@ -56,6 +58,9 @@ class ReportPipeline {
     this.projectAnalyzer = new ProjectAnalyzer();
     this.wikiManager = new WikiManager();
 
+    // NEW: Initialize Wiki post-processor
+    this.wikiPostProcessor = new WikiPostProcessor();
+
     // 流水线执行记录
     this.executionLog = [];
 
@@ -63,7 +68,8 @@ class ReportPipeline {
       enableAI: this.enableAI,
       enableHTML: this.enableHTML,
       enableIndex: this.enableIndex,
-      enableNotification: this.enableNotification
+      enableNotification: this.enableNotification,
+      enableWikiPostProcessing: this.enableWikiPostProcessing
     });
   }
 
@@ -135,6 +141,22 @@ class ReportPipeline {
         await this.executeStep('update-wiki', async () => {
           await this.updateProjectWikis(data, result.insights, type);
         }, result);
+
+        // 步骤 3.6: Wiki 后处理（仅日报和周报）
+        if (this.enableWikiPostProcessing) {
+          await this.executeStep('wiki-post-processing', async () => {
+            try {
+              const projects = data.repositories || data.projects || [];
+              await this.wikiPostProcessor.process(projects, type);
+            } catch (error) {
+              logger.warn('[ReportPipeline] Wiki 后处理失败，不影响主报告流程', {
+                error: error.message,
+                type
+              });
+              // Don't throw - let main flow continue
+            }
+          }, result);
+        }
       }
 
       // 步骤 4: 生成 HTML 报告
