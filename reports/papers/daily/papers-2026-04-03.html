@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuggingFace AI Papers 日报 - 2026-04-03</title>
+  <link rel="stylesheet" href="../../public/css/style.css">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-card: #161b22;
+      --text-primary: #c9d1d9;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-orange: #d29922;
+      --border: #30363d;
+      --border-light: #21262d;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.5; padding: 24px 16px; font-size: 13px; }
+    .container { max-width: 960px; margin: 0 auto; }
+    header { text-align: center; padding: 32px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+    h1 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+    .date { color: var(--text-secondary); font-size: 0.8125rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); padding: 12px; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
+    .stat-value { font-size: 1.25rem; font-weight: 600; color: var(--accent-green); line-height: 1.2; }
+    .stat-value .star-icon { color: #fbbf24; width: 20px; height: 20px; vertical-align: middle; display: inline-block; }
+    .stat-label { color: var(--text-secondary); margin-top: 4px; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    section { margin-bottom: 24px; }
+    h2 { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .project-list { display: flex; flex-direction: column; gap: 8px; }
+    .star-icon { width: 16px; height: 16px; vertical-align: middle; }
+    .paper-card { background: var(--bg-card); border-radius: 6px; padding: 12px; margin: 8px 0; border: 1px solid var(--border); transition: border-color 0.2s; }
+    .paper-card:hover { border-color: var(--text-muted); }
+    .paper-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; }
+    .paper-name { font-size: 0.875rem; font-weight: 600; color: var(--accent); text-decoration: none; line-height: 1.4; }
+    .paper-name:hover { text-decoration: underline; }
+    .paper-stats { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+    .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.6875rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 2px 6px; border-radius: 10px; border: 1px solid var(--border); white-space: nowrap; }
+    .stat-badge .star-icon { color: #fbbf24; width: 12px; height: 12px; }
+    .paper-abstract { background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin: 8px 0; border: 1px solid var(--border); }
+    .paper-abstract strong { color: var(--text-primary); }
+    .paper-meta { color: var(--text-secondary); font-size: 0.75rem; margin: 8px 0; }
+    .paper-meta a { color: var(--accent); text-decoration: none; }
+    .paper-meta a:hover { text-decoration: underline; }
+    .toggle-btn { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.6875rem; font-weight: 500; transition: all 0.2s; }
+    .toggle-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+    .paper-details { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .paper-details.active { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .detail-column { background: var(--bg-secondary); padding: 8px; border-radius: 6px; }
+    .detail-column h4 { color: var(--text-primary); margin-bottom: 6px; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
+    .detail-column ul { list-style: none; }
+    .detail-column li { color: var(--text-secondary); padding: 3px 0; font-size: 0.75rem; line-height: 1.4; }
+    .ai-section { background: var(--bg-card); padding: 16px; border-radius: 6px; border: 1px solid var(--border); }
+    .ai-section h2, .ai-section h3 { color: var(--text-primary); margin: 16px 0 8px; font-size: 0.75rem; font-weight: 600; }
+    .ai-section h2:first-child, .ai-section h3:first-child { margin-top: 0; }
+    .ai-section p { color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; font-size: 0.8125rem; }
+    .ai-section ul { margin-bottom: 12px; padding-left: 16px; }
+    .ai-section li { color: var(--text-secondary); margin-bottom: 4px; font-size: 0.8125rem; line-height: 1.5; }
+    .lang-dist { display: flex; flex-wrap: wrap; gap: 10px; }
+    .lang-item { background: var(--accent); color: var(--bg-primary); padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+    .paper-type { background: var(--accent-orange); color: var(--bg-primary); padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; margin-left: 6px; }
+    .quick-actions { display: flex; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .action-btn { background: var(--accent); color: var(--bg-primary); padding: 4px 12px; border-radius: 4px; text-decoration: none; font-size: 0.75rem; font-weight: 500; border: none; cursor: pointer; }
+    .action-btn:hover { opacity: 0.9; }
+    .bibtex-block { background: var(--bg-primary); padding: 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.6875rem; color: var(--text-secondary); white-space: pre-wrap; margin-top: 8px; }
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } .paper-details.active { grid-template-columns: 1fr; } .paper-header { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>HuggingFace AI Papers 日报</h1>
+      <div class="date">2026-04-03</div>
+    </header>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">3</div>
+        <div class="stat-label">论文总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">0</div>
+        <div class="stat-label">有 Stars 论文</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">
+          <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor" style="width: 20px; height: 20px;"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+          <span style="vertical-align: middle;">0</span>
+        </div>
+        <div class="stat-label">总 Stars</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">0</div>
+        <div class="stat-label">平均 Stars</div>
+      </div>
+    </section>
+
+    
+
+    <section>
+      <h2>论文列表（共 3 篇）</h2>
+      <div class="project-list">
+        
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.02029" class="paper-name" target="_blank">
+            1. The Latent Space: Foundation, Evolution, Mechanism, Ability, and Outlook
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">YU-deep/Awesome-Latent-Space</span>
+            <span class="paper-type" title="论文类型">综述</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Cheng Yang, Tianyu Fu, Yongbo He, Zhangquan Chen, Xinlei Yu</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>潜在空间：基础、进化、机制、能力和前景
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(0)" id="btn-0">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-0">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.02029" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.02029" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/YU-deep/Awesome-Latent-Space" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(0)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：The Latent Space: Foundation, Evolution, Mechanism, Ability, and Outlook</li>
+              <li>Stars: 0</li>
+              <li>类型：综述</li>
+              <li>作者：Cheng Yang, Tianyu Fu, Yongbo He, Zhangquan Chen, Xinlei Yu</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.02029" target="_blank">https://huggingface.co/papers/2604.02029</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.02029" target="_blank">https://arxiv.org/abs/2604.02029</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>潜在空间：基础、进化、机制、能力和前景</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>The Latent Space: Foundation, Evolution, Mechanism, Ability, and Outlook</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-0">@article{yang26,
+  title = {The Latent Space: Foundation, Evolution, Mechanism, Ability, and Outlook},
+  author = {Cheng Yang and Tianyu Fu and Yongbo He and Zhangquan Chen and Xinlei Yu},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.02029},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.02268" class="paper-name" target="_blank">
+            2. SKILL0: In-Context Agentic Reinforcement Learning for Skill Internalization
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">ZJU-REAL/SkillZero</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Qi Gu, Chengcheng Han, Jinyang Wu, Zhiyuan Yao, Zhengxi Lu</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>我们提出了SKILL0 ，这是第一个将技能内化作为明确培训目标的RL框架，将代理从推理时间技能依赖性转变为完全自主的零拍行为。我们引入了上下文强化学习，在培训推出期间提供结构化的技能指导，并在推理时将其完全删除，直接优化从上下文相关执行到内...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(1)" id="btn-1">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-1">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.02268" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.02268" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/ZJU-REAL/SkillZero" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(1)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：SKILL0: In-Context Agentic Reinforcement Learning for Skill Internalization</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              <li>作者：Qi Gu, Chengcheng Han, Jinyang Wu, Zhiyuan Yao, Zhengxi Lu</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.02268" target="_blank">https://huggingface.co/papers/2604.02268</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.02268" target="_blank">https://arxiv.org/abs/2604.02268</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>我们提出了SKILL0 ，这是第一个将技能内化作为明确培训目标的RL框架，将代理从推理时间技能依赖性转变为完全自主的零拍行为。我们引入了上下文强化学习，在培训推出期间提供结构化的技能指导，并在推理时将其完全删除，直接优化从上下文相关执行到内在能力的过渡....</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>We propose SKILL0, the first RL framework that formulates skill internalization as an explicit training objective, moving agents from inference-time skill dependence to fully autonomous zero-shot behavior. We introduce in-context reinforcement learning, which provides structured skill guidance during training rollouts and removes it entirely at inference, directly optimizing the transition from context-dependent execution to intrinsic competence. We propose Dynamic Curriculum, a helpfulness-driven annealing mechanism that withdraws each skill only when the current policy no longer benefits from it, replacing rigid schedules with adaptive internalization.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-1">@article{gu26,
+  title = {SKILL0: In-Context Agentic Reinforcement Learning for Skill Internalization},
+  author = {Qi Gu and Chengcheng Han and Jinyang Wu and Zhiyuan Yao and Zhengxi Lu},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.02268},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.01676" class="paper-name" target="_blank">
+            3. GPA: Learning GUI Process Automation from Demonstrations
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>GUI流程自动化(GPA) -来自Salesforce AI Research对于产品或企业用例，请联系zirui.zhao@salesforce.com或junnan.li@salesforce.com。什么是GPA ？ GPA是一个基于...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(2)" id="btn-2">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-2">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.01676" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.01676" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(2)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：GPA: Learning GUI Process Automation from Demonstrations</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.01676" target="_blank">https://huggingface.co/papers/2604.01676</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.01676" target="_blank">https://arxiv.org/abs/2604.01676</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>GUI流程自动化(GPA) -来自Salesforce AI Research对于产品或企业用例，请联系zirui.zhao@salesforce.com或junnan.li@salesforce.com。什么是GPA ？ GPA是一个基于演示的RPA （机器人流程自动化）框架，用于在macOS上自动化桌面GUI任务。核心思想：记录一次工作流程，即使UI稍有变化，也能可靠地重播。与依赖像素坐标或脆性的传统RPA工具不同...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>GUI Process Automation (GPA) - from Salesforce AI Research For product or enterprise use cases, please contact zirui.zhao@salesforce.com or junnan.li@salesforce.com . What is GPA? GPA is a demo-based RPA (Robotic Process Automation) framework for automating desktop GUI tasks on macOS. The core idea: record a workflow once, replay it reliably — even when the UI changes slightly. Unlike traditional RPA tools that rely on pixel coordinates or brittle selectors, GPA uses lightweight local models to understand UI structure and locate elements robustly at replay time. Key capabilities: Record : Capture a GUI workflow as a sequence of user actions and screenshots Build : LLM-powered analysis (done once at build time) converts the recording into a parameterized workflow template with named variables Run : Action execution uses small-scale, locally-running visual detectors and feature extractors — no large vision-language model required at runtime. UI elements are matched via efficient embedding-based retrieval, keeping replay fast and privacy-preserving Variables : Workflows accept runtime variable overrides (e.g. filenames, text content, search terms) Loops : Run partial step ranges to support batched or iterative workflows</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-2">@article{unknown26,
+  title = {GPA: Learning GUI Process Automation from Demonstrations},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.01676},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function toggleDetails(paperId) {
+      const details = document.getElementById('details-' + paperId);
+      const btn = document.getElementById('btn-' + paperId);
+      if (details && btn) {
+        details.classList.toggle('active');
+        btn.textContent = details.classList.contains('active') ? '收起详情' : '查看详情';
+      }
+    }
+
+    function copyBibtex(paperId) {
+      const bibtexBlock = document.getElementById('bibtex-' + paperId);
+      if (bibtexBlock) {
+        navigator.clipboard.writeText(bibtexBlock.textContent).then(() => {
+          const btn = event.target;
+          const originalText = btn.textContent;
+          btn.textContent = '已复制!';
+          setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }).catch(err => {
+          alert('复制失败，请手动复制');
+        });
+      }
+    }
+  </script>
+</body>
+</html>

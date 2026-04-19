@@ -6,13 +6,18 @@
 - 上榜次数：1
 - 领域分类：other
 - 语言：Unknown
-- GitHub Stars: 2789（最后更新：2026-04-18）
+- GitHub Stars: 3138（最后更新：2026-04-19）
 
 ## 核心功能
 
 
 ## 版本历史
 
+
+
+### 2026-04-19（日报收录）
+**来源**: [日报 2026-04-19](../../daily/github-ai-trending-2026-04-19.html)
+**分析**: Claude Code skill to support Android app's reverse engineering
 
 ## 跨项目关联
 
