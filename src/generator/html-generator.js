@@ -458,6 +458,12 @@ class HTMLGenerator {
       }
     });
 
+    // 统一使用 escapeAndLinkify 处理包含项目名的文本（支持《》格式）
+    const linkifyText = (text) => {
+      if (!text) return text;
+      return this.escapeAndLinkify(text, projects);
+    };
+
     const linkifyProjectName = (text) => {
       if (!text) return text;
       const projectRegex = /([a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+)/g;
@@ -474,19 +480,19 @@ class HTMLGenerator {
     return `
       <section class="ai-insights">
         <h2>AI 深度洞察</h2>
-        ${summary ? `<p>${markdownToHtml(summary)}</p>` : ''}
+        ${summary ? `<p>${linkifyText(markdownToHtml(summary))}</p>` : ''}
 
         ${hypeIndex ? `
           <div class="hype-badge">
             <div class="hype-title">🔥 热度指数：${hypeIndex.score}/5</div>
-            <div class="hype-reason">${linkifyProjectName(hypeIndex.reason) || ''}</div>
+            <div class="hype-reason">${linkifyText(hypeIndex.reason) || ''}</div>
           </div>
         ` : ''}
 
         ${hot && hot.length > 0 ? `
           <h3>热点项目</h3>
           <ul>
-            ${hot.map(item => `<li>${linkifyProjectName(item)}</li>`).join('')}
+            ${hot.map(item => `<li>${linkifyText(item)}</li>`).join('')}
           </ul>
         ` : ''}
 
@@ -497,7 +503,7 @@ class HTMLGenerator {
               <div style="margin-bottom: 4px;">
                 ${insight.project_name ? `<a href="${insight.github_url || '#'}" class="project-link" target="_blank">${insight.project_name}</a>` : ''}
               </div>
-              <p>${insight.analysis || ''}</p>
+              <p>${linkifyText(insight.analysis || '')}</p>
             </div>
           `).join('')}
         ` : ''}
@@ -505,14 +511,14 @@ class HTMLGenerator {
         ${trends.length > 0 ? `
           <h3>趋势观察</h3>
           <ul>
-            ${Array.isArray(trends) ? trends.map(trend => `<li>${linkifyProjectName(trend)}</li>`).join('') : ''}
+            ${Array.isArray(trends) ? trends.map(trend => `<li>${linkifyText(trend)}</li>`).join('') : ''}
           </ul>
         ` : ''}
 
         ${recommendations.length > 0 ? `
           <h3>推荐建议</h3>
           <ul>
-            ${Array.isArray(recommendations) ? recommendations.map(rec => `<li>${linkifyProjectName(rec)}</li>`).join('') : ''}
+            ${Array.isArray(recommendations) ? recommendations.map(rec => `<li>${linkifyText(rec)}</li>`).join('') : ''}
           </ul>
         ` : ''}
       </section>

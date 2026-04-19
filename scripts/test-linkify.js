@@ -11,7 +11,8 @@ const testCases = [
     projects: [
       { fullName: 'NousResearch/hermes-agent', url: 'https://github.com/NousResearch/hermes-agent' },
       { fullName: 'coleam00/Archon', url: 'https://github.com/coleam00/Archon' }
-    ]
+    ],
+    expectedFormat: '《<a href=' // 期望保留《》
   },
   {
     name: '反引号包裹项目名',
@@ -34,7 +35,8 @@ const testCases = [
     projects: [
       { fullName: 'NousResearch/hermes-agent', url: 'https://github.com/NousResearch/hermes-agent' },
       { fullName: 'coleam00/Archon', url: 'https://github.com/coleam00/Archon' }
-    ]
+    ],
+    expectedFormat: '《<a href='
   }
 ];
 
