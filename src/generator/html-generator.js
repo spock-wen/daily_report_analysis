@@ -625,7 +625,7 @@ class HTMLGenerator {
     }
 
     const deepTrends = aiInsights.deepTrends;
-    
+
     // 解析文本内容为多个段落
     const paragraphs = deepTrends.content
       ? deepTrends.content.split('\n\n').filter(p => p.trim())
@@ -637,9 +637,9 @@ class HTMLGenerator {
           ${deepTrends.title ? `<div class="trend-title">${deepTrends.title}</div>` : ''}
           ${deepTrends.summary ? `<div class="trend-summary">${deepTrends.summary}</div>` : ''}
         </div>
-        
+
         <div class="trend-content">
-          ${paragraphs.map(p => `<p>${this.escapeAndLinkify(p, projects)}</p>`).join('')}
+          ${paragraphs.map(p => `<p>${this.escapeAndLinkify(markdownToHtml(p), projects)}</p>`).join('')}
         </div>
 
         ${deepTrends.evidence && deepTrends.evidence.length > 0 ? `
@@ -651,7 +651,7 @@ class HTMLGenerator {
                   <div class="evidence-day">${ev.day}</div>
                   <div>
                     <a href="https://github.com/${ev.name}" class="evidence-link" target="_blank">${ev.name}</a>
-                    <div class="evidence-reason">${ev.reason}</div>
+                    <div class="evidence-reason">${this.escapeAndLinkify(ev.reason, projects)}</div>
                   </div>
                 </div>
               `).join('')}
@@ -775,7 +775,7 @@ class HTMLGenerator {
             const fullProject = projects.find(p => (p.repo || p.fullName) === project.repo);
             const desc = fullProject?.descZh || fullProject?.desc || fullProject?.description || project.reason || '';
             const projectUrl = `https://github.com/${project.repo}`;
-            
+
             return `
               <div class="top-project-card">
                 <div class="top-project-header">
@@ -784,10 +784,10 @@ class HTMLGenerator {
                   </a>
                   ${project.category ? `<span class="category-badge">${project.category}</span>` : ''}
                 </div>
-                <div class="top-project-desc">${desc}</div>
+                <div class="top-project-desc">${this.escapeAndLinkify(desc, projects)}</div>
                 <div class="top-project-reason">
                   <div class="reason-label">入选理由</div>
-                  <div class="reason-text">${project.reason}</div>
+                  <div class="reason-text">${this.escapeAndLinkify(project.reason, projects)}</div>
                 </div>
               </div>
             `;
