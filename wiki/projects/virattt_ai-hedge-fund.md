@@ -6,7 +6,7 @@
 - 上榜次数：3
 - 领域分类：infrastructure
 - 语言：Unknown
-- GitHub Stars: 56141（最后更新：2026-04-19）
+- GitHub Stars: 56172（最后更新：2026-04-19）
 
 ## 核心功能
 
@@ -58,6 +58,21 @@
 ### 2026-03-11（日报收录）
 **来源**: [日报 2026-03-11](../../reports/daily/github-ai-trending-2026-03-11.html)
 **分析**: virattt/ai-hedge-fund：虽无topics但代码含完整回测引擎+实时新闻情感解析+订单执行模拟器，实为首个面向真实交易闭环的端到端AI对冲基金原型 - 立即用promptfoo/promptfoo对现有RAG应用执行--redteam --vuln-scan，识别提示注入与上下文泄露风险
+
+
+### 2026-04-19（周报收录）
+**来源**: [周报 2026-04-19](../../weekly/github-ai-trending-2026-04-19.html)
+**分析**: An AI Hedge Fund Team
+
+
+### 2026-04-19（周报收录）
+**来源**: [周报 2026-04-19](../../weekly/github-ai-trending-2026-04-19.html)
+**分析**: An AI Hedge Fund Team
+
+
+### 2026-04-19（周报收录）
+**来源**: [周报 2026-04-19](../../weekly/github-ai-trending-2026-04-19.html)
+**分析**: An AI Hedge Fund Team
 
 
 ### 2026-04-19（周报收录）

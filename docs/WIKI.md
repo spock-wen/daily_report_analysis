@@ -137,6 +137,23 @@ ReportPipeline 自动更新 Wiki：
 4. 生成 HTML 报告（显示 Wiki 徽章）
 5. 发送推送通知
 
+### Wiki 后处理流程
+
+报告生成完成后自动触发：
+
+1. 项目 Wiki 更新（版本历史 + 基本信息）
+2. Wiki 索引页生成
+3. 领域 Wiki 更新
+
+```bash
+# 无需手动运行，工作流自动触发
+node scripts/run-daily-workflow.js
+```
+
+生成的文件：
+- `reports/wiki-index.html` - Wiki 索引页
+- `wiki/domains/{domain}.md` - 领域 Wiki
+
 ### 论文流程
 
 PapersScraper 自动创建/更新论文 Wiki：
