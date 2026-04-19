@@ -19,15 +19,5 @@
 **来源**: [日报 2026-03-26](../../reports/daily/github-ai-trending-2026-03-26.html)
 **分析**: BerriAI/litellm：统一 LLM 调用网关，支持成本追踪与负载均衡，基础设施标配 - 评估 BerriAI/litellm 作为企业 LLM 网关，统一多模型接口并管控成本
 
-
-### 2026-03-26（日报收录）
-**来源**: [日报 2026-03-26](../../reports/daily/github-ai-trending-2026-03-26.html)
-**分析**: BerriAI/litellm：统一 LLM 调用网关，支持成本追踪与负载均衡，基础设施标配 - 评估 BerriAI/litellm 作为企业 LLM 网关，统一多模型接口并管控成本
-
-
-### 2026-03-26（日报收录）
-**来源**: [日报 2026-03-26](../../reports/daily/github-ai-trending-2026-03-26.html)
-**分析**: BerriAI/litellm：统一 LLM 调用网关，支持成本追踪与负载均衡，基础设施标配 - 评估 BerriAI/litellm 作为企业 LLM 网关，统一多模型接口并管控成本
-
-## 跨项目关联
+## 跨项目关联
 （待分析）

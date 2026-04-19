@@ -24,25 +24,5 @@
 **来源**: [日报 2026-03-13](../../reports/daily/github-ai-trending-2026-03-13.html)
 **分析**: google-ai-edge/LiteRT：谷歌边缘设备高性能 GenAI 部署框架 - 基于 microsoft/BitNet 尝试 1-bit 量化模型部署，优化边缘设备推理性能
 
-
-### 2026-03-12（日报收录）
-**来源**: [日报 2026-03-12](../../reports/daily/github-ai-trending-2026-03-12.html)
-**分析**: google-ai-edge/LiteRT：TensorFlow Lite继任者，C++原生设计+MLIR统一优化栈，首次实现LLM（Phi-3等）在Android端<200ms端到端延迟 - 立即试用 microsoft/BitNet 的 bitnet-bnb-int8 推理管道，在A10G上部署Llama-3-8B量化模型并对比FP16吞吐量
-
-
-### 2026-03-13（日报收录）
-**来源**: [日报 2026-03-13](../../reports/daily/github-ai-trending-2026-03-13.html)
-**分析**: google-ai-edge/LiteRT：谷歌边缘设备高性能 GenAI 部署框架 - 基于 microsoft/BitNet 尝试 1-bit 量化模型部署，优化边缘设备推理性能
-
-
-### 2026-03-12（日报收录）
-**来源**: [日报 2026-03-12](../../reports/daily/github-ai-trending-2026-03-12.html)
-**分析**: google-ai-edge/LiteRT：TensorFlow Lite继任者，C++原生设计+MLIR统一优化栈，首次实现LLM（Phi-3等）在Android端<200ms端到端延迟 - 立即试用 microsoft/BitNet 的 bitnet-bnb-int8 推理管道，在A10G上部署Llama-3-8B量化模型并对比FP16吞吐量
-
-
-### 2026-03-13（日报收录）
-**来源**: [日报 2026-03-13](../../reports/daily/github-ai-trending-2026-03-13.html)
-**分析**: google-ai-edge/LiteRT：谷歌边缘设备高性能 GenAI 部署框架 - 基于 microsoft/BitNet 尝试 1-bit 量化模型部署，优化边缘设备推理性能
-
-## 跨项目关联
+## 跨项目关联
 （待分析）

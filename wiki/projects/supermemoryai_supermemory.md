@@ -19,15 +19,5 @@
 **来源**: [日报 2026-03-25](../../reports/daily/github-ai-trending-2026-03-25.html)
 **分析**: 未记录 - 集成 `supermemoryai/supermemory` 优化长上下文记忆
 
-
-### 2026-03-25（日报收录）
-**来源**: [日报 2026-03-25](../../reports/daily/github-ai-trending-2026-03-25.html)
-**分析**: 未记录 - 集成 `supermemoryai/supermemory` 优化长上下文记忆
-
-
-### 2026-03-25（日报收录）
-**来源**: [日报 2026-03-25](../../reports/daily/github-ai-trending-2026-03-25.html)
-**分析**: 未记录 - 集成 `supermemoryai/supermemory` 优化长上下文记忆
-
-## 跨项目关联
+## 跨项目关联
 （待分析）

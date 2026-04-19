@@ -19,15 +19,5 @@
 **来源**: [日报 2026-03-27](../../reports/daily/github-ai-trending-2026-03-27.html)
 **分析**: 未记录 - 部署 onyx-dot-app/onyx 构建私有化 AI 聊天平台，保障数据隐私
 
-
-### 2026-03-27（日报收录）
-**来源**: [日报 2026-03-27](../../reports/daily/github-ai-trending-2026-03-27.html)
-**分析**: 未记录 - 部署 onyx-dot-app/onyx 构建私有化 AI 聊天平台，保障数据隐私
-
-
-### 2026-03-27（日报收录）
-**来源**: [日报 2026-03-27](../../reports/daily/github-ai-trending-2026-03-27.html)
-**分析**: 未记录 - 部署 onyx-dot-app/onyx 构建私有化 AI 聊天平台，保障数据隐私
-
-## 跨项目关联
+## 跨项目关联
 （待分析）

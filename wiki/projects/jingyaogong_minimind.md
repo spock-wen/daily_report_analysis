@@ -19,15 +19,5 @@
 **来源**: [日报 2026-03-24](../../reports/daily/github-ai-trending-2026-03-24.html)
 **分析**: jingyaogong/minimind: 2 小时从零训练 26M 参数小模型 - 集成 affaan-m/everything-claude-code 优化 Claude Code 开发工作流
 
-
-### 2026-03-24（日报收录）
-**来源**: [日报 2026-03-24](../../reports/daily/github-ai-trending-2026-03-24.html)
-**分析**: jingyaogong/minimind: 2 小时从零训练 26M 参数小模型 - 集成 affaan-m/everything-claude-code 优化 Claude Code 开发工作流
-
-
-### 2026-03-24（日报收录）
-**来源**: [日报 2026-03-24](../../reports/daily/github-ai-trending-2026-03-24.html)
-**分析**: jingyaogong/minimind: 2 小时从零训练 26M 参数小模型 - 集成 affaan-m/everything-claude-code 优化 Claude Code 开发工作流
-
-## 跨项目关联
+## 跨项目关联
 （待分析）

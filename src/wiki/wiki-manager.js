@@ -104,23 +104,31 @@ class WikiManager {
     const wiki = await this.getOrCreateWiki(owner, repo);
     let content = wiki.content || '';
 
-    // 如果没有内容，先创建基本结构
+    // 如果没有内容，先创建基本结构（包含分析数据）
     if (!content) {
       await this.createProjectWiki(owner, repo, {
         firstSeen: versionData.date,
         lastSeen: versionData.date,
         appearances: '1',
-        ...versionData
+        stars: versionData.stars || '0',
+        language: versionData.language || 'Unknown',
+        domain: versionData.domain || 'General',
+        coreFunctions: versionData.coreFunctions,
+        useCases: versionData.useCases,
+        versionHistory: this._buildVersionHistoryEntry(versionData)
       });
       return;
     }
 
+    // 去重检查：检查是否已存在相同的 date + eventType 组合
+    const versionKey = `### ${versionData.date}（${versionData.eventType}）`;
+    if (content.includes(versionKey)) {
+      logger.debug(`跳过重复版本：${owner}/${repo} - ${versionData.date} ${versionData.eventType}`);
+      return;
+    }
+
     // 追加版本历史
-    const versionSection = `
-### ${versionData.date}（${versionData.eventType}）
-**来源**: ${versionData.source}
-**分析**: ${versionData.analysis}
-`;
+    const versionSection = this._buildVersionHistoryEntry(versionData);
 
     // 检查是否已存在版本历史部分
     if (content.includes('## 版本历史')) {
@@ -139,6 +147,19 @@ class WikiManager {
 
     fs.writeFileSync(wiki.path, content, 'utf-8');
     logger.debug(`追加版本记录：${owner}/${repo} - ${versionData.date}`);
+  }
+
+  /**
+   * 构建版本历史条目
+   * @param {Object} versionData - 版本数据
+   * @returns {string} 版本历史 Markdown
+   */
+  _buildVersionHistoryEntry(versionData) {
+    return `
+### ${versionData.date}（${versionData.eventType}）
+**来源**: ${versionData.source}
+**分析**: ${versionData.analysis}
+`;
   }
 
   /**
@@ -292,6 +313,38 @@ class WikiManager {
     // 按日期倒序排序，返回最近 N 条
     history.sort((a, b) => b.date.localeCompare(a.date));
     return history.slice(0, limit);
+  }
+
+  /**
+   * 更新分析信息（核心功能、适用场景等）
+   * @param {string} owner - 仓库所有者
+   * @param {string} repo - 仓库名
+   * @param {Object} analysisData - 分析数据
+   * @param {Array} analysisData.coreFunctions - 核心功能列表
+   * @param {Array} analysisData.useCases - 适用场景列表
+   * @param {Array} analysisData.trends - 趋势分析列表
+   * @returns {Promise<void>}
+   */
+  async updateAnalysisInfo(owner, repo, analysisData) {
+    const wiki = await this.getOrCreateWiki(owner, repo);
+    if (!wiki.exists || !wiki.content) return;
+
+    let content = wiki.content;
+
+    // 更新核心功能
+    if (analysisData.coreFunctions && analysisData.coreFunctions.length > 0) {
+      const coreFunctionsMarkdown = analysisData.coreFunctions.map(f => `- ${f}`).join('\n');
+      content = content.replace(
+        /## 核心功能\n([\s\S]*?)(?=\n## )/,
+        `## 核心功能\n${coreFunctionsMarkdown}\n\n`
+      );
+    }
+
+    // 如果没有 versionHistory 部分，保留原有逻辑在 appendVersion 中处理
+    // 这里只处理核心功能等静态分析数据
+
+    fs.writeFileSync(wiki.path, content, 'utf-8');
+    logger.debug(`更新分析信息：${owner}/${repo}`);
   }
 }
 
