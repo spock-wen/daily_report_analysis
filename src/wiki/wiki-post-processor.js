@@ -77,11 +77,37 @@ class WikiPostProcessor {
   _groupByDomain(projects) {
     const groups = {};
     for (const project of projects) {
-      const domain = (project.domain || 'other').toLowerCase();
+      // 标准化 owner/repo - 处理 repo 字段可能已包含 owner 的情况
+      let owner = project.owner || project.owner_login;
+      let repo = project.repo || project.name;
+
+      // 如果 repo 包含斜杠，说明是 fullName 格式，需要拆分
+      if (repo && repo.includes('/')) {
+        const parts = repo.split('/');
+        if (parts.length === 2) {
+          owner = parts[0];
+          repo = parts[1];
+        }
+      }
+
+      // 如果 owner 仍然为空，尝试从 fullName 提取
+      if (!owner && project.fullName) {
+        const parts = project.fullName.split('/');
+        if (parts.length === 2) {
+          owner = parts[0];
+          repo = parts[1];
+        }
+      }
+
+      const domain = (project.domain || project.analysis?.type || 'other').toLowerCase();
       if (!groups[domain]) {
         groups[domain] = [];
       }
-      groups[domain].push(project);
+      groups[domain].push({
+        ...project,
+        owner,
+        repo
+      });
     }
     return groups;
   }
@@ -166,16 +192,24 @@ class WikiPostProcessor {
         continue;
       }
 
-      // 解析项目行
+      // 解析项目行 - 支持 markdown 链接格式 [owner/repo](path)
       if (inTable && line.includes('|')) {
-        const match = line.match(/\|\s*\[?([^\]]+)\]?\/([^\]|]+)\s*\|?\s*\|?\s*([\d-]+)?\s*\|?\s*\|?\s*(\d+)?\s*\|?\s*\|?\s*([\d,]+)?\s*\|?/);
-        if (match) {
+        // 匹配 [owner/repo](path) 格式
+        const linkMatch = line.match(/\[([^\]]+)\/([^\]]+)\]\([^)]+\)/);
+        if (linkMatch) {
+          // 从行中提取其他字段 (首次上榜 | 上榜次数 | Stars)
+          const parts = line.split('|').map(p => p.trim()).filter(p => p);
+          // parts[0] = 排名，parts[1] = 项目链接，parts[2] = 首次上榜，parts[3] = 上榜次数，parts[4] = Stars
+          const firstSeen = parts[2] || '';
+          const appearances = parseInt(parts[3]) || 0;
+          const stars = parts[4] || '0';
+
           projects.push({
-            owner: match[1].trim(),
-            repo: match[2].trim(),
-            firstSeen: match[3] || '',
-            appearances: parseInt(match[4]) || 0,
-            stars: match[5] || ''
+            owner: linkMatch[1].trim(),
+            repo: linkMatch[2].trim(),
+            firstSeen,
+            appearances,
+            stars
           });
         }
       }
@@ -303,16 +337,19 @@ ${this._generateDomainTrend(domain, projects)}
     const totalAppearances = projects.reduce((sum, p) => sum + (p.appearances || 1), 0);
     const avgAppearances = (totalAppearances / projects.length).toFixed(1);
 
-    // 计算总 Stars 数（简单处理）
+    // 计算总 Stars 数（简单处理）- 兼容数字和字符串
     const totalStars = projects.reduce((sum, p) => {
-      const stars = parseInt((p.stars || '0').replace(/,/g, ''));
+      const starsStr = typeof p.stars === 'number' ? String(p.stars) : (p.stars || '0');
+      const stars = parseInt(starsStr.replace(/,/g, ''));
       return sum + stars;
     }, 0);
 
-    // 找出最热门的项目
+    // 找出最热门的项目 - 兼容数字和字符串
     const topProject = projects.reduce((max, p) => {
-      const pStars = parseInt((p.stars || '0').replace(/,/g, ''));
-      const maxStars = parseInt((max.stars || '0').replace(/,/g, ''));
+      const pStarsStr = typeof p.stars === 'number' ? String(p.stars) : (p.stars || '0');
+      const maxStarsStr = typeof max.stars === 'number' ? String(max.stars) : (max.stars || '0');
+      const pStars = parseInt(pStarsStr.replace(/,/g, ''));
+      const maxStars = parseInt(maxStarsStr.replace(/,/g, ''));
       return pStars > maxStars ? p : max;
     }, projects[0]);
 
