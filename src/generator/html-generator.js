@@ -408,15 +408,12 @@ class HTMLGenerator {
 
   escapeAndLinkify(text, projects = []) {
     if (!text) return '';
-    
-    // 检查文本是否已经包含 GitHub 链接
-    if (text.includes('href="https://github.com/')) {
-      // 已经有链接，直接返回（不转义，避免破坏已有 HTML）
-      return text;
-    }
-    
-    // 如果没有链接，进行链接化
-    return this.linkifyProjects(text, projects);
+
+    // 先进行链接化处理
+    const linkified = this.linkifyProjects(text, projects);
+
+    // 返回处理后的结果（无论原来是否有链接）
+    return linkified;
   }
 
   formatNumber(num) {
