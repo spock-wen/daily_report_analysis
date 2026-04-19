@@ -356,9 +356,9 @@ class HTMLGenerator {
     });
     
     // 2. 直接匹配文本中的 owner/repo 格式
-    // 支持：行首、空格、中文标点、英文标点后的 owner/repo
-    const ownerRepoRegex = /(^|[\s（(,:：;；，。！？、\-])((?:[a-zA-Z0-9][a-zA-Z0-9-]*\/[a-zA-Z0-9_.-]+))/gm;
-    result = replaceOutsideLinks(result, ownerRepoRegex, (match, prefix, repoPath) => {
+    // 支持：行首、空格、中文标点（含《》）、英文标点后的 owner/repo
+    const ownerRepoRegex = /(^|[\s（(,:：;；，。！？、《\-])((?:[a-zA-Z0-9][a-zA-Z0-9-]*\/[a-zA-Z0-9_.-]+))(》)?/gm;
+    result = replaceOutsideLinks(result, ownerRepoRegex, (match, prefix, repoPath, trailingQuote) => {
       // 排除日期格式（如 03-17），但保留 ai/deepagents 这种格式
       const firstPart = repoPath.split('/')[0];
       // 如果第一部分是纯数字（两位数），认为是日期，跳过
