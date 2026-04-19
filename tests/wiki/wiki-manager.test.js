@@ -188,6 +188,88 @@ async function runTests() {
     assert(Array.isArray(emptyHistory), '返回数组');
     assert(emptyHistory.length === 0, '无版本历史返回空数组');
 
+    // ==================== appendMonthlySummary 测试 ====================
+    console.log('\n📦 appendMonthlySummary 测试：\n');
+
+    // 测试 1: 为重复上榜项目添加月度汇总版本
+    await wikiManager.createProjectWiki('monthly', 'test-project', {
+      firstSeen: '2026-03-05',
+      appearances: '1',
+      domain: 'agent',
+      language: 'Python',
+      stars: '5000'
+    });
+
+    await wikiManager.appendMonthlySummary('monthly', 'test-project', {
+      month: '2026-03',
+      appearances: 8,
+      dailyAppearances: 5,
+      weeklyAppearances: 3,
+      trendRole: {
+        early: '首次上榜（3 月 5 日）',
+        mid: '连续 3 天霸榜，引发社区关注',
+        late: '稳定 TOP10，成为 agent 领域代表项目'
+      },
+      reportUrl: '../../reports/monthly/github-ai-trending-2026-03.html'
+    });
+
+    const monthlyWikiPath = path.join(testWikiDir, 'projects', 'monthly_test-project.md');
+    const monthlyContent = fs.readFileSync(monthlyWikiPath, 'utf-8');
+    assert(monthlyContent.includes('2026-03（月度汇总）'), '包含月度汇总标题');
+    assert(monthlyContent.includes('上榜次数：8'), '包含上榜次数');
+    assert(monthlyContent.includes('日报 5 次 + 周报 3 次'), '包含来源分解');
+    assert(monthlyContent.includes('首次上榜（3 月 5 日）'), '包含上旬描述');
+    assert(monthlyContent.includes('月报 2026-03'), '包含月报链接');
+
+    // 测试 2: 去重 - 跳过已存在相同月度汇总
+    await wikiManager.appendMonthlySummary('monthly', 'test-project', {
+      month: '2026-03',
+      appearances: 10, // 不同的数据
+      dailyAppearances: 7,
+      weeklyAppearances: 3,
+      trendRole: { early: '不同的描述', mid: 'mid', late: 'late' },
+      reportUrl: '../../reports/monthly/github-ai-trending-2026-03.html'
+    });
+
+    const dedupContent = fs.readFileSync(monthlyWikiPath, 'utf-8');
+    const monthlySummaryCount = (dedupContent.match(/2026-03（月度汇总）/g) || []).length;
+    assert(monthlySummaryCount === 1, '月度汇总只出现 1 次（去重成功）');
+    assert(dedupContent.includes('上榜次数：8'), '保留第一次的上榜次数');
+
+    // 测试 3: 允许不同月份的月度汇总
+    await wikiManager.appendMonthlySummary('monthly', 'test-project', {
+      month: '2026-02',
+      appearances: 3,
+      dailyAppearances: 2,
+      weeklyAppearances: 1,
+      trendRole: { early: '2 月首次上榜', mid: '2 月上升', late: '2 月稳定' },
+      reportUrl: '../../reports/monthly/github-ai-trending-2026-02.html'
+    });
+
+    const multiMonthContent = fs.readFileSync(monthlyWikiPath, 'utf-8');
+    assert(multiMonthContent.includes('2026-02（月度汇总）'), '包含 2 月汇总');
+    assert(multiMonthContent.includes('2026-03（月度汇总）'), '包含 3 月汇总');
+
+    // 测试 4: 为不存在的项目创建 Wiki 并添加月度汇总
+    await wikiManager.appendMonthlySummary('new', 'project', {
+      month: '2026-03',
+      appearances: 3,
+      dailyAppearances: 2,
+      weeklyAppearances: 1,
+      trendRole: { early: '首次上榜', mid: '持续上升', late: '稳定发展' },
+      reportUrl: '../../reports/monthly/github-ai-trending-2026-03.html',
+      stars: '3000',
+      language: 'JavaScript',
+      domain: 'llm'
+    });
+
+    const newWikiPath = path.join(testWikiDir, 'projects', 'new_project.md');
+    assert(fs.existsSync(newWikiPath), 'Wiki 文件已创建');
+    const newContent = fs.readFileSync(newWikiPath, 'utf-8');
+    assert(newContent.includes('2026-03（月度汇总）'), '包含月度汇总');
+    assert(newContent.includes('GitHub Stars: 3000'), '包含 Star 数');
+    assert(newContent.includes('语言：JavaScript'), '包含语言');
+
   } catch (error) {
     console.error(`\n❌ 测试执行失败：${error.message}`);
     console.error(error.stack);

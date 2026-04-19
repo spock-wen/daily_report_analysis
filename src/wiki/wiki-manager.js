@@ -340,11 +340,98 @@ class WikiManager {
       );
     }
 
-    // 如果没有 versionHistory 部分，保留原有逻辑在 appendVersion 中处理
-    // 这里只处理核心功能等静态分析数据
-
     fs.writeFileSync(wiki.path, content, 'utf-8');
     logger.debug(`更新分析信息：${owner}/${repo}`);
+  }
+
+  /**
+   * 为项目 Wiki 添加月度汇总版本
+   * @param {string} owner - 仓库所有者
+   * @param {string} repo - 仓库名
+   * @param {Object} monthlyData - 月度汇总数据
+   * @param {string} monthlyData.month - 月份标识 (YYYY-MM)
+   * @param {number} monthlyData.appearances - 本月总上榜次数
+   * @param {number} monthlyData.dailyAppearances - 日报上榜次数
+   * @param {number} monthlyData.weeklyAppearances - 周报上榜次数
+   * @param {Object} monthlyData.trendRole - 趋势角色描述
+   * @param {string} monthlyData.trendRole.early - 上旬描述
+   * @param {string} monthlyData.trendRole.mid - 中旬描述
+   * @param {string} monthlyData.trendRole.late - 下旬描述
+   * @param {string} monthlyData.reportUrl - 月报 HTML 链接
+   * @param {string} [monthlyData.stars] - Star 数 (用于创建新 Wiki)
+   * @param {string} [monthlyData.language] - 语言 (用于创建新 Wiki)
+   * @param {string} [monthlyData.domain] - 领域 (用于创建新 Wiki)
+   * @returns {Promise<void>}
+   */
+  async appendMonthlySummary(owner, repo, monthlyData) {
+    const wiki = await this.getOrCreateWiki(owner, repo);
+    let content = wiki.content || '';
+
+    // 如果没有内容，先创建基本 Wiki
+    if (!content) {
+      await this.createProjectWiki(owner, repo, {
+        firstSeen: monthlyData.month,
+        lastSeen: monthlyData.month,
+        appearances: String(monthlyData.appearances),
+        domain: monthlyData.domain || 'general',
+        language: monthlyData.language || 'Unknown',
+        stars: monthlyData.stars || '0'
+      });
+      // 重新读取刚创建的内容
+      const newWiki = await this.getOrCreateWiki(owner, repo);
+      content = newWiki.content || '';
+    }
+
+    // 构建月度汇总条目
+    const monthlySection = this._buildMonthlySummaryEntry(monthlyData);
+
+    // 去重检查：检查是否已存在相同的月度汇总
+    const monthlyKey = `### ${monthlyData.month}（月度汇总）`;
+    if (content.includes(monthlyKey)) {
+      logger.debug(`跳过重复月度汇总：${owner}/${repo} - ${monthlyData.month}`);
+      return;
+    }
+
+    // 追加到版本历史部分
+    if (content.includes('## 版本历史')) {
+      content = content.replace(
+        /(## 版本历史\n)/,
+        `$1${monthlySection}\n`
+      );
+    } else {
+      // 如果没有版本历史部分，添加到末尾
+      content = content + `\n\n## 版本历史\n${monthlySection}`;
+    }
+
+    // 更新基本信息中的上榜次数
+    if (monthlyData.appearances) {
+      content = content.replace(
+        /- 上榜次数：\d+/,
+        `- 上榜次数：${monthlyData.appearances}`
+      );
+    }
+
+    fs.writeFileSync(wiki.path, content, 'utf-8');
+    logger.info(`已添加月度汇总：${owner}/${repo} - ${monthlyData.month}`);
+  }
+
+  /**
+   * 构建月度汇总条目
+   * @param {Object} monthlyData - 月度数据
+   * @returns {string} 月度汇总 Markdown
+   */
+  _buildMonthlySummaryEntry(monthlyData) {
+    const { month, appearances, dailyAppearances, weeklyAppearances, trendRole, reportUrl } = monthlyData;
+
+    return `### ${month}（月度汇总）
+**上榜次数**: ${appearances} 次 (日报 ${dailyAppearances} 次 + 周报 ${weeklyAppearances} 次)
+**趋势角色**:
+- 上旬：${trendRole.early || '暂无描述'}
+- 中旬：${trendRole.mid || '暂无描述'}
+- 下旬：${trendRole.late || '暂无描述'}
+
+**来源**: [月报 ${month}](${reportUrl})
+`;
   }
 }
 
