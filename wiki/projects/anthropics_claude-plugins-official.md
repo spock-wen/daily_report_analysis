@@ -4,12 +4,17 @@
 - 首次上榜：2026-03-12
 - 最近上榜：2026-03-15
 - 上榜次数：3
-- 领域分类：rag
-- 语言： TypeScript
-- GitHub Stars: 17206（最后更新：2026-04-18）
+- 领域分类：Plugins, AI Tools, Developer Tools
+- 语言：Python
+- GitHub Stars: 17300+（最后更新：2026-04-20）
 
 ## 核心功能
-- Claude Code 官方插件目录，生态核心入口，stars 1.1 万
+- Anthropic管理的高质量Claude Code插件目录
+- 包含内部插件（由Anthropic开发和维护）和外部插件（来自合作伙伴和社区）
+- 支持通过Claude Code的插件系统直接从这个市场安装
+- 提供标准的插件结构规范
+- 包含多种类型的插件：命令、代理、钩子、MCP服务器、技能等
+- 作为Claude Code生态系统的核心入口
 
 ## 版本历史
 
