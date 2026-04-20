@@ -1,5 +1,11 @@
 const https = require('https');
 
+// 读取环境变量
+const dotenv = require('dotenv');
+dotenv.config();
+
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+
 // 要检查的项目列表
 const projects = [
   { owner: 'addyosmani', repo: 'agent-skills', file: 'addyosmani_agent-skills.md' },
@@ -17,7 +23,8 @@ async function checkProject(owner, repo) {
       method: 'GET',
       headers: {
         'User-Agent': 'GitHub Wiki Updater',
-        'Accept': 'application/vnd.github.v3+json'
+        'Accept': 'application/vnd.github.v3+json',
+        'Authorization': `token ${GITHUB_TOKEN}`
       },
       timeout: 15000
     };
@@ -59,6 +66,7 @@ async function checkProject(owner, repo) {
 // 主函数
 async function main() {
   console.log('开始批量检查项目...');
+  console.log(`使用 GitHub Token: ${GITHUB_TOKEN ? '已配置' : '未配置'}`);
   
   for (const project of projects) {
     console.log(`\n检查项目: ${project.owner}/${project.repo}`);
