@@ -12,6 +12,9 @@ const structureChecks = require('./checks/structure-check');
 const qualityChecks = require('./checks/quality-check');
 const relationChecks = require('./checks/relation-check');
 
+// 导入 LLM 检查模块
+const llmChecks = require('./llm-checks');
+
 // 导入 Reporter
 const cliReporter = require('./reporters/cli-reporter');
 const jsonReporter = require('./reporters/json-reporter');
@@ -19,7 +22,9 @@ const jsonReporter = require('./reporters/json-reporter');
 class WikiInspector {
   constructor(options = {}) {
     this.wikiDir = options.baseDir || path.join(process.cwd(), 'wiki');
+    this.llmClient = options.llmClient || null;
     this.checks = [];
+    this.llmChecks = [];
     this.categoryResults = {
       structure: [],
       quality: [],
@@ -28,6 +33,8 @@ class WikiInspector {
 
     // 注册默认检查项
     this._registerDefaultChecks();
+    // 注册 LLM 检查项
+    this._registerLlmChecks();
   }
 
   /**
@@ -57,6 +64,15 @@ class WikiInspector {
   }
 
   /**
+   * 注册 LLM 检查项
+   */
+  _registerLlmChecks() {
+    // LLM 深度检查
+    this.registerLlmCheck('quality', 'semantic-duplicate', llmChecks.checkSemanticDuplicates);
+    this.registerLlmCheck('quality', 'analysis-quality', llmChecks.checkAnalysisQuality);
+  }
+
+  /**
    * 注册检查项
    * @param {string} category - 类别 (structure/quality/relation)
    * @param {string} name - 检查项名称
@@ -67,10 +83,23 @@ class WikiInspector {
   }
 
   /**
+   * 注册 LLM 检查项
+   * @param {string} category - 类别
+   * @param {string} name - 检查项名称
+   * @param {Function} checkFn - 检查函数
+   */
+  registerLlmCheck(category, name, checkFn) {
+    this.llmChecks.push({ category, name, checkFn });
+  }
+
+  /**
    * 执行所有检查
+   * @param {Object} options - 选项
+   * @param {boolean} options.runLlmChecks - 是否运行 LLM 检查
    * @returns {Promise<Object>} 检查结果
    */
-  async inspect() {
+  async inspect(options = {}) {
+    const { runLlmChecks = false } = options;
     const results = [];
     const categoryResults = {
       structure: [],
@@ -78,7 +107,7 @@ class WikiInspector {
       relation: []
     };
 
-    // 执行所有检查
+    // 执行所有规则检查
     for (const check of this.checks) {
       try {
         const result = await check.checkFn(this.wikiDir);
@@ -94,6 +123,29 @@ class WikiInspector {
           details: [],
           fixCommand: null
         });
+      }
+    }
+
+    // 执行 LLM 检查
+    if (runLlmChecks && this.llmClient) {
+      for (const llmCheck of this.llmChecks) {
+        try {
+          const result = await llmCheck.checkFn(this.wikiDir, this.llmClient);
+          result.category = llmCheck.category;
+          result.requiresLlm = true;
+          results.push(result);
+          categoryResults[llmCheck.category].push(result);
+        } catch (error) {
+          results.push({
+            name: llmCheck.name,
+            category: llmCheck.category,
+            status: 'fail',
+            message: `LLM 检查执行失败：${error.message}`,
+            details: [],
+            fixCommand: null,
+            requiresLlm: true
+          });
+        }
       }
     }
 

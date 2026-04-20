@@ -6,6 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 const { renderTemplate } = require('./wiki-templates');
+const { renderTemplateV2, generateProjectOverview, generateTechStack } = require('./wiki-templates-v2');
 const logger = require('../utils/logger');
 
 class WikiManager {
@@ -61,62 +62,116 @@ class WikiManager {
   }
 
   /**
-   * 创建项目 Wiki
+   * 创建项目 Wiki（优化版 v2）
    * @param {string} owner - 仓库所有者
    * @param {string} repo - 仓库名
    * @param {Object} data - Wiki 数据
    * @returns {Promise<string>} Wiki 文件路径
    */
-  async createProjectWiki(owner, repo, data) {
+  async createProjectWikiV2(owner, repo, data) {
     const { exists, path: wikiPath } = await this.getOrCreateWiki(owner, repo);
     if (exists) {
       logger.warn(`Wiki 已存在：${owner}/${repo}`);
       return wikiPath;
     }
 
-    const content = renderTemplate('project', {
+    // 确保核心功能不为空
+    let coreFunctions = data.coreFunctions || [];
+    if (!coreFunctions.length && data.description) {
+      // 从描述生成基本功能
+      coreFunctions = [data.description];
+    }
+    if (!coreFunctions.length) {
+      coreFunctions = [`参见 [README](https://github.com/${owner}/${repo})`];
+    }
+
+    const content = renderTemplateV2('project_v2', {
       owner,
       repo,
       firstSeen: data.firstSeen || new Date().toISOString().split('T')[0],
       lastSeen: data.lastSeen || data.firstSeen,
       appearances: data.appearances || '1',
-      domain: data.domain || 'General',
+      domain: data.domain || 'general',
       language: data.language || 'Unknown',
       stars: data.stars || '0',
-      coreFunctions: data.coreFunctions ? data.coreFunctions.map(f => `- ${f}`).join('\n') : '',
+      projectStatus: this._getProjectStatus(data.stars),
+      projectOverview: generateProjectOverview({
+        owner,
+        repo,
+        description: data.description,
+        coreFunctions,
+        domain: data.domain,
+        stars: data.stars
+      }),
+      coreFunctions: coreFunctions.map(f => `- ${f}`).join('\n'),
+      techStack: generateTechStack({
+        language: data.language,
+        topics: data.topics || []
+      }),
       versionHistory: data.versionHistory || '',
-      crossReferences: data.crossReferences || ''
+      crossReferences: data.crossReferences || '（待分析）',
+      notes: data.notes || '（暂无备注）'
     });
 
     fs.writeFileSync(wikiPath, content, 'utf-8');
-    logger.success(`创建项目 Wiki: ${owner}/${repo}`);
+    logger.success(`创建项目 Wiki (v2): ${owner}/${repo}`);
     return wikiPath;
   }
 
   /**
-   * 追加版本记录到项目 Wiki
+   * 获取项目状态描述
+   * @param {string|number} stars - Star 数
+   * @returns {string} 状态描述
+   */
+  _getProjectStatus(stars) {
+    const starsNum = parseInt(String(stars).replace(/,/g, '').replace(/k/, '000') || '0');
+    if (starsNum >= 50000) return '⭐ 明星项目';
+    if (starsNum >= 20000) return '🌟 热门项目';
+    if (starsNum >= 5000) return '💎 优质项目';
+    if (starsNum >= 1000) return '📈 成长项目';
+    return '🌱 新兴项目';
+  }
+
+  /**
+   * 追加版本记录到项目 Wiki（优化版）
    * @param {string} owner - 仓库所有者
    * @param {string} repo - 仓库名
    * @param {Object} versionData - 版本数据
+   * @param {boolean} useV2 - 是否使用 v2 模板格式
    * @returns {Promise<void>}
    */
-  async appendVersion(owner, repo, versionData) {
+  async appendVersion(owner, repo, versionData, useV2 = true) {
     const wiki = await this.getOrCreateWiki(owner, repo);
     let content = wiki.content || '';
 
     // 如果没有内容，先创建基本结构（包含分析数据）
     if (!content) {
-      await this.createProjectWiki(owner, repo, {
-        firstSeen: versionData.date,
-        lastSeen: versionData.date,
-        appearances: versionData.appearances || '1',
-        stars: versionData.stars || '0',
-        language: versionData.language || 'Unknown',
-        domain: versionData.domain || 'General',
-        coreFunctions: versionData.coreFunctions,
-        useCases: versionData.useCases,
-        versionHistory: this._buildVersionHistoryEntry(versionData)
-      });
+      if (useV2) {
+        await this.createProjectWikiV2(owner, repo, {
+          firstSeen: versionData.date,
+          lastSeen: versionData.date,
+          appearances: versionData.appearances || '1',
+          stars: versionData.stars || '0',
+          language: versionData.language || 'Unknown',
+          domain: versionData.domain || 'general',
+          description: versionData.description,
+          coreFunctions: versionData.coreFunctions,
+          topics: versionData.topics || [],
+          versionHistory: this._buildVersionHistoryEntry(versionData)
+        });
+      } else {
+        await this.createProjectWiki(owner, repo, {
+          firstSeen: versionData.date,
+          lastSeen: versionData.date,
+          appearances: versionData.appearances || '1',
+          stars: versionData.stars || '0',
+          language: versionData.language || 'Unknown',
+          domain: versionData.domain || 'General',
+          coreFunctions: versionData.coreFunctions,
+          useCases: versionData.useCases,
+          versionHistory: this._buildVersionHistoryEntry(versionData)
+        });
+      }
       return;
     }
 

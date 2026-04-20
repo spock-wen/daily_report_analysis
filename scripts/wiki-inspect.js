@@ -24,6 +24,7 @@ function parseArgs() {
     format: 'cli',
     category: null,
     check: null,
+    runLlmChecks: false,
     help: false
   };
 
@@ -38,6 +39,8 @@ function parseArgs() {
       options.format = 'brief';
     } else if (arg === '--ci') {
       options.format = 'cicd';
+    } else if (arg === '--llm') {
+      options.runLlmChecks = true;
     } else if (arg === '--wiki-dir' && args[i + 1]) {
       options.wikiDir = args[++i];
     } else if (arg === '--category' && args[i + 1]) {
@@ -63,12 +66,13 @@ Wiki Inspector - Wiki 健康检查工具
   --json              输出 JSON 格式报告
   --brief             输出简要报告
   --ci                输出 CI/CD 格式 JSON（包含 success 字段）
+  --llm               运行 LLM 深度检查（语义重复、分析质量）
   --wiki-dir <dir>    指定 Wiki 目录（默认：./wiki）
   --category <name>   只检查指定类别（structure/quality/relation）
   --check <name>      只检查指定检查项
 
 示例:
-  # 完整检查
+  # 完整检查（规则检查）
   node scripts/wiki-inspect.js
 
   # JSON 格式输出
@@ -79,6 +83,9 @@ Wiki Inspector - Wiki 健康检查工具
 
   # 只检查重复记录
   node scripts/wiki-inspect.js --check no-duplicate-versions
+
+  # LLM 深度检查（周报/月报使用）
+  node scripts/wiki-inspect.js --llm
 
   # CI/CD 集成
   node scripts/wiki-inspect.js --ci | jq '.success'
@@ -100,9 +107,24 @@ async function main() {
     process.exit(1);
   }
 
+  // 如果需要运行 LLM 检查，创建 LLM 客户端
+  let llmClient = null;
+  if (options.runLlmChecks) {
+    try {
+      const { createLlmClient } = require('../src/utils/llm-client');
+      llmClient = createLlmClient();
+      console.log('已启用 LLM 深度检查模式...\n');
+    } catch (error) {
+      console.error('警告：无法创建 LLM 客户端，LLM 检查将跳过');
+      console.error(`错误信息：${error.message}`);
+      options.runLlmChecks = false;
+    }
+  }
+
   // 创建检查器实例
   const inspector = new WikiInspector({
-    baseDir: options.wikiDir
+    baseDir: options.wikiDir,
+    llmClient: llmClient
   });
 
   // 执行检查
@@ -127,7 +149,9 @@ async function main() {
     } else if (options.category) {
       result = await inspector.inspectCategory(options.category);
     } else {
-      result = await inspector.inspect();
+      result = await inspector.inspect({
+        runLlmChecks: options.runLlmChecks
+      });
     }
   } catch (error) {
     console.error(`检查执行失败：${error.message}`);
