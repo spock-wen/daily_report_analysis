@@ -1,27 +1,14 @@
-# 👁️ vision 领域
+# Vision
 
-## 领域概览
+## 域描述
+计算机视觉是指让计算机能够理解和处理图像、视频的技术。本域包括OCR、图像处理、目标检测等视觉相关技术。
 
-- 项目总数：1
-- 最近更新：2026-04-20
-- 报告类型：weekly
+## 相关子领域
+- ocr: 光学字符识别
+- computer-vision: 计算机视觉
+- text-recognition: 文本识别
+- image-processing: 图像处理
 
-vision 领域收录了与vision相关的项目。
-
-## 代表项目（按上榜次数排序）
-
-| 排名 | 项目 | 首次上榜 | 上榜次数 | Stars |
-|------|------|----------|----------|-------|
-| 1 | [hacksider/Deep-Live-Cam](../../wiki/projects/hacksider_Deep-Live-Cam.md) | 2026-03-27 | 4 | 90933 |
-
-## 领域趋势
-
-
-- 平均上榜次数：4.0
-- 总 Stars 数：90,933
-- 最热项目：[hacksider/Deep-Live-Cam](../../wiki/projects/hacksider_Deep-Live-Cam.md) (90,933 ⭐)
-
-
----
-
-*本页面由 WikiPostProcessor 自动生成*
+## 包含项目
+- [PaddlePaddle/PaddleOCR](file:///workspace/wiki/projects/PaddlePaddle_PaddleOCR.md)
+- [hacksider/Deep-Live-Cam](file:///workspace/wiki/projects/hacksider_Deep-Live-Cam.md)

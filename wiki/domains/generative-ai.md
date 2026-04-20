@@ -1,27 +1,12 @@
-# ✨ Generative AI 领域
+# Generative AI
 
-## 领域概览
+## 域描述
+生成式AI是指能够生成新内容的人工智能技术，包括文本、图像、音频、视频等。本域包括生成式AI模型、应用和工具。
 
-- 项目总数：1
-- 最近更新：2026-04-20
-- 报告类型：weekly
+## 相关子领域
+- cloud: 云服务
+- machine-learning: 机器学习
+- vertex-ai: Vertex AI平台
 
-Generative AI 领域收录了与Generative AI相关的项目。
-
-## 代表项目（按上榜次数排序）
-
-| 排名 | 项目 | 首次上榜 | 上榜次数 | Stars |
-|------|------|----------|----------|-------|
-| 1 | [GoogleCloudPlatform/generative-ai](../../wiki/projects/GoogleCloudPlatform_generative-ai.md) | 2026-03-08 | 1 | 11700 |
-
-## 领域趋势
-
-
-- 平均上榜次数：1.0
-- 总 Stars 数：11,700
-- 最热项目：[GoogleCloudPlatform/generative-ai](../../wiki/projects/GoogleCloudPlatform_generative-ai.md) (11,700 ⭐)
-
-
----
-
-*本页面由 WikiPostProcessor 自动生成*
+## 包含项目
+- [GoogleCloudPlatform/generative-ai](file:///workspace/wiki/projects/GoogleCloudPlatform_generative-ai.md)

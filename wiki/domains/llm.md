@@ -1,34 +1,20 @@
-# 🧠 llm 领域
+# LLM
 
-## 领域概览
+## 域描述
+大语言模型（LLM）是基于深度学习的大型语言模型，能够理解和生成人类语言。本域包括LLM模型、LLM应用和LLM相关工具。
 
-- 项目总数：8
-- 最近更新：2026-04-20
-- 报告类型：weekly
+## 相关子领域
+- education: LLM教育应用
+- tutorial: LLM教程
+- applications: LLM应用
+- framework: LLM框架
 
-llm 领域收录了与llm相关的项目。
-
-## 代表项目（按上榜次数排序）
-
-| 排名 | 项目 | 首次上榜 | 上榜次数 | Stars |
-|------|------|----------|----------|-------|
-| 1 | [666ghj/MiroFish](../../wiki/projects/666ghj_MiroFish.md) | 2026-03-08 | 5 | 55951 |
-| 2 | [microsoft/BitNet](../../wiki/projects/microsoft_BitNet.md) | 2026-03-12 | 2 | 38386 |
-| 3 | [inclusionAI/AReaL](../../wiki/projects/inclusionAI_AReaL.md) | 2026-03-06 | 2 | 5057 |
-| 4 | [google-ai-edge/LiteRT](../../wiki/projects/google-ai-edge_LiteRT.md) | 2026-03-12 | 2 | 2235 |
-| 5 | [jingyaogong/minimind](../../wiki/projects/jingyaogong_minimind.md) | 2026-03-24 | 1 | 47141 |
-| 6 | [BerriAI/litellm](../../wiki/projects/BerriAI_litellm.md) | 2026-03-26 | 1 | 43718 |
-| 7 | [Lordog/dive-into-llms](../../wiki/projects/Lordog_dive-into-llms.md) | 2026-04-18 | 1 | 32453 |
-| 8 | [thunderbird/thunderbolt](../../wiki/projects/thunderbird_thunderbolt.md) | 2026-04-19 | 1 | 2191 |
-
-## 领域趋势
-
-
-- 平均上榜次数：1.9
-- 总 Stars 数：227,132
-- 最热项目：[666ghj/MiroFish](../../wiki/projects/666ghj_MiroFish.md) (55,951 ⭐)
-
-
----
-
-*本页面由 WikiPostProcessor 自动生成*
+## 包含项目
+- [Lordog/dive-into-llms](file:///workspace/wiki/projects/Lordog_dive-into-llms.md)
+- [BerriAI/litellm](file:///workspace/wiki/projects/BerriAI_litellm.md)
+- [666ghj/MiroFish](file:///workspace/wiki/projects/666ghj_MiroFish.md)
+- [microsoft/BitNet](file:///workspace/wiki/projects/microsoft_BitNet.md)
+- [jingyaogong/minimind](file:///workspace/wiki/projects/jingyaogong_minimind.md)
+- [google-ai-edge/LiteRT](file:///workspace/wiki/projects/google-ai-edge_LiteRT.md)
+- [inclusionAI/AReaL](file:///workspace/wiki/projects/inclusionAI_AReaL.md)
+- [thunderbird/thunderbolt](file:///workspace/wiki/projects/thunderbird_thunderbolt.md)

@@ -1,27 +1,12 @@
-# 🔌 Plugins 领域
+# Plugins
 
-## 领域概览
+## 域描述
+插件是指可以扩展应用功能的软件模块。本域包括各种插件系统、插件市场和插件开发工具。
 
-- 项目总数：1
-- 最近更新：2026-04-20
-- 报告类型：weekly
+## 相关子领域
+- ai-tools: AI工具插件
+- developer-tools: 开发工具插件
+- mcp: MCP插件
 
-Plugins 领域收录了与Plugins相关的项目。
-
-## 代表项目（按上榜次数排序）
-
-| 排名 | 项目 | 首次上榜 | 上榜次数 | Stars |
-|------|------|----------|----------|-------|
-| 1 | [anthropics/claude-plugins-official](../../wiki/projects/anthropics_claude-plugins-official.md) | 2026-03-12 | 3 | 17300 |
-
-## 领域趋势
-
-
-- 平均上榜次数：3.0
-- 总 Stars 数：17,300
-- 最热项目：[anthropics/claude-plugins-official](../../wiki/projects/anthropics_claude-plugins-official.md) (17,300 ⭐)
-
-
----
-
-*本页面由 WikiPostProcessor 自动生成*
+## 包含项目
+- [anthropics/claude-plugins-official](file:///workspace/wiki/projects/anthropics_claude-plugins-official.md)
