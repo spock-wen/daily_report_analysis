@@ -573,10 +573,10 @@ class ReportPipeline {
    */
   async generateAIInsights(data, type) {
     logger.info('[ReportPipeline] 开始 AI 分析...');
-    
+
     try {
       let insights;
-      
+
       // 构建兼容的数据结构，包含 brief 字段
       const analysisData = {
         ...data,
@@ -586,7 +586,12 @@ class ReportPipeline {
           generatedAt: data.generatedAt || new Date().toISOString()
         }
       };
-      
+
+      // 为周报添加 weekStart 字段（用于保存 insights 文件）
+      if (type === 'weekly' && !analysisData.weekStart) {
+        analysisData.weekStart = this.getWeeklyIdentifier(data);
+      }
+
       if (type === 'daily') {
         insights = await this.analyzer.analyzeDaily(analysisData);
       } else if (type === 'weekly') {
