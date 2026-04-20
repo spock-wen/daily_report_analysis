@@ -4,15 +4,17 @@
 - 首次上榜：2026-04-18
 - 最近上榜：2026-04-18
 - 上榜次数：1
-- 领域分类：General
-- 语言：Unknown
-- GitHub Stars: 17904（最后更新：2026-04-20）
+- 领域分类：AI Agent, Development Tools
+- 语言：Markdown, Shell, JSON
+- GitHub Stars: 14000+（最后更新：2026-04-20）
 
 ## 核心功能
-- 提供智能代理/自动化助手功能
-- 支持多步骤任务规划和执行
-- 集成 LLM 能力进行自然语言交互
-- 支持工具调用和外部 API 集成
+- 7个开发生命周期斜杠命令：/spec、/plan、/build、/test、/review、/code-simplify、/ship
+- 20+结构化技能工作流，覆盖从需求定义到部署上线的全过程
+- 多平台支持：Claude Code、Cursor、Gemini CLI、Windsurf、OpenCode、GitHub Copilot
+- 专业代理角色：code-reviewer、test-engineer、security-auditor
+- 集成Google工程实践：Hyrum's Law、测试金字塔、Chesterton's Fence等
+- 参考清单：测试模式、安全检查、性能优化、无障碍标准等
 
 
 ## 版本历史

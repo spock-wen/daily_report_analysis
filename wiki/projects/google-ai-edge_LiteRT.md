@@ -10,6 +10,7 @@
 
 ## 核心功能
 
+- 参见 [GitHub 仓库](https://github.com/google-ai-edge/LiteRT)
 
 ## 版本历史
 

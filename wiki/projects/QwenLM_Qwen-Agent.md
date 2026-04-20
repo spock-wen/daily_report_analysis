@@ -4,12 +4,23 @@
 - 首次上榜：2026-03-07
 - 最近上榜：2026-03-08
 - 上榜次数：2
-- 领域分类：agent
-- 语言：Unknown
-- GitHub Stars: 16053（最后更新：2026-04-18）
+- 领域分类：AI Agent, Framework, LLM Applications
+- 语言：Python
+- GitHub Stars: 12400+（最后更新：2026-04-20）
 
 ## 核心功能
-
+- 基于通义千问模型（Qwen）的Agent开发框架，支持指令遵循、工具使用、规划、记忆能力
+- 作为Qwen Chat的后端运行
+- 提供浏览器助手、代码解释器、自定义助手等示例应用
+- 支持DashScope API和OpenAI兼容的API接入
+- 支持Qwen3、Qwen3-Coder等最新模型
+- 支持MCP（Model Control Protocol）
+- 支持RAG（检索增强生成）
+- 支持代码解释器
+- 支持Chrome扩展，实现网页内容实时问答
+- 提供Gradio基于的GUI支持
+- 支持并行、多步、多轮工具调用
+- 支持原生API工具调用接口
 
 ## 版本历史
 

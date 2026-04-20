@@ -1,36 +1,34 @@
-# 🤖 agent 领域
+# Agent
 
-## 领域概览
+## 域描述
+智能体（Agent）是能够自主执行任务、做出决策并与环境交互的AI系统。本域包括各种智能体框架、多智能体系统和智能体应用。
 
-- 项目总数：11
-- 最近更新：2026-04-20
-- 报告类型：weekly
+## 相关子领域
+- multi-agent: 多智能体系统
+- orchestration: 智能体编排
+- self-improvement: 自我改进智能体
+- memory: 智能体记忆管理
+- chatbot: 聊天机器人
+- trading: 交易智能体
+- scientific: 科学研究智能体
+- security: 安全智能体
 
-agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
-
-## 代表项目（按上榜次数排序）
-
-| 排名 | 项目 | 首次上榜 | 上榜次数 | Stars |
-|------|------|----------|----------|-------|
-| 1 | [multica-ai/andrej-karpathy-skills](../../wiki/projects/multica-ai_andrej-karpathy-skills.md) | 2026-04-19 | 1 | 59520 |
-| 2 | [openai/openai-agents-python](../../wiki/projects/openai_openai-agents-python.md) | 2026-04-19 | 1 | 23130 |
-| 3 | [Donchitos/Claude-Code-Game-Studios](../../wiki/projects/Donchitos_Claude-Code-Game-Studios.md) | 2026-04-19 | 1 | 13376 |
-| 4 | [forrestchang/andrej-karpathy-skills](../../wiki/projects/forrestchang_andrej-karpathy-skills.md) | 2026-04-20 | 1 | 61289 |
-| 5 | [NousResearch/hermes-agent](../../wiki/projects/NousResearch_hermes-agent.md) | 2026-04-20 | 1 | 102063 |
-| 6 | [thedotmack/claude-mem](../../wiki/projects/thedotmack_claude-mem.md) | 2026-04-20 | 1 | 63305 |
-| 7 | [EvoMap/evolver](../../wiki/projects/EvoMap_evolver.md) | 2026-04-20 | 1 | 5501 |
-| 8 | [lsdefine/GenericAgent](../../wiki/projects/lsdefine_GenericAgent.md) | 2026-04-20 | 1 | 4533 |
-| 9 | [multica-ai/multica](../../wiki/projects/multica-ai_multica.md) | 2026-04-20 | 1 | 16743 |
-| 10 | [SimoneAvogadro/android-reverse-engineering-skill](../../wiki/projects/SimoneAvogadro_android-reverse-engineering-skill.md) | 2026-04-20 | 1 | 3564 |
-
-## 领域趋势
-
-
-- 平均上榜次数：1.0
-- 总 Stars 数：370,928
-- 最热项目：[NousResearch/hermes-agent](../../wiki/projects/NousResearch_hermes-agent.md) (102063 ⭐)
-
-
----
-
-*本页面由 WikiPostProcessor 自动生成*
+## 包含项目
+- [AstrBotDevs/AstrBot](file:///workspace/wiki/projects/AstrBotDevs_AstrBot.md)
+- [Yeachan-Heo/oh-my-claudecode](file:///workspace/wiki/projects/Yeachan-Heo_oh-my-claudecode.md)
+- [TauricResearch/TradingAgents](file:///workspace/wiki/projects/TauricResearch_TradingAgents.md)
+- [EvoMap/evolver](file:///workspace/wiki/projects/EvoMap_evolver.md)
+- [Donchitos/Claude-Code-Game-Studios](file:///workspace/wiki/projects/Donchitos_Claude-Code-Game-Studios.md)
+- [NousResearch/hermes-agent](file:///workspace/wiki/projects/NousResearch_hermes-agent.md)
+- [agentscope-ai/agentscope](file:///workspace/wiki/projects/agentscope-ai_agentscope.md)
+- [virattt/dexter](file:///workspace/wiki/projects/virattt_dexter.md)
+- [obra/superpowers](file:///workspace/wiki/projects/obra_superpowers.md)
+- [langchain-ai/deepagents](file:///workspace/wiki/projects/langchain-ai_deepagents.md)
+- [alibaba/page-agent](file:///workspace/wiki/projects/alibaba_page-agent.md)
+- [bytedance/deer-flow](file:///workspace/wiki/projects/bytedance_deer-flow.md)
+- [thedotmack/claude-mem](file:///workspace/wiki/projects/thedotmack_claude-mem.md)
+- [forrestchang/andrej-karpathy-skills](file:///workspace/wiki/projects/forrestchang_andrej-karpathy-skills.md)
+- [lsdefine/GenericAgent](file:///workspace/wiki/projects/lsdefine_GenericAgent.md)
+- [openai/openai-agents-python](file:///workspace/wiki/projects/openai_openai-agents-python.md)
+- [addyosmani/agent-skills](file:///workspace/wiki/projects/addyosmani_agent-skills.md)
+- [affaan-m/everything-claude-code](file:///workspace/wiki/projects/affaan-m_everything-claude-code.md)

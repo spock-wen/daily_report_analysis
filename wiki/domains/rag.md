@@ -1,28 +1,17 @@
-# 🔍 rag 领域
+# RAG
 
-## 领域概览
+## 域描述
+检索增强生成（RAG）是一种结合了信息检索和生成式AI的技术，用于增强LLM的知识和准确性。本域包括RAG框架、知识库管理和相关工具。
 
-- 项目总数：2
-- 最近更新：2026-04-19
-- 报告类型：daily
+## 相关子领域
+- context-database: 上下文数据库
+- knowledge-base: 知识库
+- retrieval: 检索系统
 
-rag 领域收录了与RAG、检索增强生成、知识库、向量检索相关的项目。
-
-## 代表项目（按上榜次数排序）
-
-| 排名 | 项目 | 首次上榜 | 上榜次数 | Stars |
-|------|------|----------|----------|-------|
-| 1 | [Fincept-Corporation/FinceptTerminal](../../wiki/projects/Fincept-Corporation_FinceptTerminal.md) | 2026-04-19 | 1 | 6430 |
-| 2 | [paperless-ngx/paperless-ngx](../../wiki/projects/paperless-ngx_paperless-ngx.md) | 2026-04-19 | 1 | 38841 |
-
-## 领域趋势
-
-
-- 平均上榜次数：1.0
-- 总 Stars 数：45,271
-- 最热项目：[paperless-ngx/paperless-ngx](../../wiki/projects/paperless-ngx_paperless-ngx.md) (38841 ⭐)
-
-
----
-
-*本页面由 WikiPostProcessor 自动生成*
+## 包含项目
+- [volcengine/OpenViking](file:///workspace/wiki/projects/volcengine_OpenViking.md)
+- [ruvnet/ruflo](file:///workspace/wiki/projects/ruvnet_ruflo.md)
+- [opendataloader-project/opendataloader-pdf](file:///workspace/wiki/projects/opendataloader-project_opendataloader-pdf.md)
+- [promptfoo/promptfoo](file:///workspace/wiki/projects/promptfoo_promptfoo.md)
+- [paperless-ngx/paperless-ngx](file:///workspace/wiki/projects/paperless-ngx_paperless-ngx.md)
+- [agentscope-ai/ReMe](file:///workspace/wiki/projects/agentscope-ai_ReMe.md)
