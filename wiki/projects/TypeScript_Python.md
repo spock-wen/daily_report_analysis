@@ -9,8 +9,11 @@
 - GitHub Stars: 0
 
 ## 核心功能
-
-
+- 通过 shareAI-lab/learn-claude-code 教程构建自定义 AI 代理
+- 掌握 TypeScript 和 Python 双栈开发
+- 支持跨语言 AI 代理开发
+- 提供完整的开发环境和工具链
+- 适用于构建多语言 AI 应用
 ## 版本历史
 
 

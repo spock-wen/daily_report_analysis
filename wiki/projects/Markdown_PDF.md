@@ -9,8 +9,11 @@
 - GitHub Stars: 0
 
 ## 核心功能
-
-
+- 支持 Markdown 文档的解析和渲染
+- 支持 PDF 文档的导入和搜索
+- 集成 Perplexica 作为内部知识库搜索引擎
+- 支持 Notion 等多种格式的文档导入
+- 提供替代 SearxNG+LlamaIndex 的集成方案
 ## 版本历史
 
 

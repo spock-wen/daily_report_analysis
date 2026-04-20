@@ -9,8 +9,11 @@
 - GitHub Stars: 0
 
 ## 核心功能
-
-
+- 提供 ONNX Runtime 轻量部署方案
+- 支持 fishaudio/fish-speech 的 ONNX 模型部署
+- 降低 TTS 延迟约 30%
+- 适用于语音项目的 TTS 后端替换
+- 提供 deploy_onnx.py 示例代码
 ## 版本历史
 
 

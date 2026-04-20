@@ -9,8 +9,11 @@
 - GitHub Stars: 0
 
 ## 核心功能
-
-
+- 唯一支持MCP（Model Control Protocol）标准的IM机器人基础设施
+- 已集成QQ、Telegram、Discord三端支持
+- OpenAI、Gemini、Llama等大模型插件热切换
+- 提供标准化的机器人开发框架
+- 支持多种即时通讯平台的统一接口
 ## 版本历史
 
 
