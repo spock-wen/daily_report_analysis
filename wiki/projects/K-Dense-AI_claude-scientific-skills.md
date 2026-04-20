@@ -4,7 +4,7 @@
 - 首次上榜：2026-03-04
 - 最近上榜：2026-03-05
 - 上榜次数：2
-- 领域分类：other
+- 领域分类：scientific, ai, research, bioinformatics, drug-discovery
 - 语言：Python
 - GitHub Stars: 18743（最后更新：2026-04-18）
 

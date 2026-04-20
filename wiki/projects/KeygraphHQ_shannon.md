@@ -4,7 +4,7 @@
 - 首次上榜：2026-03-05
 - 最近上榜：2026-03-06
 - 上榜次数：2
-- 领域分类：other
+- 领域分类：security, cybersecurity, penetration-testing, ai
 - 语言：TypeScript
 - GitHub Stars: 38485（最后更新：2026-04-18）
 

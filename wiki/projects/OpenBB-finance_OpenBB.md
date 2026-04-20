@@ -4,7 +4,7 @@
 - 首次上榜：2026-03-30
 - 最近上榜：2026-03-30
 - 上榜次数：1
-- 领域分类：dev-tool
+- 领域分类：finance, data, quantitative, ai
 - 语言：Python
 - GitHub Stars: 66017（最后更新：2026-04-18）
 
