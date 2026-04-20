@@ -4,13 +4,15 @@
 - 首次上榜：2026-04-19
 - 最近上榜：2026-04-19
 - 上榜次数：1
-- 领域分类：General
-- 语言：Unknown
+- 领域分类：dev-tool
+- 语言：Shell
 - GitHub Stars: 3475（最后更新：2026-04-19）
 
 ## 核心功能
-- aaddrick/claude-desktop-debian 核心功能待补充
-- 请查看项目 README 获取详细信息
+- Claude 桌面应用的 Debian 系统安装和打包工具
+- 简化 Claude 在 Debian 及其衍生系统上的安装流程
+- 提供自动化安装脚本和依赖管理
+- 支持不同版本的 Claude 桌面应用
 
 
 ## 版本历史
