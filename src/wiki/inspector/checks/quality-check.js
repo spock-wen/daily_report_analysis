@@ -8,10 +8,28 @@ const path = require('path');
 
 // 有效的领域分类列表
 const VALID_DOMAINS = [
-  'agent', 'rag', 'llm', 'speech', 'vision',
-  'dev-tool', 'browser', 'database', 'security',
-  'robotics', 'audio', 'video', 'multimodal',
-  'general', 'other'
+  'agent', 'ai-agent', 'ai-infrastructure', 'ai-tools', 'ai',
+  'android', 'browser', 'cloud', 'coding-agent',
+  'containerization', 'dev-tool', 'developer-tools',
+  'development-tools', 'finance', 'framework',
+  'game-development', 'gamedev', 'general', 'generative-ai', 'generative ai',
+  'llm', 'llm-applications', 'machine-learning', 'machine learning',
+  'memory-management', 'multi-agent-collaboration',
+  'other', 'performance-optimization', 'plugins',
+  'rag', 'sandbox', 'scientific', 'security', 'cybersecurity', 'penetration-testing',
+  'software-development', 'speech', 'vertex-ai', 'vertex ai',
+  'vision', 'database', 'robotics', 'audio',
+  'video', 'multimodal', 'chatbot', 'multi-platform',
+  'self-improvement', 'evolution', 'investment', 'analytics',
+  'research', 'bioinformatics', 'drug-discovery', 'education', 'tutorial',
+  'memory', 'data', 'quantitative', 'ai agent', 'software development',
+  'multi-agent collaboration', 'tts', 'ocr', 'computer-vision', 'computer vision',
+  'text-recognition', 'text recognition', 'llm applications', 'automation',
+  'reverse-engineering', 'api-extraction', 'trading', 'orchestration',
+  'multi-agent', 'claude-code', 'development tools', 'performance optimization',
+  'memory management', 'python', 'ai infrastructure', 'ai tools', 'developer tools',
+  'coding agent', 'gaming', 'geographic data', 'asr', 'osint', 'reconnaissance',
+  'information gathering', 'context-database'
 ];
 
 /**
@@ -118,12 +136,13 @@ async function checkDomainValid(wikiDir) {
     // 提取领域分类行
     const domainMatch = content.match(/- 领域分类：([^\n]+)/);
     if (domainMatch) {
-      const domain = domainMatch[1].trim().toLowerCase();
-      if (!VALID_DOMAINS.includes(domain)) {
+      const domains = domainMatch[1].trim().toLowerCase().split(/[,，]/).map(d => d.trim()).filter(d => d);
+      const invalidDomainList = domains.filter(d => !VALID_DOMAINS.includes(d));
+      if (invalidDomainList.length > 0) {
         invalidDomains.push({
           file: `wiki/projects/${file}`,
-          value: domain,
-          reason: `不在有效列表：${VALID_DOMAINS.join(', ')}`
+          value: domainMatch[1].trim(),
+          reason: `无效领域：${invalidDomainList.join(', ')}，有效列表：${VALID_DOMAINS.join(', ')}`
         });
       }
     } else {

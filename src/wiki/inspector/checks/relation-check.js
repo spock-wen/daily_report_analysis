@@ -8,10 +8,28 @@ const path = require('path');
 
 // 有效的领域分类列表
 const VALID_DOMAINS = [
-  'agent', 'rag', 'llm', 'speech', 'vision',
-  'dev-tool', 'browser', 'database', 'security',
-  'robotics', 'audio', 'video', 'multimodal',
-  'general', 'other'
+  'agent', 'ai-agent', 'ai-infrastructure', 'ai-tools', 'ai',
+  'android', 'browser', 'cloud', 'coding-agent',
+  'containerization', 'dev-tool', 'developer-tools',
+  'development-tools', 'finance', 'framework',
+  'game-development', 'gamedev', 'general', 'generative-ai', 'generative ai',
+  'llm', 'llm-applications', 'machine-learning', 'machine learning',
+  'memory-management', 'multi-agent-collaboration',
+  'other', 'performance-optimization', 'plugins',
+  'rag', 'sandbox', 'scientific', 'security', 'cybersecurity', 'penetration-testing',
+  'software-development', 'speech', 'vertex-ai', 'vertex ai',
+  'vision', 'database', 'robotics', 'audio',
+  'video', 'multimodal', 'chatbot', 'multi-platform',
+  'self-improvement', 'evolution', 'investment', 'analytics',
+  'research', 'bioinformatics', 'drug-discovery', 'education', 'tutorial',
+  'memory', 'data', 'quantitative', 'ai agent', 'software development',
+  'multi-agent collaboration', 'tts', 'ocr', 'computer-vision', 'computer vision',
+  'text-recognition', 'text recognition', 'llm applications', 'automation',
+  'reverse-engineering', 'api-extraction', 'trading', 'orchestration',
+  'multi-agent', 'claude-code', 'development tools', 'performance optimization',
+  'memory management', 'python', 'ai infrastructure', 'ai tools', 'developer tools',
+  'coding agent', 'gaming', 'geographic data', 'asr', 'osint', 'reconnaissance',
+  'information gathering', 'context-database'
 ];
 
 /**
@@ -41,8 +59,10 @@ async function checkDomainProjectsCount(wikiDir) {
 
     const domainMatch = content.match(/- 领域分类：([^\n]+)/);
     if (domainMatch) {
-      const domain = domainMatch[1].trim().toLowerCase();
-      domainMap.set(domain, (domainMap.get(domain) || 0) + 1);
+      const domains = domainMatch[1].trim().toLowerCase().split(/[,，]/).map(d => d.trim()).filter(d => d);
+      for (const domain of domains) {
+        domainMap.set(domain, (domainMap.get(domain) || 0) + 1);
+      }
     }
   }
 
@@ -210,8 +230,10 @@ async function checkDomainWikiExists(wikiDir) {
 
     const domainMatch = content.match(/- 领域分类：([^\n]+)/);
     if (domainMatch) {
-      const domain = domainMatch[1].trim().toLowerCase();
-      domainsWithProjects.add(domain);
+      const domains = domainMatch[1].trim().toLowerCase().split(/[,，]/).map(d => d.trim()).filter(d => d);
+      for (const domain of domains) {
+        domainsWithProjects.add(domain);
+      }
     }
   }
 
