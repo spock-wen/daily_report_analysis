@@ -4,13 +4,19 @@
 - 首次上榜：2026-03-06
 - 最近上榜：2026-03-06
 - 上榜次数：1
-- 领域分类：agent
-- 语言：Unknown
-- GitHub Stars: 2760（最后更新：2026-04-18）
+- 领域分类：AI Agent, Memory Management, RAG
+- 语言：Python
+- GitHub Stars: 2700+（最后更新：2026-04-20）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/agentscope-ai/ReMe)
+- 代理内存管理工具包：Remember Me, Refine Me
+- 支持个人、任务和工具级别的长期内存管理
+- 集成到AgentScope中，提供增强的长期记忆能力
+- 内存检索和合并功能
+- CoPaw文件基内存系统，支持压缩和优化
+- 文件存储系统，支持SQLite3集成
+- 上下文管理和记忆优化
+- 与AgentScope生态系统无缝集成
 
 ## 版本历史
 
