@@ -1,19 +1,27 @@
-# Vision 领域
+# 👁️ vision 领域
 
 ## 领域概览
 
-Vision 领域包含 1 个项目。
+- 项目总数：1
+- 最近更新：2026-04-20
+- 报告类型：weekly
 
-## 代表项目
+vision 领域收录了与vision相关的项目。
 
-| 项目 | Stars | 描述 |
-|------|-------|------|
-| - | - | - |
+## 代表项目（按上榜次数排序）
 
-## 趋势演变
+| 排名 | 项目 | 首次上榜 | 上榜次数 | Stars |
+|------|------|----------|----------|-------|
+| 1 | [hacksider/Deep-Live-Cam](../../wiki/projects/hacksider_Deep-Live-Cam.md) | 2026-03-27 | 4 | 90933 |
 
-待补充
+## 领域趋势
 
-## 相关项目
 
-待补充
+- 平均上榜次数：4.0
+- 总 Stars 数：90,933
+- 最热项目：[hacksider/Deep-Live-Cam](../../wiki/projects/hacksider_Deep-Live-Cam.md) (90,933 ⭐)
+
+
+---
+
+*本页面由 WikiPostProcessor 自动生成*

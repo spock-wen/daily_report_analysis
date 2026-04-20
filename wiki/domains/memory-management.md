@@ -1,4 +1,4 @@
-# 📚 RAG 领域
+# 💾 Memory Management 领域
 
 ## 领域概览
 
@@ -6,7 +6,7 @@
 - 最近更新：2026-04-20
 - 报告类型：weekly
 
-RAG 领域收录了与RAG相关的项目。
+Memory Management 领域收录了与Memory Management相关的项目。
 
 ## 代表项目（按上榜次数排序）
 
