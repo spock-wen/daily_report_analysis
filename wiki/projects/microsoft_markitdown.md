@@ -6,7 +6,7 @@
 - 上榜次数：1
 - 领域分类：General
 - 语言：Unknown
-- GitHub Stars: 112314（最后更新：2026-04-19）
+- GitHub Stars: 112596（最后更新：2026-04-20）
 
 ## 核心功能
 - 提供开发者工具和效率提升功能
@@ -22,6 +22,13 @@
 **分析**: Python tool for converting files and office documents to Markdown.
 
 
+
+
+### 2026-04-20（周报收录）
+**来源**: [周报 2026-04-20](../../weekly/github-ai-trending-2026-04-20.html)
+**分析**: 🔥 今日热度极高，受到社区广泛关注
+⭐ 明星项目，在开发者社区具有重要影响力
+👥 社区活跃度：极高 - 社区非常活跃，是领域内的标杆项目
 
 ## 跨项目关联
 
