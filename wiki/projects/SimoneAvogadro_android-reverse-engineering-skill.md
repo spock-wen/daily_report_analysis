@@ -4,15 +4,19 @@
 - 首次上榜：2026-04-18
 - 最近上榜：2026-04-18
 - 上榜次数：1
-- 领域分类：other
-- 语言：Unknown
+- 领域分类：android, reverse-engineering, security, api-extraction
+- 语言：Shell
 - GitHub Stars: 3564（最后更新：2026-04-20）
 
 ## 核心功能
-- 提供智能代理/自动化助手功能
-- 支持多步骤任务规划和执行
-- 集成 LLM 能力进行自然语言交互
-- 支持工具调用和外部 API 集成
+- 反编译Android APK、XAPK、JAR和AAR文件，使用jadx和Fernflower/Vineflower
+- 提取和文档化API：Retrofit端点、OkHttp调用、硬编码URL、认证头和令牌
+- 跟踪调用流程，从Activities/Fragments通过ViewModels和存储库到HTTP调用
+- 分析应用结构：清单、包、架构模式
+- 处理混淆代码：导航ProGuard/R8输出的策略
+- 支持双引擎比较，提高反编译准确性
+- 支持XAPK捆绑包处理
+- 提供自动化依赖管理和安装脚本
 
 
 ## 版本历史
