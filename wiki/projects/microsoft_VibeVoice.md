@@ -4,13 +4,21 @@
 - 首次上榜：2026-03-27
 - 最近上榜：2026-03-31
 - 上榜次数：4
-- 领域分类：speech
-- 语言：Unknown
-- GitHub Stars: 40086（最后更新：2026-04-18）
+- 领域分类：speech, audio, tts, asr
+- 语言：Python
+- GitHub Stars：40086（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/microsoft/VibeVoice)
+- 开源前沿语音AI家族，包含ASR（语音识别）和TTS（语音合成）两大核心能力
+- VibeVoice-ASR-7B：60分钟长音频单次处理，生成结构化转录（说话人、时间戳、内容）
+- VibeVoice-ASR原生支持50+种语言，支持自定义热词提升专业内容识别准确率
+- VibeVoice-TTS-1.5B：90分钟长文本语音合成，支持最多4个不同说话人
+- VibeVoice-Realtime-0.5B：实时TTS模型，首字延迟<300ms，0.5B参数轻量部署
+- 采用7.5Hz超低帧率连续语音tokenizer技术，高效保存音频保真度
+- 基于next-token diffusion框架，结合LLM理解文本上下文
+- 已集成到Hugging Face Transformers v5.3.0，一行代码即可使用
+- 支持vLLM推理加速，高吞吐GPU服务
+- VibeVoice-ASR技术报告已被ICLR 2026接收为Oral论文
 
 ## 版本历史
 
