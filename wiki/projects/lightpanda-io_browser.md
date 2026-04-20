@@ -5,12 +5,13 @@
 - 最近上榜：2026-03-16
 - 上榜次数：4
 - 领域分类：browser
-- 语言：Unknown
+- 语言：Zig
 - GitHub Stars: 28880（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/lightpanda-io/browser)
+- 专为 AI 自动化设计的 Zig 语言无头浏览器
+- Zig 编写无头浏览器，专为 AI 自动化与 CDP 协议优化
+- 提供高性能浏览器自动化能力
 
 ## 版本历史
 

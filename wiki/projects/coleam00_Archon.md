@@ -5,12 +5,12 @@
 - 最近上榜：2026-04-18
 - 上榜次数：1
 - 领域分类：General
-- 语言：Unknown
+- 语言：TypeScript
 - GitHub Stars: 18794（最后更新：2026-04-19）
 
 ## 核心功能
-- coleam00/Archon 核心功能待补充
-- 请查看项目 README 获取详细信息
+- 首个开源的 AI 编码 harness 构建工具
+- 使 AI 编码具有确定性和可重复性
 
 
 ## 版本历史

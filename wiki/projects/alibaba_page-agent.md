@@ -5,12 +5,14 @@
 - 最近上榜：2026-03-11
 - 上榜次数：2
 - 领域分类：agent
-- 语言：Unknown
+- 语言：TypeScript
 - GitHub Stars: 17146（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/alibaba/page-agent)
+- TypeScript 实现的浏览器内 GUI 代理
+- 通过自然语言直接操作任意 Web 页面 DOM
+- 突破传统 RPA 边界
+- 提供自然语言指令生成能力
 
 ## 版本历史
 

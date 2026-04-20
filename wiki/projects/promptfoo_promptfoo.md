@@ -5,12 +5,14 @@
 - 最近上榜：2026-03-13
 - 上榜次数：2
 - 领域分类：rag
-- 语言：Unknown
+- 语言：TypeScript
 - GitHub Stars: 20240（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/promptfoo/promptfoo)
+- 唯一支持 CI/CD 原生集成的 LLM 红队框架
+- 提供跨模型（GPT/Claude/Gemini/Llama）对抗性提示漏洞扫描
+- 提供 RAG 链路深度评估能力
+- 建立 LLM 提示词与安全测试标准
 
 ## 版本历史
 

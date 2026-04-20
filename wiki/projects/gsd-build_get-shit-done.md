@@ -5,12 +5,13 @@
 - 最近上榜：2026-03-19
 - 上榜次数：1
 - 领域分类：dev-tool
-- 语言：Unknown
+- 语言：TypeScript
 - GitHub Stars: 54464（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/gsd-build/get-shit-done)
+- 元提示工程系统
+- 重塑 Claude Code 开发范式
+- 提供高效的 AI 开发工作流
 
 ## 版本历史
 

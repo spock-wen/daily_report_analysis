@@ -5,12 +5,14 @@
 - 最近上榜：2026-03-07
 - 上榜次数：2
 - 领域分类：llm
-- 语言：Unknown
+- 语言：Python
 - GitHub Stars: 5057（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/inclusionAI/AReaL)
+- 闪电级 RL 框架专为 LLM 推理与代理设计
+- 支持轻量级策略微调与实时环境交互
+- 轻量级 LLM 推理增强 RL 框架
+- 支持毫秒级策略更新与 RAG-RL 联合训练
 
 ## 版本历史
 

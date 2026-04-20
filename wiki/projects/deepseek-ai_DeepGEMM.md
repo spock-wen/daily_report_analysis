@@ -5,12 +5,11 @@
 - 最近上榜：2026-04-19
 - 上榜次数：1
 - 领域分类：General
-- 语言：Unknown
+- 语言：Python
 - GitHub Stars: 6541（最后更新：2026-04-19）
 
 ## 核心功能
-- deepseek-ai/DeepGEMM 核心功能待补充
-- 请查看项目 README 获取详细信息
+- 高效的 GEMM (通用矩阵乘法) 优化库
 
 
 ## 版本历史

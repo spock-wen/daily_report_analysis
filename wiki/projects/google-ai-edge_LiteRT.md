@@ -5,12 +5,14 @@
 - 最近上榜：2026-03-13
 - 上榜次数：2
 - 领域分类：llm
-- 语言：Unknown
+- 语言：C++
 - GitHub Stars: 2235（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/google-ai-edge/LiteRT)
+- TensorFlow Lite 继任者
+- C++ 原生设计 + MLIR 统一优化栈
+- 首次实现 LLM 在 Android 端 <200ms 端到端延迟
+- 谷歌边缘设备高性能 GenAI 部署框架
 
 ## 版本历史
 

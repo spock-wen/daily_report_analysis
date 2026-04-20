@@ -5,12 +5,12 @@
 - 最近上榜：2026-03-17
 - 上榜次数：1
 - 领域分类：dev-tool
-- 语言：Unknown
+- 语言：C++
 - GitHub Stars: 8151（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/cloudflare/workerd)
+- JavaScript/Wasm 运行时
+- 提供边缘计算能力
 
 ## 版本历史
 

@@ -5,12 +5,15 @@
 - 最近上榜：2026-03-14
 - 上榜次数：4
 - 领域分类：speech
-- 语言：Unknown
+- 语言：Python
 - GitHub Stars: 29781（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/fishaudio/fish-speech)
+- 当前开源 TTS SOTA
+- 首次在单模型中融合 VALL-E 风格语义压缩、VITS 音素建模与 VQGAN 声学 token 化
+- 支持 10ms 级低延迟推理
+- 唯一同时集成 VALL-E、VITS、VQGAN-VQVAE 三范式的 SOTA 开源 TTS
+- 支持零样本语音克隆与语义可控生成
 
 ## 版本历史
 

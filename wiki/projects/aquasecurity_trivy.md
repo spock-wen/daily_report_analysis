@@ -5,12 +5,13 @@
 - 最近上榜：2026-03-22
 - 上榜次数：2
 - 领域分类：dev-tool
-- 语言：Unknown
+- 语言：Go
 - GitHub Stars: 34572（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/aquasecurity/trivy)
+- Go 编写的全栈 DevSecOps 扫描器
+- 覆盖容器/K8s/IaC/代码/云
+- AI 增强容器/云漏洞扫描
 
 ## 版本历史
 

@@ -5,12 +5,14 @@
 - 最近上榜：2026-03-17
 - 上榜次数：3
 - 领域分类：agent
-- 语言：Unknown
+- 语言：TypeScript
 - GitHub Stars: 21113（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/langchain-ai/deepagents)
+- LangGraph 构建复杂代理线束
+- 企业级任务处理
+- 提供代理线束与规划工具
+- 构建复杂代理任务能力
 
 ## 版本历史
 

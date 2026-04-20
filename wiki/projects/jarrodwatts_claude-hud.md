@@ -5,12 +5,14 @@
 - 最近上榜：2026-03-22
 - 上榜次数：4
 - 领域分类：other
-- 语言：Unknown
+- 语言：TypeScript
 - GitHub Stars: 19823（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/jarrodwatts/claude-hud)
+- Claude Code 可观察性插件，监控代理上下文
+- Claude 代理工作流可视化插件
+- 提供实时状态监控能力
+- 提升 Claude Code 开发体验
 
 ## 版本历史
 

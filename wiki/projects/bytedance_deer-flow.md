@@ -5,12 +5,13 @@
 - 最近上榜：2026-03-26
 - 上榜次数：3
 - 领域分类：agent
-- 语言：Unknown
+- 语言：Python
 - GitHub Stars: 62347（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/bytedance/deer-flow)
+- 字节开源 SuperAgent 处理复杂任务
+- 字节开源 SuperAgent 框架，支持沙盒与多智能体协作
+- 搭建企业级代理工作流
 
 ## 版本历史
 

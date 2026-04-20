@@ -5,12 +5,12 @@
 - 最近上榜：2026-03-24
 - 上榜次数：1
 - 领域分类：browser
-- 语言：Unknown
+- 语言：Python
 - GitHub Stars: 88326（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/browser-use/browser-use)
+- AI 代理浏览器自动化任务执行
+- 提供智能浏览器自动化能力
 
 ## 版本历史
 

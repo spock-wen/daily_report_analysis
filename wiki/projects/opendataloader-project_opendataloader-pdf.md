@@ -5,12 +5,14 @@
 - 最近上榜：2026-03-22
 - 上榜次数：2
 - 领域分类：rag
-- 语言：Unknown
+- 语言：Python
 - GitHub Stars: 17975（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/opendataloader-project/opendataloader-pdf)
+- 5.5k stars 的 PDF 解析器
+- 支持 OCR 与 RAG 数据管道
+- AI 数据预处理 PDF 解析器
+- 提升非结构化文档处理能力
 
 ## 版本历史
 

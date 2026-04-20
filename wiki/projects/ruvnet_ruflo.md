@@ -5,12 +5,14 @@
 - 最近上榜：2026-03-26
 - 上榜次数：1
 - 领域分类：rag
-- 语言：Unknown
+- 语言：TypeScript
 - GitHub Stars: 32214（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/ruvnet/ruflo)
+- 面向 Claude 的多智能体编排平台
+- 集成 RAG 与企业级架构
+- 提供多智能体协作和管理能力
+- 支持企业级的应用部署和集成
 
 ## 版本历史
 

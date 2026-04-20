@@ -5,12 +5,14 @@
 - 最近上榜：2026-03-30
 - 上榜次数：4
 - 领域分类：vision
-- 语言：Unknown
+- 语言：Python
 - GitHub Stars: 90933（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/hacksider/Deep-Live-Cam)
+- 单图实时换脸，深伪技术
+- 单图实时换脸，视频 Deepfake 一键生成
+- 实时换脸与视频生成工具
+- 单图实时视频深度伪造
 
 ## 版本历史
 

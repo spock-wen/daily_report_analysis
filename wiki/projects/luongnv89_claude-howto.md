@@ -5,12 +5,13 @@
 - 最近上榜：2026-03-31
 - 上榜次数：1
 - 领域分类：other
-- 语言：Unknown
+- 语言：TypeScript
 - GitHub Stars: 27365（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/luongnv89/claude-howto)
+- Claude AI 最佳实践和指南
+- 提供高效 Agent 模板
+- 优化提示词工程
 
 ## 版本历史
 

@@ -5,12 +5,13 @@
 - 最近上榜：2026-03-17
 - 上榜次数：1
 - 领域分类：dev-tool
-- 语言：Unknown
+- 语言：多语言
 - GitHub Stars: 491216（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/codecrafters-io/build-your-own-x)
+- 编程 mastery 教程
+- 从零构建各种技术项目
+- 提供编程学习路径
 
 ## 版本历史
 

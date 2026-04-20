@@ -5,12 +5,15 @@
 - 最近上榜：2026-03-06
 - 上榜次数：1
 - 领域分类：dev-tool
-- 语言：Unknown
+- 语言：Python, TypeScript, .NET, Java, Rust
 - GitHub Stars: 15891（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/microsoft/mcp-for-beginners)
+- 微软官方 MCP 跨语言教学套件
+- 支持 .NET/Java/Python/Rust/TypeScript
+- 含可运行的 Notebook 示例
+- 推动模型上下文协议工业化落地
+- 提供 Python MCP Server 示例
 
 ## 版本历史
 

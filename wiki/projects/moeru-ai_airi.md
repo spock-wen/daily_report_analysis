@@ -5,12 +5,14 @@
 - 最近上榜：2026-03-07
 - 上榜次数：3
 - 领域分类：other
-- 语言：Unknown
+- 语言：TypeScript
 - GitHub Stars: 38283（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/moeru-ai/airi)
+- 跨平台（Web/macOS/Windows）+ 实时语音 + VRM/Live2D + Minecraft/Factorio 游戏联动
+- 开源 Grok Companion，集成 Live2D/VRM/Minecraft 实时联动
+- 首个支持实时语音 + Minecraft/Factorio 游戏内交互的开源 AI VTuber 伴侣
+- 融合 Neuro-sama 风格人格容器与 Web/macOS/Windows 全端部署
 
 ## 版本历史
 

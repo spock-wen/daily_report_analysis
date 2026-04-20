@@ -5,12 +5,12 @@
 - 最近上榜：2026-03-24
 - 上榜次数：1
 - 领域分类：llm
-- 语言：Unknown
+- 语言：Python
 - GitHub Stars: 47141（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/jingyaogong/minimind)
+- 2 小时从零训练 26M 参数小模型
+- 提供轻量级 LLM 训练和部署
 
 ## 版本历史
 
