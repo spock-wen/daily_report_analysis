@@ -6,7 +6,7 @@
 - 上榜次数：4
 - 领域分类：speech, audio, tts, asr
 - 语言：Python
-- GitHub Stars：40086（最后更新：2026-04-18）
+- GitHub Stars: 40086（最后更新：2026-04-18）
 
 ## 核心功能
 - 开源前沿语音AI家族，包含ASR（语音识别）和TTS（语音合成）两大核心能力

@@ -9,8 +9,11 @@
 - GitHub Stars: 0
 
 ## 核心功能
-
-
+- 提供 MCP (Model Control Protocol) 工具管理功能
+- 支持 /mcp/tools/list 端点的调用
+- 实现上下文路由机制
+- 包含 Python MCP Server 示例
+- 用于理解 MCP 协议的工作原理
 ## 版本历史
 
 

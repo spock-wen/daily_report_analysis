@@ -6,7 +6,7 @@
 - 上榜次数：1
 - 领域分类：agent, multi-agent, framework, python
 - 语言：Python
-- GitHub Stars：23961（最后更新：2026-04-18）
+- GitHub Stars: 23961（最后更新：2026-04-18）
 
 ## 核心功能
 - 生产级多智能体编程框架，提供透明可控的开发体验，无深度封装
