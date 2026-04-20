@@ -10,6 +10,7 @@
 
 ## 核心功能
 
+- 参见 [GitHub 仓库](https://github.com/mcp/tools)
 
 ## 版本历史
 

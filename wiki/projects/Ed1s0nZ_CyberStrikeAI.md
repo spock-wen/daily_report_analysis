@@ -10,6 +10,7 @@
 
 ## 核心功能
 
+- 参见 [GitHub 仓库](https://github.com/Ed1s0nZ/CyberStrikeAI)
 
 ## 版本历史
 

@@ -10,6 +10,7 @@
 
 ## 核心功能
 
+- 参见 [GitHub 仓库](https://github.com/K-Dense-AI/claude-scientific-skills)
 
 ## 版本历史
 

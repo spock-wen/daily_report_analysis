@@ -10,6 +10,7 @@
 
 ## 核心功能
 
+- 参见 [GitHub 仓库](https://github.com/examples/rag_chrome_extension)
 
 ## 版本历史
 
