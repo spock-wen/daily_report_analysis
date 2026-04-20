@@ -4,13 +4,20 @@
 - 首次上榜：2026-03-19
 - 最近上榜：2026-03-22
 - 上榜次数：3
-- 领域分类：dev-tool
-- 语言：Unknown
+- 领域分类：dev-tool, Gaming, Geographic Data
+- 语言：Rust
 - GitHub Stars: 15108（最后更新：2026-04-18）
 
 ## 核心功能
-
-- 参见 [GitHub 仓库](https://github.com/louis-e/arnis)
+- 将真实世界的地理数据转换为Minecraft世界
+- 基于OpenStreetMap和Overture Maps数据生成城市、道路、建筑物等
+- 支持Windows、macOS和Linux跨平台部署
+- 提供GUI和CLI界面
+- 支持地图旋转功能
+- 支持Minecraft服务器兼容性
+- 生成逼真的建筑物，包括屋顶悬挑、角落装饰、喷泉等
+- 支持多种语言本地化
+- 道路生成具有逼真的混合材料表面
 
 ## 版本历史
 
