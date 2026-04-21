@@ -36,4 +36,6 @@
 **分析**: fishaudio/fish-speech SOTA 开源 TTS，基于 Llama/Transformer 架构实现高质量语音 - 评估 fishaudio/fish-speech 替代现有 TTS 引擎，提升语音交互自然度与成本效益
 
 ## 跨项目关联
-（待分析）
+- **promptfoo/promptfoo**：被用于对现有RAG应用执行--redteam --vuln-scan，识别提示注入与上下文泄露风险
+- **microsoft/BitNet**：被用于尝试1-bit量化模型部署，优化边缘设备推理性能
+- **volcengine/OpenViking**：被评估作为潜在的TTS引擎替代品，提升语音交互自然度与成本效益

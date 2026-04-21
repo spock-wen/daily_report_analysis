@@ -38,4 +38,6 @@
 **分析**: langchain-ai/open-swe：开源异步编码代理，LangChain 生态进化 - 研究 TauricResearch/TradingAgents 的多代理架构，优化金融决策链路
 
 ## 跨项目关联
-（待分析）
+- **jarrodwatts/claude-hud**：集成 claude-hud 插件提升 Claude Code 开发体验
+- **opendataloader-project/opendataloader-pdf**：集成到 RAG 系统，提升非结构化文档处理能力
+- **TauricResearch/TradingAgents**：研究其多代理架构，优化金融决策链路

@@ -40,4 +40,4 @@
 **分析**: 未记录 - 利用 `TauricResearch/TradingAgents` 探索自动化交易
 
 ## 跨项目关联
-（待分析）
+- **affaan-m/everything-claude-code**：集成优化 Claude Code 开发工作流

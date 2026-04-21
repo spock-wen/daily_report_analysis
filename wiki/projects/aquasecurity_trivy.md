@@ -26,4 +26,6 @@
 **分析**: aquasecurity/trivy：33k stars，AI 增强容器/云漏洞扫描 - 集成 aquasecurity/trivy 到 CI/CD  pipeline，利用 AI 分析容器镜像漏洞
 
 ## 跨项目关联
-（待分析）
+- **microsoft/mcp-for-beginners**：在其中的Python MCP Server示例中使用，理解上下文路由机制
+- **jarrodwatts/claude-hud**：被集成到CI/CD pipeline，利用AI分析容器镜像漏洞
+- **opendataloader-project/opendataloader-pdf**：被集成到CI/CD pipeline，利用AI分析容器镜像漏洞

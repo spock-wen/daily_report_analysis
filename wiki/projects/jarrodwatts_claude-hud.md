@@ -36,4 +36,6 @@
 **分析**: jarrodwatts/claude-hud：10k stars，Claude 代理工作流可视化插件 - 集成 aquasecurity/trivy 到 CI/CD  pipeline，利用 AI 分析容器镜像漏洞
 
 ## 跨项目关联
-（待分析）
+- **langchain-ai/deepagents**：使用其构建复杂代理任务
+- **TauricResearch/TradingAgents**：研究其多代理架构，优化金融决策链路
+- **aquasecurity/trivy**：集成到 CI/CD pipeline，利用 AI 分析容器镜像漏洞

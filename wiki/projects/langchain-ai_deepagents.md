@@ -26,4 +26,5 @@
 **分析**: langchain-ai/deepagents 的代理线束与规划工具 - 使用 langchain-ai/deepagents 构建复杂代理任务
 
 ## 跨项目关联
-（待分析）
+- **volcengine/OpenViking**：集成优化 Agent 上下文检索，解决长记忆丢失问题
+- **jarrodwatts/claude-hud**：被使用来构建复杂代理任务
