@@ -7,6 +7,85 @@
   <link rel="stylesheet" href="../../public/css/style.css">
   <link rel="stylesheet" href="../../public/css/monthly.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    .knowledge-graph {
+      margin: 30px 0;
+      padding: 20px;
+      background: #161b22;
+      border-radius: 8px;
+      border: 1px solid #30363d;
+    }
+    .knowledge-graph-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .graph-controls {
+      display: flex;
+      gap: 10px;
+    }
+    .graph-control-btn {
+      padding: 6px 12px;
+      background: #238636;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .graph-control-btn:hover {
+      background: #2ea043;
+    }
+    #graphContainer {
+      width: 100%;
+      height: 500px;
+      position: relative;
+    }
+    .node {
+      cursor: pointer;
+    }
+    .node.project {
+      fill: #3fb950;
+    }
+    .node.domain {
+      fill: #58a6ff;
+    }
+    .node.language {
+      fill: #d29922;
+    }
+    .node.report {
+      fill: #f85149;
+    }
+    .link {
+      stroke-opacity: 0.6;
+    }
+    .link.belongs_to {
+      stroke: #3fb950;
+    }
+    .link.uses {
+      stroke: #d29922;
+    }
+    .link.mentioned_in {
+      stroke: #f85149;
+    }
+    .link.contains {
+      stroke: #58a6ff;
+    }
+    .tooltip {
+      position: absolute;
+      padding: 10px;
+      background: rgba(22, 27, 34, 0.95);
+      border: 1px solid #30363d;
+      border-radius: 4px;
+      color: #c9d1d9;
+      font-size: 14px;
+      pointer-events: none;
+      z-index: 1000;
+      max-width: 300px;
+    }
+  </style>
 </head>
 <body>
   <div class="container monthly-report">
@@ -223,8 +302,232 @@
           </div>
         </div>
       </section>
-    
-    
+
+
+      <section class="knowledge-graph">
+        <div class="knowledge-graph-header">
+          <h2>🔗 知识图谱</h2>
+          <div class="graph-controls">
+            <button class="graph-control-btn" id="resetGraph">重置视图</button>
+            <button class="graph-control-btn" id="showProjects">显示项目</button>
+            <button class="graph-control-btn" id="showDomains">显示领域</button>
+            <button class="graph-control-btn" id="showLanguages">显示语言</button>
+          </div>
+        </div>
+        <div id="graphContainer"></div>
+        <script>
+          (function() {
+            const graphContainer = document.getElementById('graphContainer');
+            if (!graphContainer) return;
+
+            let svg, simulation, nodes, links, nodeElements, linkElements;
+            let graphData = { nodes: [], links: [] };
+
+            // 加载数据
+            fetch('../../knowledge-graph/graph-data.json')
+              .then(response => response.json())
+              .then(data => {
+                graphData = data;
+                initializeGraph();
+              })
+              .catch(error => {
+                console.error('Error loading graph data:', error);
+                graphContainer.innerHTML = '<p style="color: #f85149; text-align: center; padding: 20px;">知识图谱数据加载失败</p>';
+              });
+
+            // 初始化图谱
+            function initializeGraph() {
+              // 清空容器
+              graphContainer.innerHTML = '';
+
+              // 创建SVG
+              svg = d3.select('#graphContainer')
+                .append('svg')
+                .attr('width', '100%')
+                .attr('height', '100%');
+
+              // 创建力导向模拟
+              simulation = d3.forceSimulation(graphData.nodes)
+                .force('link', d3.forceLink(graphData.links).id(d => d.id).distance(100))
+                .force('charge', d3.forceManyBody().strength(-300))
+                .force('center', d3.forceCenter(graphContainer.clientWidth / 2, graphContainer.clientHeight / 2))
+                .force('collision', d3.forceCollide().radius(d => getNodeRadius(d)));
+
+              // 创建连接线
+              linkElements = svg.append('g')
+                .selectAll('line')
+                .data(graphData.links)
+                .enter()
+                .append('line')
+                .attr('class', d => `link ${d.type}`)
+                .attr('stroke-width', d => {
+                  switch(d.type) {
+                    case 'belongs_to': return 2;
+                    case 'contains': return 2;
+                    case 'uses': return 1;
+                    case 'mentioned_in': return 1;
+                    default: return 1;
+                  }
+                });
+
+              // 创建节点
+              nodeElements = svg.append('g')
+                .selectAll('circle')
+                .data(graphData.nodes)
+                .enter()
+                .append('circle')
+                .attr('class', d => `node ${d.type}`)
+                .attr('r', d => getNodeRadius(d))
+                .call(d3.drag()
+                  .on('start', dragstarted)
+                  .on('drag', dragged)
+                  .on('end', dragended));
+
+              // 创建标签
+              const labelElements = svg.append('g')
+                .selectAll('text')
+                .data(graphData.nodes)
+                .enter()
+                .append('text')
+                .attr('class', 'node-label')
+                .attr('font-size', '10px')
+                .attr('dx', 12)
+                .attr('dy', 4)
+                .text(d => d.label)
+                .style('fill', '#c9d1d9');
+
+              // 创建 tooltip
+              const tooltip = d3.select('body')
+                .append('div')
+                .attr('class', 'tooltip')
+                .style('opacity', 0);
+
+              // 节点交互
+              nodeElements
+                .on('mouseover', function(event, d) {
+                  tooltip.transition()
+                    .duration(200)
+                    .style('opacity', .9);
+                  
+                  let tooltipContent = `<strong>${d.label}</strong><br>类型: ${getTypeName(d.type)}<br>`;
+                  
+                  if (d.properties) {
+                    for (const [key, value] of Object.entries(d.properties)) {
+                      if (key !== 'name') {
+                        tooltipContent += `${getPropertyName(key)}: ${value}<br>`;
+                      }
+                    }
+                  }
+                  
+                  tooltip.html(tooltipContent)
+                    .style('left', (event.pageX + 10) + 'px')
+                    .style('top', (event.pageY - 28) + 'px');
+                })
+                .on('mouseout', function() {
+                  tooltip.transition()
+                    .duration(500)
+                    .style('opacity', 0);
+                });
+
+              // 模拟更新
+              simulation.on('tick', () => {
+                linkElements
+                  .attr('x1', d => d.source.x)
+                  .attr('y1', d => d.source.y)
+                  .attr('x2', d => d.target.x)
+                  .attr('y2', d => d.target.y);
+
+                nodeElements
+                  .attr('cx', d => d.x = Math.max(getNodeRadius(d), Math.min(graphContainer.clientWidth - getNodeRadius(d), d.x)))
+                  .attr('cy', d => d.y = Math.max(getNodeRadius(d), Math.min(graphContainer.clientHeight - getNodeRadius(d), d.y)));
+
+                labelElements
+                  .attr('x', d => d.x)
+                  .attr('y', d => d.y);
+              });
+
+              // 控制按钮事件
+              document.getElementById('resetGraph').addEventListener('click', resetGraph);
+              document.getElementById('showProjects').addEventListener('click', () => filterNodes('project'));
+              document.getElementById('showDomains').addEventListener('click', () => filterNodes('domain'));
+              document.getElementById('showLanguages').addEventListener('click', () => filterNodes('language'));
+            }
+
+            // 获取节点半径
+            function getNodeRadius(d) {
+              switch(d.type) {
+                case 'domain': return 15;
+                case 'report': return 12;
+                case 'project': return 10;
+                case 'language': return 8;
+                default: return 8;
+              }
+            }
+
+            // 获取类型名称
+            function getTypeName(type) {
+              const typeNames = {
+                'project': '项目',
+                'domain': '领域',
+                'language': '语言',
+                'report': '报告'
+              };
+              return typeNames[type] || type;
+            }
+
+            // 获取属性名称
+            function getPropertyName(key) {
+              const propertyNames = {
+                'stars': 'Stars',
+                'first_seen': '首次上榜',
+                'last_seen': '最近上榜',
+                'appearances': '上榜次数',
+                'date': '日期',
+                'type': '类型'
+              };
+              return propertyNames[key] || key;
+            }
+
+            // 重置图谱
+            function resetGraph() {
+              nodeElements.style('opacity', 1);
+              linkElements.style('opacity', 1);
+              simulation.alpha(1).restart();
+            }
+
+            // 筛选节点
+            function filterNodes(type) {
+              nodeElements.style('opacity', d => d.type === type ? 1 : 0.2);
+              linkElements.style('opacity', d => {
+                const sourceType = graphData.nodes.find(n => n.id === d.source.id || n.id === d.source).type;
+                const targetType = graphData.nodes.find(n => n.id === d.target.id || n.id === d.target).type;
+                return (sourceType === type || targetType === type) ? 0.6 : 0.1;
+              });
+            }
+
+            // 拖拽函数
+            function dragstarted(event, d) {
+              if (!event.active) simulation.alphaTarget(0.3).restart();
+              d.fx = d.x;
+              d.fy = d.y;
+            }
+
+            function dragged(event, d) {
+              d.fx = event.x;
+              d.fy = event.y;
+            }
+
+            function dragended(event, d) {
+              if (!event.active) simulation.alphaTarget(0);
+              d.fx = null;
+              d.fy = null;
+            }
+
+          })();
+        </script>
+      </section>
+
+
       <section class="top-projects">
         <h2>月度 TOP 项目</h2>
         
