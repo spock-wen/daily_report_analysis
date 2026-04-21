@@ -44,4 +44,7 @@
 **分析**: 666ghj/MiroFish：群体智能引擎预测万物，星数近 3 万居榜首 - 集成 volcengine/OpenViking 优化 Agent 上下文检索，解决长记忆丢失问题
 
 ## 跨项目关联
-（待分析）
+- **QwenLM/Qwen-Agent**：建议fork并运行其examples/rag_chrome_extension
+- **promptfoo/promptfoo**：建议用于对现有RAG应用执行--redteam --vuln-scan
+- **microsoft/BitNet**：建议试用其bitnet-bnb-int8推理管道
+- **volcengine/OpenViking**：集成优化Agent上下文检索，解决长记忆丢失问题

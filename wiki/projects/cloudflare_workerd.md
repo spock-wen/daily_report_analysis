@@ -21,4 +21,4 @@
 **分析**: cloudflare/workerd 的 JavaScript/Wasm 运行时 - 使用 langchain-ai/deepagents 构建复杂代理任务
 
 ## 跨项目关联
-（待分析）
+- **langchain-ai/deepagents**：使用其构建复杂代理任务

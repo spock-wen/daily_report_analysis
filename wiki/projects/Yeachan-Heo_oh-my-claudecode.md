@@ -31,4 +31,4 @@
 **分析**: Yeachan-Heo/oh-my-claudecode: 团队优先多 Agent 编排，优化 Claude Code 协作流 - 集成 microsoft/VibeVoice 到现有应用，测试前沿语音交互体验
 
 ## 跨项目关联
-（待分析）
+- **microsoft/VibeVoice**：集成到现有应用，测试前沿语音交互体验

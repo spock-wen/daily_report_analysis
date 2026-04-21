@@ -35,4 +35,7 @@
 **分析**: shareAI-lab/learn-claude-code: 从零构建的 Agent Harness，Bash 驱动学习 - 采用 obra/superpowers 重构现有工作流，提升自动化能力
 
 ## 跨项目关联
-（待分析）
+- **666ghj/MiroFish**：深入研究其群体智能架构，可应用于金融预测或多智能体协作场景
+- **volcengine/OpenViking**：集成优化Agent上下文检索，解决长记忆丢失问题
+- **opendataloader-project/opendataloader-pdf**：集成到RAG系统，提升非结构化文档处理能力
+- **obra/superpowers**：采用其重构现有工作流，提升自动化能力

@@ -26,4 +26,4 @@
 **分析**: inclusionAI/AReaL：轻量级LLM推理增强RL框架，支持毫秒级策略更新与RAG-RL联合训练，突破传统RL在LLM代理中延迟高、难收敛瓶颈 - 立即试用moeru-ai/airi的Web版并贡献Live2D动作插件（TS+WebGL），参与构建AI人格开源标准
 
 ## 跨项目关联
-（待分析）
+- **moeru-ai/airi**：建议试用其Web版并贡献Live2D动作插件（TS+WebGL）

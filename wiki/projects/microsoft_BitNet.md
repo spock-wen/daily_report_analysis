@@ -26,4 +26,6 @@
 **分析**: microsoft/BitNet：1 位 LLM 官方推理框架，大幅降低推理成本 - 基于 microsoft/BitNet 尝试 1-bit 量化模型部署，优化边缘设备推理性能
 
 ## 跨项目关联
-（待分析）
+- **fishaudio/fish-speech**：被用于尝试1-bit量化模型部署，优化边缘设备推理性能
+- **666ghj/MiroFish**：建议试用其bitnet-bnb-int8推理管道
+- **AstrBotDevs/AstrBot**：基于其尝试1-bit量化模型部署，优化边缘设备推理性能

@@ -35,4 +35,5 @@
 **分析**: KeygraphHQ/shannon：首个无提示、源码感知的AI红队探测器，XBOW基准96.15%漏洞检出率，填补LLM应用层渗透测试空白 - 立即试用microsoft/mcp-for-beginners中的Python MCP Server示例，用curl调用其/mcp/tools/list端点，理解上下文路由机制
 
 ## 跨项目关联
-（待分析）
+- **moeru-ai/airi**：建议试用其对自有Web应用执行无提示渗透测试
+- **microsoft/mcp-for-beginners**：建议试用其中的Python MCP Server示例，理解上下文路由机制

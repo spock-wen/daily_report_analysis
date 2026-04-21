@@ -21,4 +21,4 @@
 **分析**: jingyaogong/minimind: 2 小时从零训练 26M 参数小模型 - 集成 affaan-m/everything-claude-code 优化 Claude Code 开发工作流
 
 ## 跨项目关联
-（待分析）
+- **affaan-m/everything-claude-code**：集成优化 Claude Code 开发工作流

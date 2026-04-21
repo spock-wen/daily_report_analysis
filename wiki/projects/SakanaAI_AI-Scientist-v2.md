@@ -28,4 +28,4 @@
 **分析**: SakanaAI/AI-Scientist-v2：基于智能树搜索的自动化科学发现系统 - 采用 obra/superpowers 重构现有软件开发工作流以提升效率
 
 ## 跨项目关联
-（待分析）
+- **obra/superpowers**：采用其重构现有软件开发工作流以提升效率

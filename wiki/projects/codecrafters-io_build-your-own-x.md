@@ -21,4 +21,4 @@
 **分析**: codecrafters-io/build-your-own-x 的编程 mastery 教程 - 使用 langchain-ai/deepagents 构建复杂代理任务
 
 ## 跨项目关联
-（待分析）
+- **langchain-ai/deepagents**：使用其构建复杂代理任务

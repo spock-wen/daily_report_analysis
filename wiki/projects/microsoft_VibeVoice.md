@@ -44,4 +44,7 @@
 **分析**: microsoft/VibeVoice: 3.3 万星，开源前沿语音 AI 模型库 - 集成文档解析能力：部署 PaddlePaddle/PaddleOCR 处理非结构化数据
 
 ## 跨项目关联
-（待分析）
+- **virattt/dexter**：被集成到现有应用，测试前沿语音交互体验
+- **shanraisshan/claude-code-best-practice**：被集成构建低延迟语音交互界面，优化用户自然语言输入体验
+- **obra/superpowers**：采用其重构现有工作流，提升自动化能力
+- **PaddlePaddle/PaddleOCR**：集成其文档解析能力，处理非结构化数据

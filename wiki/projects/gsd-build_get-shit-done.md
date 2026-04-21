@@ -21,4 +21,4 @@
 **分析**: gsd-build/get-shit-done：36k stars 的元提示工程系统，重塑 Claude Code 开发范式 - 集成 opendataloader-project/opendataloader-pdf 到 RAG 系统，提升非结构化文档处理能力
 
 ## 跨项目关联
-（待分析）
+- **opendataloader-project/opendataloader-pdf**：集成到RAG系统，提升非结构化文档处理能力

@@ -25,4 +25,5 @@
 **分析**: shanraisshan/claude-code-best-practice：Claude 代码最佳实践指南，促进大模型辅助编程标准化 - 集成 microsoft/VibeVoice 构建低延迟语音交互界面，优化用户自然语言输入体验
 
 ## 跨项目关联
-（待分析）
+- **666ghj/MiroFish**：深入研究其群体智能架构，可应用于金融预测或多智能体协作场景
+- **microsoft/VibeVoice**：集成构建低延迟语音交互界面，优化用户自然语言输入体验

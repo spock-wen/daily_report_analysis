@@ -26,4 +26,4 @@
 **分析**: google-ai-edge/LiteRT：谷歌边缘设备高性能 GenAI 部署框架 - 基于 microsoft/BitNet 尝试 1-bit 量化模型部署，优化边缘设备推理性能
 
 ## 跨项目关联
-（待分析）
+- **microsoft/BitNet**：基于其尝试1-bit量化模型部署，优化边缘设备推理性能

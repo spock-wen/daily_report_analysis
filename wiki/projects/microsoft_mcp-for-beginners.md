@@ -21,4 +21,4 @@
 **分析**: microsoft/mcp-for-beginners：微软官方MCP跨语言教学套件（.NET/Java/Python/Rust/TS），含可运行Notebook示例，推动模型上下文协议工业化落地 - 立即试用microsoft/mcp-for-beginners中的Python MCP Server示例，用curl调用其/mcp/tools/list端点，理解上下文路由机制
 
 ## 跨项目关联
-（待分析）
+- **aquasecurity/trivy**：在其中的Python MCP Server示例中使用，理解上下文路由机制

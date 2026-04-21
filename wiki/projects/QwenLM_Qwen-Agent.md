@@ -36,4 +36,5 @@
 **分析**: QwenLM/Qwen-Agent：Qwen-3.0原生代理框架，唯一集成MCP（Model Control Protocol）、Chrome扩展RAG与代码解释器三合一能力 - 立即fork QwenLM/Qwen-Agent并运行examples/rag_chrome_extension，实测MCP驱动的网页内容实时问答链路
 
 ## 跨项目关联
-（待分析）
+- **moeru-ai/airi**：建议试用其Web版并贡献Live2D动作插件（TS+WebGL）
+- **666ghj/MiroFish**：建议fork并运行其examples/rag_chrome_extension，实测MCP驱动的网页内容实时问答链路

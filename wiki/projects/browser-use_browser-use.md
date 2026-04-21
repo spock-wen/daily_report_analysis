@@ -21,4 +21,4 @@
 **分析**: browser-use/browser-use: AI 代理浏览器自动化任务执行 - 集成 affaan-m/everything-claude-code 优化 Claude Code 开发工作流
 
 ## 跨项目关联
-（待分析）
+- **affaan-m/everything-claude-code**：集成优化 Claude Code 开发工作流

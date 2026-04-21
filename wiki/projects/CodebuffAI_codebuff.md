@@ -30,4 +30,4 @@
 **分析**: 未记录 - 用OpenSandbox部署CodebuffAI/codebuff，通过其CLI沙盒化执行Python代码生成任务，验证安全隔离能力
 
 ## 跨项目关联
-（待分析）
+- **alibaba/OpenSandbox**：建议用其部署CodebuffAI/codebuff，验证安全隔离能力

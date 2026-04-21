@@ -26,4 +26,5 @@
 **分析**: virattt/dexter：专注于深度金融研究的自主 Agent 工具 - 采用 obra/superpowers 重构现有软件开发工作流以提升效率
 
 ## 跨项目关联
-（待分析）
+- **microsoft/VibeVoice**：集成到现有应用，测试前沿语音交互体验
+- **obra/superpowers**：采用其重构现有软件开发工作流以提升效率

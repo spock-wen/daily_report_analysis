@@ -26,4 +26,6 @@
 **分析**: opendataloader-project/opendataloader-pdf：AI 数据预处理 PDF 解析器 - 集成 aquasecurity/trivy 到 CI/CD  pipeline，利用 AI 分析容器镜像漏洞
 
 ## 跨项目关联
-（待分析）
+- **langchain-ai/open-swe**：被集成到RAG系统，提升非结构化文档处理能力
+- **shareAI-lab/learn-claude-code**：被集成到RAG系统，提升非结构化文档处理能力
+- **aquasecurity/trivy**：集成到CI/CD pipeline，利用AI分析容器镜像漏洞

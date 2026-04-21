@@ -71,4 +71,6 @@
 **分析**: 详见热点项目列表
 
 ## 跨项目关联
-（待分析）
+- **virattt/dexter**：采用其重构现有软件开发工作流以提升效率
+- **shareAI-lab/learn-claude-code**：采用其重构现有工作流，提升自动化能力
+- **microsoft/VibeVoice**：采用其重构现有工作流，提升自动化能力

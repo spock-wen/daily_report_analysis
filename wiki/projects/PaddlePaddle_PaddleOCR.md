@@ -28,4 +28,4 @@
 **分析**: PaddlePaddle/PaddleOCR: 7.4 万星，图像 PDF 转结构化数据核心工具 - 集成文档解析能力：部署 PaddlePaddle/PaddleOCR 处理非结构化数据
 
 ## 跨项目关联
-（待分析）
+- **microsoft/VibeVoice**：被集成用于文档解析能力，处理非结构化数据

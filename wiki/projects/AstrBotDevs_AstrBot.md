@@ -27,4 +27,4 @@
 **分析**: AstrBotDevs/AstrBot：聚合多 IM 平台的 Agentic 聊天机器人基础设施 - 基于 microsoft/BitNet 尝试 1-bit 量化模型部署，优化边缘设备推理性能
 
 ## 跨项目关联
-（待分析）
+- **microsoft/BitNet**：基于其尝试1-bit量化模型部署，优化边缘设备推理性能

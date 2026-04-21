@@ -31,4 +31,6 @@
 **分析**: moeru-ai/airi：首个支持实时语音+Minecraft/Factorio游戏内交互的开源AI VTuber伴侣，融合Neuro-sama风格人格容器与Web/macOS/Windows全端部署 - 立即试用moeru-ai/airi的Web版并贡献Live2D动作插件（TS+WebGL），参与构建AI人格开源标准
 
 ## 跨项目关联
-（待分析）
+- **KeygraphHQ/shannon**：建议试用其对自有Web应用执行无提示渗透测试
+- **microsoft/mcp-for-beginners**：建议试用其中的Python MCP Server示例，理解上下文路由机制
+- **QwenLM/Qwen-Agent**：建议试用其Web版并贡献Live2D动作插件（TS+WebGL）

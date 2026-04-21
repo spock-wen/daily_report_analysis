@@ -31,4 +31,4 @@
 **分析**: OpenBB-finance/OpenBB：面向 AI 代理的金融数据平台，量化分析自动化程度高 - 集成 microsoft/VibeVoice 构建低延迟语音交互界面，优化用户自然语言输入体验
 
 ## 跨项目关联
-（待分析）
+- **microsoft/VibeVoice**：集成构建低延迟语音交互界面，优化用户自然语言输入体验

@@ -35,4 +35,4 @@
 **分析**: anthropics/claude-plugins-official - Claude Code 官方插件目录，生态核心入口，stars 1.1 万 - 深入研究 666ghj/MiroFish 的群体智能架构，可应用于金融预测或多智能体协作场景
 
 ## 跨项目关联
-（待分析）
+- **666ghj/MiroFish**：深入研究其群体智能架构，可应用于金融预测或多智能体协作场景

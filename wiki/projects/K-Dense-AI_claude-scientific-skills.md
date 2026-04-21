@@ -34,4 +34,4 @@
 **分析**: K-Dense-AI/claude-scientific-skills：面向生物信息、药物发现等垂直领域的即插即用Claude代理技能库，覆盖17个科研子域 - 立即试用shannon对自有Web应用执行无提示渗透测试（docker run -it --rm -v $(pwd):/app keygraphhq/shannon scan http://localhost:3000）
 
 ## 跨项目关联
-（待分析）
+- **KeygraphHQ/shannon**：建议试用其对自有Web应用执行无提示渗透测试

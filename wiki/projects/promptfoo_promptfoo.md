@@ -26,4 +26,5 @@
 **分析**: 未记录 - 集成 promptfoo/promptfoo 到 CI/CD 流程，建立 LLM 提示词与安全测试标准
 
 ## 跨项目关联
-（待分析）
+- **fishaudio/fish-speech**：被用于对现有RAG应用执行--redteam --vuln-scan，识别提示注入与上下文泄露风险
+- **666ghj/MiroFish**：建议用于对现有RAG应用执行--redteam --vuln-scan

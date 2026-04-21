@@ -28,4 +28,4 @@
 **分析**: affaan-m/everything-claude-code: Claude Code 生态性能优化与技能 harness - 集成 affaan-m/everything-claude-code 优化 Claude Code 开发工作流
 
 ## 跨项目关联
-（待分析）
+- **TauricResearch/TradingAgents**：被集成优化 Claude Code 开发工作流

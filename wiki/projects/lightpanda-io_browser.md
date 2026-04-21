@@ -36,4 +36,4 @@
 **分析**: 未记录 - 集成 volcengine/OpenViking 优化 Agent 上下文检索，解决长记忆丢失问题
 
 ## 跨项目关联
-（待分析）
+- **volcengine/OpenViking**：集成优化Agent上下文检索，解决长记忆丢失问题

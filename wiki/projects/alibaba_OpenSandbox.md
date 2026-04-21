@@ -31,4 +31,5 @@
 **分析**: alibaba/OpenSandbox：统一Docker/K8s沙盒API，为编码/GUI/RL代理提供隔离式代码执行与环境可控性，填补AI infra关键缺口 - 立即试用shannon对自有Web应用执行无提示渗透测试（docker run -it --rm -v $(pwd):/app keygraphhq/shannon scan http://localhost:3000）
 
 ## 跨项目关联
-（待分析）
+- **KeygraphHQ/shannon**：建议试用其对自有Web应用执行无提示渗透测试
+- **CodebuffAI/codebuff**：建议用其部署CodebuffAI/codebuff，验证安全隔离能力
