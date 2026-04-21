@@ -715,16 +715,24 @@
     });
 
     // ========== 知识图谱可视化 ==========
-    (function() {
+    window.addEventListener('DOMContentLoaded', function() {
       const graphContainer = document.getElementById('graphContainer');
       if (!graphContainer) return;
+
+      // 添加加载状态
+      graphContainer.innerHTML = '<p style="color: #58a6ff; text-align: center; padding: 20px;">知识图谱加载中...</p>';
 
       let svg, simulation, nodes, links, nodeElements, linkElements;
       let graphData = { nodes: [], links: [] };
 
       // 加载数据
       fetch('../knowledge-graph/graph-data.json')
-        .then(response => response.json())
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
         .then(data => {
           graphData = data;
           initializeGraph();
@@ -922,7 +930,7 @@
         d.fy = null;
       }
 
-    })();
+    });
   </script>
 </body>
 </html>
