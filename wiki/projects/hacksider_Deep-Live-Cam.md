@@ -38,4 +38,9 @@
 **分析**: hacksider/Deep-Live-Cam：单图实时视频深度伪造，本地部署能力引发广泛关注 - 集成 microsoft/VibeVoice 构建低延迟语音交互界面，优化用户自然语言输入体验
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| microsoft/VibeVoice | 引用关系 | 版本历史中提及集成 VibeVoice 语音交互 |
+| fishaudio/fish-speech | 同领域 | AI 媒体生成 · 语音/视频合成 |
+| hacksider/Deep-Live-Cam | 同领域 | Deepfake · 视觉生成 · Python |

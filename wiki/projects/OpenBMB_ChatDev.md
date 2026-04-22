@@ -27,4 +27,9 @@
 **分析**: OpenBMB/ChatDev: 3.2 万星，LLM 驱动多智能体软件开发平台 - 集成文档解析能力：部署 PaddlePaddle/PaddleOCR 处理非结构化数据
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| PaddlePaddle/PaddleOCR | 引用关系 | 被引用，文档解析能力集成 |
+| TauricResearch/TradingAgents | 关键词匹配 | 多智能体协作架构，Python |
+| NousResearch/hermes-agent | 关键词匹配 | Agent · 多智能体 · 自反思 |

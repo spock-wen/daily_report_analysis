@@ -37,4 +37,9 @@
 **分析**: 未记录 - 集成 volcengine/OpenViking 优化 Agent 上下文检索，解决长记忆丢失问题
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| browser-use/browser-use | 同领域 | AI 浏览器自动化 · Agent 操作 |
+| alibaba/page-agent | 同领域 | 浏览器 Agent · Web 操作 |
+| microsoft/BitNet | 引用关系 | 版本历史中提及 BitNet 量化部署 |

@@ -40,4 +40,9 @@
 **分析**: 未记录 - 集成 volcengine/OpenViking 优化 Agent 上下文检索，解决长记忆丢失问题
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| 666ghj/MiroFish | 引用关系 | 被引用，优化长记忆检索 |
+| Yeachan-Heo/oh-my-claudecode | 关键词匹配 | Agent · 多智能体编排 · 记忆管理 |
+| NousResearch/hermes-agent | 关键词匹配 | Agent · 记忆系统 · 自进化 |

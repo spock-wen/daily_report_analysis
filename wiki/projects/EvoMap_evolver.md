@@ -54,3 +54,8 @@
 
 ## 跨项目关联
 
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| lsdefine/GenericAgent | 同领域 | 自我进化 Agent · AI 代理 |
+| agentscope-ai/agentscope | 同领域 | Agent 框架 · 多智能体系统 |
+| multica-ai/multica | 同领域 | Agent 平台 · 技能积累 |

@@ -22,4 +22,9 @@
 **分析**: 未记录 - 优化提示词工程：参考 luongnv89/claude-howto 编写高效 Agent 模板
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| addyosmani/agent-skills | 同领域 | Agent 技能库 · 开发最佳实践 |
+| gsd-build/get-shit-done | 同领域 | 提示词工程 · Agent 模板 |
+| affaan-m/everything-claude-code | 同领域 | Claude Code 优化 · Agent Harness |

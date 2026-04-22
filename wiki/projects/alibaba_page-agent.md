@@ -28,4 +28,9 @@
 **分析**: 未记录 - 将alibaba/page-agent接入内部Web管理后台，通过其自然语言指令生成能力替代70% Selenium脚本维护工作
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| browser-use/browser-use | 同领域 | 浏览器自动化 Agent · Web 操作 |
+| lightpanda-io/browser | 同领域 | 浏览器自动化 · AI 专用浏览器 |
+| alibaba/OpenSandbox | 同领域 | 阿里巴巴 · 沙箱执行环境 |

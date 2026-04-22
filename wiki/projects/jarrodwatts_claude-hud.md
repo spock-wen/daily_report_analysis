@@ -38,4 +38,9 @@
 **分析**: jarrodwatts/claude-hud：10k stars，Claude 代理工作流可视化插件 - 集成 aquasecurity/trivy 到 CI/CD  pipeline，利用 AI 分析容器镜像漏洞
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| anthropics/claude-plugins-official | 同领域 | Claude Code 插件生态 · TypeScript |
+| aquasecurity/trivy | 引用关系 | 版本历史中提及集成 trivy |
+| langchain-ai/open-swe | 同领域 | Agent 可观察性 · 开发工具 |

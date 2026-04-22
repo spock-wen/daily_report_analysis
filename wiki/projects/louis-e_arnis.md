@@ -38,4 +38,9 @@
 **分析**: louis-e/arnis：12k stars，Rust 实现 AI 生成 Minecraft 实景地图 - 集成 aquasecurity/trivy 到 CI/CD  pipeline，利用 AI 分析容器镜像漏洞
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| aquasecurity/trivy | 引用关系 | 版本历史中提及集成 trivy 到 CI/CD pipeline |
+| Donchitos/Claude-Code-Game-Studios | 同领域 | Minecraft 相关 · 游戏领域 |
+| moeru-ai/airi | 关键词匹配 | Minecraft 联动 · 游戏生态 |

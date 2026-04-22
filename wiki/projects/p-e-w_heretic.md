@@ -25,4 +25,9 @@
 **分析**: p-e-w/heretic - LLM 审查自动删除工具，探索模型对齐新方向，stars 1.4 万 - 深入研究 666ghj/MiroFish 的群体智能架构，可应用于金融预测或多智能体协作场景
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| anthropics/claude-plugins-official | 引用关系 | 版本历史中提及 BitNet 量化 |
+| fishaudio/fish-speech | 引用关系 | 版本历史中提及 TTS 评估 |
+| obra/superpowers | 关键词匹配 | LLM · 工作流重构 |

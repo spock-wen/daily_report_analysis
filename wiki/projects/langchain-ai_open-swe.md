@@ -38,4 +38,9 @@
 **分析**: langchain-ai/open-swe：开源异步编码代理，LangChain 生态进化 - 研究 TauricResearch/TradingAgents 的多代理架构，优化金融决策链路
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| langchain-ai/deepagents | 同领域 | Agent 框架 · TypeScript · LangChain 生态 |
+| alibaba/page-agent | 同领域 | Agent · TypeScript · GUI 代理 |
+| langchain-ai/deepagents | 引用关系 | 版本历史中提及 |

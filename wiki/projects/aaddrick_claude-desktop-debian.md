@@ -24,3 +24,8 @@
 
 ## 跨项目关联
 
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| jarrodwatts/claude-hud | 同领域 | Claude 工具生态 · Dev-tool |
+| Donchitos/Claude-Code-Game-Studios | 同领域 | Claude Code 生态 · Shell 脚本 |
+| aaddrick/claude-desktop-debian | 关键词匹配 | Claude Desktop · 安装部署 |

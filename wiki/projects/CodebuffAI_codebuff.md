@@ -30,4 +30,9 @@
 **分析**: 未记录 - 用OpenSandbox部署CodebuffAI/codebuff，通过其CLI沙盒化执行Python代码生成任务，验证安全隔离能力
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| langchain-ai/open-swe | 同领域 | 编码 Agent · TypeScript · 多智能体 |
+| alibaba/OpenSandbox | 引用关系 | 版本历史中提及通过 OpenSandbox 部署 codebuff |
+| addyosmani/agent-skills | 同领域 | AI Agent 开发工具 · 代码审查/测试 |

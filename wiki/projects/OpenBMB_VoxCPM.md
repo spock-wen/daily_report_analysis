@@ -38,3 +38,8 @@
 
 ## 跨项目关联
 
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| microsoft/VibeVoice | 同领域 | TTS · Speech · Audio 合成 |
+| fishaudio/fish-speech | 同领域 | TTS · 语音合成 · 边缘部署 |
+| moeru-ai/airi | 关键词匹配 | 实时语音交互 · AI 数字生命 |

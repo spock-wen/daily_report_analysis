@@ -28,4 +28,9 @@
 **分析**: PaddlePaddle/PaddleOCR: 7.4 万星，图像 PDF 转结构化数据核心工具 - 集成文档解析能力：部署 PaddlePaddle/PaddleOCR 处理非结构化数据
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| OpenBMB/ChatDev | 引用关系 | 被引用，文档解析能力集成 |
+| microsoft/VibeVoice | 引用关系 | 被引用，非结构化数据处理 |
+| microsoft/BitNet | 同技术栈 | Python · 边缘设备部署优化 |

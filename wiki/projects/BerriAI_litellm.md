@@ -31,4 +31,9 @@
 **分析**: BerriAI/litellm：统一 LLM 调用网关，支持成本追踪与负载均衡，基础设施标配 - 评估 BerriAI/litellm 作为企业 LLM 网关，统一多模型接口并管控成本
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| inclusionAI/AReaL | 同领域 | LLM 推理 · Python |
+| jingyaogong/minimind | 同领域 | LLM · Python · 多模型支持 |
+| bytedance/deer-flow | 引用关系 | 版本历史中提及评估 LLM 网关 |

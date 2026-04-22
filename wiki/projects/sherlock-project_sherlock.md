@@ -33,4 +33,9 @@
 **分析**: sherlock-project/sherlock: 7.5 万星，跨平台社交媒体账号追踪工具 - 集成文档解析能力：部署 PaddlePaddle/PaddleOCR 处理非结构化数据
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| usestrix/strix | 同领域 | Security · 渗透测试 |
+| aquasecurity/trivy | 同领域 | 安全工具 · 漏洞检测 |
+| PaddlePaddle/PaddleOCR | 引用关系 | 版本历史中提及文档解析集成 |

@@ -45,3 +45,8 @@
 
 ## 跨项目关联
 
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| KeygraphHQ/shannon | 关键词匹配 | 安全 · 渗透测试 · API 分析 |
+| aquasecurity/trivy | 同领域 | 安全 · 漏洞扫描 |
+| affaan-m/everything-claude-code | 同领域 | Claude Code Skill 生态 |

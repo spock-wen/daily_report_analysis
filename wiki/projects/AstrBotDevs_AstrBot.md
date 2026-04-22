@@ -27,4 +27,9 @@
 **分析**: AstrBotDevs/AstrBot：聚合多 IM 平台的 Agentic 聊天机器人基础设施 - 基于 microsoft/BitNet 尝试 1-bit 量化模型部署，优化边缘设备推理性能
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| microsoft/VibeVoice | 同领域 | 语音能力 · TTS/ASR |
+| agentscope-ai/agentscope | 同领域 | Agent 框架 · Python · 多智能体 |
+| microsoft/BitNet | 引用关系 | 版本历史中提及 BitNet 量化部署 |

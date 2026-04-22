@@ -22,4 +22,9 @@
 **分析**: 未记录 - 部署 onyx-dot-app/onyx 构建私有化 AI 聊天平台，保障数据隐私
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| jamiepine/voicebox | 同领域 | 私有化部署 · 本地 AI |
+| microsoft/VibeVoice | 同领域 | 语音交互 · 低延迟 |
+| ruvnet/ruflo | 同技术栈 | TypeScript · 企业级架构 |

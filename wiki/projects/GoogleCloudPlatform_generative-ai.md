@@ -27,4 +27,9 @@
 **分析**: GoogleCloudPlatform/generative-ai：官方Gemini+Vertex AI生产级示例集，含LangChain+Agent+RAG端到端流水线Notebook，企业采用度最高参考库 - 立即fork QwenLM/Qwen-Agent并运行examples/rag_chrome_extension，实测MCP驱动的网页内容实时问答链路
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| agentscope-ai/ReMe | 同领域 | RAG · Agent · Python |
+| langchain-ai/deepagents | 同领域 | Agent · LangChain 生态 |
+| BerriAI/litellm | 同领域 | 多 LLM 支持 · Python/JS/TS/Go |

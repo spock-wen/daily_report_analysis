@@ -21,4 +21,9 @@
 **分析**: browser-use/browser-use: AI 代理浏览器自动化任务执行 - 集成 affaan-m/everything-claude-code 优化 Claude Code 开发工作流
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| lightpanda-io/browser | 同领域 | 浏览器自动化 · AI 专用 |
+| alibaba/page-agent | 同领域 | 浏览器内 GUI Agent · Web 操作 |
+| affaan-m/everything-claude-code | 引用关系 | 版本历史中提及集成优化开发工作流 |

@@ -27,4 +27,9 @@
 **分析**: aquasecurity/trivy：33k stars，AI 增强容器/云漏洞扫描 - 集成 aquasecurity/trivy 到 CI/CD  pipeline，利用 AI 分析容器镜像漏洞
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| KeygraphHQ/shannon | 同领域 | 安全 · 渗透测试 · DevSecOps |
+| Ed1s0nZ/CyberStrikeAI | 同领域 | 安全 · 渗透测试 · AI 原生 |
+| alibaba/OpenSandbox | 同领域 | 容器安全 · 沙箱隔离 |

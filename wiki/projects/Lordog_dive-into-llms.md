@@ -29,3 +29,11 @@
 ### 2026-04-19（周报收录）
 **来源**: [周报 2026-04-19](../../weekly/github-ai-trending-2026-04-19.html)
 **分析**: 《动手学大模型Dive into LLMs》系列编程实践教程
+
+## 跨项目关联
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| microsoft/BitNet | 同领域 | LLM · Python · 模型部署实践 |
+| jingyaogong/minimind | 同领域 | LLM 教程/实践 · Python |
+| BerriAI/litellm | 同领域 | LLM 基础设施 · Python |

@@ -26,4 +26,9 @@
 **分析**: microsoft/BitNet：1 位 LLM 官方推理框架，大幅降低推理成本 - 基于 microsoft/BitNet 尝试 1-bit 量化模型部署，优化边缘设备推理性能
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| google-ai-edge/LiteRT | 同领域 | LLM 边缘设备推理 · 模型量化部署 |
+| jingyaogong/minimind | 同领域 | LLM · Python · 轻量级模型训练/部署 |
+| inclusionAI/AReaL | 同领域 | LLM 推理优化 · Python |

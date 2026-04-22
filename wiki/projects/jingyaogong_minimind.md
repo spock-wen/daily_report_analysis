@@ -21,4 +21,9 @@
 **分析**: jingyaogong/minimind: 2 小时从零训练 26M 参数小模型 - 集成 affaan-m/everything-claude-code 优化 Claude Code 开发工作流
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| microsoft/BitNet | 同领域 | LLM · 轻量化模型 · Python |
+| inclusionAI/AReaL | 同领域 | LLM 推理优化 · Python |
+| BerriAI/litellm | 同领域 | LLM · Python · 多模型支持 |

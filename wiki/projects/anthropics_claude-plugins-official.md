@@ -35,4 +35,9 @@
 **分析**: anthropics/claude-plugins-official - Claude Code 官方插件目录，生态核心入口，stars 1.1 万 - 深入研究 666ghj/MiroFish 的群体智能架构，可应用于金融预测或多智能体协作场景
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| addyosmani/agent-skills | 同领域 | Agent Skills · Claude Code 插件生态 |
+| microsoft/BitNet | 引用关系 | 版本历史中提及 BitNet 量化推理 |
+| fishaudio/fish-speech | 引用关系 | 版本历史中提及评估 TTS 替代方案 |

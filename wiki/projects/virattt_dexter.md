@@ -28,4 +28,9 @@
 **分析**: virattt/dexter：专注于深度金融研究的自主 Agent 工具 - 采用 obra/superpowers 重构现有软件开发工作流以提升效率
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| TauricResearch/TradingAgents | 同领域 | Agent · 金融分析 |
+| virattt/ai-hedge-fund | 同作者 | 同一作者的金融 AI 项目 |
+| obra/superpowers | 引用关系 | 版本历史中提及工作流重构 |

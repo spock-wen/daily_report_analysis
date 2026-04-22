@@ -28,4 +28,9 @@
 **分析**: langchain-ai/deepagents 的代理线束与规划工具 - 使用 langchain-ai/deepagents 构建复杂代理任务
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| langchain-ai/open-swe | 同领域 | Agent 框架 · TypeScript · LangChain 生态 |
+| agentscope-ai/agentscope | 同领域 | Agent 框架 · 多智能体协作 |
+| bytedance/deer-flow | 同领域 | Agent 框架 · 企业级工作流 |

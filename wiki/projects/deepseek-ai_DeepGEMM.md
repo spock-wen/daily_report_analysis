@@ -32,3 +32,8 @@
 
 ## 跨项目关联
 
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| microsoft/BitNet | 同领域 | LLM 推理优化 · Python |
+| google-ai-edge/LiteRT | 同领域 | 边缘设备推理 · 矩阵运算加速 |
+| BerriAI/litellm | 同领域 | LLM 基础设施 · Python |

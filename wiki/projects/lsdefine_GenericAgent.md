@@ -24,3 +24,11 @@
 ### 2026-04-19（周报收录）
 **来源**: [周报 2026-04-19](../../weekly/github-ai-trending-2026-04-19.html)
 **分析**: Self-evolving agent: grows skill tree from 3.3K-line seed, achieving full system control with 6x less token consumption
+
+## 跨项目关联
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| EvoMap/evolver | 同领域 | 自我进化 Agent · AI 代理 |
+| agentscope-ai/agentscope | 同领域 | Agent 框架 · 多智能体 |
+| multica-ai/multica | 同领域 | Agent 平台 · 技能积累 |

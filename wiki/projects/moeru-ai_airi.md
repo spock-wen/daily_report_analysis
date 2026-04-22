@@ -33,4 +33,9 @@
 **分析**: moeru-ai/airi：首个支持实时语音+Minecraft/Factorio游戏内交互的开源AI VTuber伴侣，融合Neuro-sama风格人格容器与Web/macOS/Windows全端部署 - 立即试用moeru-ai/airi的Web版并贡献Live2D动作插件（TS+WebGL），参与构建AI人格开源标准
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| jamiepine/voicebox | 同领域 | 实时语音交互 · 语音识别/合成 |
+| louis-e/arnis | 关键词匹配 | Minecraft 联动 · 游戏领域 |
+| microsoft/VibeVoice | 同领域 | 语音 AI · 实时语音交互 |

@@ -41,3 +41,8 @@
 
 ## 跨项目关联
 
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| addyosmani/agent-skills | 同领域 | Agent 技能 · 多角色协作 |
+| louis-e/arnis | 关键词匹配 | Minecraft/游戏领域 · 游戏开发 |
+| agentscope-ai/agentscope | 同领域 | 多智能体协作 · Agent 框架 |

@@ -28,4 +28,9 @@
 **分析**: SakanaAI/AI-Scientist-v2：基于智能树搜索的自动化科学发现系统 - 采用 obra/superpowers 重构现有软件开发工作流以提升效率
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| obra/superpowers | 引用关系 | 被引用，重构软件开发工作流 |
+| K-Dense-AI/claude-scientific-skills | 同领域 | 科学研究自动化 · AI 辅助 |
+| langchain-ai/deepagents | 关键词匹配 | AI Agent · 自动化研究流程 |

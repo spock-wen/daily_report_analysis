@@ -23,4 +23,9 @@
 **分析**: ruvnet/ruflo：面向 Claude 的多智能体编排平台，集成 RAG 与企业级架构 - 评估 BerriAI/litellm 作为企业 LLM 网关，统一多模型接口并管控成本
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| agentscope-ai/agentscope | 同领域 | 多智能体编排 · RAG |
+| virattt/dexter | 同领域 | Agent · 金融分析 |
+| BerriAI/litellm | 引用关系 | 版本历史中提及 LLM 网关评估 |

@@ -34,4 +34,9 @@
 **分析**: agentscope-ai/agentscope：构建可见可信的智能体开发与运行环境 - 采用 obra/superpowers 重构现有软件开发工作流以提升效率
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| agentscope-ai/ReMe | 引用关系 | ReMe 为 agentscope 的记忆增强组件 |
+| langchain-ai/deepagents | 同领域 | Agent 框架 · 多智能体协作 |
+| bytedance/deer-flow | 同领域 | Agent 框架 · Python · 多智能体 |

@@ -24,4 +24,9 @@
 **分析**: microsoft/mcp-for-beginners：微软官方MCP跨语言教学套件（.NET/Java/Python/Rust/TS），含可运行Notebook示例，推动模型上下文协议工业化落地 - 立即试用microsoft/mcp-for-beginners中的Python MCP Server示例，用curl调用其/mcp/tools/list端点，理解上下文路由机制
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| anthropics/claude-plugins-official | 同领域 | MCP 插件生态 · 开发工具 |
+| Ed1s0nZ/CyberStrikeAI | 引用关系 | 版本历史中提及 MCP Server 示例 |
+| microsoft/markitdown | 同领域 | 微软开源 · 开发工具 · 多语言 |

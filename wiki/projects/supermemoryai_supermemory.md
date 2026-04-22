@@ -29,4 +29,9 @@
 **分析**: 未记录 - 集成 `supermemoryai/supermemory` 优化长上下文记忆
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| ruvnet/ruflo | 同领域 | RAG · Memory · 企业架构 |
+| onyx-dot-app/onyx | 同技术栈 | TypeScript · 私有化部署 |
+| volcengine/OpenViking | 同领域 | Memory · 上下文管理 |

@@ -31,4 +31,9 @@
 **分析**: OpenBB-finance/OpenBB：面向 AI 代理的金融数据平台，量化分析自动化程度高 - 集成 microsoft/VibeVoice 构建低延迟语音交互界面，优化用户自然语言输入体验
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| TauricResearch/TradingAgents | 同领域 | Finance · AI Agent 驱动交易 |
+| microsoft/VibeVoice | 引用关系 | 被引用，构建语音交互界面 |
+| 666ghj/MiroFish | 同领域 | Finance · 金融预测 · 多智能体 |

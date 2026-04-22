@@ -22,4 +22,9 @@
 **分析**: newton-physics/newton：GPU 加速物理引擎，机器人仿真底层基建 - 研究 TauricResearch/TradingAgents 的多代理架构，优化金融决策链路
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| TauricResearch/TradingAgents | 引用关系 | 版本历史中提及多代理架构研究 |
+| EvoMap/evolver | 同领域 | 仿真引擎 · 底层基建 |
+| newton-physics/newton | 关键词匹配 | GPU 加速 · 高性能模拟 |

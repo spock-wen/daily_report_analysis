@@ -74,4 +74,9 @@
 **分析**: 详见热点项目列表
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| SakanaAI/AI-Scientist-v2 | 引用关系 | 被引用，软件开发工作流重构 |
+| microsoft/VibeVoice | 引用关系 | 被引用，工作流自动化重构 |
+| Yeachan-Heo/oh-my-claudecode | 关键词匹配 | Agent 编排 · 多智能体 |

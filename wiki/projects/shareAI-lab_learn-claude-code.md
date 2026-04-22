@@ -38,4 +38,9 @@
 **分析**: shareAI-lab/learn-claude-code: 从零构建的 Agent Harness，Bash 驱动学习 - 采用 obra/superpowers 重构现有工作流，提升自动化能力
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| shanraisshan/claude-code-best-practice | 同领域 | Dev-tool · Claude Code 实践 |
+| 666ghj/MiroFish | 引用关系 | 版本历史中提及群体智能架构研究 |
+| volcengine/OpenViking | 引用关系 | 版本历史中提及上下文检索优化 |

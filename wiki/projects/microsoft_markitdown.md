@@ -33,3 +33,8 @@
 
 ## 跨项目关联
 
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| microsoft/mcp-for-beginners | 同领域 | 微软开源 · Python · 开发工具 |
+| CodebuffAI/codebuff | 同领域 | Dev-tool · 文档/代码处理 |
+| K-Dense-AI/claude-scientific-skills | 关键词匹配 | 数据处理 · Python · 科研文档 |

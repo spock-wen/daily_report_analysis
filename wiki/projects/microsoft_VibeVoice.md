@@ -44,4 +44,9 @@
 **分析**: microsoft/VibeVoice: 3.3 万星，开源前沿语音 AI 模型库 - 集成文档解析能力：部署 PaddlePaddle/PaddleOCR 处理非结构化数据
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| fishaudio/fish-speech | 同领域 | TTS 语音合成 · Python |
+| jamiepine/voicebox | 同领域 | 语音合成/识别 · ASR/TTS |
+| hacksider/Deep-Live-Cam | 引用关系 | 版本历史中提及集成 VibeVoice |

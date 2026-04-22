@@ -32,4 +32,9 @@
 **分析**: Crosstalk-Solutions/project-nomad：离线 AI 生存工具包，6.5k stars - 集成 aquasecurity/trivy 到 CI/CD  pipeline，利用 AI 分析容器镜像漏洞
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| Aquasecurity/trivy | 引用关系 | 版本历史中提及集成 trivy |
+| GoogleCloudPlatform/generative-ai | 同领域 | RAG · AI 知识库 · Python/JS |
+| microsoft/mcp-for-beginners | 同领域 | 本地 AI 部署 · MCP 协议 |

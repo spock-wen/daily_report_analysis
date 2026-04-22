@@ -27,5 +27,11 @@
 **来源**: [日报 2026-03-24](../../reports/daily/github-ai-trending-2026-03-24.html)
 **分析**: affaan-m/everything-claude-code: Claude Code 生态性能优化与技能 harness - 集成 affaan-m/everything-claude-code 优化 Claude Code 开发工作流
 
-## 跨项目关联
-（待分析）
+
+## 跨项目关联
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| addyosmani/agent-skills | 同领域 | AI Agent 开发工具 · 技能库 |
+| multica-ai/multica | 同领域 | Agent 平台 · 多智能体管理 |
+| gsd-build/get-shit-done | 同领域 | Claude Code 开发优化 · 提示词工程 |

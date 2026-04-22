@@ -34,4 +34,9 @@
 **分析**: K-Dense-AI/claude-scientific-skills：面向生物信息、药物发现等垂直领域的即插即用Claude代理技能库，覆盖17个科研子域 - 立即试用shannon对自有Web应用执行无提示渗透测试（docker run -it --rm -v $(pwd):/app keygraphhq/shannon scan http://localhost:3000）
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| addyosmani/agent-skills | 同领域 | Agent 技能库 · 开发最佳实践 |
+| microsoft/markitdown | 关键词匹配 | 数据处理 · Python · 文档转换 |
+| K-Dense-AI/claude-scientific-skills | 同领域 | 科研技能 · Python 包 |

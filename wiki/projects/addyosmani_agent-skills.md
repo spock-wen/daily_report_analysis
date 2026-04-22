@@ -35,3 +35,8 @@
 
 ## 跨项目关联
 
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| gsd-build/get-shit-done | 同领域 | 元提示词工程 · Claude Code 技能 |
+| anthropics/claude-plugins-official | 同领域 | Claude Code 插件/技能生态 |
+| multica-ai/andrej-karpathy-skills | 同领域 | AI 编码技能库 · Markdown/Shell |

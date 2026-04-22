@@ -27,4 +27,9 @@
 **分析**: 未记录 - 在本地部署agentscope-ai/ReMe，替换其默认SQLite内存后端为Redis，并通过agentscope内置CLI注入客服对话历史进行RAG增强测试
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| agentscope-ai/agentscope | 引用关系 | ReMe 作为 agentscope 生态的记忆增强组件 |
+| langchain-ai/deepagents | 同领域 | Agent · Memory/RAG 领域 |
+| GoogleCloudPlatform/generative-ai | 同领域 | RAG · Agent 领域 · Python |

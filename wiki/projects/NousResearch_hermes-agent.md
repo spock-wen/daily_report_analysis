@@ -41,3 +41,8 @@
 
 ## 跨项目关联
 
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| volcengine/OpenViking | 关键词匹配 | Agent · 记忆系统 · 上下文管理 |
+| obra/superpowers | 关键词匹配 | Agent 框架 · 多模型支持 |
+| Yeachan-Heo/oh-my-claudecode | 关键词匹配 | Agent 编排 · 记忆 · 多平台 |

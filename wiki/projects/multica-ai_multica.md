@@ -35,3 +35,8 @@
 
 ## 跨项目关联
 
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| agentscope-ai/agentscope | 同领域 | Agent 平台 · 多智能体管理 |
+| multica-ai/andrej-karpathy-skills | 引用关系 | 同组织 · Karpathy 编码技能 |
+| langchain-ai/deepagents | 同领域 | Agent 框架 · 企业级多智能体 |

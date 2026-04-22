@@ -25,3 +25,8 @@
 
 ## 跨项目关联
 
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| forrestchang/andrej-karpathy-skills | 同领域 | Karpathy 编码技能 · CLAUDE.md |
+| addyosmani/agent-skills | 同领域 | Agent 技能库 · 开发最佳实践 |
+| gsd-build/get-shit-done | 同领域 | 提示词工程 · AI 编码优化 |

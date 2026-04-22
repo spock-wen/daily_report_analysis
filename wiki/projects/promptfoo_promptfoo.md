@@ -28,4 +28,9 @@
 **分析**: 未记录 - 集成 promptfoo/promptfoo 到 CI/CD 流程，建立 LLM 提示词与安全测试标准
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| 666ghj/MiroFish | 引用关系 | 被引用，RAG 安全评估 |
+| volcengine/OpenViking | 关键词匹配 | RAG · 检索增强 · 安全测试 |
+| langchain-ai/deepagents | 关键词匹配 | Agent · 提示词安全 |

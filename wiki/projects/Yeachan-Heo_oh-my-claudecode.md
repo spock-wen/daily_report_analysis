@@ -31,4 +31,9 @@
 **分析**: Yeachan-Heo/oh-my-claudecode: 团队优先多 Agent 编排，优化 Claude Code 协作流 - 集成 microsoft/VibeVoice 到现有应用，测试前沿语音交互体验
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| obra/superpowers | 关键词匹配 | Agent 编排 · 多智能体工作流 |
+| affaan-m/everything-claude-code | 同领域 | Claude Code 多智能体编排系统 |
+| NousResearch/hermes-agent | 关键词匹配 | Agent · 记忆管理 · 多平台接入 |

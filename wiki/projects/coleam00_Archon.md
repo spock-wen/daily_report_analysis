@@ -23,3 +23,8 @@
 
 ## 跨项目关联
 
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| langchain-ai/open-swe | 同领域 | AI 编码 Harness · TypeScript |
+| gsd-build/get-shit-done | 同领域 | AI 编码工作流优化 · TypeScript |
+| jarrodwatts/claude-hud | 同领域 | Claude Code 工具生态 · 可观察性 |

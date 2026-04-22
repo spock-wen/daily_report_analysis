@@ -40,4 +40,9 @@
 **分析**: 未记录 - 利用 `TauricResearch/TradingAgents` 探索自动化交易
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| OpenBB-finance/OpenBB | 同领域 | Finance · AI 辅助量化交易 |
+| OpenBMB/ChatDev | 关键词匹配 | 多智能体协作框架，Python |
+| affaan-m/everything-claude-code | 引用关系 | 被引用，优化开发工作流 |

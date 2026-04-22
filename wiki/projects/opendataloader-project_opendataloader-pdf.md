@@ -28,4 +28,9 @@
 **分析**: opendataloader-project/opendataloader-pdf：AI 数据预处理 PDF 解析器 - 集成 aquasecurity/trivy 到 CI/CD  pipeline，利用 AI 分析容器镜像漏洞
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| ruvnet/ruflo | 同领域 | RAG · 数据管道 |
+| PaddlePaddle/PaddleOCR | 关键词匹配 | OCR · PDF 解析 |
+| aquasecurity/trivy | 引用关系 | 版本历史中提及 CI/CD 集成 |

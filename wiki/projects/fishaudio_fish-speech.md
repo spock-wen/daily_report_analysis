@@ -39,4 +39,9 @@
 **分析**: fishaudio/fish-speech SOTA 开源 TTS，基于 Llama/Transformer 架构实现高质量语音 - 评估 fishaudio/fish-speech 替代现有 TTS 引擎，提升语音交互自然度与成本效益
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| microsoft/VibeVoice | 同领域 | 语音合成 TTS · 语音 AI |
+| jamiepine/voicebox | 同领域 | 语音合成/识别 · 多语言支持 |
+| anthropics/claude-plugins-official | 引用关系 | 版本历史中提及评估 TTS 替代方案 |

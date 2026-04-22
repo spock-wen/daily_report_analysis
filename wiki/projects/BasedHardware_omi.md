@@ -44,3 +44,8 @@
 
 ## 跨项目关联
 
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| moeru-ai/airi | 同领域 | AI 硬件/语音交互 · 数字生命 |
+| jamiepine/voicebox | 同领域 | 语音交互 · AI 硬件集成 |
+| microsoft/VibeVoice | 同领域 | 语音 AI · 边缘设备部署 |

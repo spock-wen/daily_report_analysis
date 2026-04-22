@@ -32,4 +32,9 @@
 **分析**: Ed1s0nZ/CyberStrikeAI：Go语言实现的AI原生渗透测试平台，集成100+工具+RBAC角色测试+技能系统，填补红队AI工程化空白 - 立即试用moeru-ai/airi的Web版并贡献Live2D动作插件（TS+WebGL），参与构建AI人格开源标准
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| KeygraphHQ/shannon | 同领域 | AI 渗透测试 · 安全领域 |
+| aquasecurity/trivy | 同领域 | 安全扫描 · DevSecOps |
+| alibaba/OpenSandbox | 引用关系 | 版本历史中提及 shannon 渗透测试 |

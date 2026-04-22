@@ -32,4 +32,9 @@
 **分析**: 未记录 - 评估 BerriAI/litellm 作为企业 LLM 网关，统一多模型接口并管控成本
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| agentscope-ai/agentscope | 同领域 | Agent 框架 · Python · 多智能体 |
+| affaan-m/everything-claude-code | 引用关系 | 版本历史中提及集成优化开发工作流 |
+| langchain-ai/deepagents | 同领域 | Agent 框架 · 企业级多智能体 |

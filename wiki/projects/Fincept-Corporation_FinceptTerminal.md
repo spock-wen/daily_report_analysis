@@ -45,3 +45,8 @@
 
 ## 跨项目关联
 
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| BerriAI/litellm | 同领域 | 多 LLM 提供商支持 · Python |
+| agentscope-ai/agentscope | 关键词匹配 | Agent · 多智能体投资角色 |
+| langchain-ai/open-swe | 引用关系 | 第三方 Agent 平台集成 |

@@ -43,5 +43,11 @@
 **来源**: [日报 2026-03-16](../../reports/daily/github-ai-trending-2026-03-16.html)
 **分析**: 666ghj/MiroFish：群体智能引擎预测万物，星数近 3 万居榜首 - 集成 volcengine/OpenViking 优化 Agent 上下文检索，解决长记忆丢失问题
 
-## 跨项目关联
-（待分析）
+
+## 跨项目关联
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| QwenLM/Qwen-Agent | 关键词匹配 | LLM · Agent 框架，Qwen 模型生态 |
+| volcengine/OpenViking | 引用关系 | 被引用，优化 Agent 上下文检索 |
+| promptfoo/promptfoo | 引用关系 | 被引用，RAG 安全评估 |

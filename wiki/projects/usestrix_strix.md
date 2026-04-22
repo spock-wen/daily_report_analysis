@@ -28,4 +28,9 @@
 **分析**: usestrix/strix：开源 AI 黑客工具，自动发现并修复应用漏洞，安全领域新宠 - 评估 BerriAI/litellm 作为企业 LLM 网关，统一多模型接口并管控成本
 
 ## 跨项目关联
-（待分析）
+
+| 项目 | 关联类型 | 说明 |
+|------|----------|------|
+| sherlock-project/sherlock | 同领域 | Security · OSINT |
+| aquasecurity/trivy | 同领域 | 安全扫描 · 漏洞检测 |
+| Ed1s0nZ/CyberStrikeAI | 同领域 | AI 安全 · 渗透测试 |
