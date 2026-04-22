@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：1
-- 最近更新：2026-04-20
+- 项目总数：3
+- 最近更新：2026-04-21
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -13,13 +13,15 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 排名 | 项目 | 首次上榜 | 上榜次数 | Stars |
 |------|------|----------|----------|-------|
 | 1 | [openai/openai-agents-python](../../wiki/projects/openai_openai-agents-python.md) | 2026-04-20 | 1 | 23910 |
+| 2 | [zilliztech/claude-context](../../wiki/projects/zilliztech_claude-context.md) | 2026-04-21 | 1 | 6563 |
+| 3 | [microsoft/ai-agents-for-beginners](../../wiki/projects/microsoft_ai-agents-for-beginners.md) | 2026-04-21 | 1 | 57610 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：23,910
-- 最热项目：[openai/openai-agents-python](../../wiki/projects/openai_openai-agents-python.md) (23910 ⭐)
+- 总 Stars 数：88,083
+- 最热项目：[microsoft/ai-agents-for-beginners](../../wiki/projects/microsoft_ai-agents-for-beginners.md) (57610 ⭐)
 
 
 ---
