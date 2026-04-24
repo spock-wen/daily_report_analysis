@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：7
-- 最近更新：2026-04-22
+- 项目总数：10
+- 最近更新：2026-04-23
 - 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
@@ -17,14 +17,17 @@ general 领域收录了与AI 相关技术相关的项目。
 | 3 | [XTLS/Xray-core](../../wiki/projects/XTLS_Xray-core.md) | 2026-04-20 | 1 | 37427 |
 | 4 | [dayanch96/YTLite](../../wiki/projects/dayanch96_YTLite.md) | 2026-04-21 | 1 | 4815 |
 | 5 | [koala73/worldmonitor](../../wiki/projects/koala73_worldmonitor.md) | 2026-04-22 | 1 | 51529 |
-| 6 | [open-metadata/OpenMetadata](../../wiki/projects/open-metadata_OpenMetadata.md) | 2026-04-22 | 1 | 12141 |
-| 7 | [sansan0/TrendRadar](../../wiki/projects/sansan0_TrendRadar.md) | 2026-04-22 | 1 | 54403 |
+| 6 | [sansan0/TrendRadar](../../wiki/projects/sansan0_TrendRadar.md) | 2026-04-22 | 1 | 54403 |
+| 7 | [open-metadata/OpenMetadata](../../wiki/projects/open-metadata_OpenMetadata.md) | 2026-04-23 | 1 | 12919 |
+| 8 | [PowerShell/PowerShell](../../wiki/projects/PowerShell_PowerShell.md) | 2026-04-23 | 1 | 52767 |
+| 9 | [microsoft/onnxruntime](../../wiki/projects/microsoft_onnxruntime.md) | 2026-04-23 | 1 | 20157 |
+| 10 | [chiphuyen/aie-book](../../wiki/projects/chiphuyen_aie-book.md) | 2026-04-23 | 1 | 15161 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：224,279
+- 总 Stars 数：313,142
 - 最热项目：[pi-hole/pi-hole](../../wiki/projects/pi-hole_pi-hole.md) (57146 ⭐)
 
 
