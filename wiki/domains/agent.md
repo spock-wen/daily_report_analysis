@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：11
-- 最近更新：2026-04-24
+- 项目总数：16
+- 最近更新：2026-04-25
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -20,14 +20,14 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 6 | [mksglu/context-mode](../../wiki/projects/mksglu_context-mode.md) | 2026-04-23 | 1 | 9401 |
 | 7 | [coreyhaines31/marketingskills](../../wiki/projects/coreyhaines31_marketingskills.md) | 2026-04-23 | 1 | 23760 |
 | 8 | [VoltAgent/awesome-agent-skills](../../wiki/projects/VoltAgent_awesome-agent-skills.md) | 2026-04-23 | 1 | 18036 |
-| 9 | [Alishahryar1/free-claude-code](../../wiki/projects/Alishahryar1_free-claude-code.md) | 2026-04-24 | 1 | 8795 |
-| 10 | [zilliztech/claude-context](../../wiki/projects/zilliztech_claude-context.md) | 2026-04-24 | 1 | 8990 |
+| 9 | [zilliztech/claude-context](../../wiki/projects/zilliztech_claude-context.md) | 2026-04-24 | 1 | 8990 |
+| 10 | [Alishahryar1/free-claude-code](../../wiki/projects/Alishahryar1_free-claude-code.md) | 2026-04-25 | 1 | 11434 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：300,527
+- 总 Stars 数：375,162
 - 最热项目：[cline/cline](../../wiki/projects/cline_cline.md) (60800 ⭐)
 
 
