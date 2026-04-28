@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuggingFace AI Papers 日报 - 2026-04-27</title>
+  <link rel="stylesheet" href="../../public/css/style.css">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-card: #161b22;
+      --text-primary: #c9d1d9;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-orange: #d29922;
+      --border: #30363d;
+      --border-light: #21262d;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.5; padding: 24px 16px; font-size: 13px; }
+    .container { max-width: 960px; margin: 0 auto; }
+    header { text-align: center; padding: 32px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+    h1 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+    .date { color: var(--text-secondary); font-size: 0.8125rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); padding: 12px; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
+    .stat-value { font-size: 1.25rem; font-weight: 600; color: var(--accent-green); line-height: 1.2; }
+    .stat-value .star-icon { color: #fbbf24; width: 20px; height: 20px; vertical-align: middle; display: inline-block; }
+    .stat-label { color: var(--text-secondary); margin-top: 4px; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    section { margin-bottom: 24px; }
+    h2 { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .project-list { display: flex; flex-direction: column; gap: 8px; }
+    .star-icon { width: 16px; height: 16px; vertical-align: middle; }
+    .paper-card { background: var(--bg-card); border-radius: 6px; padding: 12px; margin: 8px 0; border: 1px solid var(--border); transition: border-color 0.2s; }
+    .paper-card:hover { border-color: var(--text-muted); }
+    .paper-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; }
+    .paper-name { font-size: 0.875rem; font-weight: 600; color: var(--accent); text-decoration: none; line-height: 1.4; }
+    .paper-name:hover { text-decoration: underline; }
+    .paper-stats { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+    .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.6875rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 2px 6px; border-radius: 10px; border: 1px solid var(--border); white-space: nowrap; }
+    .stat-badge .star-icon { color: #fbbf24; width: 12px; height: 12px; }
+    .paper-abstract { background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin: 8px 0; border: 1px solid var(--border); }
+    .paper-abstract strong { color: var(--text-primary); }
+    .paper-meta { color: var(--text-secondary); font-size: 0.75rem; margin: 8px 0; }
+    .paper-meta a { color: var(--accent); text-decoration: none; }
+    .paper-meta a:hover { text-decoration: underline; }
+    .toggle-btn { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.6875rem; font-weight: 500; transition: all 0.2s; }
+    .toggle-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+    .paper-details { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .paper-details.active { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .detail-column { background: var(--bg-secondary); padding: 8px; border-radius: 6px; }
+    .detail-column h4 { color: var(--text-primary); margin-bottom: 6px; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
+    .detail-column ul { list-style: none; }
+    .detail-column li { color: var(--text-secondary); padding: 3px 0; font-size: 0.75rem; line-height: 1.4; }
+    .ai-section { background: var(--bg-card); padding: 16px; border-radius: 6px; border: 1px solid var(--border); }
+    .ai-section h2, .ai-section h3 { color: var(--text-primary); margin: 16px 0 8px; font-size: 0.75rem; font-weight: 600; }
+    .ai-section h2:first-child, .ai-section h3:first-child { margin-top: 0; }
+    .ai-section p { color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; font-size: 0.8125rem; }
+    .ai-section ul { margin-bottom: 12px; padding-left: 16px; }
+    .ai-section li { color: var(--text-secondary); margin-bottom: 4px; font-size: 0.8125rem; line-height: 1.5; }
+    .lang-dist { display: flex; flex-wrap: wrap; gap: 10px; }
+    .lang-item { background: var(--accent); color: var(--bg-primary); padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+    .paper-type { background: var(--accent-orange); color: var(--bg-primary); padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; margin-left: 6px; }
+    .quick-actions { display: flex; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .action-btn { background: var(--accent); color: var(--bg-primary); padding: 4px 12px; border-radius: 4px; text-decoration: none; font-size: 0.75rem; font-weight: 500; border: none; cursor: pointer; }
+    .action-btn:hover { opacity: 0.9; }
+    .bibtex-block { background: var(--bg-primary); padding: 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.6875rem; color: var(--text-secondary); white-space: pre-wrap; margin-top: 8px; }
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } .paper-details.active { grid-template-columns: 1fr; } .paper-header { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>HuggingFace AI Papers 日报</h1>
+      <div class="date">2026-04-27</div>
+    </header>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">10</div>
+        <div class="stat-label">论文总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">7</div>
+        <div class="stat-label">有 Stars 论文</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">
+          <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor" style="width: 20px; height: 20px;"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+          <span style="vertical-align: middle;">36</span>
+        </div>
+        <div class="stat-label">总 Stars</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">4</div>
+        <div class="stat-label">平均 Stars</div>
+      </div>
+    </section>
+
+    
+      <section class="ai-section">
+        <h2>AI 深度洞察</h2>
+        <p>智能体与长文本推理成热点，扩散模型与SSM架构持续演进</p>
+
+        
+          <h3>技术亮点</h3>
+          <ul>
+            
+              <li>
+                <strong><a href="https://github.com/matrix-agent/awesome-agentic-world-modeling" target="_blank" style="color: var(--accent); text-decoration: none;">matrix-agent/awesome-agentic-world-modeling</a></strong>: 系统梳理智能体世界建模的理论基础与能力边界
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/ooonesevennn/DiffNR" target="_blank" style="color: var(--accent); text-decoration: none;">ooonesevennn/DiffNR</a></strong>: 扩散模型辅助稀疏视角3D断层扫描重建
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/CSSLab/SIREN" target="_blank" style="color: var(--accent); text-decoration: none;">CSSLab/SIREN</a></strong>: 利用LLM内部表示检测有害内容，无需外部分类器
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/LibratioAI/sessa" target="_blank" style="color: var(--accent); text-decoration: none;">LibratioAI/sessa</a></strong>: 选择性状态空间注意力机制
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/CUC-MIPG/FlowAnchor" target="_blank" style="color: var(--accent); text-decoration: none;">CUC-MIPG/FlowAnchor</a></strong>: 无需反转的视频编辑信号稳定化
+              </li>
+            
+          </ul>
+        
+
+        
+          <h3>社区价值</h3>
+          <ul>
+            <li>awesome资源列表整合智能体领域研究成果，降低研究者入门门槛</li><li>开源代码仓库提供可复现的实验基准，促进学术交流与协作</li><li>多篇论文提供预训练模型或数据集，推动社区快速迭代</li>
+          </ul>
+        
+
+        
+          <h3>应用前景</h3>
+          <ul>
+            <li>智能体世界建模技术将赋能机器人仿真与自动驾驶测试</li><li>扩散增强3D重建可应用于医学影像与工业检测场景</li><li>LLM内在安全检测为AI伦理审查提供新范式</li><li>状态空间选择机制可提升大模型在长文本理解与代码生成效率</li>
+          </ul>
+        
+      </section>
+    
+
+    <section>
+      <h2>论文列表（共 10 篇）</h2>
+      <div class="project-list">
+        
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.22748" class="paper-name" target="_blank">
+            1. Agentic World Modeling: Foundations, Capabilities, Laws, and Beyond
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              15
+            </span>
+            <span class="stat-badge" title="GitHub">matrix-agent/awesome-agentic-world-modeling</span>
+            <span class="paper-type" title="论文类型">综述</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Jize Zhang, Lingdong Kong, Kevin Qinghong Lin, Xuan Billy Zhang, Meng Chu</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>主页： https://agentic-world-modeling.xyz回购： https://github.com/matrix-agent/awesome-agentic-world-modeling
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(0)" id="btn-0">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-0">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.22748" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.22748" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/matrix-agent/awesome-agentic-world-modeling" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(0)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Agentic World Modeling: Foundations, Capabilities, Laws, and Beyond</li>
+              <li>Stars: 15</li>
+              <li>类型：综述</li>
+              <li>作者：Jize Zhang, Lingdong Kong, Kevin Qinghong Lin, Xuan Billy Zhang, Meng Chu</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.22748" target="_blank">https://huggingface.co/papers/2604.22748</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.22748" target="_blank">https://arxiv.org/abs/2604.22748</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>主页： https://agentic-world-modeling.xyz回购： https://github.com/matrix-agent/awesome-agentic-world-modeling</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Homepage: https://agentic-world-modeling.xyz Repo: https://github.com/matrix-agent/awesome-agentic-world-modeling</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-0">@article{zhang26,
+  title = {Agentic World Modeling: Foundations, Capabilities, Laws, and Beyond},
+  author = {Jize Zhang and Lingdong Kong and Kevin Qinghong Lin and Xuan Billy Zhang and Meng Chu},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.22748},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.18519" class="paper-name" target="_blank">
+            2. LLM Safety From Within: Detecting Harmful Content with Internal Representations
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              7
+            </span>
+            <span class="stat-badge" title="GitHub">CSSLab/SIREN</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>Guard模型被广泛用于检测用户提示和LLM响应中的有害内容。然而，最先进的保护模型仅依赖于终端层表示，而忽略了分布在内层的丰富的安全相关特征。我们推出了SIREN ，这是一款利用这些内部功能的轻量级防护型号。通过线性探测识别安全神经元，并...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(1)" id="btn-1">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-1">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.18519" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.18519" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/CSSLab/SIREN" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(1)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：LLM Safety From Within: Detecting Harmful Content with Internal Representations</li>
+              <li>Stars: 7</li>
+              <li>类型：数据</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.18519" target="_blank">https://huggingface.co/papers/2604.18519</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.18519" target="_blank">https://arxiv.org/abs/2604.18519</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>Guard模型被广泛用于检测用户提示和LLM响应中的有害内容。然而，最先进的保护模型仅依赖于终端层表示，而忽略了分布在内层的丰富的安全相关特征。我们推出了SIREN ，这是一款利用这些内部功能的轻量级防护型号。通过线性探测识别安全神经元，并通过自适应层加权层将其组合...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Guard models are widely used to detect harmful content in user prompts and LLM responses. However, state-of-the-art guard models rely solely on terminal-layer representations and overlook the rich safety-relevant features distributed across internal layers. We present SIREN, a lightweight guard model that harnesses these internal features. By identifying safety neurons via linear probing and combining them through an adaptive layer-weighted strategy, SIREN builds a harmfulness detector from LLM internals without modifying the underlying model. Our comprehensive evaluation shows that SIREN substantially outperforms state-of-the-art open-source guard models across multiple benchmarks while using 250 times fewer trainable parameters. Moreover, SIREN exhibits superior generalization to unseen benchmarks, naturally enables real-time streaming detection, and significantly improves inference efficiency compared to generative guard models. Overall, our results highlight LLM internal states as a promising foundation for practical, high-performance harmfulness detection.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-1">@article{unknown26,
+  title = {LLM Safety From Within: Detecting Harmful Content with Internal Representations},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.18519},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.18580" class="paper-name" target="_blank">
+            3. Sessa: Selective State Space Attention
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              7
+            </span>
+            <span class="stat-badge" title="GitHub">LibratioAI/sessa</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：FlokiGuy</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(2)" id="btn-2">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-2">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.18580" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.18580" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/LibratioAI/sessa" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(2)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Sessa: Selective State Space Attention</li>
+              <li>Stars: 7</li>
+              <li>类型：研究</li>
+              <li>作者：FlokiGuy</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.18580" target="_blank">https://huggingface.co/papers/2604.18580</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.18580" target="_blank">https://arxiv.org/abs/2604.18580</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-2">@article{flokiguy26,
+  title = {Sessa: Selective State Space Attention},
+  author = {FlokiGuy},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.18580},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.21518" class="paper-name" target="_blank">
+            4. DiffNR: Diffusion-Enhanced Neural Representation Optimization for Sparse-View 3D Tomographic Reconstruction
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              3
+            </span>
+            <span class="stat-badge" title="GitHub">ooonesevennn/DiffNR</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>主页： https://ooonesevennn.github.io/DiffNR/回购： https://github.com/ooonesevennn/DiffNR
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(3)" id="btn-3">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-3">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.21518" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.21518" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/ooonesevennn/DiffNR" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(3)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：DiffNR: Diffusion-Enhanced Neural Representation Optimization for Sparse-View 3D Tomographic Reconstruction</li>
+              <li>Stars: 3</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.21518" target="_blank">https://huggingface.co/papers/2604.21518</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.21518" target="_blank">https://arxiv.org/abs/2604.21518</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>主页： https://ooonesevennn.github.io/DiffNR/回购： https://github.com/ooonesevennn/DiffNR</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Homepage: https://ooonesevennn.github.io/DiffNR/ Repo: https://github.com/ooonesevennn/DiffNR</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-3">@article{unknown26,
+  title = {DiffNR: Diffusion-Enhanced Neural Representation Optimization for Sparse-View 3D Tomographic Reconstruction},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.21518},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.22586" class="paper-name" target="_blank">
+            5. FlowAnchor: Stabilizing the Editing Signal for Inversion-Free Video Editing
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              2
+            </span>
+            <span class="stat-badge" title="GitHub">CUC-MIPG/FlowAnchor</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(4)" id="btn-4">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-4">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.22586" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.22586" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/CUC-MIPG/FlowAnchor" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(4)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：FlowAnchor: Stabilizing the Editing Signal for Inversion-Free Video Editing</li>
+              <li>Stars: 2</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.22586" target="_blank">https://huggingface.co/papers/2604.22586</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.22586" target="_blank">https://arxiv.org/abs/2604.22586</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-4">@article{unknown26,
+  title = {FlowAnchor: Stabilizing the Editing Signal for Inversion-Free Video Editing},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.22586},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.22294" class="paper-name" target="_blank">
+            6. Contexts are Never Long Enough: Structured Reasoning for Scalable Question Answering over Long Document Sets
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              1
+            </span>
+            <span class="stat-badge" title="GitHub">stanford-oval/sliders</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>网址： https://sliders.genie.stanford.edu/
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(5)" id="btn-5">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-5">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.22294" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.22294" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/stanford-oval/sliders" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(5)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Contexts are Never Long Enough: Structured Reasoning for Scalable Question Answering over Long Document Sets</li>
+              <li>Stars: 1</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.22294" target="_blank">https://huggingface.co/papers/2604.22294</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.22294" target="_blank">https://arxiv.org/abs/2604.22294</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>网址： https://sliders.genie.stanford.edu/</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Website: https://sliders.genie.stanford.edu/</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-5">@article{unknown26,
+  title = {Contexts are Never Long Enough: Structured Reasoning for Scalable Question Answering over Long Document Sets},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.22294},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.16353" class="paper-name" target="_blank">
+            7. AgriIR: A Scalable Framework for Domain-Specific Knowledge Retrieval
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              1
+            </span>
+            <span class="stat-badge" title="GitHub">Shuvam-Banerji-Seal/AgriIR</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Dwaipayan Roy, Alok Mishra, Aheli Poddar, Shuvam Banerji Seal</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>本文介绍了AgriIR ，这是一种可配置的检索增强生成（ RAG ）框架，旨在提供接地、特定领域的答案，同时保持灵活性和低计算成本。AgriIR不依赖于大型单片模型，而是将信息访问过程分解为声明性的模块化阶段--查询细化、子查询规划、检索、...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(6)" id="btn-6">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-6">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.16353" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.16353" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/Shuvam-Banerji-Seal/AgriIR" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(6)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：AgriIR: A Scalable Framework for Domain-Specific Knowledge Retrieval</li>
+              <li>Stars: 1</li>
+              <li>类型：工具</li>
+              <li>作者：Dwaipayan Roy, Alok Mishra, Aheli Poddar, Shuvam Banerji Seal</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.16353" target="_blank">https://huggingface.co/papers/2604.16353</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.16353" target="_blank">https://arxiv.org/abs/2604.16353</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>本文介绍了AgriIR ，这是一种可配置的检索增强生成（ RAG ）框架，旨在提供接地、特定领域的答案，同时保持灵活性和低计算成本。AgriIR不依赖于大型单片模型，而是将信息访问过程分解为声明性的模块化阶段--查询细化、子查询规划、检索、合成和评估。这种设计允许从业人员广告...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>This paper introduces AgriIR, a configurable retrieval augmented generation (RAG) framework designed to deliver grounded, domain-specific answers while maintaining flexibility and low computational cost. Instead of relying on large, monolithic models, AgriIR decomposes the information access process into declarative modular stages -- query refinement, sub-query planning, retrieval, synthesis, and evaluation. This design allows practitioners to adapt the framework to new knowledge verticals without modifying the architecture. Our reference implementation targets Indian agricultural information access, integrating 1B-parameter language models with adaptive retrievers and domain-aware agent catalogues. The system enforces deterministic citation, integrates telemetry for transparency, and includes automated deployment assets to ensure auditable, reproducible operation. By emphasizing architectural design and modular control, AgriIR demonstrates that well-engineered pipelines can achieve domain-accurate, trustworthy retrieval even under constrained resources. We argue that this approach exemplifies "AI for Agriculture'' by promoting accessibility, sustainability, and accountability in retrieval-augmented generation systems.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-6">@article{roy26,
+  title = {AgriIR: A Scalable Framework for Domain-Specific Knowledge Retrieval},
+  author = {Dwaipayan Roy and Alok Mishra and Aheli Poddar and Shuvam Banerji Seal},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.16353},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.22152" class="paper-name" target="_blank">
+            8. dWorldEval: Scalable Robotic Policy Evaluation via Discrete Diffusion World Model
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Yichen Zhu, Yaokai Xue, Yefei Chen, Zhongyi Zhou, Yaxuan Li</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(7)" id="btn-7">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-7">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.22152" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.22152" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(7)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：dWorldEval: Scalable Robotic Policy Evaluation via Discrete Diffusion World Model</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Yichen Zhu, Yaokai Xue, Yefei Chen, Zhongyi Zhou, Yaxuan Li</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.22152" target="_blank">https://huggingface.co/papers/2604.22152</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.22152" target="_blank">https://arxiv.org/abs/2604.22152</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-7">@article{zhu26,
+  title = {dWorldEval: Scalable Robotic Policy Evaluation via Discrete Diffusion World Model},
+  author = {Yichen Zhu and Yaokai Xue and Yefei Chen and Zhongyi Zhou and Yaxuan Li},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.22152},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.22436" class="paper-name" target="_blank">
+            9. AgentSearchBench: A Benchmark for AI Agent Search in the Wild
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Emine Yilmaz, Xiaoyu Zhang, Arastun Mammadli, Bin Wu</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(8)" id="btn-8">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-8">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.22436" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.22436" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(8)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：AgentSearchBench: A Benchmark for AI Agent Search in the Wild</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Emine Yilmaz, Xiaoyu Zhang, Arastun Mammadli, Bin Wu</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.22436" target="_blank">https://huggingface.co/papers/2604.22436</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.22436" target="_blank">https://arxiv.org/abs/2604.22436</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-8">@article{yilmaz26,
+  title = {AgentSearchBench: A Benchmark for AI Agent Search in the Wild},
+  author = {Emine Yilmaz and Xiaoyu Zhang and Arastun Mammadli and Bin Wu},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.22436},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.22565" class="paper-name" target="_blank">
+            10. Learning Evidence Highlighting for Frozen LLMs
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Xiaohan Wei, Mingfu Liang, Yufei Li, Yanhang Shi, Shaoang Li</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(9)" id="btn-9">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-9">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.22565" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.22565" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(9)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Learning Evidence Highlighting for Frozen LLMs</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Xiaohan Wei, Mingfu Liang, Yufei Li, Yanhang Shi, Shaoang Li</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.22565" target="_blank">https://huggingface.co/papers/2604.22565</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.22565" target="_blank">https://arxiv.org/abs/2604.22565</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-9">@article{wei26,
+  title = {Learning Evidence Highlighting for Frozen LLMs},
+  author = {Xiaohan Wei and Mingfu Liang and Yufei Li and Yanhang Shi and Shaoang Li},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.22565},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function toggleDetails(paperId) {
+      const details = document.getElementById('details-' + paperId);
+      const btn = document.getElementById('btn-' + paperId);
+      if (details && btn) {
+        details.classList.toggle('active');
+        btn.textContent = details.classList.contains('active') ? '收起详情' : '查看详情';
+      }
+    }
+
+    function copyBibtex(paperId) {
+      const bibtexBlock = document.getElementById('bibtex-' + paperId);
+      if (bibtexBlock) {
+        navigator.clipboard.writeText(bibtexBlock.textContent).then(() => {
+          const btn = event.target;
+          const originalText = btn.textContent;
+          btn.textContent = '已复制!';
+          setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }).catch(err => {
+          alert('复制失败，请手动复制');
+        });
+      }
+    }
+  </script>
+</body>
+</html>

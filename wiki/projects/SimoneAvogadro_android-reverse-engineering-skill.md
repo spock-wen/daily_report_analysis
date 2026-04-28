@@ -6,7 +6,7 @@
 - 上榜次数：1
 - 领域分类：android, reverse-engineering, security, api-extraction
 - 语言：Shell
-- GitHub Stars: 5140（最后更新：2026-04-27）
+- GitHub Stars: 5148（最后更新：2026-04-27）
 
 ## 核心功能
 - 提供智能代理/自动化助手功能

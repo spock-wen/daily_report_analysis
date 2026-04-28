@@ -6,7 +6,7 @@
 - 上榜次数：1
 - 领域分类：finance, ai, investment, analytics
 - 语言：Python
-- GitHub Stars: 15524（最后更新：2026-04-27）
+- GitHub Stars: 15573（最后更新：2026-04-27）
 
 ## 核心功能
 - 提供高效的向量检索和语义搜索

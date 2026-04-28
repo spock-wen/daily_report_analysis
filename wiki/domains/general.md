@@ -2,9 +2,9 @@
 
 ## 领域概览
 
-- 项目总数：10
+- 项目总数：12
 - 最近更新：2026-04-27
-- 报告类型：weekly
+- 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
 
@@ -21,14 +21,14 @@ general 领域收录了与AI 相关技术相关的项目。
 | 7 | [chiphuyen/aie-book](../../wiki/projects/chiphuyen_aie-book.md) | 2026-04-23 | 1 | 15161 |
 | 8 | [open-metadata/OpenMetadata](../../wiki/projects/open-metadata_OpenMetadata.md) | 2026-04-24 | 1 | 13344 |
 | 9 | [PowerShell/PowerShell](../../wiki/projects/PowerShell_PowerShell.md) | 2026-04-25 | 1 | 53051 |
-| 10 | [deepseek-ai/DeepGEMM](../../wiki/projects/deepseek-ai_DeepGEMM.md) | 2026-04-27 | 1 | 7079 |
+| 10 | [deepseek-ai/DeepGEMM](../../wiki/projects/deepseek-ai_DeepGEMM.md) | 2026-04-27 | 1 | 7083 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：314,112
-- 最热项目：[pi-hole/pi-hole](../../wiki/projects/pi-hole_pi-hole.md) (57146 ⭐)
+- 总 Stars 数：762,327
+- 最热项目：[donnemartin/system-design-primer](../../wiki/projects/donnemartin_system-design-primer.md) (345128 ⭐)
 
 
 ---
