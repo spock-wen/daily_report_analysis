@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuggingFace AI Papers 日报 - 2026-04-28</title>
+  <link rel="stylesheet" href="../../public/css/style.css">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-card: #161b22;
+      --text-primary: #c9d1d9;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-orange: #d29922;
+      --border: #30363d;
+      --border-light: #21262d;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.5; padding: 24px 16px; font-size: 13px; }
+    .container { max-width: 960px; margin: 0 auto; }
+    header { text-align: center; padding: 32px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+    h1 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+    .date { color: var(--text-secondary); font-size: 0.8125rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); padding: 12px; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
+    .stat-value { font-size: 1.25rem; font-weight: 600; color: var(--accent-green); line-height: 1.2; }
+    .stat-value .star-icon { color: #fbbf24; width: 20px; height: 20px; vertical-align: middle; display: inline-block; }
+    .stat-label { color: var(--text-secondary); margin-top: 4px; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    section { margin-bottom: 24px; }
+    h2 { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .project-list { display: flex; flex-direction: column; gap: 8px; }
+    .star-icon { width: 16px; height: 16px; vertical-align: middle; }
+    .paper-card { background: var(--bg-card); border-radius: 6px; padding: 12px; margin: 8px 0; border: 1px solid var(--border); transition: border-color 0.2s; }
+    .paper-card:hover { border-color: var(--text-muted); }
+    .paper-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; }
+    .paper-name { font-size: 0.875rem; font-weight: 600; color: var(--accent); text-decoration: none; line-height: 1.4; }
+    .paper-name:hover { text-decoration: underline; }
+    .paper-stats { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+    .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.6875rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 2px 6px; border-radius: 10px; border: 1px solid var(--border); white-space: nowrap; }
+    .stat-badge .star-icon { color: #fbbf24; width: 12px; height: 12px; }
+    .paper-abstract { background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin: 8px 0; border: 1px solid var(--border); }
+    .paper-abstract strong { color: var(--text-primary); }
+    .paper-meta { color: var(--text-secondary); font-size: 0.75rem; margin: 8px 0; }
+    .paper-meta a { color: var(--accent); text-decoration: none; }
+    .paper-meta a:hover { text-decoration: underline; }
+    .toggle-btn { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.6875rem; font-weight: 500; transition: all 0.2s; }
+    .toggle-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+    .paper-details { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .paper-details.active { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .detail-column { background: var(--bg-secondary); padding: 8px; border-radius: 6px; }
+    .detail-column h4 { color: var(--text-primary); margin-bottom: 6px; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
+    .detail-column ul { list-style: none; }
+    .detail-column li { color: var(--text-secondary); padding: 3px 0; font-size: 0.75rem; line-height: 1.4; }
+    .ai-section { background: var(--bg-card); padding: 16px; border-radius: 6px; border: 1px solid var(--border); }
+    .ai-section h2, .ai-section h3 { color: var(--text-primary); margin: 16px 0 8px; font-size: 0.75rem; font-weight: 600; }
+    .ai-section h2:first-child, .ai-section h3:first-child { margin-top: 0; }
+    .ai-section p { color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; font-size: 0.8125rem; }
+    .ai-section ul { margin-bottom: 12px; padding-left: 16px; }
+    .ai-section li { color: var(--text-secondary); margin-bottom: 4px; font-size: 0.8125rem; line-height: 1.5; }
+    .lang-dist { display: flex; flex-wrap: wrap; gap: 10px; }
+    .lang-item { background: var(--accent); color: var(--bg-primary); padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+    .paper-type { background: var(--accent-orange); color: var(--bg-primary); padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; margin-left: 6px; }
+    .quick-actions { display: flex; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .action-btn { background: var(--accent); color: var(--bg-primary); padding: 4px 12px; border-radius: 4px; text-decoration: none; font-size: 0.75rem; font-weight: 500; border: none; cursor: pointer; }
+    .action-btn:hover { opacity: 0.9; }
+    .bibtex-block { background: var(--bg-primary); padding: 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.6875rem; color: var(--text-secondary); white-space: pre-wrap; margin-top: 8px; }
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } .paper-details.active { grid-template-columns: 1fr; } .paper-header { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>HuggingFace AI Papers 日报</h1>
+      <div class="date">2026-04-28</div>
+    </header>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">19</div>
+        <div class="stat-label">论文总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">9</div>
+        <div class="stat-label">有 Stars 论文</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">
+          <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor" style="width: 20px; height: 20px;"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+          <span style="vertical-align: middle;">193</span>
+        </div>
+        <div class="stat-label">总 Stars</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">10</div>
+        <div class="stat-label">平均 Stars</div>
+      </div>
+    </section>
+
+    
+      <section class="ai-section">
+        <h2>AI 深度洞察</h2>
+        <p>多模态智能体与3D视觉成焦点，VLA安全与视频生成技术持续突破</p>
+
+        
+          <h3>技术亮点</h3>
+          <ul>
+            
+              <li>
+                <strong><a href="https://github.com/evolvent-ai/ClawMark" target="_blank" style="color: var(--accent); text-decoration: none;">evolvent-ai/ClawMark</a></strong>: 首个面向多日多轮多模态协作智能体的真实世界基准测试
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/microsoft/World-R1" target="_blank" style="color: var(--accent); text-decoration: none;">microsoft/World-R1</a></strong>: 将3D几何约束引入文本到视频生成过程
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/3dlg-hcvc/revsi" target="_blank" style="color: var(--accent); text-decoration: none;">3dlg-hcvc/revsi</a></strong>: 构建专门评估VLM 3D空间推理能力的基准数据集
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/UVA-Computer-Vision-Lab/OmniShotCut" target="_blank" style="color: var(--accent); text-decoration: none;">UVA-Computer-Vision-Lab/OmniShotCut</a></strong>: 提出Shot-Query Transformer实现全景式关系型镜头边界检测
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/1mancompany/OneManCompany" target="_blank" style="color: var(--accent); text-decoration: none;">1mancompany/OneManCompany</a></strong>: 探索异构智能体组织为真实公司架构的方法
+              </li>
+            
+          </ul>
+        
+
+        
+          <h3>社区价值</h3>
+          <ul>
+            <li>ClawMark提供多模态智能体评估基准，推动协作智能体研究标准化</li><li>ReVSI填补VLM 3D推理评估空白，促进空间智能发展</li><li>Awesome-VLA-Safety整理VLA安全相关工作，提供系统性学习资源</li><li>ProEval提出主动式失败发现方法，提升生成式AI评估效率</li>
+          </ul>
+        
+
+        
+          <h3>应用前景</h3>
+          <ul>
+            <li>VLA安全研究将应用于机器人、自动驾驶等安全关键领域</li><li>3D视频生成技术将赋能影视制作、游戏开发等创意产业</li><li>多模态智能体基准将推动AI助手向真实工作场景落地</li><li>CAD程序合成技术将革新工业设计与建筑自动化</li>
+          </ul>
+        
+      </section>
+    
+
+    <section>
+      <h2>论文列表（共 19 篇）</h2>
+      <div class="project-list">
+        
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.23781" class="paper-name" target="_blank">
+            1. ClawMark: A Living-World Benchmark for Multi-Turn, Multi-Day, Multimodal Coworker Agents
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              80
+            </span>
+            <span class="stat-badge" title="GitHub">evolvent-ai/ClawMark</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Xiangyan Liu, Guanzheng Chen, Zijian Wu, Lingxiao Du, Fanqing Meng</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>语言模型代理越来越多地被用作持久性同事，在多个工作日内为用户提供帮助。在此类工作流程中，周围环境可能会独立于客服代表而发生变化：新电子邮件到达、日历条目转移、知识库记录更新，并且证据出现在图像、扫描的PDF、音频、视频和电子表格中。现有基准...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(0)" id="btn-0">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-0">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.23781" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.23781" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/evolvent-ai/ClawMark" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(0)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：ClawMark: A Living-World Benchmark for Multi-Turn, Multi-Day, Multimodal Coworker Agents</li>
+              <li>Stars: 80</li>
+              <li>类型：工具</li>
+              <li>作者：Xiangyan Liu, Guanzheng Chen, Zijian Wu, Lingxiao Du, Fanqing Meng</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.23781" target="_blank">https://huggingface.co/papers/2604.23781</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.23781" target="_blank">https://arxiv.org/abs/2604.23781</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>语言模型代理越来越多地被用作持久性同事，在多个工作日内为用户提供帮助。在此类工作流程中，周围环境可能会独立于客服代表而发生变化：新电子邮件到达、日历条目转移、知识库记录更新，并且证据出现在图像、扫描的PDF、音频、视频和电子表格中。现有基准没有充分评估此设置，因为它们通常...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Language-model agents are increasingly used as persistent coworkers that assist users across multiple working days. During such workflows, the surrounding environment may change independently of the agent: new emails arrive, calendar entries shift, knowledge-base records are updated, and evidence appears across images, scanned PDFs, audio, video, and spreadsheets. Existing benchmarks do not adequately evaluate this setting because they typically run within a single static episode and remain largely text-centric. We introduce \bench{}, a benchmark for coworker agents built around multi-turn multi-day tasks, a stateful sandboxed service environment whose state evolves between turns, and rule-based verification. The current release contains 100 tasks across 13 professional scenarios, executed against five stateful sandboxed services (filesystem, email, calendar, knowledge base, spreadsheet) and scored by 1537 deterministic Python checkers over post-execution service state; no LLM-as-judge is invoked during scoring. We benchmark seven frontier agent systems. The strongest model reaches 75.8 weighted score, but the best strict Task Success is only 20.0%, indicating that partial progress is common while complete end-to-end workflow completion remains rare. Turn-level analysis shows that performance drops after the first exogenous environment update, highlighting adaptation to changing state as a key open challenge. We release the benchmark, evaluation harness, and construction pipeline to support reproducible coworker-agent evaluation.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-0">@article{liu26,
+  title = {ClawMark: A Living-World Benchmark for Multi-Turn, Multi-Day, Multimodal Coworker Agents},
+  author = {Xiangyan Liu and Guanzheng Chen and Zijian Wu and Lingxiao Du and Fanqing Meng},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.23781},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.22446" class="paper-name" target="_blank">
+            2. From Skills to Talent: Organising Heterogeneous Agents as a Real-World Company
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              57
+            </span>
+            <span class="stat-badge" title="GitHub">1mancompany/OneManCompany</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Lee Ka Yiu, Yuxuan Huang, Zhiyuan He, Yu Fu, fredreick</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>OneManCompany （ OMC ）将多代理系统重新构建为一家自组织公司，能够在执行期间招聘、重组和审查自己的工作，而不是作为一个固定的预定义团队运营。OMC不是通过堆叠技能来扩展能力，而是引入了受人类组织启发的以角色为中心的范例。在...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(1)" id="btn-1">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-1">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.22446" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.22446" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/1mancompany/OneManCompany" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(1)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：From Skills to Talent: Organising Heterogeneous Agents as a Real-World Company</li>
+              <li>Stars: 57</li>
+              <li>类型：工具</li>
+              <li>作者：Lee Ka Yiu, Yuxuan Huang, Zhiyuan He, Yu Fu, fredreick</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.22446" target="_blank">https://huggingface.co/papers/2604.22446</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.22446" target="_blank">https://arxiv.org/abs/2604.22446</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>OneManCompany （ OMC ）将多代理系统重新构建为一家自组织公司，能够在执行期间招聘、重组和审查自己的工作，而不是作为一个固定的预定义团队运营。OMC不是通过堆叠技能来扩展能力，而是引入了受人类组织启发的以角色为中心的范例。在这里，基本单元不是模型或技能，而是角色：一个完整的规范，定义了哪个模型是...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>OneManCompany (OMC) reframes multi-agent systems as a self-organising company—capable of hiring, restructuring, and reviewing its own work during execution, rather than operating as a fixed, pre-defined team. Instead of scaling capability by stacking skills, OMC introduces a role-centric paradigm inspired by human organizations. Here, the fundamental unit is not a model or a skill, but a role: a complete specification that defines which model an agent uses, what tools it can access, what capabilities it has, and the boundaries within which it operates. Building on this abstraction, we introduce the Talent Market, a standalone community platform where reusable agent roles can be shared, discovered, and directly integrated into OMC. Users can recruit new Talents on demand with a single click. To ensure reliable coordination, we further propose an Explore–Execute–Review tree search framework that decomposes tasks top-down and aggregates results bottom-up, providing formal guarantees on termination while avoiding deadlocks. OMC achieves 84.67% on PRDBench, outperforming prior state-of-the-art by +15.48 points.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-1">@article{yiu26,
+  title = {From Skills to Talent: Organising Heterogeneous Agents as a Real-World Company},
+  author = {Lee Ka Yiu and Yuxuan Huang and Zhiyuan He and Yu Fu and fredreick},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.22446},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.24764" class="paper-name" target="_blank">
+            3. World-R1: Reinforcing 3D Constraints for Text-to-Video Generation
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              23
+            </span>
+            <span class="stat-badge" title="GitHub">microsoft/World-R1</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>World-R1 ：加强文本到视频生成的3D约束
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(2)" id="btn-2">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-2">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.24764" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.24764" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/microsoft/World-R1" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(2)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：World-R1: Reinforcing 3D Constraints for Text-to-Video Generation</li>
+              <li>Stars: 23</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.24764" target="_blank">https://huggingface.co/papers/2604.24764</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.24764" target="_blank">https://arxiv.org/abs/2604.24764</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>World-R1 ：加强文本到视频生成的3D约束</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>World-R1: Reinforcing 3D Constraints for Text-to-Video Generation</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-2">@article{unknown26,
+  title = {World-R1: Reinforcing 3D Constraints for Text-to-Video Generation},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.24764},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.24300" class="paper-name" target="_blank">
+            4. ReVSI: Rebuilding Visual Spatial Intelligence Evaluation for Accurate Assessment of VLM 3D Reasoning
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              23
+            </span>
+            <span class="stat-badge" title="GitHub">3dlg-hcvc/revsi</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>查看我们的项目页面： https://3dlg-hcvc.github.io/revsi/
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(3)" id="btn-3">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-3">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.24300" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.24300" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/3dlg-hcvc/revsi" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(3)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：ReVSI: Rebuilding Visual Spatial Intelligence Evaluation for Accurate Assessment of VLM 3D Reasoning</li>
+              <li>Stars: 23</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.24300" target="_blank">https://huggingface.co/papers/2604.24300</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.24300" target="_blank">https://arxiv.org/abs/2604.24300</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>查看我们的项目页面： https://3dlg-hcvc.github.io/revsi/</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Check our project page: https://3dlg-hcvc.github.io/revsi/</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-3">@article{unknown26,
+  title = {ReVSI: Rebuilding Visual Spatial Intelligence Evaluation for Accurate Assessment of VLM 3D Reasoning},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.24300},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.23775" class="paper-name" target="_blank">
+            5. Vision-Language-Action Safety: Threats, Challenges, Evaluations, and Mechanisms
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              4
+            </span>
+            <span class="stat-badge" title="GitHub">LiQiiiii/Awesome-VLA-Safety</span>
+            <span class="paper-type" title="论文类型">综述</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Bojun Zou, Ruhao Liu, Weiqi Huang, Bo Yin, Qi Li</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>GitHub Repo ： https://github.com/LiQiiiii/Awesome-VLA-Safety
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(4)" id="btn-4">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-4">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.23775" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.23775" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/LiQiiiii/Awesome-VLA-Safety" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(4)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Vision-Language-Action Safety: Threats, Challenges, Evaluations, and Mechanisms</li>
+              <li>Stars: 4</li>
+              <li>类型：综述</li>
+              <li>作者：Bojun Zou, Ruhao Liu, Weiqi Huang, Bo Yin, Qi Li</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.23775" target="_blank">https://huggingface.co/papers/2604.23775</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.23775" target="_blank">https://arxiv.org/abs/2604.23775</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>GitHub Repo ： https://github.com/LiQiiiii/Awesome-VLA-Safety</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>GitHub Repo: https://github.com/LiQiiiii/Awesome-VLA-Safety</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-4">@article{zou26,
+  title = {Vision-Language-Action Safety: Threats, Challenges, Evaluations, and Mechanisms},
+  author = {Bojun Zou and Ruhao Liu and Weiqi Huang and Bo Yin and Qi Li},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.23775},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.24762" class="paper-name" target="_blank">
+            6. OmniShotCut: Holistic Relational Shot Boundary Detection with Shot-Query Transformer
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              2
+            </span>
+            <span class="stat-badge" title="GitHub">UVA-Computer-Vision-Lab/OmniShotCut</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Zezhou Cheng, Jiahui Zhang, Zhipeng Tang, Guangyi Xu, Boyang Wang</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>OmniShotCut是关于镜头边界检测任务的敏感且信息量更大的SoTA。OmniShotCut可以检测不同来源（动漫、视频博客、游戏、短片、体育、屏幕录制等）的视频镜头变化，并通过提出基于镜头查询的视频变换器来识别突然跳转和转场（溶解、淡...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(5)" id="btn-5">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-5">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.24762" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.24762" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/UVA-Computer-Vision-Lab/OmniShotCut" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(5)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：OmniShotCut: Holistic Relational Shot Boundary Detection with Shot-Query Transformer</li>
+              <li>Stars: 2</li>
+              <li>类型：研究</li>
+              <li>作者：Zezhou Cheng, Jiahui Zhang, Zhipeng Tang, Guangyi Xu, Boyang Wang</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.24762" target="_blank">https://huggingface.co/papers/2604.24762</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.24762" target="_blank">https://arxiv.org/abs/2604.24762</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>OmniShotCut是关于镜头边界检测任务的敏感且信息量更大的SoTA。OmniShotCut可以检测不同来源（动漫、视频博客、游戏、短片、体育、屏幕录制等）的视频镜头变化，并通过提出基于镜头查询的视频变换器来识别突然跳转和转场（溶解、淡入淡出、擦除等）。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>OmniShotCut is a sensitive and more informative SoTA on the Shot Boundary Detection task. OmniShotCut can detect shot changes of the video in diverse sources (anime, vlog, game, shorts, sports, screen recording, etc.), and recognize Sudden Jump and Transitions (dissolve, fade, wipe, etc.) by proposing a Shot-Query-based Video Transformer.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-5">@article{cheng26,
+  title = {OmniShotCut: Holistic Relational Shot Boundary Detection with Shot-Query Transformer},
+  author = {Zezhou Cheng and Jiahui Zhang and Zhipeng Tang and Guangyi Xu and Boyang Wang},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.24762},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.23099" class="paper-name" target="_blank">
+            7. ProEval: Proactive Failure Discovery and Efficient Performance Estimation for Generative AI Evaluation
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              2
+            </span>
+            <span class="stat-badge" title="GitHub">google-deepmind/proeval</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(6)" id="btn-6">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-6">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.23099" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.23099" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/google-deepmind/proeval" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(6)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：ProEval: Proactive Failure Discovery and Efficient Performance Estimation for Generative AI Evaluation</li>
+              <li>Stars: 2</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.23099" target="_blank">https://huggingface.co/papers/2604.23099</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.23099" target="_blank">https://arxiv.org/abs/2604.23099</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-6">@article{unknown26,
+  title = {ProEval: Proactive Failure Discovery and Efficient Performance Estimation for Generative AI Evaluation},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.23099},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.24003" class="paper-name" target="_blank">
+            8. Stabilizing Efficient Reasoning with Step-Level Advantage Selection
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              1
+            </span>
+            <span class="stat-badge" title="GitHub">HanNight/SAS</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(7)" id="btn-7">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-7">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.24003" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.24003" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/HanNight/SAS" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(7)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Stabilizing Efficient Reasoning with Step-Level Advantage Selection</li>
+              <li>Stars: 1</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.24003" target="_blank">https://huggingface.co/papers/2604.24003</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.24003" target="_blank">https://arxiv.org/abs/2604.24003</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-7">@article{unknown26,
+  title = {Stabilizing Efficient Reasoning with Step-Level Advantage Selection},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.24003},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2508.10180" class="paper-name" target="_blank">
+            9. For-Value: Efficient Forward-Only Data Valuation for finetuning LLMs and VLMs
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              1
+            </span>
+            <span class="stat-badge" title="GitHub">vengdeng/For-Value-Efficient-Forward-Only-Data-Valuation-for-finetuning</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Zixin Ding, Minghui Chen, Jiaming Zhang, Qi Zeng, Wenlong Deng</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>数据估值对于提高大型语言模型（ LLM ）和视觉语言模型（ VLM ）的透明度和问责制至关重要。然而，现有的方法通常依赖于梯度计算，这使得它们在计算上禁止十亿参数模型，并排除了批量并行化。在这项工作中，我们引入了For-Value ，这是一...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(8)" id="btn-8">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-8">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2508.10180" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2508.10180" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/vengdeng/For-Value-Efficient-Forward-Only-Data-Valuation-for-finetuning" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(8)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：For-Value: Efficient Forward-Only Data Valuation for finetuning LLMs and VLMs</li>
+              <li>Stars: 1</li>
+              <li>类型：工具</li>
+              <li>作者：Zixin Ding, Minghui Chen, Jiaming Zhang, Qi Zeng, Wenlong Deng</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2508.10180" target="_blank">https://huggingface.co/papers/2508.10180</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2508.10180" target="_blank">https://arxiv.org/abs/2508.10180</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>数据估值对于提高大型语言模型（ LLM ）和视觉语言模型（ VLM ）的透明度和问责制至关重要。然而，现有的方法通常依赖于梯度计算，这使得它们在计算上禁止十亿参数模型，并排除了批量并行化。在这项工作中，我们引入了For-Value ，这是一种仅前瞻性的数据估值框架，可实现高效的批量可扩展价值估算...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Data valuation is essential for enhancing the transparency and accountability of large language models (LLMs) and vision-language models (VLMs). However, existing methods typically rely on gradient computations, making them computationally prohibitive for billion-parameter models and precluding batch parallelization. In this work, we introduce For-Value, a forward-only data valuation framework that enables efficient batch-scalable value estimation while maintaining effectiveness. Leveraging the expressive power of pretrained LLMs/VLMs, we theoretically demonstrate that data valuation can be captured by the alignment between the final hidden representations and prediction errors at the last layer. In light of this insight, For-Value computes data value using a simple closed-form expression with a single forward pass, eliminating the need for costly backpropagation and enabling efficient batch calculating at scale. Extensive experiments show that For-Value matches or outperforms gradient-based baselines in detecting influential data and mislabeled data, while achieving significant efficiency improvements.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-8">@article{ding25,
+  title = {For-Value: Efficient Forward-Only Data Valuation for finetuning LLMs and VLMs},
+  author = {Zixin Ding and Minghui Chen and Jiaming Zhang and Qi Zeng and Wenlong Deng},
+  journal = {arXiv preprint},
+  volume = {arXiv:2508.10180},
+  year = {2025}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.19548" class="paper-name" target="_blank">
+            10. Taming Actor-Observer Asymmetry in Agents via Dialectical Alignment
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">unikcc/ReTAS</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>论文中的一些内容： （ 1 ）多智能体自我反思有一个内置的认知陷阱。同样的模型将同样的失败归因于相反的来源，仅仅是因为我们重新标记了它的角色。当它采取行动然后自我反思时，它会责怪外部因素。当它在相互审核过程中观察到另一个代理时，它会责怪内部...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(9)" id="btn-9">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-9">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.19548" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.19548" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/unikcc/ReTAS" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(9)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Taming Actor-Observer Asymmetry in Agents via Dialectical Alignment</li>
+              <li>Stars: 0</li>
+              <li>类型：数据</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.19548" target="_blank">https://huggingface.co/papers/2604.19548</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.19548" target="_blank">https://arxiv.org/abs/2604.19548</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>论文中的一些内容： （ 1 ）多智能体自我反思有一个内置的认知陷阱。同样的模型将同样的失败归因于相反的来源，仅仅是因为我们重新标记了它的角色。当它采取行动然后自我反思时，它会责怪外部因素。当它在相互审核过程中观察到另一个代理时，它会责怪内部故障。我们将这种行为者-观察者不对称，在人类社会心理学的类似效应之后。穿过大多数前线……</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>A few things from the paper: (1) Multi-agent self-reflection has a built-in cognitive trap. The same model attributes the same failure to opposite sources just because we re-label its role. When it acts and then self-reflects, it blames external factors. When it observes another agent during mutual auditing, it blames internal faults. We call this Actor-Observer Asymmetry, after the analogous effect in human social psychology. Across most frontier models it shows up in over 20% of cases on our Ambiguous Failure Benchmark. (2) Our fix is ReTAS (Reasoning via Thesis-Antithesis-Synthesis). Instead of forcing the model to commit to one perspective, we train it to surface both attribution sides as separate hypotheses and then synthesize a perspective-invariant resolution. The recipe is dialectical chain-of-thought combined with GRPO. (3) The probe domains are FinQA (financial QA) and Spider (text-to-SQL), since both have clear correct-answer signals and multi-step pipelines where attribution is genuinely ambiguous. ReTAS substantially narrows the Actor-Observer gap and consistently improves end-task accuracy over self-reflection baselines. Data: huggingface.co/datasets/BradNLP/ReTAS Code: github.com/unikcc/ReTAS Paper: arxiv.org/abs/2604.19548</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-9">@article{unknown26,
+  title = {Taming Actor-Observer Asymmetry in Agents via Dialectical Alignment},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.19548},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.22841" class="paper-name" target="_blank">
+            11. ATTN-FIQA: Interpretable Attention-based Face Image Quality Assessment with Vision Transformers
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">gurayozgur/ATTN-FIQA</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>可解释的基于注意力的人脸图像质量评估
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(10)" id="btn-10">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-10">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.22841" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.22841" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/gurayozgur/ATTN-FIQA" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(10)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：ATTN-FIQA: Interpretable Attention-based Face Image Quality Assessment with Vision Transformers</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.22841" target="_blank">https://huggingface.co/papers/2604.22841</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.22841" target="_blank">https://arxiv.org/abs/2604.22841</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>可解释的基于注意力的人脸图像质量评估</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Interpretable Attention-based Face Image Quality Assessment</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-10">@article{unknown26,
+  title = {ATTN-FIQA: Interpretable Attention-based Face Image Quality Assessment with Vision Transformers},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.22841},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.22842" class="paper-name" target="_blank">
+            12. EX-FIQA: Leveraging Intermediate Early eXit Representations from Vision Transformers for Face Image Quality Assessment
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">gurayozgur/EX-FIQA</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>人脸图像质量评估的早期退出
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(11)" id="btn-11">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-11">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.22842" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.22842" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/gurayozgur/EX-FIQA" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(11)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：EX-FIQA: Leveraging Intermediate Early eXit Representations from Vision Transformers for Face Image Quality Assessment</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.22842" target="_blank">https://huggingface.co/papers/2604.22842</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.22842" target="_blank">https://arxiv.org/abs/2604.22842</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>人脸图像质量评估的早期退出</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Early Exits for Face Image Quality Assessment</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-11">@article{unknown26,
+  title = {EX-FIQA: Leveraging Intermediate Early eXit Representations from Vision Transformers for Face Image Quality Assessment},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.22842},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.24198" class="paper-name" target="_blank">
+            13. Rewarding the Scientific Process: Process-Level Reward Modeling for Agentic Data Analysis
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>DataPRM是一种环境感知生成过程奖励模型，可主动验证执行并区分错误类型，显著提高LLM在动态数据分析任务上的性能。
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(12)" id="btn-12">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-12">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.24198" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.24198" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(12)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Rewarding the Scientific Process: Process-Level Reward Modeling for Agentic Data Analysis</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.24198" target="_blank">https://huggingface.co/papers/2604.24198</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.24198" target="_blank">https://arxiv.org/abs/2604.24198</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>DataPRM是一种环境感知生成过程奖励模型，可主动验证执行并区分错误类型，显著提高LLM在动态数据分析任务上的性能。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>DataPRM is an environment-aware generative process reward model that actively verifies execution and distinguishes error types, significantly improving LLM performance on dynamic data analysis tasks.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-12">@article{unknown26,
+  title = {Rewarding the Scientific Process: Process-Level Reward Modeling for Agentic Data Analysis},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.24198},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.22875" class="paper-name" target="_blank">
+            14. SketchVLM: Vision language models can annotate images to explain thoughts and guide users
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Trung Bui, Mohammad Reza Taesiri, Hung Huy Nguyen, Logan Bolton, Brandon Collins</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>演示： https://sketch-vlm-demo.vercel.app/
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(13)" id="btn-13">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-13">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.22875" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.22875" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(13)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：SketchVLM: Vision language models can annotate images to explain thoughts and guide users</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Trung Bui, Mohammad Reza Taesiri, Hung Huy Nguyen, Logan Bolton, Brandon Collins</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.22875" target="_blank">https://huggingface.co/papers/2604.22875</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.22875" target="_blank">https://arxiv.org/abs/2604.22875</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>演示： https://sketch-vlm-demo.vercel.app/</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Demo: https://sketch-vlm-demo.vercel.app/</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-13">@article{bui26,
+  title = {SketchVLM: Vision language models can annotate images to explain thoughts and guide users},
+  author = {Trung Bui and Mohammad Reza Taesiri and Hung Huy Nguyen and Logan Bolton and Brandon Collins},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.22875},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.24763" class="paper-name" target="_blank">
+            15. Tuna-2: Pixel Embeddings Beat Vision Encoders for Multimodal Understanding and Generation
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Tianhong Li, Shoufa Chen, Xiaoke Huang, Weiming Ren, Zhiheng Liu</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(14)" id="btn-14">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-14">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.24763" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.24763" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(14)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Tuna-2: Pixel Embeddings Beat Vision Encoders for Multimodal Understanding and Generation</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Tianhong Li, Shoufa Chen, Xiaoke Huang, Weiming Ren, Zhiheng Liu</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.24763" target="_blank">https://huggingface.co/papers/2604.24763</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.24763" target="_blank">https://arxiv.org/abs/2604.24763</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-14">@article{li26,
+  title = {Tuna-2: Pixel Embeddings Beat Vision Encoders for Multimodal Understanding and Generation},
+  author = {Tianhong Li and Shoufa Chen and Xiaoke Huang and Weiming Ren and Zhiheng Liu},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.24763},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.21480" class="paper-name" target="_blank">
+            16. Efficient Agent Evaluation via Diversity-Guided User Simulation
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>将客服代表评估视为一棵树，而不是重复全面推出。我们从具有不同用户响应的关键决策点分支，以更少的计算发现新的故障。
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(15)" id="btn-15">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-15">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.21480" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.21480" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(15)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Efficient Agent Evaluation via Diversity-Guided User Simulation</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.21480" target="_blank">https://huggingface.co/papers/2604.21480</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.21480" target="_blank">https://arxiv.org/abs/2604.21480</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>将客服代表评估视为一棵树，而不是重复全面推出。我们从具有不同用户响应的关键决策点分支，以更少的计算发现新的故障。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Treat agent evaluation as a tree, not repeated full rollouts. We branch from key decision points with diverse user responses to uncover new failures with less compute.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-15">@article{unknown26,
+  title = {Efficient Agent Evaluation via Diversity-Guided User Simulation},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.21480},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.23210" class="paper-name" target="_blank">
+            17. Discovering Agentic Safety Specifications from 1-Bit Danger Signals
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Víctor Gallego</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>@ librarian-bot推荐
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(16)" id="btn-16">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-16">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.23210" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.23210" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(16)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Discovering Agentic Safety Specifications from 1-Bit Danger Signals</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Víctor Gallego</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.23210" target="_blank">https://huggingface.co/papers/2604.23210</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.23210" target="_blank">https://arxiv.org/abs/2604.23210</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>@ librarian-bot推荐</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>@ librarian-bot recommend</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-16">@article{gallego26,
+  title = {Discovering Agentic Safety Specifications from 1-Bit Danger Signals},
+  author = {Víctor Gallego},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.23210},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.24479" class="paper-name" target="_blank">
+            18. Zero-to-CAD: Agentic Synthesis of Interpretable CAD Programs at Million-Scale Without Real Data
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Pradeep Kumar Jayaraman, Kamal Rahimi Malekshan, Farzaneh Askari, Mohammadmehdi Ataei</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(17)" id="btn-17">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-17">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.24479" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.24479" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(17)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Zero-to-CAD: Agentic Synthesis of Interpretable CAD Programs at Million-Scale Without Real Data</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Pradeep Kumar Jayaraman, Kamal Rahimi Malekshan, Farzaneh Askari, Mohammadmehdi Ataei</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.24479" target="_blank">https://huggingface.co/papers/2604.24479</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.24479" target="_blank">https://arxiv.org/abs/2604.24479</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-17">@article{jayaraman26,
+  title = {Zero-to-CAD: Agentic Synthesis of Interpretable CAD Programs at Million-Scale Without Real Data},
+  author = {Pradeep Kumar Jayaraman and Kamal Rahimi Malekshan and Farzaneh Askari and Mohammadmehdi Ataei},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.24479},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.22782" class="paper-name" target="_blank">
+            19. Stochastic KV Routing: Enabling Adaptive Depth-Wise Cache Sharing
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(18)" id="btn-18">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-18">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.22782" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.22782" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(18)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Stochastic KV Routing: Enabling Adaptive Depth-Wise Cache Sharing</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.22782" target="_blank">https://huggingface.co/papers/2604.22782</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.22782" target="_blank">https://arxiv.org/abs/2604.22782</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-18">@article{unknown26,
+  title = {Stochastic KV Routing: Enabling Adaptive Depth-Wise Cache Sharing},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.22782},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function toggleDetails(paperId) {
+      const details = document.getElementById('details-' + paperId);
+      const btn = document.getElementById('btn-' + paperId);
+      if (details && btn) {
+        details.classList.toggle('active');
+        btn.textContent = details.classList.contains('active') ? '收起详情' : '查看详情';
+      }
+    }
+
+    function copyBibtex(paperId) {
+      const bibtexBlock = document.getElementById('bibtex-' + paperId);
+      if (bibtexBlock) {
+        navigator.clipboard.writeText(bibtexBlock.textContent).then(() => {
+          const btn = event.target;
+          const originalText = btn.textContent;
+          btn.textContent = '已复制!';
+          setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }).catch(err => {
+          alert('复制失败，请手动复制');
+        });
+      }
+    }
+  </script>
+</body>
+</html>

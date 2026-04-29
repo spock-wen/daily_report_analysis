@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：17
-- 最近更新：2026-04-27
+- 项目总数：15
+- 最近更新：2026-04-28
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -21,13 +21,13 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 7 | [coreyhaines31/marketingskills](../../wiki/projects/coreyhaines31_marketingskills.md) | 2026-04-23 | 1 | 23760 |
 | 8 | [VoltAgent/awesome-agent-skills](../../wiki/projects/VoltAgent_awesome-agent-skills.md) | 2026-04-23 | 1 | 18036 |
 | 9 | [forrestchang/andrej-karpathy-skills](../../wiki/projects/forrestchang_andrej-karpathy-skills.md) | 2026-04-27 | 1 | 90845 |
-| 10 | [mattpocock/skills](../../wiki/projects/mattpocock_skills.md) | 2026-04-27 | 1 | 29966 |
+| 10 | [mattpocock/skills](../../wiki/projects/mattpocock_skills.md) | 2026-04-28 | 1 | 37090 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：524,186
+- 总 Stars 数：460,062
 - 最热项目：[forrestchang/andrej-karpathy-skills](../../wiki/projects/forrestchang_andrej-karpathy-skills.md) (90845 ⭐)
 
 
