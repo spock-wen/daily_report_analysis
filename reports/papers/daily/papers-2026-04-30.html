@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuggingFace AI Papers 日报 - 2026-04-30</title>
+  <link rel="stylesheet" href="../../public/css/style.css">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-card: #161b22;
+      --text-primary: #c9d1d9;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-orange: #d29922;
+      --border: #30363d;
+      --border-light: #21262d;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.5; padding: 24px 16px; font-size: 13px; }
+    .container { max-width: 960px; margin: 0 auto; }
+    header { text-align: center; padding: 32px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+    h1 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+    .date { color: var(--text-secondary); font-size: 0.8125rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); padding: 12px; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
+    .stat-value { font-size: 1.25rem; font-weight: 600; color: var(--accent-green); line-height: 1.2; }
+    .stat-value .star-icon { color: #fbbf24; width: 20px; height: 20px; vertical-align: middle; display: inline-block; }
+    .stat-label { color: var(--text-secondary); margin-top: 4px; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    section { margin-bottom: 24px; }
+    h2 { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .project-list { display: flex; flex-direction: column; gap: 8px; }
+    .star-icon { width: 16px; height: 16px; vertical-align: middle; }
+    .paper-card { background: var(--bg-card); border-radius: 6px; padding: 12px; margin: 8px 0; border: 1px solid var(--border); transition: border-color 0.2s; }
+    .paper-card:hover { border-color: var(--text-muted); }
+    .paper-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; }
+    .paper-name { font-size: 0.875rem; font-weight: 600; color: var(--accent); text-decoration: none; line-height: 1.4; }
+    .paper-name:hover { text-decoration: underline; }
+    .paper-stats { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+    .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.6875rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 2px 6px; border-radius: 10px; border: 1px solid var(--border); white-space: nowrap; }
+    .stat-badge .star-icon { color: #fbbf24; width: 12px; height: 12px; }
+    .paper-abstract { background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin: 8px 0; border: 1px solid var(--border); }
+    .paper-abstract strong { color: var(--text-primary); }
+    .paper-meta { color: var(--text-secondary); font-size: 0.75rem; margin: 8px 0; }
+    .paper-meta a { color: var(--accent); text-decoration: none; }
+    .paper-meta a:hover { text-decoration: underline; }
+    .toggle-btn { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.6875rem; font-weight: 500; transition: all 0.2s; }
+    .toggle-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+    .paper-details { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .paper-details.active { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .detail-column { background: var(--bg-secondary); padding: 8px; border-radius: 6px; }
+    .detail-column h4 { color: var(--text-primary); margin-bottom: 6px; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
+    .detail-column ul { list-style: none; }
+    .detail-column li { color: var(--text-secondary); padding: 3px 0; font-size: 0.75rem; line-height: 1.4; }
+    .ai-section { background: var(--bg-card); padding: 16px; border-radius: 6px; border: 1px solid var(--border); }
+    .ai-section h2, .ai-section h3 { color: var(--text-primary); margin: 16px 0 8px; font-size: 0.75rem; font-weight: 600; }
+    .ai-section h2:first-child, .ai-section h3:first-child { margin-top: 0; }
+    .ai-section p { color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; font-size: 0.8125rem; }
+    .ai-section ul { margin-bottom: 12px; padding-left: 16px; }
+    .ai-section li { color: var(--text-secondary); margin-bottom: 4px; font-size: 0.8125rem; line-height: 1.5; }
+    .lang-dist { display: flex; flex-wrap: wrap; gap: 10px; }
+    .lang-item { background: var(--accent); color: var(--bg-primary); padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+    .paper-type { background: var(--accent-orange); color: var(--bg-primary); padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; margin-left: 6px; }
+    .quick-actions { display: flex; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .action-btn { background: var(--accent); color: var(--bg-primary); padding: 4px 12px; border-radius: 4px; text-decoration: none; font-size: 0.75rem; font-weight: 500; border: none; cursor: pointer; }
+    .action-btn:hover { opacity: 0.9; }
+    .bibtex-block { background: var(--bg-primary); padding: 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.6875rem; color: var(--text-secondary); white-space: pre-wrap; margin-top: 8px; }
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } .paper-details.active { grid-template-columns: 1fr; } .paper-header { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>HuggingFace AI Papers 日报</h1>
+      <div class="date">2026-04-30</div>
+    </header>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">8</div>
+        <div class="stat-label">论文总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">2</div>
+        <div class="stat-label">有 Stars 论文</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">
+          <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor" style="width: 20px; height: 20px;"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+          <span style="vertical-align: middle;">5</span>
+        </div>
+        <div class="stat-label">总 Stars</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">1</div>
+        <div class="stat-label">平均 Stars</div>
+      </div>
+    </section>
+
+    
+      <section class="ai-section">
+        <h2>AI 深度洞察</h2>
+        <p>多模态Agent与跨架构蒸馏引领前沿，机器人Claw框架崭露头角</p>
+
+        
+          <h3>技术亮点</h3>
+          <ul>
+            
+              <li>
+                <strong><a href="https://github.com/zai-org/GLM-V" target="_blank" style="color: var(--accent); text-decoration: none;">zai-org/GLM-V</a></strong>: 首次提出原生多模态Agent基础模型，融合视觉理解与Agent决策能力
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/PKU-YuanGroup/TIDE" target="_blank" style="color: var(--accent); text-decoration: none;">PKU-YuanGroup/TIDE</a></strong>: 首创跨架构 Diffusion LLM 蒸馏方法，实现大模型能力迁移
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/ClawGym" target="_blank" style="color: var(--accent); text-decoration: none;">ClawGym</a></strong>: 提供可扩展的Claw Agent构建框架，降低机器人开发门槛
+              </li>
+            
+          </ul>
+        
+
+        
+          <h3>社区价值</h3>
+          <ul>
+            <li>GLM-V为多模态Agent研究提供完整基线模型，推动原生多模态智能体发展</li><li>TIDE开源跨架构蒸馏代码，促进Diffusion LLM轻量化部署</li><li>ClawGym提供标准化机器人Agent开发框架，降低研究复现难度</li>
+          </ul>
+        
+
+        
+          <h3>应用前景</h3>
+          <ul>
+            <li>多模态Agent技术将赋能智能客服、具身智能机器人交互场景</li><li>Diffusion LLM蒸馏方法可推动边缘设备部署高效多模态模型</li><li>Claw Agent框架有望加速工业机器人、自动化操作等领域应用落地</li>
+          </ul>
+        
+      </section>
+    
+
+    <section>
+      <h2>论文列表（共 8 篇）</h2>
+      <div class="project-list">
+        
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.26951" class="paper-name" target="_blank">
+            1. Turning the TIDE: Cross-Architecture Distillation for Diffusion Large Language Models
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              3
+            </span>
+            <span class="stat-badge" title="GitHub">PKU-YuanGroup/TIDE</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>🌊 很高兴分享潮流—据我们所知，这是扩散法学硕士跨架构蒸馏的第一个框架，教师和学生在架构、注意力模式和标记器方面可能有所不同。我们使用0.6B Qwen3-BD3LM学生架构在两个异构师生蒸馏管道中评估潮汐： LLaDA2.0-mini ...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(0)" id="btn-0">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-0">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.26951" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.26951" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/PKU-YuanGroup/TIDE" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(0)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Turning the TIDE: Cross-Architecture Distillation for Diffusion Large Language Models</li>
+              <li>Stars: 3</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.26951" target="_blank">https://huggingface.co/papers/2604.26951</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.26951" target="_blank">https://arxiv.org/abs/2604.26951</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>🌊 很高兴分享潮流—据我们所知，这是扩散法学硕士跨架构蒸馏的第一个框架，教师和学生在架构、注意力模式和标记器方面可能有所不同。我们使用0.6B Qwen3-BD3LM学生架构在两个异构师生蒸馏管道中评估潮汐： LLaDA2.0-mini 16B MoE教师→0.6B BD3LM学生WeDLM-8B-指导8B密集教→师0.6B BD3LM学生三...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>🌊 Excited to share TIDE — to our knowledge, the first framework for cross-architecture distillation of diffusion LLMs, where teacher and student may differ in architecture, attention pattern, and tokenizer. We evaluate TIDE in two heterogeneous teacher–student distillation pipelines, both using a 0.6B Qwen3-BD3LM student architecture: LLaDA2.0-mini 16B MoE teacher → 0.6B BD3LM student WeDLM-8B-Instruct 8B dense teacher → 0.6B BD3LM student Three modular components make this work: TIDAL — a dual-axis distillation schedule over training progress and diffusion timestep, which down-weights unreliable teacher signals in high-mask / high-noise regions. CompDemo — complementary mask demonstrations with dual teacher forward passes, giving each masked position extra visible context to sharpen teacher predictions. Reverse CALM — a reversed chunk-level likelihood matching objective for cross-tokenizer alignment, yielding bounded gradients and stronger mode-seeking behavior. Across 8 benchmarks, TIDE improves over the BD3LM baseline by +1.53 on average, and achieves +16.48 on HumanEval over a same-size AR model. The 0.6B student further achieves 22× memory compression and 5.2× inference speedup compared with the 16B MoE teacher. Code, checkpoints, and data are all open-sourced — feedback / Upvotes are very welcome 🌟 📄 Paper: https://huggingface.co/papers/2604.26951 💻 Code: https://github.com/PKU-YuanGroup/TIDE 🌐 Project: https://pku-yuangroup.github.io/TIDE-Page/ 🤗 Models: https://huggingface.co/TIDE-dllm/models 📚 Data: https://huggingface.co/TIDE-dllm/datasets</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-0">@article{unknown26,
+  title = {Turning the TIDE: Cross-Architecture Distillation for Diffusion Large Language Models},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.26951},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.26752" class="paper-name" target="_blank">
+            2. GLM-5V-Turbo: Toward a Native Foundation Model for Multimodal Agents
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              2
+            </span>
+            <span class="stat-badge" title="GitHub">zai-org/GLM-V</span>
+            <span class="paper-type" title="论文类型">综述</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>我们提出了GLM-5V-Turbo ，这是一种用于真实数字环境中代理任务的原生多模态基础模型。在报告中，我们总结了模型设计、多模态训练、强化学习、工具链扩展和代理框架集成的改进，以及对构建多模态代理的实用见解。GLM-5V-Turbo在多模...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(1)" id="btn-1">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-1">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.26752" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.26752" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/zai-org/GLM-V" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(1)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：GLM-5V-Turbo: Toward a Native Foundation Model for Multimodal Agents</li>
+              <li>Stars: 2</li>
+              <li>类型：综述</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.26752" target="_blank">https://huggingface.co/papers/2604.26752</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.26752" target="_blank">https://arxiv.org/abs/2604.26752</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>我们提出了GLM-5V-Turbo ，这是一种用于真实数字环境中代理任务的原生多模态基础模型。在报告中，我们总结了模型设计、多模态训练、强化学习、工具链扩展和代理框架集成的改进，以及对构建多模态代理的实用见解。GLM-5V-Turbo在多模态编码、可视化工具使用和基于框架的代理任务方面取得了强劲的成果，而GLM-5V-Turbo在多模态编码、可视化工具使用和基于框架的代理任务方面取得了强劲的成果，</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>We present GLM-5V-Turbo, a native multimodal foundation model for agentic tasks in real digital environments. In the report, we summarize improvements in model design, multimodal training, reinforcement learning, toolchain expansion, and agent-framework integration, together with practical insights on building multimodal agents. GLM-5V-Turbo achieves strong results in multimodal coding, visual tool use, and framework-based agentic tasks, while preserving competitive text-only coding capability.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-1">@article{unknown26,
+  title = {GLM-5V-Turbo: Toward a Native Foundation Model for Multimodal Agents},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.26752},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.26904" class="paper-name" target="_blank">
+            3. ClawGym: A Scalable Framework for Building Effective Claw Agents
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Yike Yang, Daixuan Cheng, Huatong Song, Fei Bai, SNHE</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>ClawGym ：适用于Claw风格个人代理的全生命周期框架️1.数据： ClawGym-SynData — 13.5K过滤任务，角色驱动的意图×技能基础的操作，带有模拟工作空间和混合验证2️.培训： ClawGym-Agents —黑盒推...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(2)" id="btn-2">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-2">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.26904" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.26904" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/ClawGym" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(2)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：ClawGym: A Scalable Framework for Building Effective Claw Agents</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              <li>作者：Yike Yang, Daixuan Cheng, Huatong Song, Fei Bai, SNHE</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.26904" target="_blank">https://huggingface.co/papers/2604.26904</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.26904" target="_blank">https://arxiv.org/abs/2604.26904</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>ClawGym ：适用于Claw风格个人代理的全生命周期框架️1.数据： ClawGym-SynData — 13.5K过滤任务，角色驱动的意图×技能基础的操作，带有模拟工作空间和混合验证2️.培训： ClawGym-Agents —黑盒推出SFT +轻量级RL管道跨每任务沙盒并行推出️3.评估： ClawGym-Bench — 200个实例，自动过滤和人工LLM审核，针对信任进行校准资源丢弃...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>ClawGym: full-lifecycle framework for Claw-style personal agents 1️⃣ Data : ClawGym-SynData — 13.5K filtered tasks, persona-driven intents × skill-grounded ops, with mock workspaces & hybrid verification 2️⃣ Training : ClawGym-Agents — SFT on black-box rollouts + lightweight RL pipeline parallelizing rollouts across per-task sandboxes 3️⃣ Eval : ClawGym-Bench — 200 instances, auto-filtered & human-LLM reviewed, calibrated for trust Resources dropping soon https://github.com/ClawGym</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-2">@article{yang26,
+  title = {ClawGym: A Scalable Framework for Building Effective Claw Agents},
+  author = {Yike Yang and Daixuan Cheng and Huatong Song and Fei Bai and SNHE},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.26904},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.24351" class="paper-name" target="_blank">
+            4. Diffusion Templates: A Unified Plugin Framework for Controllable Diffusion
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Hong Zhang, Yingda, Artiprocher</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>可插拔、灵活且可堆叠：使用扩散模板丰富扩散生态。
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(3)" id="btn-3">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-3">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.24351" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.24351" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(3)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Diffusion Templates: A Unified Plugin Framework for Controllable Diffusion</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Hong Zhang, Yingda, Artiprocher</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.24351" target="_blank">https://huggingface.co/papers/2604.24351</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.24351" target="_blank">https://arxiv.org/abs/2604.24351</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>可插拔、灵活且可堆叠：使用扩散模板丰富扩散生态。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Pluggable, Flexible and Stackable: enrich the diffusion ecosytem with the Diffusion Templates.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-3">@article{zhang26,
+  title = {Diffusion Templates: A Unified Plugin Framework for Controllable Diffusion},
+  author = {Hong Zhang and Yingda and Artiprocher},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.24351},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.26779" class="paper-name" target="_blank">
+            5. Accelerating RL Post-Training Rollouts via System-Integrated Speculative Decoding
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(4)" id="btn-4">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-4">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.26779" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.26779" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(4)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Accelerating RL Post-Training Rollouts via System-Integrated Speculative Decoding</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.26779" target="_blank">https://huggingface.co/papers/2604.26779</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.26779" target="_blank">https://arxiv.org/abs/2604.26779</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-4">@article{unknown26,
+  title = {Accelerating RL Post-Training Rollouts via System-Integrated Speculative Decoding},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.26779},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.26694" class="paper-name" target="_blank">
+            6. Unified 4D World Action Modeling from Video Priors with Asynchronous Denoising
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Nan Sun, Zilong Chen, Peiyan Li, Qiwei Li, Jun Guo</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(5)" id="btn-5">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-5">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.26694" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.26694" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(5)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Unified 4D World Action Modeling from Video Priors with Asynchronous Denoising</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Nan Sun, Zilong Chen, Peiyan Li, Qiwei Li, Jun Guo</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.26694" target="_blank">https://huggingface.co/papers/2604.26694</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.26694" target="_blank">https://arxiv.org/abs/2604.26694</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-5">@article{sun26,
+  title = {Unified 4D World Action Modeling from Video Priors with Asynchronous Denoising},
+  author = {Nan Sun and Zilong Chen and Peiyan Li and Qiwei Li and Jun Guo},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.26694},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.24977" class="paper-name" target="_blank">
+            7. A Survey on LLM-based Conversational User Simulation
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">综述</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Branislav Kveton, Yu Wang, Leyao Wang, Bo Ni, Franck-Dernoncourt</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(6)" id="btn-6">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-6">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.24977" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.24977" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(6)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：A Survey on LLM-based Conversational User Simulation</li>
+              <li>Stars: 0</li>
+              <li>类型：综述</li>
+              <li>作者：Branislav Kveton, Yu Wang, Leyao Wang, Bo Ni, Franck-Dernoncourt</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.24977" target="_blank">https://huggingface.co/papers/2604.24977</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.24977" target="_blank">https://arxiv.org/abs/2604.24977</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-6">@article{kveton26,
+  title = {A Survey on LLM-based Conversational User Simulation},
+  author = {Branislav Kveton and Yu Wang and Leyao Wang and Bo Ni and Franck-Dernoncourt},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.24977},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2604.26186" class="paper-name" target="_blank">
+            8. FASH-iCNN: Making Editorial Fashion Identity Inspectable Through Multimodal CNN Probing
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Ryan A. Rossi, Morayo Danielle Adeyemi, Franck-Dernoncourt</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(7)" id="btn-7">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-7">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2604.26186" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.26186" target="_blank" class="action-btn">PDF</a>
+            
+            <button onclick="copyBibtex(7)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：FASH-iCNN: Making Editorial Fashion Identity Inspectable Through Multimodal CNN Probing</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Ryan A. Rossi, Morayo Danielle Adeyemi, Franck-Dernoncourt</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2604.26186" target="_blank">https://huggingface.co/papers/2604.26186</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2604.26186" target="_blank">https://arxiv.org/abs/2604.26186</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-7">@article{rossi26,
+  title = {FASH-iCNN: Making Editorial Fashion Identity Inspectable Through Multimodal CNN Probing},
+  author = {Ryan A. Rossi and Morayo Danielle Adeyemi and Franck-Dernoncourt},
+  journal = {arXiv preprint},
+  volume = {arXiv:2604.26186},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function toggleDetails(paperId) {
+      const details = document.getElementById('details-' + paperId);
+      const btn = document.getElementById('btn-' + paperId);
+      if (details && btn) {
+        details.classList.toggle('active');
+        btn.textContent = details.classList.contains('active') ? '收起详情' : '查看详情';
+      }
+    }
+
+    function copyBibtex(paperId) {
+      const bibtexBlock = document.getElementById('bibtex-' + paperId);
+      if (bibtexBlock) {
+        navigator.clipboard.writeText(bibtexBlock.textContent).then(() => {
+          const btn = event.target;
+          const originalText = btn.textContent;
+          btn.textContent = '已复制!';
+          setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }).catch(err => {
+          alert('复制失败，请手动复制');
+        });
+      }
+    }
+  </script>
+</body>
+</html>
