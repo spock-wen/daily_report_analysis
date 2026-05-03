@@ -16,9 +16,10 @@ class BaseScraper {
   constructor(options = {}) {
     this.name = options.name || 'BaseScraper';
     this.url = options.url || '';
-    this.headers = options.headers || {
+    const defaultHeaders = {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
     };
+    this.headers = { ...defaultHeaders, ...options.headers };
     this.timeout = options.timeout || 30000; // 默认 30 秒超时
     this.retryHandler = null;
   }
