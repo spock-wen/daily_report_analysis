@@ -419,12 +419,14 @@ class HTMLGenerator {
   formatNumber(num) {
     if (num === null || num === undefined) return '0';
     if (typeof num === 'string') num = parseInt(num, 10);
-    if (num >= 10000) {
-      return (num / 10000).toFixed(1) + 'w';
-    } else if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'k';
-    }
     return num.toLocaleString();
+  }
+
+  renderMonthlyHTML(data) {
+    // 复用日报HTML渲染逻辑，调整标题显示
+    const monthlyData = { ...data };
+    monthlyData.date = data.month;
+    return this.renderDailyHTML(monthlyData);
   }
 
   renderDetailItems(items) {

@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：13
-- 最近更新：2026-05-02
+- 项目总数：12
+- 最近更新：2026-05-03
 - 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
@@ -27,8 +27,8 @@ general 领域收录了与AI 相关技术相关的项目。
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：708,400
-- 最热项目：[jwasham/coding-interview-university](../../wiki/projects/jwasham_coding-interview-university.md) (344535 ⭐)
+- 总 Stars 数：315,616
+- 最热项目：[pi-hole/pi-hole](../../wiki/projects/pi-hole_pi-hole.md) (57146 ⭐)
 
 
 ---

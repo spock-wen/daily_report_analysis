@@ -197,7 +197,7 @@ function generateFeishuWeekly(weeklyData, insights) {
   const week = weeklyData.week || weeklyData.date;
   const weekRange = getWeekRange(week, false);
   const weekNumber = getWeekNumber(week);
-  const reportUrl = `https://report.wenspock.site/weekly/github-weekly-${week}.html`;
+  const reportUrl = `https://report.wenspock.site/weekly/weekly-${week}.html`;
   const generatedAt = new Date().toLocaleString('zh-CN', { 
     timeZone: 'Asia/Shanghai',
     year: 'numeric',
@@ -384,7 +384,7 @@ function generateWeLinkWeekly(weeklyData, insights) {
   const week = weeklyData.week || weeklyData.date;
   const weekRangeShort = getWeekRange(week, true);
   const weekNumber = getWeekNumber(week);
-  const reportUrl = `https://report.wenspock.site/weekly/github-weekly-${week}.html`;
+  const reportUrl = `https://report.wenspock.site/weekly/weekly-${week}.html`;
   const generatedAtShort = new Date().toLocaleString('zh-CN', { 
     timeZone: 'Asia/Shanghai',
     month: '2-digit',

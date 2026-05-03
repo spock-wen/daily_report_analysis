@@ -10,6 +10,15 @@ const InsightAnalyzer = require('./analyzer/insight-analyzer');
 const HTMLGenerator = require('./generator/html-generator');
 const MessageSender = require('./notifier/message-sender');
 
+// Wiki & 知识图谱模块
+const WikiManager = require('./wiki/wiki-manager');
+const WikiExtractor = require('./wiki/extractors/wiki-extractor');
+const DomainMapper = require('./wiki/config/domain-mapper');
+const KnowledgeGraph = require('./wiki/graph/knowledge-graph');
+const SimilarityCalculator = require('./wiki/graph/similarity-calculator');
+const FilterEngine = require('./wiki/filters/filter-engine');
+const IndexPageGenerator = require('./generator/index-page-generator');
+
 // 工具模块
 const utils = require('./utils');
 const pathUtils = require('./utils/path');
@@ -28,6 +37,15 @@ module.exports = {
   InsightAnalyzer,
   HTMLGenerator,
   MessageSender,
+
+  // Wiki & 知识图谱模块
+  WikiManager,
+  WikiExtractor,
+  DomainMapper,
+  KnowledgeGraph,
+  SimilarityCalculator,
+  FilterEngine,
+  IndexPageGenerator,
   
   // 工具模块
   utils,
@@ -42,5 +60,5 @@ module.exports = {
   prompts,
   
   // 版本信息
-  version: '2.0.0'
+  version: '2.1.0'
 };

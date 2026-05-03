@@ -16,6 +16,20 @@ class IndexPageGenerator {
   }
 
   /**
+   * HTML转义函数，防止XSS攻击
+   * @private
+   */
+  _escapeHTML(str) {
+    if (typeof str !== 'string') return str;
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  /**
    * 生成首页 HTML
    * @param {string} outputPath - 输出路径
    */
@@ -487,26 +501,39 @@ class IndexPageGenerator {
    * @private
    */
   _renderProjectCard(project) {
+    const safeFullName = this._escapeHTML(project.fullName);
+    const safeLanguage = this._escapeHTML(project.language || 'Unknown');
+    const safeDomains = (project.domains || []).map(d => this._escapeHTML(d));
+    const safeCoreFunctions = (project.coreFunctions || []).map(f => this._escapeHTML(f));
+    const safeNeighbors = (project.neighbors || []).map(n => ({
+      ...n,
+      project: {
+        ...n.project,
+        fullName: this._escapeHTML(n.project.fullName)
+      },
+      types: n.types.map(t => this._escapeHTML(t))
+    }));
+
     return `
-      <div class="project-card" data-fullname="${project.fullName}">
+      <div class="project-card" data-fullname="${safeFullName}">
         <div class="project-header">
-          <div class="project-name">${project.fullName}</div>
-          <div class="project-stars">⭐ ${project.stars.toLocaleString()}</div>
+          <div class="project-name">${safeFullName}</div>
+          <div class="project-stars">⭐ ${(project.stars || 0).toLocaleString()}</div>
         </div>
         <div class="project-meta">
-          <span class="meta-tag">${project.language}</span>
-          <span class="meta-tag">上榜 ${project.appearances} 次</span>
-          ${project.domains.slice(0, 2).map(d => `<span class="meta-tag">${d}</span>`).join('')}
+          <span class="meta-tag">${safeLanguage}</span>
+          <span class="meta-tag">上榜 ${project.appearances || 0} 次</span>
+          ${safeDomains.slice(0, 2).map(d => `<span class="meta-tag">${d}</span>`).join('')}
         </div>
-        ${project.coreFunctions.length > 0 ? `
+        ${safeCoreFunctions.length > 0 ? `
           <div class="project-functions">
-            ${project.coreFunctions.slice(0, 3).map(f => `<span class="function-tag">${f}</span>`).join('')}
+            ${safeCoreFunctions.slice(0, 3).map(f => `<span class="function-tag">${f}</span>`).join('')}
           </div>
         ` : ''}
-        ${project.neighbors && project.neighbors.length > 0 ? `
+        ${safeNeighbors && safeNeighbors.length > 0 ? `
           <div class="neighbors-section">
             <div class="neighbors-title">🔗 相关项目</div>
-            ${project.neighbors.map(n => `
+            ${safeNeighbors.map(n => `
               <div class="neighbor-item">
                 <span class="neighbor-name">${n.project.fullName}</span>
                 <div class="neighbor-types">
