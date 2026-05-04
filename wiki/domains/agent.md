@@ -2,9 +2,9 @@
 
 ## 领域概览
 
-- 项目总数：14
-- 最近更新：2026-05-02
-- 报告类型：daily
+- 项目总数：16
+- 最近更新：2026-05-04
+- 报告类型：weekly
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
 
@@ -20,15 +20,15 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 6 | [mksglu/context-mode](../../wiki/projects/mksglu_context-mode.md) | 2026-04-23 | 1 | 9401 |
 | 7 | [coreyhaines31/marketingskills](../../wiki/projects/coreyhaines31_marketingskills.md) | 2026-04-23 | 1 | 23760 |
 | 8 | [VoltAgent/awesome-agent-skills](../../wiki/projects/VoltAgent_awesome-agent-skills.md) | 2026-04-23 | 1 | 18036 |
-| 9 | [forrestchang/andrej-karpathy-skills](../../wiki/projects/forrestchang_andrej-karpathy-skills.md) | 2026-04-27 | 1 | 90845 |
-| 10 | [warpdotdev/warp](../../wiki/projects/warpdotdev_warp.md) | 2026-04-30 | 1 | 49100 |
+| 9 | [warpdotdev/warp](../../wiki/projects/warpdotdev_warp.md) | 2026-04-30 | 1 | 49100 |
+| 10 | [mattpocock/skills](../../wiki/projects/mattpocock_skills.md) | 2026-05-04 | 1 | 56979 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：493,170
-- 最热项目：[forrestchang/andrej-karpathy-skills](../../wiki/projects/forrestchang_andrej-karpathy-skills.md) (90845 ⭐)
+- 总 Stars 数：630,735
+- 最热项目：[forrestchang/andrej-karpathy-skills](../../wiki/projects/forrestchang_andrej-karpathy-skills.md) (108817 ⭐)
 
 
 ---
