@@ -56,6 +56,29 @@ function parseStars(starsStr) {
 }
 
 /**
+ * 从内容中提取字段（支持表格和列表两种格式）
+ */
+function extractField(content, fieldName, isNewFormat) {
+  if (isNewFormat) {
+    // 新格式：从表格中提取 | 字段 | 值 |
+    const tableRegex = new RegExp('\\|\\s*' + fieldName + '\\s*\\|\\s*([^|]+)\\s*\\|', 'i');
+    const match = content.match(tableRegex);
+    if (match) {
+      return match[1].trim();
+    }
+    return null;
+  } else {
+    // 旧格式：从列表中提取 - 字段：值
+    const listRegex = new RegExp('-\\s*' + fieldName + '[：:]\\s*([^\\n]+)');
+    const match = content.match(listRegex);
+    if (match) {
+      return match[1].trim();
+    }
+    return null;
+  }
+}
+
+/**
  * 检查 Stars 格式是否正确
  */
 async function checkStarsFormat(wikiDir) {
@@ -76,11 +99,11 @@ async function checkStarsFormat(wikiDir) {
   for (const file of files) {
     const filePath = path.join(projectsDir, file);
     const content = fs.readFileSync(filePath, 'utf-8');
+    const isNewFormat = content.includes('## 📊 基本信息');
 
-    // 提取 Stars 行
-    const starsMatch = content.match(/- GitHub Stars:\s*([^\n（]+)/);
-    if (starsMatch) {
-      const starsStr = starsMatch[1].trim();
+    // 提取 Stars
+    const starsStr = extractField(content, 'GitHub Stars', isNewFormat);
+    if (starsStr) {
       const parsed = parseStars(starsStr);
       if (parsed === null && starsStr !== '0') {
         invalidStars.push({
@@ -132,16 +155,17 @@ async function checkDomainValid(wikiDir) {
   for (const file of files) {
     const filePath = path.join(projectsDir, file);
     const content = fs.readFileSync(filePath, 'utf-8');
+    const isNewFormat = content.includes('## 📊 基本信息');
 
-    // 提取领域分类行
-    const domainMatch = content.match(/- 领域分类：([^\n]+)/);
-    if (domainMatch) {
-      const domains = domainMatch[1].trim().toLowerCase().split(/[,，]/).map(d => d.trim()).filter(d => d);
+    // 提取领域分类
+    const domainStr = extractField(content, '领域分类', isNewFormat);
+    if (domainStr) {
+      const domains = domainStr.trim().toLowerCase().split(/[,，]/).map(d => d.trim()).filter(d => d);
       const invalidDomainList = domains.filter(d => !VALID_DOMAINS.includes(d));
       if (invalidDomainList.length > 0) {
         invalidDomains.push({
           file: `wiki/projects/${file}`,
-          value: domainMatch[1].trim(),
+          value: domainStr.trim(),
           reason: `无效领域：${invalidDomainList.join(', ')}，有效列表：${VALID_DOMAINS.join(', ')}`
         });
       }
@@ -195,21 +219,18 @@ async function checkDateFormat(wikiDir) {
   for (const file of files) {
     const filePath = path.join(projectsDir, file);
     const content = fs.readFileSync(filePath, 'utf-8');
+    const isNewFormat = content.includes('## 📊 基本信息');
 
     // 提取日期字段
-    const dateFields = [
-      { name: '首次上榜', regex: /- 首次上榜：([^\n]+)/ },
-      { name: '最近上榜', regex: /- 最近上榜：([^\n]+)/ }
-    ];
+    const dateFieldNames = ['首次上榜', '最近上榜'];
 
-    for (const field of dateFields) {
-      const match = content.match(field.regex);
-      if (match) {
-        const dateStr = match[1].trim();
+    for (const fieldName of dateFieldNames) {
+      const dateStr = extractField(content, fieldName, isNewFormat);
+      if (dateStr) {
         if (!dateRegex.test(dateStr)) {
           invalidDates.push({
             file: `wiki/projects/${file}`,
-            field: field.name,
+            field: fieldName,
             value: dateStr,
             reason: '日期格式不是 YYYY-MM-DD'
           });
@@ -340,9 +361,12 @@ async function checkCoreFunctionsNotEmpty(wikiDir) {
   for (const file of files) {
     const filePath = path.join(projectsDir, file);
     const content = fs.readFileSync(filePath, 'utf-8');
+    const isNewFormat = content.includes('## 📊 基本信息');
 
     // 提取核心功能章节内容
-    const sectionMatch = content.match(/## 核心功能\n([\s\S]*?)(?=\n## )/);
+    const sectionTitle = isNewFormat ? '## ✨ 核心功能' : '## 核心功能';
+    const sectionRegex = new RegExp(sectionTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\n([\\s\\S]*?)(?=\\n## )');
+    const sectionMatch = content.match(sectionRegex);
     if (sectionMatch) {
       const sectionContent = sectionMatch[1].trim();
       // 检查是否有列表项
@@ -399,16 +423,18 @@ async function checkStarsUpToDate(wikiDir) {
   for (const file of files) {
     const filePath = path.join(projectsDir, file);
     const content = fs.readFileSync(filePath, 'utf-8');
+    const isNewFormat = content.includes('## 📊 基本信息');
 
     // 提取最近上榜日期
-    const lastSeenMatch = content.match(/- 最近上榜：(\d{4}-\d{2}-\d{2})/);
+    const lastSeen = extractField(content, '最近上榜', isNewFormat);
     // 提取 Stars 更新日期
+    let starsDate = null;
     const starsDateMatch = content.match(/（最后更新：(\d{4}-\d{2}-\d{2})）/);
+    if (starsDateMatch) {
+      starsDate = starsDateMatch[1];
+    }
 
-    if (lastSeenMatch && starsDateMatch) {
-      const lastSeen = lastSeenMatch[1];
-      const starsDate = starsDateMatch[1];
-
+    if (lastSeen && starsDate) {
       // 计算日期差异
       const lastSeenDate = new Date(lastSeen);
       const starsUpdateDate = new Date(starsDate);

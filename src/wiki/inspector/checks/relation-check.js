@@ -33,6 +33,46 @@ const VALID_DOMAINS = [
 ];
 
 /**
+ * 从内容中提取领域（支持新旧两种格式）
+ */
+function extractDomains(content) {
+  const isNewFormat = content.includes('## 📊 基本信息');
+  
+  if (isNewFormat) {
+    // 新格式：从表格中提取
+    const tableMatch = content.match(/\|\s*领域分类\s*\|\s*([^\|]+)\s*\|/);
+    if (tableMatch) {
+      return tableMatch[1].trim().toLowerCase().split(/[,，]/).map(d => d.trim()).filter(d => d);
+    }
+    return [];
+  } else {
+    // 旧格式：从列表中提取
+    const listMatch = content.match(/- 领域分类：([^\n]+)/);
+    if (listMatch) {
+      return listMatch[1].trim().toLowerCase().split(/[,，]/).map(d => d.trim()).filter(d => d);
+    }
+    return [];
+  }
+}
+
+/**
+ * 检查字段是否存在（支持新旧两种格式）
+ */
+function hasField(content, fieldName) {
+  const isNewFormat = content.includes('## 📊 基本信息');
+  
+  if (isNewFormat) {
+    // 新格式：检查表格中是否有该字段
+    const tableRegex = new RegExp('\\|\\s*' + fieldName + '\\s*\\|', 'i');
+    return tableRegex.test(content);
+  } else {
+    // 旧格式：检查列表中是否有该字段
+    const listRegex = new RegExp('-\\s*' + fieldName + '[：:]', 'i');
+    return listRegex.test(content);
+  }
+}
+
+/**
  * 检查每个领域是否有项目
  */
 async function checkDomainProjectsCount(wikiDir) {
@@ -57,12 +97,9 @@ async function checkDomainProjectsCount(wikiDir) {
     const filePath = path.join(projectsDir, file);
     const content = fs.readFileSync(filePath, 'utf-8');
 
-    const domainMatch = content.match(/- 领域分类：([^\n]+)/);
-    if (domainMatch) {
-      const domains = domainMatch[1].trim().toLowerCase().split(/[,，]/).map(d => d.trim()).filter(d => d);
-      for (const domain of domains) {
-        domainMap.set(domain, (domainMap.get(domain) || 0) + 1);
-      }
+    const domains = extractDomains(content);
+    for (const domain of domains) {
+      domainMap.set(domain, (domainMap.get(domain) || 0) + 1);
     }
   }
 
@@ -104,8 +141,8 @@ async function checkOrphanProjects(wikiDir) {
     const filePath = path.join(projectsDir, file);
     const content = fs.readFileSync(filePath, 'utf-8');
 
-    const domainMatch = content.match(/- 领域分类：([^\n]+)/);
-    if (!domainMatch) {
+    const domains = extractDomains(content);
+    if (domains.length === 0) {
       orphanProjects.push({
         file: `wiki/projects/${file}`,
         reason: '缺少领域分类字段'
@@ -228,12 +265,9 @@ async function checkDomainWikiExists(wikiDir) {
     const filePath = path.join(projectsDir, file);
     const content = fs.readFileSync(filePath, 'utf-8');
 
-    const domainMatch = content.match(/- 领域分类：([^\n]+)/);
-    if (domainMatch) {
-      const domains = domainMatch[1].trim().toLowerCase().split(/[,，]/).map(d => d.trim()).filter(d => d);
-      for (const domain of domains) {
-        domainsWithProjects.add(domain);
-      }
+    const domains = extractDomains(content);
+    for (const domain of domains) {
+      domainsWithProjects.add(domain);
     }
   }
 
@@ -299,13 +333,13 @@ async function checkBasicInfoCompleteness(wikiDir) {
   }
 
   const files = fs.readdirSync(projectsDir).filter(f => f.endsWith('.md'));
-  const requiredFields = [
-    { name: '首次上榜', regex: /- 首次上榜：/ },
-    { name: '最近上榜', regex: /- 最近上榜：/ },
-    { name: '上榜次数', regex: /- 上榜次数：/ },
-    { name: '领域分类', regex: /- 领域分类：/ },
-    { name: '语言', regex: /- 语言：/ },
-    { name: 'GitHub Stars', regex: /- GitHub Stars:/ }
+  const requiredFieldNames = [
+    '首次上榜',
+    '最近上榜',
+    '上榜次数',
+    '领域分类',
+    '语言',
+    'GitHub Stars'
   ];
 
   const incompleteProjects = [];
@@ -314,9 +348,8 @@ async function checkBasicInfoCompleteness(wikiDir) {
     const filePath = path.join(projectsDir, file);
     const content = fs.readFileSync(filePath, 'utf-8');
 
-    const missing = requiredFields
-      .filter(field => !field.regex.test(content))
-      .map(field => field.name);
+    const missing = requiredFieldNames
+      .filter(fieldName => !hasField(content, fieldName));
 
     if (missing.length > 0) {
       incompleteProjects.push({

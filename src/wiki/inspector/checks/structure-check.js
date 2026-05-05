@@ -99,7 +99,7 @@ async function checkMarkdownValid(wikiDir) {
 }
 
 /**
- * 检查必填章节是否存在
+ * 检查必填章节是否存在（支持新旧两种格式）
  */
 async function checkRequiredSections(wikiDir) {
   const projectsDir = path.join(wikiDir, 'projects');
@@ -114,22 +114,31 @@ async function checkRequiredSections(wikiDir) {
   }
 
   const files = fs.readdirSync(projectsDir).filter(f => f.endsWith('.md'));
-  const requiredSections = [
-    '## 基本信息',
-    '## 核心功能',
-    '## 版本历史'
-  ];
   const missingSections = [];
 
   for (const file of files) {
     const filePath = path.join(projectsDir, file);
     const content = fs.readFileSync(filePath, 'utf-8');
 
+    // 支持新旧两种格式
+    const isNewFormat = content.includes('## 📊 基本信息');
+    
+    const requiredSections = isNewFormat ? [
+      '## 📊 基本信息',
+      '## ✨ 核心功能',
+      '## 📈 版本历史'
+    ] : [
+      '## 基本信息',
+      '## 核心功能',
+      '## 版本历史'
+    ];
+
     const missing = requiredSections.filter(section => !content.includes(section));
     if (missing.length > 0) {
       missingSections.push({
         file: `wiki/projects/${file}`,
-        missing: missing
+        missing: missing,
+        format: isNewFormat ? 'v2' : 'v1'
       });
     }
   }
