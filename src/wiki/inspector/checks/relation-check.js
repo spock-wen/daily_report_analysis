@@ -10,7 +10,7 @@ const path = require('path');
 const VALID_DOMAINS = [
   'agent', 'ai-agent', 'ai-infrastructure', 'ai-tools', 'ai',
   'android', 'browser', 'cloud', 'coding-agent',
-  'containerization', 'dev-tool', 'developer-tools',
+  'containerization', 'dev-tool', 'devtool', 'developer-tools',
   'development-tools', 'finance', 'framework',
   'game-development', 'gamedev', 'general', 'generative-ai', 'generative ai',
   'llm', 'llm-applications', 'machine-learning', 'machine learning',
@@ -60,6 +60,17 @@ function extractDomains(content) {
  */
 function hasField(content, fieldName) {
   const isNewFormat = content.includes('## 📊 基本信息');
+  
+  // 处理语言字段的特殊情况
+  if (fieldName === '语言') {
+    if (isNewFormat) {
+      // 新格式用的是"编程语言"
+      return /\|\s*编程语言\s*\|/i.test(content);
+    } else {
+      // 旧格式用的是"语言"
+      return /-\s*语言[：:]/i.test(content);
+    }
+  }
   
   if (isNewFormat) {
     // 新格式：检查表格中是否有该字段
@@ -206,16 +217,46 @@ async function checkCrossReferenceValid(wikiDir) {
     const crossRefSection = content.match(/## 跨项目关联\n([\s\S]*?)(?:\n##|$)/);
     if (crossRefSection) {
       const section = crossRefSection[1];
-      // 提取 owner/repo 格式的引用
-      const repoRefs = section.match(/([a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+)/g) || [];
-
-      for (const ref of repoRefs) {
-        if (!existingProjects.has(ref.toLowerCase())) {
-          invalidRefs.push({
-            file: `wiki/projects/${file}`,
-            invalidRef: ref,
-            reason: '引用的项目不存在'
-          });
+      
+      // 先检查是否是表格格式，如果是表格，就从表格的项目列提取
+      const tableRows = section.match(/\|.*\|.*\|.*\|/g);
+      if (tableRows && tableRows.length > 2) {
+        // 表格格式，提取第一列的项目
+        for (let i = 2; i < tableRows.length; i++) { // 跳过表头和分隔符
+          const cells = tableRows[i].split('|').map(c => c.trim());
+          const projectCell = cells[1];
+          if (projectCell && projectCell !== '项目' && projectCell !== '-') {
+            const match = projectCell.match(/^([a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+)$/);
+            if (match) {
+              const ref = match[1];
+              if (!existingProjects.has(ref.toLowerCase())) {
+                invalidRefs.push({
+                  file: `wiki/projects/${file}`,
+                  invalidRef: ref,
+                  reason: '引用的项目不存在'
+                });
+              }
+            }
+          }
+        }
+      } else {
+        // 旧格式，从列表或文本中提取项目引用
+        // 提取 owner/repo 格式的引用，但要更严格
+        const repoRefs = section.match(/\b([a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+)\b/g) || [];
+        
+        for (const ref of repoRefs) {
+          // 排除看起来像技术栈标签的引用（如 TTS/ASR, Python/JS）
+          if (['tts/asr', 'python/js', 'ts/go', 'markdown/shell', 'memory/rag', 'asr/tts'].includes(ref.toLowerCase())) {
+            continue;
+          }
+          
+          if (!existingProjects.has(ref.toLowerCase())) {
+            invalidRefs.push({
+              file: `wiki/projects/${file}`,
+              invalidRef: ref,
+              reason: '引用的项目不存在'
+            });
+          }
         }
       }
     }

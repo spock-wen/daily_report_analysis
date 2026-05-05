@@ -10,7 +10,7 @@ const path = require('path');
 const VALID_DOMAINS = [
   'agent', 'ai-agent', 'ai-infrastructure', 'ai-tools', 'ai',
   'android', 'browser', 'cloud', 'coding-agent',
-  'containerization', 'dev-tool', 'developer-tools',
+  'containerization', 'dev-tool', 'devtool', 'developer-tools',
   'development-tools', 'finance', 'framework',
   'game-development', 'gamedev', 'general', 'generative-ai', 'generative ai',
   'llm', 'llm-applications', 'machine-learning', 'machine learning',
