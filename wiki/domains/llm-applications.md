@@ -1,15 +1,14 @@
-# framework 领域
+# llm-applications 领域
 
 ## 领域概览
 
-framework 领域包含 2 个项目。
+llm-applications 领域包含 1 个项目。
 
 ## 代表项目
 
 | 项目 | Stars | 描述 |
 |------|-------|------|
 | QwenLM/Qwen-Agent | 12400+（最后更新：2026-04-20） | 基于通义千问模型（Qwen）的Agent开发框架，支持指令遵循、工具使用、规划、记忆能力 |
-| agentscope-ai/agentscope | 23961（最后更新：2026-04-18） | 生产级多智能体编程框架，提供透明可控的开发体验，无深度封装 |
 
 
 ## 趋势演变

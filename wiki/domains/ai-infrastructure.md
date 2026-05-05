@@ -1,8 +1,8 @@
-# containerization 领域
+# ai-infrastructure 领域
 
 ## 领域概览
 
-containerization 领域包含 1 个项目。
+ai-infrastructure 领域包含 1 个项目。
 
 ## 代表项目
 

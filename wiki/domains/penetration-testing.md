@@ -1,14 +1,17 @@
-# Penetration-testing 领域
+# penetration-testing 领域
 
 ## 领域概览
 
-Penetration-testing 领域包含 3 个项目。
+penetration-testing 领域包含 3 个项目。
 
 ## 代表项目
 
 | 项目 | Stars | 描述 |
 |------|-------|------|
-| - | - | - |
+| Ed1s0nZ/CyberStrikeAI | 3337（最后更新：2026-04-18） | AI 原生渗透测试平台，用 Go 语言实现 |
+| KeygraphHQ/shannon | 39540（最后更新：2026-04-22） | 提供智能代理/自动化助手功能 |
+| usestrix/strix | 24100（最后更新：2026-04-20） | 开源 AI 黑客工具，自动发现并修复应用漏洞 |
+
 
 ## 趋势演变
 

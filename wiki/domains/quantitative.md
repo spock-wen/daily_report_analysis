@@ -1,14 +1,15 @@
-# Quantitative 领域
+# quantitative 领域
 
 ## 领域概览
 
-Quantitative 领域包含 1 个项目。
+quantitative 领域包含 1 个项目。
 
 ## 代表项目
 
 | 项目 | Stars | 描述 |
 |------|-------|------|
-| - | - | - |
+| OpenBB-finance/OpenBB | 66017（最后更新：2026-04-18） | 面向分析师、量化研究员和AI代理的金融数据平台 |
+
 
 ## 趋势演变
 

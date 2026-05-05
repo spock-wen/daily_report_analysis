@@ -1,14 +1,15 @@
-# plugins 领域
+# developer-tools 领域
 
 ## 领域概览
 
-plugins 领域包含 1 个项目。
+developer-tools 领域包含 2 个项目。
 
 ## 代表项目
 
 | 项目 | Stars | 描述 |
 |------|-------|------|
 | anthropics/claude-plugins-official | 17300+（最后更新：2026-04-20） |  |
+| langchain-ai/open-swe | 9600+（最后更新：2026-04-20） |  |
 
 
 ## 趋势演变

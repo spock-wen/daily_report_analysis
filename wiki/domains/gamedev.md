@@ -1,14 +1,15 @@
-# Gamedev 领域
+# gamedev 领域
 
 ## 领域概览
 
-Gamedev 领域包含 1 个项目。
+gamedev 领域包含 1 个项目。
 
 ## 代表项目
 
 | 项目 | Stars | 描述 |
 |------|-------|------|
-| - | - | - |
+| Donchitos/Claude-Code-Game-Studios | 13376（最后更新：2026-04-19） | 多Agent协作体系，内置40+ AI角色（设计、开发、测试、发布等） |
+
 
 ## 趋势演变
 

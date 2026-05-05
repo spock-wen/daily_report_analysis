@@ -1,14 +1,16 @@
-# Self-improvement 领域
+# self-improvement 领域
 
 ## 领域概览
 
-Self-improvement 领域包含 2 个项目。
+self-improvement 领域包含 2 个项目。
 
 ## 代表项目
 
 | 项目 | Stars | 描述 |
 |------|-------|------|
-| - | - | - |
+| EvoMap/evolver | 5501（最后更新：2026-04-20） | 基于基因组进化协议（GEP）的自我进化引擎，为AI代理提供持续进化能力 |
+| NousResearch/hermes-agent | 102063（最后更新：2026-04-20） | 内置自进化学习循环，从经验中创建技能并持续改进 |
+
 
 ## 趋势演变
 

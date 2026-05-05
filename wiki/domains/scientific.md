@@ -1,14 +1,16 @@
-# Scientific 领域
+# scientific 领域
 
 ## 领域概览
 
-Scientific 领域包含 2 个项目。
+scientific 领域包含 2 个项目。
 
 ## 代表项目
 
 | 项目 | Stars | 描述 |
 |------|-------|------|
-| - | - | - |
+| K-Dense-AI/claude-scientific-skills | 18743（最后更新：2026-04-18） | 覆盖生物信息学、药物发现、材料科学等17个垂直领域的Claude专属代理技能库 |
+| SakanaAI/AI-Scientist-v2 | 5670（最后更新：2026-04-18） | 基于智能树搜索的自动化科学发现系统，能够自主完成从假设生成到论文撰写的全过程 |
+
 
 ## 趋势演变
 

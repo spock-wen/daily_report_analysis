@@ -1,8 +1,8 @@
-# reconnaissance 领域
+# information-gathering 领域
 
 ## 领域概览
 
-reconnaissance 领域包含 1 个项目。
+information-gathering 领域包含 1 个项目。
 
 ## 代表项目
 

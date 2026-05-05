@@ -318,14 +318,15 @@ async function checkDomainWikiExists(wikiDir) {
   if (fs.existsSync(domainsDir)) {
     const domainFiles = fs.readdirSync(domainsDir).filter(f => f.endsWith('.md'));
     const existingDomainWikis = new Set(
-      domainFiles.map(f => f.replace('.md', '').toLowerCase())
+      domainFiles.map(f => f.replace('.md', '').toLowerCase().replace(/\s+/g, '-'))
     );
 
     for (const domain of domainsWithProjects) {
-      if (!existingDomainWikis.has(domain)) {
+      const normalizedDomain = domain.toLowerCase().replace(/\s+/g, '-');
+      if (!existingDomainWikis.has(normalizedDomain)) {
         missingDomainWikis.push({
           domain: domain,
-          reason: `缺少 wiki/domains/${domain}.md`
+          reason: `缺少 wiki/domains/${normalizedDomain}.md`
         });
       }
     }

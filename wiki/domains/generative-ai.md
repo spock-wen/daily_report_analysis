@@ -1,8 +1,8 @@
-# cloud 领域
+# generative-ai 领域
 
 ## 领域概览
 
-cloud 领域包含 1 个项目。
+generative-ai 领域包含 1 个项目。
 
 ## 代表项目
 

@@ -1,14 +1,15 @@
-# Multi-platform 领域
+# multi-platform 领域
 
 ## 领域概览
 
-Multi-platform 领域包含 1 个项目。
+multi-platform 领域包含 1 个项目。
 
 ## 代表项目
 
 | 项目 | Stars | 描述 |
 |------|-------|------|
-| - | - | - |
+| AstrBotDevs/AstrBot | 30166（最后更新：2026-04-18） | 全平台IM接入，支持QQ、Telegram、企业微信、飞书、钉钉、Slack等主流即时通讯工具 |
+
 
 ## 趋势演变
 

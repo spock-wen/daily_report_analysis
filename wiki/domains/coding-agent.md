@@ -1,14 +1,15 @@
-# Performance optimization 领域
+# coding-agent 领域
 
 ## 领域概览
 
-Performance optimization 领域包含 1 个项目。
+coding-agent 领域包含 1 个项目。
 
 ## 代表项目
 
 | 项目 | Stars | 描述 |
 |------|-------|------|
-| - | - | - |
+| langchain-ai/open-swe | 9600+（最后更新：2026-04-20） |  |
+
 
 ## 趋势演变
 

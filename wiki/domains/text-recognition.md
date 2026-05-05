@@ -1,14 +1,15 @@
-# Text-recognition 领域
+# text-recognition 领域
 
 ## 领域概览
 
-Text-recognition 领域包含 1 个项目。
+text-recognition 领域包含 1 个项目。
 
 ## 代表项目
 
 | 项目 | Stars | 描述 |
 |------|-------|------|
-| - | - | - |
+| PaddlePaddle/PaddleOCR | 75845（最后更新：2026-04-18） | 飞桨OCR文字识别工具，支持多语言识别 |
+
 
 ## 趋势演变
 
