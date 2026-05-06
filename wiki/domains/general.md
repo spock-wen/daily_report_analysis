@@ -1,29 +1,28 @@
-# general 领域
+# 📦 general 领域
 
 ## 领域概览
 
-general 领域包含 37 个项目。
+- 项目总数：2
+- 最近更新：2026-05-05
+- 报告类型：daily
 
-## 代表项目
+general 领域收录了与AI 相关技术相关的项目。
 
-| 项目 | Stars | 描述 |
-|------|-------|------|
-| BasedHardware/omi | 11134（最后更新：2026-04-20） | 提供开发者工具和效率提升功能 |
-| EbookFoundation/free-programming-books | 386602 |  |
-| Flowseal/zapret-discord-youtube | 27115 |  |
-| PowerShell/PowerShell | 52767 |  |
-| Universal-Commerce-Protocol/ucp | 2783 |  |
-| XTLS/Xray-core | 37427 |  |
-| chiphuyen/aie-book | 15161 |  |
-| coleam00/Archon | 18794（最后更新：2026-04-19） | 首个开源的 AI 编码 harness 构建工具 |
-| dani-garcia/vaultwarden | 59163 |  |
-| dayanch96/YTLite | 4815 |  |
+## 代表项目（按上榜次数排序）
+
+| 排名 | 项目 | 首次上榜 | 上榜次数 | Stars |
+|------|------|----------|----------|-------|
+| 1 | [docusealco/docuseal](../../wiki/projects/docusealco_docuseal.md) | 2026-05-05 | 1 | 13973 |
+| 2 | [jwasham/coding-interview-university](../../wiki/projects/jwasham_coding-interview-university.md) | 2026-05-05 | 1 | 345772 |
+
+## 领域趋势
 
 
-## 趋势演变
+- 平均上榜次数：1.0
+- 总 Stars 数：359,745
+- 最热项目：[jwasham/coding-interview-university](../../wiki/projects/jwasham_coding-interview-university.md) (345772 ⭐)
 
-待补充
 
-## 相关项目
+---
 
-待补充
+*本页面由 WikiPostProcessor 自动生成*

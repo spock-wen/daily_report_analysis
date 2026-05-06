@@ -1,28 +1,27 @@
-# rag 领域
+# 🔍 rag 领域
 
 ## 领域概览
 
-rag 领域包含 9 个项目。
+- 项目总数：1
+- 最近更新：2026-05-05
+- 报告类型：daily
 
-## 代表项目
+rag 领域收录了与RAG、检索增强生成、知识库、向量检索相关的项目。
 
-| 项目 | Stars | 描述 |
-|------|-------|------|
-| HKUDS/RAG-Anything | 16830 |  |
-| agentscope-ai/ReMe | 2700+（最后更新：2026-04-20） | 代理内存管理工具包：Remember Me, Refine Me |
-| iamgio/quarkdown | 11962 |  |
-| opendataloader-project/opendataloader-pdf | 17975（最后更新：2026-04-18） |  |
-| paperless-ngx/paperless-ngx | 39400（最后更新：2026-04-20） | 提供高效的向量检索和语义搜索 |
-| promptfoo/promptfoo | 20240（最后更新：2026-04-18） |  |
-| refactoringhq/tolaria | 9221 |  |
-| ruvnet/ruflo | 41300（最后更新：2026-05-04） |  |
-| volcengine/OpenViking | 22486（最后更新：2026-04-18） |  |
+## 代表项目（按上榜次数排序）
+
+| 排名 | 项目 | 首次上榜 | 上榜次数 | Stars |
+|------|------|----------|----------|-------|
+| 1 | [LearningCircuit/local-deep-research](../../wiki/projects/LearningCircuit_local-deep-research.md) | 2026-05-05 | 1 | 5137 |
+
+## 领域趋势
 
 
-## 趋势演变
+- 平均上榜次数：1.0
+- 总 Stars 数：5,137
+- 最热项目：[LearningCircuit/local-deep-research](../../wiki/projects/LearningCircuit_local-deep-research.md) (5137 ⭐)
 
-待补充
 
-## 相关项目
+---
 
-待补充
+*本页面由 WikiPostProcessor 自动生成*
