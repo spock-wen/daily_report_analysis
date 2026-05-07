@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：2
-- 最近更新：2026-05-05
+- 项目总数：3
+- 最近更新：2026-05-06
 - 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
@@ -12,14 +12,15 @@ general 领域收录了与AI 相关技术相关的项目。
 
 | 排名 | 项目 | 首次上榜 | 上榜次数 | Stars |
 |------|------|----------|----------|-------|
-| 1 | [docusealco/docuseal](../../wiki/projects/docusealco_docuseal.md) | 2026-05-05 | 1 | 13973 |
-| 2 | [jwasham/coding-interview-university](../../wiki/projects/jwasham_coding-interview-university.md) | 2026-05-05 | 1 | 345772 |
+| 1 | [jwasham/coding-interview-university](../../wiki/projects/jwasham_coding-interview-university.md) | 2026-05-05 | 1 | 345772 |
+| 2 | [docusealco/docuseal](../../wiki/projects/docusealco_docuseal.md) | 2026-05-06 | 1 | 14852 |
+| 3 | [anthropics/financial-services](../../wiki/projects/anthropics_financial-services.md) | 2026-05-06 | 1 | 9090 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：359,745
+- 总 Stars 数：369,714
 - 最热项目：[jwasham/coding-interview-university](../../wiki/projects/jwasham_coding-interview-university.md) (345772 ⭐)
 
 

@@ -6,15 +6,13 @@
 - 上榜次数：1
 - 领域分类：AI Agent, Development Tools
 - 语言：Markdown, Shell, JSON
-- GitHub Stars: 14000+（最后更新：2026-04-20）
+- GitHub Stars: 30388（最后更新：2026-05-06）+（最后更新：2026-04-20）
 
 ## 核心功能
-- 7个开发生命周期斜杠命令：/spec、/plan、/build、/test、/review、/code-simplify、/ship
-- 20+结构化技能工作流，覆盖从需求定义到部署上线的全过程
-- 多平台支持：Claude Code、Cursor、Gemini CLI、Windsurf、OpenCode、GitHub Copilot
-- 专业代理角色：code-reviewer、test-engineer、security-auditor
-- 集成Google工程实践：Hyrum's Law、测试金字塔、Chesterton's Fence等
-- 参考清单：测试模式、安全检查、性能优化、无障碍标准等
+- 提供智能代理/自动化助手功能
+- 支持多步骤任务规划和执行
+- 集成 LLM 能力进行自然语言交互
+- 支持工具调用和外部 API 集成
 
 
 ## 版本历史
@@ -30,6 +28,14 @@
 **来源**: [周报 2026-04-20](../../weekly/github-ai-trending-2026-04-20.html)
 **分析**: 🔥 今日热度极高，受到社区广泛关注
 🌟 热门项目，已被广泛采用
+🤖 AI Agent 领域持续火热，多智能体协作成为趋势
+👥 社区活跃度：极高 - 社区非常活跃，是领域内的标杆项目
+
+
+### 2026-05-06（日报收录）
+**来源**: [日报 2026-05-06](../../daily/github-ai-trending-2026-05-06.html)
+**分析**: 🔥 今日热度极高，受到社区广泛关注
+⭐ 明星项目，在开发者社区具有重要影响力
 🤖 AI Agent 领域持续火热，多智能体协作成为趋势
 👥 社区活跃度：极高 - 社区非常活跃，是领域内的标杆项目
 
