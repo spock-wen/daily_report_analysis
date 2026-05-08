@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：12
-- 最近更新：2026-05-06
+- 项目总数：13
+- 最近更新：2026-05-07
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -18,16 +18,16 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 4 | [Arindam200/awesome-ai-apps](../../wiki/projects/Arindam200_awesome-ai-apps.md) | 2026-05-05 | 1 | 11248 |
 | 5 | [browserbase/skills](../../wiki/projects/browserbase_skills.md) | 2026-05-05 | 1 | 2358 |
 | 6 | [forrestchang/andrej-karpathy-skills](../../wiki/projects/forrestchang_andrej-karpathy-skills.md) | 2026-05-05 | 1 | 113775 |
-| 7 | [Hmbown/DeepSeek-TUI](../../wiki/projects/Hmbown_DeepSeek-TUI.md) | 2026-05-06 | 1 | 13668 |
-| 8 | [addyosmani/agent-skills](../../wiki/projects/addyosmani_agent-skills.md) | 2026-05-06 | 1 | 30388 |
-| 9 | [InsForge/InsForge](../../wiki/projects/InsForge_InsForge.md) | 2026-05-06 | 1 | 8419 |
-| 10 | [virattt/dexter](../../wiki/projects/virattt_dexter.md) | 2026-05-06 | 1 | 24336 |
+| 7 | [virattt/dexter](../../wiki/projects/virattt_dexter.md) | 2026-05-06 | 1 | 24336 |
+| 8 | [Hmbown/DeepSeek-TUI](../../wiki/projects/Hmbown_DeepSeek-TUI.md) | 2026-05-07 | 1 | 18655 |
+| 9 | [InsForge/InsForge](../../wiki/projects/InsForge_InsForge.md) | 2026-05-07 | 1 | 8842 |
+| 10 | [addyosmani/agent-skills](../../wiki/projects/addyosmani_agent-skills.md) | 2026-05-07 | 1 | 32897 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：429,887
+- 总 Stars 数：381,074
 - 最热项目：[forrestchang/andrej-karpathy-skills](../../wiki/projects/forrestchang_andrej-karpathy-skills.md) (113775 ⭐)
 
 
