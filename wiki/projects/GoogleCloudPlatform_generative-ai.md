@@ -4,7 +4,7 @@
 - 首次上榜：2026-03-08
 - 最近上榜：2026-03-08
 - 上榜次数：1
-- 领域分类：Generative AI, Cloud, Vertex AI, Machine Learning
+- 领域分类：generative-ai, cloud, vertex-ai, machine-learning
 - 语言：Python, JavaScript, TypeScript, Java, Go
 - GitHub Stars: 11700+（最后更新：2026-04-20）
 

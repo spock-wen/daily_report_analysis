@@ -4,7 +4,7 @@
 - 首次上榜：2026-03-24
 - 最近上榜：2026-03-24
 - 上榜次数：1
-- 领域分类：AI Agent, Development Tools, Performance Optimization
+- 领域分类：ai-agent, dev-tools, performance-optimization
 - 语言：TypeScript, Shell, Python, Go
 - GitHub Stars: 153000+（最后更新：2026-04-20）
 

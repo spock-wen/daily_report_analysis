@@ -4,7 +4,7 @@
 - 首次上榜：2026-03-31
 - 最近上榜：2026-03-31
 - 上榜次数：1
-- 领域分类：AI Agent, Software Development, Multi-Agent Collaboration
+- 领域分类：ai-agent, software-development, multi-agent
 - 语言：Python
 - GitHub Stars: 27900+（最后更新：2026-04-20）
 

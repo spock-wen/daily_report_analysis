@@ -4,7 +4,7 @@
 - 首次上榜：2026-03-26
 - 最近上榜：2026-03-26
 - 上榜次数：1
-- 领域分类：security, cybersecurity, penetration-testing
+- 领域分类：security, cybersecurity
 - 语言：Python
 - GitHub Stars: 24100（最后更新：2026-04-20）
 

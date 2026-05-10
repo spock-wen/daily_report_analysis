@@ -4,7 +4,7 @@
 - 首次上榜：2026-03-22
 - 最近上榜：2026-03-22
 - 上榜次数：1
-- 领域分类：other
+- 领域分类：general
 - 语言：JavaScript/TypeScript
 - GitHub Stars: 24183（最后更新：2026-04-18）
 

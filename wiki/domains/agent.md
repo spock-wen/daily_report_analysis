@@ -3,7 +3,7 @@
 ## 领域概览
 
 - 项目总数：16
-- 最近更新：2026-05-08
+- 最近更新：2026-05-09
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -20,14 +20,14 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 6 | [forrestchang/andrej-karpathy-skills](../../wiki/projects/forrestchang_andrej-karpathy-skills.md) | 2026-05-05 | 1 | 113775 |
 | 7 | [virattt/dexter](../../wiki/projects/virattt_dexter.md) | 2026-05-06 | 1 | 24336 |
 | 8 | [InsForge/InsForge](../../wiki/projects/InsForge_InsForge.md) | 2026-05-07 | 1 | 8842 |
-| 9 | [addyosmani/agent-skills](../../wiki/projects/addyosmani_agent-skills.md) | 2026-05-08 | 1 | 35282 |
-| 10 | [Hmbown/DeepSeek-TUI](../../wiki/projects/Hmbown_DeepSeek-TUI.md) | 2026-05-08 | 1 | 21691 |
+| 9 | [Hmbown/DeepSeek-TUI](../../wiki/projects/Hmbown_DeepSeek-TUI.md) | 2026-05-08 | 1 | 21691 |
+| 10 | [bytedance/UI-TARS-desktop](../../wiki/projects/bytedance_UI-TARS-desktop.md) | 2026-05-09 | 1 | 31374 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：478,260
+- 总 Stars 数：461,058
 - 最热项目：[forrestchang/andrej-karpathy-skills](../../wiki/projects/forrestchang_andrej-karpathy-skills.md) (113775 ⭐)
 
 

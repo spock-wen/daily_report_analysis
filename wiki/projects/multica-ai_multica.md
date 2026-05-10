@@ -16,26 +16,14 @@
 
 
 ## 版本历史
-
 ### 2026-04-19（周报收录）
 **来源**: [周报 2026-04-19](../../weekly/github-ai-trending-2026-04-19.html)
 **分析**: The open-source managed agents platform. Turn coding agents into real teammates — assign tasks, track progress, compound skills.
 
-
-
-
-### 2026-04-20（周报收录）
-**来源**: [周报 2026-04-20](../../weekly/github-ai-trending-2026-04-20.html)
-**分析**: 🔥 今日热度极高，受到社区广泛关注
-🌟 热门项目，已被广泛采用
-🤖 AI Agent 领域持续火热，多智能体协作成为趋势
-👥 社区活跃度：极高 - 社区非常活跃，是领域内的标杆项目
-
-
-### 2026-04-27（周报收录）
+### 2026-04-20 ~ 2026-04-27（日报多次收录，共2次）
 **来源**: [周报 2026-04-27](../../weekly/github-ai-trending-2026-04-27.html)
 **分析**: 🔥 今日热度极高，受到社区广泛关注
-⭐ 明星项目，在开发者社区具有重要影响力
+🌟 热门项目，已被广泛采用
 🤖 AI Agent 领域持续火热，多智能体协作成为趋势
 👥 社区活跃度：极高 - 社区非常活跃，是领域内的标杆项目
 

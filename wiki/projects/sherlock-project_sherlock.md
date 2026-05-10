@@ -4,7 +4,7 @@
 - 首次上榜：2026-03-30
 - 最近上榜：2026-03-31
 - 上榜次数：2
-- 领域分类：osint, reconnaissance, information gathering, security
+- 领域分类：osint, reconnaissance, information-gathering, security
 - 语言：Python
 - GitHub Stars: 81283（最后更新：2026-04-18）
 
