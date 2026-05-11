@@ -6,18 +6,14 @@
 - 上榜次数：1
 - 领域分类：ai-agent, dev-tools, performance-optimization
 - 语言：TypeScript, Shell, Python, Go
-- GitHub Stars: 153000+（最后更新：2026-04-20）
+- GitHub Stars: 178115（最后更新：2026-05-10）
 
 ## 核心功能
-- AI agent harness性能优化系统，由Anthropic hackathon winner开发
-- 38个专业代理、156个技能和72个命令
-- Token优化：模型选择、系统提示精简、后台进程管理
-- 内存持久化：跨会话自动保存/加载上下文的钩子
-- 持续学习：从会话中自动提取模式到可重用技能
-- 验证循环：检查点vs持续评估、评分器类型、pass@k指标
-- 并行化：Git worktrees、级联方法、实例扩展
-- 子代理编排：上下文问题解决、迭代检索模式
-- 跨平台支持：Claude Code、Codex、Cursor、OpenCode、Gemini等
+- 提供智能代理/自动化助手功能
+- 支持多步骤任务规划和执行
+- 集成 LLM 能力进行自然语言交互
+- 支持工具调用和外部 API 集成
+
 
 ## 版本历史
 
@@ -27,6 +23,15 @@
 **来源**: [日报 2026-03-24](../../reports/daily/github-ai-trending-2026-03-24.html)
 **分析**: affaan-m/everything-claude-code: Claude Code 生态性能优化与技能 harness - 集成 affaan-m/everything-claude-code 优化 Claude Code 开发工作流
 
+
+
+### 2026-05-10（日报收录）
+**来源**: [日报 2026-05-10](../../daily/github-ai-trending-2026-05-10.html)
+**分析**: 🔥 affaan-m/everything-claude-code：Claude Code 性能优化系统，星数最高达 17.8 万，关注 AI 编码代理的全套优化方案
+🔥 今日热度极高，受到社区广泛关注
+⭐ 明星项目，在开发者社区具有重要影响力
+🤖 AI Agent 领域持续火热，多智能体协作成为趋势
+👥 社区活跃度：极高 - 社区非常活跃，是领域内的标杆项目
 
 ## 跨项目关联
 
