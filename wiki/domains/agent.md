@@ -2,9 +2,9 @@
 
 ## 领域概览
 
-- 项目总数：18
+- 项目总数：16
 - 最近更新：2026-05-11
-- 报告类型：weekly
+- 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
 
@@ -20,15 +20,15 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 6 | [ruvnet/ruflo](../../wiki/projects/ruvnet_ruflo.md) | 2026-05-11 | 1 | 48465 |
 | 7 | [TauricResearch/TradingAgents](../../wiki/projects/TauricResearch_TradingAgents.md) | 2026-05-11 | 1 | 73183 |
 | 8 | [virattt/dexter](../../wiki/projects/virattt_dexter.md) | 2026-05-11 | 1 | 25155 |
-| 9 | [decolua/9router](../../wiki/projects/decolua_9router.md) | 2026-05-11 | 1 | 7263 |
-| 10 | [1jehuang/jcode](../../wiki/projects/1jehuang_jcode.md) | 2026-05-11 | 1 | 5546 |
+| 9 | [1jehuang/jcode](../../wiki/projects/1jehuang_jcode.md) | 2026-05-11 | 1 | 5546 |
+| 10 | [bytedance/UI-TARS-desktop](../../wiki/projects/bytedance_UI-TARS-desktop.md) | 2026-05-11 | 1 | 32963 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：602,814
-- 最热项目：[forrestchang/andrej-karpathy-skills](../../wiki/projects/forrestchang_andrej-karpathy-skills.md) (113775 ⭐)
+- 总 Stars 数：705,648
+- 最热项目：[NousResearch/hermes-agent](../../wiki/projects/NousResearch_hermes-agent.md) (144702 ⭐)
 
 
 ---
