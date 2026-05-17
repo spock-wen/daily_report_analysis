@@ -3,7 +3,7 @@
 ## 领域概览
 
 - 项目总数：11
-- 最近更新：2026-05-15
+- 最近更新：2026-05-16
 - 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
@@ -21,13 +21,13 @@ general 领域收录了与AI 相关技术相关的项目。
 | 7 | [owner/repo2](../../wiki/projects/owner_repo2.md) | 2026-05-10 | 1 | 500 |
 | 8 | [anthropics/financial-services](../../wiki/projects/anthropics_financial-services.md) | 2026-05-11 | 1 | 18759 |
 | 9 | [docusealco/docuseal](../../wiki/projects/docusealco_docuseal.md) | 2026-05-11 | 1 | 16229 |
-| 10 | [tinyhumansai/openhuman](../../wiki/projects/tinyhumansai_openhuman.md) | 2026-05-15 | 1 | 8996 |
+| 10 | [oven-sh/bun](../../wiki/projects/oven-sh_bun.md) | 2026-05-16 | 1 | 91180 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：503,613
+- 总 Stars 数：505,856
 - 最热项目：[jwasham/coding-interview-university](../../wiki/projects/jwasham_coding-interview-university.md) (345772 ⭐)
 
 
