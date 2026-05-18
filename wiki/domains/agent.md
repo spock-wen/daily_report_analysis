@@ -2,9 +2,9 @@
 
 ## 领域概览
 
-- 项目总数：13
-- 最近更新：2026-05-16
-- 报告类型：daily
+- 项目总数：18
+- 最近更新：2026-05-18
+- 报告类型：weekly
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
 
@@ -16,19 +16,19 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 2 | [msitarzewski/agency-agents](../../wiki/projects/msitarzewski_agency-agents.md) | 2026-05-05 | 1 | 93584 |
 | 3 | [Arindam200/awesome-ai-apps](../../wiki/projects/Arindam200_awesome-ai-apps.md) | 2026-05-05 | 1 | 11248 |
 | 4 | [forrestchang/andrej-karpathy-skills](../../wiki/projects/forrestchang_andrej-karpathy-skills.md) | 2026-05-05 | 1 | 113775 |
-| 5 | [Hmbown/DeepSeek-TUI](../../wiki/projects/Hmbown_DeepSeek-TUI.md) | 2026-05-11 | 1 | 23997 |
-| 6 | [ruvnet/ruflo](../../wiki/projects/ruvnet_ruflo.md) | 2026-05-11 | 1 | 48465 |
-| 7 | [TauricResearch/TradingAgents](../../wiki/projects/TauricResearch_TradingAgents.md) | 2026-05-11 | 1 | 73183 |
-| 8 | [virattt/dexter](../../wiki/projects/virattt_dexter.md) | 2026-05-11 | 1 | 25155 |
-| 9 | [1jehuang/jcode](../../wiki/projects/1jehuang_jcode.md) | 2026-05-11 | 1 | 5546 |
-| 10 | [bytedance/UI-TARS-desktop](../../wiki/projects/bytedance_UI-TARS-desktop.md) | 2026-05-11 | 1 | 32963 |
+| 5 | [ruvnet/ruflo](../../wiki/projects/ruvnet_ruflo.md) | 2026-05-11 | 1 | 48465 |
+| 6 | [TauricResearch/TradingAgents](../../wiki/projects/TauricResearch_TradingAgents.md) | 2026-05-11 | 1 | 73183 |
+| 7 | [virattt/dexter](../../wiki/projects/virattt_dexter.md) | 2026-05-11 | 1 | 25155 |
+| 8 | [1jehuang/jcode](../../wiki/projects/1jehuang_jcode.md) | 2026-05-11 | 1 | 5546 |
+| 9 | [CloakHQ/CloakBrowser](../../wiki/projects/CloakHQ_CloakBrowser.md) | 2026-05-18 | 1 | 13723 |
+| 10 | [rohitg00/agentmemory](../../wiki/projects/rohitg00_agentmemory.md) | 2026-05-18 | 1 | 11259 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：660,477
-- 最热项目：[obra/superpowers](../../wiki/projects/obra_superpowers.md) (193965 ⭐)
+- 总 Stars 数：807,245
+- 最热项目：[obra/superpowers](../../wiki/projects/obra_superpowers.md) (195098 ⭐)
 
 
 ---
