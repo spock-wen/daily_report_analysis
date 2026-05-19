@@ -2,9 +2,9 @@
 
 ## 领域概览
 
-- 项目总数：18
+- 项目总数：17
 - 最近更新：2026-05-18
-- 报告类型：weekly
+- 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
 
@@ -20,15 +20,15 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 6 | [TauricResearch/TradingAgents](../../wiki/projects/TauricResearch_TradingAgents.md) | 2026-05-11 | 1 | 73183 |
 | 7 | [virattt/dexter](../../wiki/projects/virattt_dexter.md) | 2026-05-11 | 1 | 25155 |
 | 8 | [1jehuang/jcode](../../wiki/projects/1jehuang_jcode.md) | 2026-05-11 | 1 | 5546 |
-| 9 | [CloakHQ/CloakBrowser](../../wiki/projects/CloakHQ_CloakBrowser.md) | 2026-05-18 | 1 | 13723 |
-| 10 | [rohitg00/agentmemory](../../wiki/projects/rohitg00_agentmemory.md) | 2026-05-18 | 1 | 11259 |
+| 9 | [rohitg00/agentmemory](../../wiki/projects/rohitg00_agentmemory.md) | 2026-05-18 | 1 | 11259 |
+| 10 | [Imbad0202/academic-research-skills](../../wiki/projects/Imbad0202_academic-research-skills.md) | 2026-05-18 | 1 | 11658 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：807,245
-- 最热项目：[obra/superpowers](../../wiki/projects/obra_superpowers.md) (195098 ⭐)
+- 总 Stars 数：578,705
+- 最热项目：[forrestchang/andrej-karpathy-skills](../../wiki/projects/forrestchang_andrej-karpathy-skills.md) (113775 ⭐)
 
 
 ---
