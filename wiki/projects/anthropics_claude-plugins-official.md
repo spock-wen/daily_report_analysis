@@ -6,7 +6,7 @@
 - 上榜次数：3
 - 领域分类：plugins, ai-tools, dev-tools
 - 语言：Python
-- GitHub Stars: 17300+（最后更新：2026-04-20）
+- GitHub Stars: 20751（最后更新：2026-05-20）
 
 ## 核心功能
 - Anthropic管理的高质量Claude Code插件目录
@@ -34,7 +34,15 @@
 **来源**: [日报 2026-03-15](../../reports/daily/github-ai-trending-2026-03-15.html)
 **分析**: anthropics/claude-plugins-official - Claude Code 官方插件目录，生态核心入口，stars 1.1 万 - 深入研究 666ghj/MiroFish 的群体智能架构，可应用于金融预测或多智能体协作场景
 
-## 跨项目关联
+
+### 2026-05-20（日报收录）
+**来源**: [日报 2026-05-20](../../daily/github-ai-trending-2026-05-20.html)
+**分析**: 🔥 今日热度极高，受到社区广泛关注
+⭐ 明星项目，在开发者社区具有重要影响力
+🤖 AI Agent 领域持续火热，多智能体协作成为趋势
+👥 社区活跃度：极高 - 社区非常活跃，是领域内的标杆项目
+
+## 跨项目关联
 
 | 项目 | 关联类型 | 说明 |
 |------|----------|------|

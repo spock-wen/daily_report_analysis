@@ -1,0 +1,2060 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuggingFace AI Papers 日报 - 2026-05-20</title>
+  <link rel="stylesheet" href="../../public/css/style.css">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-card: #161b22;
+      --text-primary: #c9d1d9;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-orange: #d29922;
+      --border: #30363d;
+      --border-light: #21262d;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.5; padding: 24px 16px; font-size: 13px; }
+    .container { max-width: 960px; margin: 0 auto; }
+    header { text-align: center; padding: 32px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+    h1 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+    .date { color: var(--text-secondary); font-size: 0.8125rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); padding: 12px; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
+    .stat-value { font-size: 1.25rem; font-weight: 600; color: var(--accent-green); line-height: 1.2; }
+    .stat-value .star-icon { color: #fbbf24; width: 20px; height: 20px; vertical-align: middle; display: inline-block; }
+    .stat-label { color: var(--text-secondary); margin-top: 4px; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    section { margin-bottom: 24px; }
+    h2 { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .project-list { display: flex; flex-direction: column; gap: 8px; }
+    .star-icon { width: 16px; height: 16px; vertical-align: middle; }
+    .paper-card { background: var(--bg-card); border-radius: 6px; padding: 12px; margin: 8px 0; border: 1px solid var(--border); transition: border-color 0.2s; }
+    .paper-card:hover { border-color: var(--text-muted); }
+    .paper-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; }
+    .paper-name { font-size: 0.875rem; font-weight: 600; color: var(--accent); text-decoration: none; line-height: 1.4; }
+    .paper-name:hover { text-decoration: underline; }
+    .paper-stats { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+    .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.6875rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 2px 6px; border-radius: 10px; border: 1px solid var(--border); white-space: nowrap; }
+    .stat-badge .star-icon { color: #fbbf24; width: 12px; height: 12px; }
+    .paper-abstract { background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin: 8px 0; border: 1px solid var(--border); }
+    .paper-abstract strong { color: var(--text-primary); }
+    .paper-meta { color: var(--text-secondary); font-size: 0.75rem; margin: 8px 0; }
+    .paper-meta a { color: var(--accent); text-decoration: none; }
+    .paper-meta a:hover { text-decoration: underline; }
+    .toggle-btn { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.6875rem; font-weight: 500; transition: all 0.2s; }
+    .toggle-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+    .paper-details { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .paper-details.active { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .detail-column { background: var(--bg-secondary); padding: 8px; border-radius: 6px; }
+    .detail-column h4 { color: var(--text-primary); margin-bottom: 6px; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
+    .detail-column ul { list-style: none; }
+    .detail-column li { color: var(--text-secondary); padding: 3px 0; font-size: 0.75rem; line-height: 1.4; }
+    .ai-section { background: var(--bg-card); padding: 16px; border-radius: 6px; border: 1px solid var(--border); }
+    .ai-section h2, .ai-section h3 { color: var(--text-primary); margin: 16px 0 8px; font-size: 0.75rem; font-weight: 600; }
+    .ai-section h2:first-child, .ai-section h3:first-child { margin-top: 0; }
+    .ai-section p { color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; font-size: 0.8125rem; }
+    .ai-section ul { margin-bottom: 12px; padding-left: 16px; }
+    .ai-section li { color: var(--text-secondary); margin-bottom: 4px; font-size: 0.8125rem; line-height: 1.5; }
+    .lang-dist { display: flex; flex-wrap: wrap; gap: 10px; }
+    .lang-item { background: var(--accent); color: var(--bg-primary); padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+    .paper-type { background: var(--accent-orange); color: var(--bg-primary); padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; margin-left: 6px; }
+    .quick-actions { display: flex; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .action-btn { background: var(--accent); color: var(--bg-primary); padding: 4px 12px; border-radius: 4px; text-decoration: none; font-size: 0.75rem; font-weight: 500; border: none; cursor: pointer; }
+    .action-btn:hover { opacity: 0.9; }
+    .bibtex-block { background: var(--bg-primary); padding: 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.6875rem; color: var(--text-secondary); white-space: pre-wrap; margin-top: 8px; }
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } .paper-details.active { grid-template-columns: 1fr; } .paper-header { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>HuggingFace AI Papers 日报</h1>
+      <div class="date">2026-05-20</div>
+    </header>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">28</div>
+        <div class="stat-label">论文总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">18</div>
+        <div class="stat-label">有 Stars 论文</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">
+          <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor" style="width: 20px; height: 20px;"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+          <span style="vertical-align: middle;">106</span>
+        </div>
+        <div class="stat-label">总 Stars</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">4</div>
+        <div class="stat-label">平均 Stars</div>
+      </div>
+    </section>
+
+    
+      <section class="ai-section">
+        <h2>AI 深度洞察</h2>
+        <p>强化学习与多模态代理成热点，RLVR、视频生成与长文本处理技术集中爆发</p>
+
+        
+          <h3>技术亮点</h3>
+          <ul>
+            
+              <li>
+                <strong><a href="https://github.com/song2yu/SGT" target="_blank" style="color: var(--accent); text-decoration: none;">song2yu/SGT</a></strong>: 提出语义生成调优方法，统一多模态模型的参数高效微调范式
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/LARK-AI-Lab/EnvFactory" target="_blank" style="color: var(--accent); text-decoration: none;">LARK-AI-Lab/EnvFactory</a></strong>: 通过可执行环境合成与鲁棒RL扩展工具使用代理能力
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/mingqiangWu/Echo-Forcing" target="_blank" style="color: var(--accent); text-decoration: none;">mingqiangWu/Echo-Forcing</a></strong>: 引入场景记忆框架实现交互式长视频生成
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/ESI-Bench/ESI-Bench" target="_blank" style="color: var(--accent); text-decoration: none;">ESI-Bench/ESI-Bench</a></strong>: 构建具身空间智能基准，闭合感知-动作循环
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/ahmedheakl/CEPO" target="_blank" style="color: var(--accent); text-decoration: none;">ahmedheakl/CEPO</a></strong>: 提出对比证据策略优化，实现RLVR自我蒸馏
+              </li>
+            
+          </ul>
+        
+
+        
+          <h3>社区价值</h3>
+          <ul>
+            <li>28篇论文全部开源，促进学术界与工业界技术共享</li><li>Hugging Face生态深度整合，降低AI研究门槛</li><li>多个基准数据集开源（ESI-Bench、Artifact-Bench、MSAVBench等），推动领域标准化</li><li>工具链完整（EnvFactory、PEEK、AttentionMemory等），提升复现效率</li>
+          </ul>
+        
+
+        
+          <h3>应用前景</h3>
+          <ul>
+            <li>RLVR技术将提升大语言模型推理能力与可验证性</li><li>多模态代理（OmniGUI、AutoResearchClaw）推动自动化工作流</li><li>长上下文处理突破（GoLongRL、PEEK）支持百万级token应用</li><li>视频生成与编辑（AURORA、Echo-Forcing）赋能内容创作产业</li><li>具身智能（ESI-Bench、SceneCode）加速机器人与AR/VR落地</li>
+          </ul>
+        
+      </section>
+    
+
+    <section>
+      <h2>论文列表（共 28 篇）</h2>
+      <div class="project-list">
+        
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.18714" class="paper-name" target="_blank">
+            1. Semantic Generative Tuning for Unified Multimodal Models
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              28
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>统一多模式模型（ UMM ）致力于在单一架构中整合视觉理解和视觉生成。然而，流行的训练范式通过稀疏文本信号独立地优化理解，并通过密集像素目标生成。这种解耦策略产生了不对齐的表示空间，隔离了视觉理解的一代又一代，阻碍了它们的相互加强。这部作品...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(0)" id="btn-0">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-0">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.18714" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.18714" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(0)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Semantic Generative Tuning for Unified Multimodal Models</li>
+              <li>Stars: 28</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.18714" target="_blank">https://huggingface.co/papers/2605.18714</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.18714" target="_blank">https://arxiv.org/abs/2605.18714</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>统一多模式模型（ UMM ）致力于在单一架构中整合视觉理解和视觉生成。然而，流行的训练范式通过稀疏文本信号独立地优化理解，并通过密集像素目标生成。这种解耦策略产生了不对齐的表示空间，隔离了视觉理解的一代又一代，阻碍了它们的相互加强。这部作品呈现了……</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Unified multimodal models (UMMs) strive to consolidate visual understanding and visual generation within a single architecture. However, prevailing training paradigms independently optimize understanding via sparse text signals and generation through dense pixel objectives. Such a decoupled strategy yields misaligned representation spaces, isolating visual understanding from generation and hindering their mutual reinforcement. This work presents the first systematic investigation into generative post-training, where we formulate hierarchical visual tasks as generative proxies to bridge the isolation in UMMs. Our empirical investigation reveals that high-level semantic tasks, particularly image segmentation, serve as optimal proxies. Unlike low-level tasks that distract models with texture details, segmentation provides structural semantics that significantly enhance both vision-centric perception and generative layout fidelity. Building upon these insights, we introduce Semantic Generative Tuning (SGT), a novel paradigm that leverages segmentation as a generative proxy to align and synergize multimodal capabilities. Extensive evaluations show that SGT consistently improves both multimodal comprehension and generative fidelity.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-0">@article{unknown26,
+  title = {Semantic Generative Tuning for Unified Multimodal Models},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.18714},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.18703" class="paper-name" target="_blank">
+            2. EnvFactory: Scaling Tool-Use Agents via Executable Environments Synthesis and Robust RL
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              16
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>通过Agentic Reinforcement Learning （ Agentic RL ）为LLM配备工具使用功能受到两个挑战的瓶颈：缺乏可扩展、强大的执行环境以及缺乏捕捉隐含人类推理的真实训练数据。现有的方法依赖于昂贵的现实世界API...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(1)" id="btn-1">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-1">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.18703" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.18703" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(1)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：EnvFactory: Scaling Tool-Use Agents via Executable Environments Synthesis and Robust RL</li>
+              <li>Stars: 16</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.18703" target="_blank">https://huggingface.co/papers/2605.18703</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.18703" target="_blank">https://arxiv.org/abs/2605.18703</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>通过Agentic Reinforcement Learning （ Agentic RL ）为LLM配备工具使用功能受到两个挑战的瓶颈：缺乏可扩展、强大的执行环境以及缺乏捕捉隐含人类推理的真实训练数据。现有的方法依赖于昂贵的现实世界API、容易产生幻觉的LLM模拟器或合成环境，这些环境通常是单圈或依赖于预先收集的文档。此外...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Equipping LLMs with tool-use capabilities via Agentic Reinforcement Learning (Agentic RL) is bottlenecked by two challenges: the lack of scalable, robust execution environments and the scarcity of realistic training data that captures implicit human reasoning. Existing approaches depend on costly real-world APIs, hallucination-prone LLM simulators, or synthetic environments that are often single-turn or depend on pre-collected documents. Moreover, synthetic trajectories are frequently over-specified, resembling instruction sequences rather than natural human intents, reducing their effectiveness for RL training. We introduce EnvFactory, a fully automated framework that addresses both challenges. EnvFactory autonomously explores and verifies stateful, executable tool environments from authentic resources, and synthesizes natural multi-turn trajectories through topology-aware sampling and calibrated refinement, producing grounded queries with implicit intents. Using only 85 verified environments across 7 domains, EnvFactory generates 2,575 SFT and RL trajectories. Despite using significantly fewer environments than prior work, which are often 5 times more, EnvFactory achieves superior training efficiency and downstream performance, improving Qwen3-series models by up to +15% on BFCLv3, +8.6% on MCP-Atlas, and +6% on conversational benchmarks including τ^2-Bench and VitaBench. By fully automating both environment construction and trajectory synthesis, EnvFactory provides a scalable, extensible, and robust foundation for Agentic RL.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-1">@article{unknown26,
+  title = {EnvFactory: Scaling Tool-Use Agents via Executable Environments Synthesis and Robust RL},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.18703},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.16003" class="paper-name" target="_blank">
+            3. Echo-Forcing: A Scene Memory Framework for Interactive Long Video Generation
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              15
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Yuqi Li, Haotong Qin, Zhefeng Zhang, Weilun Feng, Mingqiang Wu</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(2)" id="btn-2">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-2">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.16003" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.16003" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(2)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Echo-Forcing: A Scene Memory Framework for Interactive Long Video Generation</li>
+              <li>Stars: 15</li>
+              <li>类型：研究</li>
+              <li>作者：Yuqi Li, Haotong Qin, Zhefeng Zhang, Weilun Feng, Mingqiang Wu</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.16003" target="_blank">https://huggingface.co/papers/2605.16003</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.16003" target="_blank">https://arxiv.org/abs/2605.16003</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-2">@article{li26,
+  title = {Echo-Forcing: A Scene Memory Framework for Interactive Long Video Generation},
+  author = {Yuqi Li and Haotong Qin and Zhefeng Zhang and Weilun Feng and Mingqiang Wu},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.16003},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.18746" class="paper-name" target="_blank">
+            4. ESI-Bench: Towards Embodied Spatial Intelligence that Closes the Perception-Action Loop
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              11
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Leonidas Guibas, Manling Li, Han Yin, Jiageng Liu, Yining Hong</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>空间智能通过感知-行动循环展开：代理人采取行动获取观察结果，并推理观察结果如何随行动而变化。他们不是被动地处理看到的东西，而是主动地发现看不见的东西--被遮挡的结构、动态、遏制和仅靠被动感应无法解决的功能。我们超越了先前假设神谕观察的空间智...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(3)" id="btn-3">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-3">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.18746" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.18746" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(3)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：ESI-Bench: Towards Embodied Spatial Intelligence that Closes the Perception-Action Loop</li>
+              <li>Stars: 11</li>
+              <li>类型：工具</li>
+              <li>作者：Leonidas Guibas, Manling Li, Han Yin, Jiageng Liu, Yining Hong</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.18746" target="_blank">https://huggingface.co/papers/2605.18746</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.18746" target="_blank">https://arxiv.org/abs/2605.18746</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>空间智能通过感知-行动循环展开：代理人采取行动获取观察结果，并推理观察结果如何随行动而变化。他们不是被动地处理看到的东西，而是主动地发现看不见的东西--被遮挡的结构、动态、遏制和仅靠被动感应无法解决的功能。我们超越了先前假设神谕观察的空间智能公式……</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Spatial intelligence unfolds through a perception-action loop: agents act to acquire observations, and reason about how observations vary as a function of action. Rather than passively processing what is seen, they actively uncover what is unseen - occluded structure, dynamics, containment, and functionality that cannot be resolved from passive sensing alone. We move beyond prior formulations of spatial intelligence that assume oracle observations by recasting the observer as an actor. We introduce ESI-BENCH, a comprehensive benchmark for embodied spatial intelligence spanning 10 task categories and 29 subcategories built on OmniGibson, grounded in Spelke's core knowledge systems. Agents must decide what abilities to deploy - perception, locomotion, and manipulation - and how to sequence them to actively accumulate task-relevant evidence. We conduct extensive experiments on state-of-the-art MLLMs and find that active exploration substantially outperforms passive counterparts, with agents spontaneously discovering emergent spatial strategies without explicit instructions, while random multi-view often adds noise rather than signal despite consuming far more images. Most failures stem not from weak perception but from action blindness: poor action choices lead to poor observations, which in turn drive cascading errors. While explicit 3D grounding stabilizes reasoning on depth-sensitive tasks, imperfect 3D representation proves more harmful than 2D baselines by distorting spatial relations. Human studies further reveal that unlike humans who seek falsifying viewpoints and revise beliefs under contradiction, models commit prematurely with high confidence regardless of evidence quality, exposing a metacognitive gap that neither better perception nor more embodied interaction alone can close.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-3">@article{guibas26,
+  title = {ESI-Bench: Towards Embodied Spatial Intelligence that Closes the Perception-Action Loop},
+  author = {Leonidas Guibas and Manling Li and Han Yin and Jiageng Liu and Yining Hong},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.18746},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.19577" class="paper-name" target="_blank">
+            5. GoLongRL: Capability-Oriented Long Context Reinforcement Learning with Multitask Alignment
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              7
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Zhenpeng Su, Junmin Chen, Tanlong Du, Tiehua Mei, Minxuan Lv</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>我们展示了GoLongRL ，这是一个完全开源、以能力为导向的长期背景强化学习后训练方案，具有可验证的奖励🚀（ RLVR ） GoLongRL-30B-A3B实现了与DeepSeek-R1-0528和Qwen3-235B-A22B-Thi...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(4)" id="btn-4">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-4">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.19577" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.19577" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(4)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：GoLongRL: Capability-Oriented Long Context Reinforcement Learning with Multitask Alignment</li>
+              <li>Stars: 7</li>
+              <li>类型：数据</li>
+              <li>作者：Zhenpeng Su, Junmin Chen, Tanlong Du, Tiehua Mei, Minxuan Lv</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.19577" target="_blank">https://huggingface.co/papers/2605.19577</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.19577" target="_blank">https://arxiv.org/abs/2605.19577</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>我们展示了GoLongRL ，这是一个完全开源、以能力为导向的长期背景强化学习后训练方案，具有可验证的奖励🚀（ RLVR ） GoLongRL-30B-A3B实现了与DeepSeek-R1-0528和Qwen3-235B-A22B-Thinking-2507相当的长期背景性能，同时使用了更小的激活参数预算。在相同的香草GRPO设置⚡下，我们的数据集仅比QwenLong-L1.5数据集在4B上性能高+6.1pp...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>We present GoLongRL , a fully open-source, capability-oriented post-training recipe for long-context reinforcement learning with verifiable rewards (RLVR) 🚀 GoLongRL-30B-A3B achieves long-context performance comparable to DeepSeek-R1-0528 and Qwen3-235B-A22B-Thinking-2507—while using a significantly smaller activated parameter budget ⚡ Under the same vanilla GRPO setup, our dataset alone outperforms the  QwenLong-L1.5 dataset by +6.1pp at the 4B scale and +2.6pp at 30B 📈 🔥 Actually open-source — not “weights-only”, not partial releases : we release training data, full code, and models . No hidden pipelines, no inaccessible datasets, no black boxes. If you want to reproduce, audit, or build on top of it—you can . End to end. Resources: 📄 Paper: https://arxiv.org/pdf/2605.19577 🧠 Github Project: https://github.com/xiaoxuanNLP/GoLongRL 📊 Data: https://huggingface.co/datasets/Kwai-Klear/GoLongRL 🤖 Models: GoLongRL-30B-A3B: https://huggingface.co/Kwai-Klear/GoLongRL-30B-A3B GoLongRL-4B: https://huggingface.co/Kwai-Klear/GoLongRL-4B</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-4">@article{su26,
+  title = {GoLongRL: Capability-Oriented Long Context Reinforcement Learning with Multitask Alignment},
+  author = {Zhenpeng Su and Junmin Chen and Tanlong Du and Tiehua Mei and Minxuan Lv},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.19577},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.20147" class="paper-name" target="_blank">
+            6. PixVerve: Advancing Native UHR Image Generation to 100MP with a Large-Scale High-Quality Dataset
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              5
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Junwei Zhu, Qingdong He, Chengming Xu, Haoyang He, Haojun Chen</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>文本图像转换（ T2I ）模型最近在1K和2K分辨率方面取得了显著进展。随着对更好的视觉体验的极度渴望和成像技术的快速发展，对超高分辨率（ UHR ）图像生成的需求显着增长。然而，由于高分辨率内容的稀缺性和复杂性， UHR图像生成带来了巨大...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(5)" id="btn-5">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-5">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.20147" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.20147" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(5)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：PixVerve: Advancing Native UHR Image Generation to 100MP with a Large-Scale High-Quality Dataset</li>
+              <li>Stars: 5</li>
+              <li>类型：数据</li>
+              <li>作者：Junwei Zhu, Qingdong He, Chengming Xu, Haoyang He, Haojun Chen</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.20147" target="_blank">https://huggingface.co/papers/2605.20147</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.20147" target="_blank">https://arxiv.org/abs/2605.20147</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>文本图像转换（ T2I ）模型最近在1K和2K分辨率方面取得了显著进展。随着对更好的视觉体验的极度渴望和成像技术的快速发展，对超高分辨率（ UHR ）图像生成的需求显着增长。然而，由于高分辨率内容的稀缺性和复杂性， UHR图像生成带来了巨大的挑战。在本文中，我们首先介绍了PixVerve-95K ，这是一种高...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Text-to-Image (T2I) models have recently seen notable progress around 1K and 2K resolution. With the extreme desire for better visual experience and the rapid development of imaging technology, the demand for Ultra-High-Resolution (UHR) image generation has grown significantly. However, UHR image generation poses great challenges due to the scarcity and complexity of high-resolution content. In this paper, we first introduce PixVerve-95K, a high-quality, open-source UHR T2I dataset curated with a carefully designed data pipeline, which contains 95K images across diverse scenarios (each image has a minimum pixel-count of 100M) and seven-dimensional annotations. Based on our large-scale image-text dataset, we take a pioneering step to extend various T2I foundation models to native 100MP generation with three training schemes. Finally, leveraging both conventional metrics and multimodal large language model-based assessments, our proposed PixVerve-Bench benchmark establishes a comprehensive evaluation protocol for UHR images encompassing visual quality and semantic alignment. Extensive experimental results on our benchmark and the constructive exploration of training strategies collaboratively provide valuable insights for future breakthroughs.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-5">@article{zhu26,
+  title = {PixVerve: Advancing Native UHR Image Generation to 100MP with a Large-Scale High-Quality Dataset},
+  author = {Junwei Zhu and Qingdong He and Chengming Xu and Haoyang He and Haojun Chen},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.20147},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.19769" class="paper-name" target="_blank">
+            7. OpenComputer: Verifiable Software Worlds for Computer-Use Agents
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              3
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Kangqi Ni, Xiao Zhou, Yilun Zhao, Qianran Ma, Jinbiao Wei</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>OpenComputer提供了一个框架，用于创建可验证的软件环境和基准，以便通过跨不同桌面应用程序的精确状态感知任务验证来评估计算机使用代理。
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(6)" id="btn-6">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-6">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.19769" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.19769" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(6)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：OpenComputer: Verifiable Software Worlds for Computer-Use Agents</li>
+              <li>Stars: 3</li>
+              <li>类型：工具</li>
+              <li>作者：Kangqi Ni, Xiao Zhou, Yilun Zhao, Qianran Ma, Jinbiao Wei</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.19769" target="_blank">https://huggingface.co/papers/2605.19769</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.19769" target="_blank">https://arxiv.org/abs/2605.19769</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>OpenComputer提供了一个框架，用于创建可验证的软件环境和基准，以便通过跨不同桌面应用程序的精确状态感知任务验证来评估计算机使用代理。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>OpenComputer provides a framework for creating verifiable software environments and benchmarks to evaluate computer-use agents through precise, state-aware task verification across diverse desktop applications.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-6">@article{ni26,
+  title = {OpenComputer: Verifiable Software Worlds for Computer-Use Agents},
+  author = {Kangqi Ni and Xiao Zhou and Yilun Zhao and Qianran Ma and Jinbiao Wei},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.19769},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.11609" class="paper-name" target="_blank">
+            8. Anti-Self-Distillation for Reasoning RL via Pointwise Mutual Information
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              3
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>在AIME 2024/2025、HMMT 2025和BeyondAIME上， AntiSD在2–10倍的训练步骤中达到了GRPO的准确度，并将最终准确度提高了+11.5分，这在4B-30B密集和MoE模型中是一致的。推理中的标准自我蒸馏RL...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(7)" id="btn-7">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-7">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.11609" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.11609" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(7)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Anti-Self-Distillation for Reasoning RL via Pointwise Mutual Information</li>
+              <li>Stars: 3</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.11609" target="_blank">https://huggingface.co/papers/2605.11609</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.11609" target="_blank">https://arxiv.org/abs/2605.11609</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>在AIME 2024/2025、HMMT 2025和BeyondAIME上， AntiSD在2–10倍的训练步骤中达到了GRPO的准确度，并将最终准确度提高了+11.5分，这在4B-30B密集和MoE模型中是一致的。推理中的标准自我蒸馏RL将学生拉向以经过验证的解决方案为条件的老师。特权语境使教师对模板令牌更加敏锐，但不确定审议令牌— “等待” ， “让” ， “也许” —...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>AntiSD reaches GRPO's accuracy in 2–10× fewer training steps and improves final accuracy by up to +11.5 points on AIME 2024/2025, HMMT 2025, and BeyondAIME — consistent across 4B–30B dense and MoE models. Standard self-distillation in reasoning RL pulls the student toward a teacher conditioned on a verified solution. The privileged context makes the teacher sharp on template tokens but unsure on the deliberation tokens — "Wait", "Let", "Maybe" — that drive multi-step search; descending its divergence reinforces templates at the cost of reasoning. AntiSD flips the sign: instead of descending the divergence, we ascend a bounded Jensen–Shannon between student and teacher, with an entropy-triggered gate. No token-level reward shaping, no length normalization, no schedule heuristics. Code: https://github.com/FloyedShen/AntiSD Paper: https://www.alphaxiv.org/abs/2605.11609</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-7">@article{unknown26,
+  title = {Anti-Self-Distillation for Reasoning RL via Pointwise Mutual Information},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.11609},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.18748" class="paper-name" target="_blank">
+            9. Aurora: Unified Video Editing with a Tool-Using Agent
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              3
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Hang Hua, Zhenghong Zhou, Zhiyuan Xiao, Ziyun Zeng, Yongsheng Yu</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(8)" id="btn-8">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-8">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.18748" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.18748" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(8)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Aurora: Unified Video Editing with a Tool-Using Agent</li>
+              <li>Stars: 3</li>
+              <li>类型：研究</li>
+              <li>作者：Hang Hua, Zhenghong Zhou, Zhiyuan Xiao, Ziyun Zeng, Yongsheng Yu</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.18748" target="_blank">https://huggingface.co/papers/2605.18748</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.18748" target="_blank">https://arxiv.org/abs/2605.18748</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-8">@article{hua26,
+  title = {Aurora: Unified Video Editing with a Tool-Using Agent},
+  author = {Hang Hua and Zhenghong Zhou and Zhiyuan Xiao and Ziyun Zeng and Yongsheng Yu},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.18748},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.15529" class="paper-name" target="_blank">
+            10. Process Rewards with Learned Reliability
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              2
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>流程奖励模型（ PRM ）为推理提供步骤级反馈，但当前的PRM通常仅为每个步骤输出一个奖励分数。因此，下游方法必须将不完美的阶梯级奖励预测视为可靠的决策信号，而没有迹象表明这些预测何时应该可信。我们提出了BetaPRM ，这是一种分布式PR...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(9)" id="btn-9">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-9">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.15529" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.15529" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(9)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Process Rewards with Learned Reliability</li>
+              <li>Stars: 2</li>
+              <li>类型：数据</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.15529" target="_blank">https://huggingface.co/papers/2605.15529</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.15529" target="_blank">https://arxiv.org/abs/2605.15529</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>流程奖励模型（ PRM ）为推理提供步骤级反馈，但当前的PRM通常仅为每个步骤输出一个奖励分数。因此，下游方法必须将不完美的阶梯级奖励预测视为可靠的决策信号，而没有迹象表明这些预测何时应该可信。我们提出了BetaPRM ，这是一种分布式PRM ，可以预测阶梯级成功概率和预测的可靠性......</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Process Reward Models (PRMs) provide step-level feedback for reasoning, but current PRMs usually output only a single reward score for each step. Downstream methods must therefore treat imperfect step-level reward predictions as reliable decision signals, with no indication of when these predictions should be trusted. We propose BetaPRM, a distributional PRM that predicts both a step-level success probability and the reliability of that prediction. Given step-success supervision from Monte Carlo continuations, BetaPRM learns a Beta belief that explains the observed number of successful continuations through a Beta-Binomial likelihood, rather than regressing to the finite-sample success ratio as a point target. This learned reliability signal indicates when a step reward should be trusted, enabling downstream applications to distinguish reliable rewards from uncertain ones. As one application, we introduce Adaptive Computation Allocation (ACA) for PRM-guided Best-of-N reasoning. ACA uses the learned reliability signal to stop when a high-reward solution is reliable and to spend additional computation on uncertain candidate prefixes. Experiments across four backbones and four reasoning benchmarks show that BetaPRM improves PRM-guided Best-of-N selection while preserving standard step-level error detection. Built on this signal, ACA improves the accuracy--token tradeoff over fixed-budget Best-of-16, reducing token usage by up to 33.57% while improving final-answer accuracy.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-9">@article{unknown26,
+  title = {Process Rewards with Learned Reliability},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.15529},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.19436" class="paper-name" target="_blank">
+            11. CEPO: RLVR Self-Distillation using Contrastive Evidence Policy Optimization
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              2
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>CEPO是RLVR的令牌级学分分配方法，它将统一奖励信号替换为正确答案教师和错误答案教师之间的对比比率（从被拒绝的推出中抽取，无需额外成本） ，将梯度更新集中在实际决定正确性的令牌上。在短短50个培训步骤中， CEPO在5个多模态数学推理基...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(10)" id="btn-10">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-10">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.19436" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.19436" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(10)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：CEPO: RLVR Self-Distillation using Contrastive Evidence Policy Optimization</li>
+              <li>Stars: 2</li>
+              <li>类型：数据</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.19436" target="_blank">https://huggingface.co/papers/2605.19436</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.19436" target="_blank">https://arxiv.org/abs/2605.19436</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>CEPO是RLVR的令牌级学分分配方法，它将统一奖励信号替换为正确答案教师和错误答案教师之间的对比比率（从被拒绝的推出中抽取，无需额外成本） ，将梯度更新集中在实际决定正确性的令牌上。在短短50个培训步骤中， CEPO在5个多模态数学推理基准上比GRPO提高了+2.26% ，在4B级提高了+3.13% ；分布匹配改变了...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>CEPO is a token-level credit assignment method for RLVR that replaces uniform reward signals with a contrastive ratio between correct and wrong answer teachers (drawn from rejected rollouts at no extra cost), focusing gradient updates on the tokens that actually decide correctness. In just 50 training steps, CEPO improves over GRPO by +2.26% at 2B and +3.13% at 4B scale across five multimodal math reasoning benchmarks; distribution matching alternatives (OPSD, SDPO) collapse below the untrained baseline, confirming the information leakage CEPO is designed to avoid.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-10">@article{unknown26,
+  title = {CEPO: RLVR Self-Distillation using Contrastive Evidence Policy Optimization},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.19436},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.18758" class="paper-name" target="_blank">
+            12. OmniGUI: Benchmarking GUI Agents in Omni-Modal Smartphone Environments
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              2
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>图形用户界面(GUI)代理的当前基准主要依赖于静态屏幕截图。然而，现实世界的智能手机交互通常需要代理处理与行动时刻紧密耦合的瞬时音频提示和时间视频动态。为了弥合这一差距，我们引入了OmniGUI ，这是第一个旨在评估全模式智能手机环境中GU...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(11)" id="btn-11">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-11">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.18758" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.18758" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(11)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：OmniGUI: Benchmarking GUI Agents in Omni-Modal Smartphone Environments</li>
+              <li>Stars: 2</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.18758" target="_blank">https://huggingface.co/papers/2605.18758</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.18758" target="_blank">https://arxiv.org/abs/2605.18758</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>图形用户界面(GUI)代理的当前基准主要依赖于静态屏幕截图。然而，现实世界的智能手机交互通常需要代理处理与行动时刻紧密耦合的瞬时音频提示和时间视频动态。为了弥合这一差距，我们引入了OmniGUI ，这是第一个旨在评估全模式智能手机环境中GUI代理的步骤级基准。OmniGUI提供连续...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Current benchmarks for graphical user interface (GUI) agents predominantly rely on static screenshots. However, real-world smartphone interaction routinely requires agents to process transient audio cues and temporal video dynamics that are tightly coupled with the moment of action. To bridge this gap, we introduce OmniGUI, the first step-level benchmark designed to evaluate GUI agents in omni-modal smartphone environments. OmniGUI provides continuous, interleaved multimodal inputs-comprising static images, synchronous audio, and video clips—at every action step. The dataset encompasses 709 expert-demonstrated episodes (2,579 action steps) across 29 applications, systematically annotated with objective multimodal dependency levels. Because dedicated omni-modal GUI agent frameworks are currently in their nascent stage, we select foundational omni-modal models capable of natively processing interleaved inputs to serve as agent proxies for our initial baselines. Our empirical evaluation reveals that while current models exhibit competency on visually static tasks, their action prediction performance degrades significantly in environments requiring synchronous temporal and auditory signals. Furthermore, ablation studies isolate specific operational bottlenecks, notably cross-modal interference when processing task-irrelevant environmental noise.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-11">@article{unknown26,
+  title = {OmniGUI: Benchmarking GUI Agents in Omni-Modal Smartphone Environments},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.18758},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.19014" class="paper-name" target="_blank">
+            13. SAGA: A Sequence-Adaptive Generative Architecture for Multi-Horizon Probabilistic Forecasting with Adaptive Temporal Conformal Prediction
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              2
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Hafize Gonca Cömert, Gustav Olaf Yunus Laitinen-Fredriksson Lundström-Imanov</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>财政部和中央银行使用的微观模拟模型依赖于终身收益的参数化过程，这些过程仅捕获条件分布的第一和第二时刻，并错过了远程非线性结构。我们提出了SAGA ，这是一种仅用于不规则表格面板序列的解码器变换器，与分割共形校准包装器配对，可提供具有有限样本...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(12)" id="btn-12">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-12">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.19014" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.19014" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(12)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：SAGA: A Sequence-Adaptive Generative Architecture for Multi-Horizon Probabilistic Forecasting with Adaptive Temporal Conformal Prediction</li>
+              <li>Stars: 2</li>
+              <li>类型：数据</li>
+              <li>作者：Hafize Gonca Cömert, Gustav Olaf Yunus Laitinen-Fredriksson Lundström-Imanov</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.19014" target="_blank">https://huggingface.co/papers/2605.19014</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.19014" target="_blank">https://arxiv.org/abs/2605.19014</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>财政部和中央银行使用的微观模拟模型依赖于终身收益的参数化过程，这些过程仅捕获条件分布的第一和第二时刻，并错过了远程非线性结构。我们提出了SAGA ，这是一种仅用于不规则表格面板序列的解码器变换器，与分割共形校准包装器配对，可提供具有有限样本边缘的个体级预测间隔……</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Microsimulation models used by ministries of finance and central banks rely on parametric processes for lifetime earnings that capture only first and second moments of the conditional distribution and miss long-range nonlinear structure. We propose SAGA, a decoder-only transformer for irregular tabular panel sequences, paired with a split conformal calibration wrapper that delivers individual-level prediction intervals with finite-sample marginal coverage guarantees. Trained on the longitudinal Swedish LISA register over 1990 to 2022, comprising 2,143,817 individuals and 61,284,903 person-years, the model forecasts annual labor earnings at horizons of one to thirty years and aggregates them by Monte Carlo into present-discounted lifetime earnings distributions. Against the canonical Guvenen, Karahan, Ozkan, and Song parametric process and tabular and recurrent baselines, SAGA reduces continuous ranked probability score by 31.9 percent at the ten-year horizon and mean absolute error by 37.7 percent at the twenty-year horizon. Conformal intervals achieve nominal coverage to within 0.4 percentage points marginally and within 2.4 percentage points on the worst-case demographic subgroup. The reconstructed lifetime earnings Gini coefficient is 0.327 against the partially observed truth of 0.341 and the GKOS estimate of 0.378. Model weights, calibration tables, and a synthetic equivalent dataset are released for replication outside the protected SCB MONA environment.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-12">@article{cömert26,
+  title = {SAGA: A Sequence-Adaptive Generative Architecture for Multi-Horizon Probabilistic Forecasting with Adaptive Temporal Conformal Prediction},
+  author = {Hafize Gonca Cömert and Gustav Olaf Yunus Laitinen-Fredriksson Lundström-Imanov},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.19014},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.17360" class="paper-name" target="_blank">
+            14. Omni-DuplexEval: Evaluating Real-time Duplex Omni-modal Interaction
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              2
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Junbo Cui, Bokai Xu, Yingjing Xu, Mingyang Xiang, Chaoqun He</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>我们提出了Omni-DuplexEval ，这是系统评估实时双工交互的基准。我们进一步引入了基于LLM-as-a-Judge的自动评估框架。资料来源：论文： https://arxiv.org/pdf/2605.17360 Github项目...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(13)" id="btn-13">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-13">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.17360" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.17360" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(13)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Omni-DuplexEval: Evaluating Real-time Duplex Omni-modal Interaction</li>
+              <li>Stars: 2</li>
+              <li>类型：工具</li>
+              <li>作者：Junbo Cui, Bokai Xu, Yingjing Xu, Mingyang Xiang, Chaoqun He</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.17360" target="_blank">https://huggingface.co/papers/2605.17360</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.17360" target="_blank">https://arxiv.org/abs/2605.17360</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>我们提出了Omni-DuplexEval ，这是系统评估实时双工交互的基准。我们进一步引入了基于LLM-as-a-Judge的自动评估框架。资料来源：论文： https://arxiv.org/pdf/2605.17360 Github项目： https://github.com/OpenBMB/Omni-DuplexEval数据： https://huggingface.co/datasets/Hothan/Omni-DuplexEval</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>We propose Omni-DuplexEval, a benchmark for systematically evaluating real-time duplex interaction. And we further introduce an automatic evaluation framework based on LLM-as-a-Judge. Resource： Paper: https://arxiv.org/pdf/2605.17360 Github Project: https://github.com/OpenBMB/Omni-DuplexEval Data: https://huggingface.co/datasets/Hothan/Omni-DuplexEval</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-13">@article{cui26,
+  title = {Omni-DuplexEval: Evaluating Real-time Duplex Omni-modal Interaction},
+  author = {Junbo Cui and Bokai Xu and Yingjing Xu and Mingyang Xiang and Chaoqun He},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.17360},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.20075" class="paper-name" target="_blank">
+            15. CopT: Contrastive On-Policy Thinking with Continuous Spaces for General and Agentic Reasoning
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              2
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Kejing Xia, Wanjia Zhao, Xiangchi Yuan, Hanlin Zhu, Dachuan Shi</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>CopT是一个带有连续空间验证器的推理管道，使LLM能够从草稿答案开始，并调用基于该答案的策略思维。论文： https://arxiv.org/pdf/2605.20075网址： https://copt-web.github.io/ Gi...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(14)" id="btn-14">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-14">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.20075" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.20075" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(14)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：CopT: Contrastive On-Policy Thinking with Continuous Spaces for General and Agentic Reasoning</li>
+              <li>Stars: 2</li>
+              <li>类型：研究</li>
+              <li>作者：Kejing Xia, Wanjia Zhao, Xiangchi Yuan, Hanlin Zhu, Dachuan Shi</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.20075" target="_blank">https://huggingface.co/papers/2605.20075</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.20075" target="_blank">https://arxiv.org/abs/2605.20075</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>CopT是一个带有连续空间验证器的推理管道，使LLM能够从草稿答案开始，并调用基于该答案的策略思维。论文： https://arxiv.org/pdf/2605.20075网址： https://copt-web.github.io/ Github ： https://github.com/sdc17/CopT</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>CopT is a reasoning pipeline with continuous-space verifiers, enabling LLMs to start with a draft answer and invoke on-policy thinking conditioned on it. Paper: https://arxiv.org/pdf/2605.20075 Website: https://copt-web.github.io/ Github: https://github.com/sdc17/CopT</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-14">@article{xia26,
+  title = {CopT: Contrastive On-Policy Thinking with Continuous Spaces for General and Agentic Reasoning},
+  author = {Kejing Xia and Wanjia Zhao and Xiangchi Yuan and Hanlin Zhu and Dachuan Shi},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.20075},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.16403" class="paper-name" target="_blank">
+            16. When Vision Speaks for Sound
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              1
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Tinghui Zhu, Rui Cai, Xingyu Fu, Wenjie Jacky Mo, Xiaofei Wen</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>WVS-Thud ：一种干预驱动的框架，通过教授视频模型来验证实际声音而不是依赖于视觉快捷方式来减轻视听Clever Hans效应。
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(15)" id="btn-15">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-15">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.16403" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.16403" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(15)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：When Vision Speaks for Sound</li>
+              <li>Stars: 1</li>
+              <li>类型：工具</li>
+              <li>作者：Tinghui Zhu, Rui Cai, Xingyu Fu, Wenjie Jacky Mo, Xiaofei Wen</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.16403" target="_blank">https://huggingface.co/papers/2605.16403</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.16403" target="_blank">https://arxiv.org/abs/2605.16403</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>WVS-Thud ：一种干预驱动的框架，通过教授视频模型来验证实际声音而不是依赖于视觉快捷方式来减轻视听Clever Hans效应。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>WVS-Thud: an intervention-driven framework that mitigates the audio-visual Clever Hans effect by teaching video models to verify actual sounds instead of relying on visual shortcuts.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-15">@article{zhu26,
+  title = {When Vision Speaks for Sound},
+  author = {Tinghui Zhu and Rui Cai and Xingyu Fu and Wenjie Jacky Mo and Xiaofei Wen},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.16403},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.18984" class="paper-name" target="_blank">
+            17. Artifact-Bench: Evaluating MLLMs on Detecting and Assessing the Artifacts of AI-Generated Videos
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              1
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Xuehai Bai, Qixun Wang, Zhuoran Zhang, Yang Shi, Yuqi Tang</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>最近的视频生成模型大大提高了人工智能生成视频的真实感，但它们的输出仍然表现出时间不一致、结构扭曲和语义不一致等伪影。虽然多模态大型语言模型（ MLLM ）具有很强的视觉理解能力，但它们对这些伪影的感知和推理能力仍不清楚。现有基准通常缺乏对人...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(16)" id="btn-16">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-16">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.18984" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.18984" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(16)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Artifact-Bench: Evaluating MLLMs on Detecting and Assessing the Artifacts of AI-Generated Videos</li>
+              <li>Stars: 1</li>
+              <li>类型：工具</li>
+              <li>作者：Xuehai Bai, Qixun Wang, Zhuoran Zhang, Yang Shi, Yuqi Tang</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.18984" target="_blank">https://huggingface.co/papers/2605.18984</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.18984" target="_blank">https://arxiv.org/abs/2605.18984</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>最近的视频生成模型大大提高了人工智能生成视频的真实感，但它们的输出仍然表现出时间不一致、结构扭曲和语义不一致等伪影。虽然多模态大型语言模型（ MLLM ）具有很强的视觉理解能力，但它们对这些伪影的感知和推理能力仍不清楚。现有基准通常缺乏对人工制品的系统评估-- ……</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Recent video generative models have greatly improved the realism of AI-generated videos, yet their outputs still exhibit artifacts such as temporal inconsistencies, structural distortions, and semantic incoherence. While Multimodal Large Language Models (MLLMs) show strong visual understanding capabilities, their ability to perceive and reason about such artifacts remains unclear. Existing benchmarks often lack systematic evaluation of artifact-aware perception and fine-grained diagnostic reasoning, especially across diverse AI-generated video domains beyond photorealistic content. To address this gap, we introduce Artifact-Bench, a comprehensive benchmark for evaluating MLLMs on AI-generated video artifact detection and analysis. We first establish a three-level hierarchical taxonomy of realism artifacts, covering photorealistic, animated, and CG-style videos. Based on this taxonomy, Artifact-Bench defines three complementary tasks: real vs. AI-generated video classification, pairwise realism comparison, and fine-grained artifact identification. Experiments on 19 leading MLLMs reveal substantial limitations in artifact perception and reasoning, with many models approaching random or even below-random performance in challenging settings. We further observe significant misalignment between MLLM judgments and human perceptual preferences, highlighting their limited reliability as general evaluators for AI-generated video realism.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-16">@article{bai26,
+  title = {Artifact-Bench: Evaluating MLLMs on Detecting and Assessing the Artifacts of AI-Generated Videos},
+  author = {Xuehai Bai and Qixun Wang and Zhuoran Zhang and Yang Shi and Yuqi Tang},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.18984},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.15458" class="paper-name" target="_blank">
+            18. Video Models Can Reason with Verifiable Rewards
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              1
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>VideoRLVR ：一种系统的强化学习配方，使用可验证的奖励将视频模型转化为视觉推理器。
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(17)" id="btn-17">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-17">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.15458" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.15458" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(17)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Video Models Can Reason with Verifiable Rewards</li>
+              <li>Stars: 1</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.15458" target="_blank">https://huggingface.co/papers/2605.15458</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.15458" target="_blank">https://arxiv.org/abs/2605.15458</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>VideoRLVR ：一种系统的强化学习配方，使用可验证的奖励将视频模型转化为视觉推理器。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>VideoRLVR: a systematic RL recipe that turns video models into visual reasoners using verifiable rewards.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-17">@article{unknown26,
+  title = {Video Models Can Reason with Verifiable Rewards},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.15458},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.20025" class="paper-name" target="_blank">
+            19. AutoResearchClaw: Self-Reinforcing Autonomous Research with Human-AI Collaboration
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Haonian Ji, Bingzhou Li, Mairui Li, Shi Qiu, Jiaqi Liu</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>AutoResearchClaw是一个多代理、人性化的研究框架，利用自我强化机制、结构化辩论和自适应执行来自主改进科学发现并超越现有的自主研究系统。
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(18)" id="btn-18">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-18">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.20025" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.20025" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(18)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：AutoResearchClaw: Self-Reinforcing Autonomous Research with Human-AI Collaboration</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              <li>作者：Haonian Ji, Bingzhou Li, Mairui Li, Shi Qiu, Jiaqi Liu</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.20025" target="_blank">https://huggingface.co/papers/2605.20025</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.20025" target="_blank">https://arxiv.org/abs/2605.20025</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>AutoResearchClaw是一个多代理、人性化的研究框架，利用自我强化机制、结构化辩论和自适应执行来自主改进科学发现并超越现有的自主研究系统。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>AutoResearchClaw is a multi-agent, human-in-the-loop research framework that leverages self-reinforcing mechanisms, structured debate, and adaptive execution to autonomously improve scientific discovery and outperform existing autonomous research systems.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-18">@article{ji26,
+  title = {AutoResearchClaw: Self-Reinforcing Autonomous Research with Human-AI Collaboration},
+  author = {Haonian Ji and Bingzhou Li and Mairui Li and Shi Qiu and Jiaqi Liu},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.20025},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.19995" class="paper-name" target="_blank">
+            20. CogOmniControl: Reasoning-Driven Controllable Video Generation via Creative Intent Cognition
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Alan Zhao, Xiaotong Zhao, Yucheng Zhou, Songlian Li, Hongji Yang</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>最近的扩散模型在视频生成中实现了强烈的逼真性和流畅性，但在抽象、稀疏或复杂的条件下仍然脆弱，导致在故事板草图和粘土渲染条件等专业制作工作流程中表现不佳。现有的视频生成模型要么通过适配器注入条件，要么将通用视觉语言模型（ VLM ）与扩散主干...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(19)" id="btn-19">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-19">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.19995" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.19995" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(19)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：CogOmniControl: Reasoning-Driven Controllable Video Generation via Creative Intent Cognition</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              <li>作者：Alan Zhao, Xiaotong Zhao, Yucheng Zhou, Songlian Li, Hongji Yang</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.19995" target="_blank">https://huggingface.co/papers/2605.19995</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.19995" target="_blank">https://arxiv.org/abs/2605.19995</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>最近的扩散模型在视频生成中实现了强烈的逼真性和流畅性，但在抽象、稀疏或复杂的条件下仍然脆弱，导致在故事板草图和粘土渲染条件等专业制作工作流程中表现不佳。现有的视频生成模型要么通过适配器注入条件，要么将通用视觉语言模型（ VLM ）与扩散主干相结合，留下能力差距和...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Recent diffusion models achieve strong photorealism and fluency in video generation, yet remain fragile under abstract, sparse or complex conditions, leading to poor performance in professional production workflows such as storyboard sketches and clay-render conditions. Existing video-generation models either inject conditions through adapters or couple a generic vision-language model (VLM) with a diffusion backbone, leaving a capability gap and failing to produce videos that align with the user's creative intent. We present CogOmniControl, a reasoning-driven framework that factorizes controllable video generation into creative-intent cognition and generation. We train a specialized CogVLM using authentic anime-production data; compared to generic VLMs, it produces more professional and clearer outputs, accurately cognizing user intent from sparse and abstract conditions. CogOmniDiT unifies controls from heterogeneous conditions through in-context generation and is aligned with the CogVLM reasoning outputs via reinforcement learning. Furthermore, leveraging CogVLM's robust capability in guiding video generation, we release its potential in planning specific evaluators and enable a Best-of-N selection, transforming the entire framework into a closed-loop "harness-like" architecture. We also introduce CogReasonBench and CogControlBench, built from professional workflow data carrying genuine creative intent. Experiments on the two benchmarks show that CogOmniControl surpasses existing open-source models.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-19">@article{zhao26,
+  title = {CogOmniControl: Reasoning-Driven Controllable Video Generation via Creative Intent Cognition},
+  author = {Alan Zhao and Xiaotong Zhao and Yucheng Zhou and Songlian Li and Hongji Yang},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.19995},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.20183" class="paper-name" target="_blank">
+            21. MSAVBench: Towards Comprehensive and Reliable Evaluation of Multi-Shot Audio-Video Generation
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">综述</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>MSAVBench是第一个用于多镜头音频视频生成的综合基准。
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(20)" id="btn-20">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-20">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.20183" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.20183" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(20)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：MSAVBench: Towards Comprehensive and Reliable Evaluation of Multi-Shot Audio-Video Generation</li>
+              <li>Stars: 0</li>
+              <li>类型：综述</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.20183" target="_blank">https://huggingface.co/papers/2605.20183</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.20183" target="_blank">https://arxiv.org/abs/2605.20183</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>MSAVBench是第一个用于多镜头音频视频生成的综合基准。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>MSAVBench is the first comprehensive benchmark for multi-shot audio-video generation.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-20">@article{unknown26,
+  title = {MSAVBench: Towards Comprehensive and Reliable Evaluation of Multi-Shot Audio-Video Generation},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.20183},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.20104" class="paper-name" target="_blank">
+            22. Draft Less, Retrieve More: Hybrid Tree Construction for Speculative Decoding
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Baolin Zhang, Quan Kong, Xinyi Hu, Tianyu Liu, Yuhao Shen</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>GRAFT是一个无需训练的投机解码框架，它将修剪和令牌检索相结合，以提高接受率并加速大型语言模型推断，而不会产生额外的计算开销。
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(21)" id="btn-21">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-21">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.20104" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.20104" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(21)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Draft Less, Retrieve More: Hybrid Tree Construction for Speculative Decoding</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              <li>作者：Baolin Zhang, Quan Kong, Xinyi Hu, Tianyu Liu, Yuhao Shen</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.20104" target="_blank">https://huggingface.co/papers/2605.20104</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.20104" target="_blank">https://arxiv.org/abs/2605.20104</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>GRAFT是一个无需训练的投机解码框架，它将修剪和令牌检索相结合，以提高接受率并加速大型语言模型推断，而不会产生额外的计算开销。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Graft is a training-free speculative decoding framework that combines pruning and token retrieval to improve acceptance rates and accelerate large language model inference without incurring additional computational overhead.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-21">@article{zhang26,
+  title = {Draft Less, Retrieve More: Hybrid Tree Construction for Speculative Decoding},
+  author = {Baolin Zhang and Quan Kong and Xinyi Hu and Tianyu Liu and Yuhao Shen},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.20104},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.18226" class="paper-name" target="_blank">
+            23. Context Memorization for Efficient Long Context Generation
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Masato Motomura, Hongxiang Fan, Guanxi Lu, Hao Mark Chen, Yasuyuki Okoshi</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>本文提出了注意力状态内存，这是前缀和查询令牌之间预先计算的注意力状态的基于查找的内存。代码将很快发布。
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(22)" id="btn-22">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-22">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.18226" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.18226" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(22)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Context Memorization for Efficient Long Context Generation</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Masato Motomura, Hongxiang Fan, Guanxi Lu, Hao Mark Chen, Yasuyuki Okoshi</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.18226" target="_blank">https://huggingface.co/papers/2605.18226</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.18226" target="_blank">https://arxiv.org/abs/2605.18226</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>本文提出了注意力状态内存，这是前缀和查询令牌之间预先计算的注意力状态的基于查找的内存。代码将很快发布。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>This paper presents attention-state memory, a lookup-based memory of precomputed attention states between prefix and query tokens. Code will be released soon.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-22">@article{motomura26,
+  title = {Context Memorization for Efficient Long Context Generation},
+  author = {Masato Motomura and Hongxiang Fan and Guanxi Lu and Hao Mark Chen and Yasuyuki Okoshi},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.18226},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.18855" class="paper-name" target="_blank">
+            24. Delta Attention Residuals
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Junjie Hu, Zefan Cai, Cheng Luo</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>Delta注意残差通过关注子层增量而不是累积隐藏状态来提高变压器性能，从而实现更有选择性和更有效的跨层路由。
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(23)" id="btn-23">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-23">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.18855" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.18855" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(23)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Delta Attention Residuals</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Junjie Hu, Zefan Cai, Cheng Luo</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.18855" target="_blank">https://huggingface.co/papers/2605.18855</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.18855" target="_blank">https://arxiv.org/abs/2605.18855</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>Delta注意残差通过关注子层增量而不是累积隐藏状态来提高变压器性能，从而实现更有选择性和更有效的跨层路由。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Delta Attention Residuals improve transformer performance by attending to sublayer deltas instead of cumulative hidden states, enabling more selective and effective routing across layers.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-23">@article{hu26,
+  title = {Delta Attention Residuals},
+  author = {Junjie Hu and Zefan Cai and Cheng Luo},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.18855},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.18827" class="paper-name" target="_blank">
+            25. Code-Guided Reasoning for Small Language Models: Evaluating Executable MCQA Scaffolds
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>多选QA基准通常将小型语言模型（ SLM ）作为直接应答者进行评估，但部署的语言模型系统越来越依赖于外部支架，如工具、代码和重复的模型调用。我们引入了代码引导推理（ CGR ） ，这是一种评估协议和生成的程序资源，用于衡量可执行推理支架何时...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(24)" id="btn-24">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-24">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.18827" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.18827" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(24)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Code-Guided Reasoning for Small Language Models: Evaluating Executable MCQA Scaffolds</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.18827" target="_blank">https://huggingface.co/papers/2605.18827</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.18827" target="_blank">https://arxiv.org/abs/2605.18827</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>多选QA基准通常将小型语言模型（ SLM ）作为直接应答者进行评估，但部署的语言模型系统越来越依赖于外部支架，如工具、代码和重复的模型调用。我们引入了代码引导推理（ CGR ） ，这是一种评估协议和生成的程序资源，用于衡量可执行推理支架何时提高MCQA任务上的SLM性能。CGR标准化了六个组成部分：归一化……</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Multiple-choice QA benchmarks usually evaluate small language models (SLMs) as direct answerers, but deployed language-model systems increasingly rely on external scaffolds such as tools, code, and repeated model calls. We introduce Code-Guided Reasoning (CGR), an evaluation protocol and generated-program resource for measuring when executable reasoning scaffolds improve SLM performance on MCQA tasks. CGR standardizes six components: a normalized item interface, a direct solver prompt, a generator prompt, a Python scaffold, solver-call and extraction helpers, and a three-channel result record. On 20,498 retained result rows from a locally prepared MCQA bundle and six metadata-registered solver models, the observed non-zero-baseline partition shows 66.21% macro assisted accuracy versus 38.11% direct accuracy, a +28.10 percentage-point difference with a pair-bootstrap interval of [20.32, 36.43]. Under a stricter Ab > 30% direct-signal gate, the macro difference is +14.11 points. These estimates are descriptive. Assisted inference uses a larger solver-call budget, answer extraction is brittle, Time-MQA contains the observed regressions, and some generated programs violate the no-hard-coding instruction. CGR provides the trace package needed to interpret these results, including direct, assisted, and generator-side answers, partition definitions, generated programs, response metadata, and audits.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-24">@article{unknown26,
+  title = {Code-Guided Reasoning for Small Language Models: Evaluating Executable MCQA Scaffolds},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.18827},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.12623" class="paper-name" target="_blank">
+            26. DocAtlas: Multilingual Document Understanding Across 80+ Languages
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>DocAtlas是一个框架，用于构建涵盖82种语言和9个评估任务的高保真多语言OCR数据集和基准，使用差分渲染从本机文档生成无模型结构注释。对16个模型的评估揭示了低资源脚本中持续存在的差距；具有渲染衍生地面真理的DPO实现了稳定的跨语言转...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(25)" id="btn-25">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-25">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.12623" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.12623" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(25)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：DocAtlas: Multilingual Document Understanding Across 80+ Languages</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.12623" target="_blank">https://huggingface.co/papers/2605.12623</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.12623" target="_blank">https://arxiv.org/abs/2605.12623</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>DocAtlas是一个框架，用于构建涵盖82种语言和9个评估任务的高保真多语言OCR数据集和基准，使用差分渲染从本机文档生成无模型结构注释。对16个模型的评估揭示了低资源脚本中持续存在的差距；具有渲染衍生地面真理的DPO实现了稳定的跨语言转移（ +1.9%在域内， +1.8%在域外） ，而无需基础语言数据...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>DocAtlas is a framework for constructing high-fidelity multilingual OCR datasets and benchmarks covering 82 languages and 9 evaluation tasks, using differential rendering to produce model-free structural annotations from native documents. Evaluating 16 models reveals persistent gaps in low-resource scripts; DPO with rendering-derived ground truth achieves stable cross-lingual transfer (+1.9% in-domain, +1.8% out-of-domain) without base-language degradation, where supervised fine-tuning collapses by up to 21%.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-25">@article{unknown26,
+  title = {DocAtlas: Multilingual Document Understanding Across 80+ Languages},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.12623},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.19932" class="paper-name" target="_blank">
+            27. PEEK: Context Map as an Orientation Cache for Long-Context LLM Agents
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>全文— arXiv: 2605.19932博客文章—为您的代理提供定位缓存
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(26)" id="btn-26">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-26">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.19932" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.19932" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(26)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：PEEK: Context Map as an Orientation Cache for Long-Context LLM Agents</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.19932" target="_blank">https://huggingface.co/papers/2605.19932</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.19932" target="_blank">https://arxiv.org/abs/2605.19932</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>全文— arXiv: 2605.19932博客文章—为您的代理提供定位缓存</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Full Paper — arXiv:2605.19932 Blog Post — Give Your Agent an Orientation Cache</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-26">@article{unknown26,
+  title = {PEEK: Context Map as an Orientation Cache for Long-Context LLM Agents},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.19932},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2605.19587" class="paper-name" target="_blank">
+            28. SceneCode: Executable World Programs for Editable Indoor Scenes with Articulated Objects
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Kevin Qinghong Lin, Zhengyuan Yang, Linjie Li, Yuhao Wang, Puyi Wang</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(27)" id="btn-27">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-27">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.19587" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2605.19587" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(27)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：SceneCode: Executable World Programs for Editable Indoor Scenes with Articulated Objects</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Kevin Qinghong Lin, Zhengyuan Yang, Linjie Li, Yuhao Wang, Puyi Wang</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2605.19587" target="_blank">https://huggingface.co/papers/2605.19587</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.19587" target="_blank">https://arxiv.org/abs/2605.19587</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-27">@article{lin26,
+  title = {SceneCode: Executable World Programs for Editable Indoor Scenes with Articulated Objects},
+  author = {Kevin Qinghong Lin and Zhengyuan Yang and Linjie Li and Yuhao Wang and Puyi Wang},
+  journal = {arXiv preprint},
+  volume = {arXiv:2605.19587},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function toggleDetails(paperId) {
+      const details = document.getElementById('details-' + paperId);
+      const btn = document.getElementById('btn-' + paperId);
+      if (details && btn) {
+        details.classList.toggle('active');
+        btn.textContent = details.classList.contains('active') ? '收起详情' : '查看详情';
+      }
+    }
+
+    function copyBibtex(paperId) {
+      const bibtexBlock = document.getElementById('bibtex-' + paperId);
+      if (bibtexBlock) {
+        navigator.clipboard.writeText(bibtexBlock.textContent).then(() => {
+          const btn = event.target;
+          const originalText = btn.textContent;
+          btn.textContent = '已复制!';
+          setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }).catch(err => {
+          alert('复制失败，请手动复制');
+        });
+      }
+    }
+  </script>
+</body>
+</html>
