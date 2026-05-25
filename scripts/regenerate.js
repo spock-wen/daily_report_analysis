@@ -214,7 +214,28 @@ function loadWeeklyData(weekId) {
     }
   }
 
-  // 3. 如果没有日报数据但有 AI 分析，从 insights 中提取项目信息
+  // 3. 如果没有日报数据，尝试从 data/briefs/weekly 读取项目数据
+  if (!hasData) {
+    const briefsPath = path.join(__dirname, `../data/briefs/weekly/data-weekly-${weekId}.json`);
+    if (fs.existsSync(briefsPath)) {
+      logger.info(`从 briefs 读取项目数据：${briefsPath}`);
+      const briefsData = JSON.parse(fs.readFileSync(briefsPath, 'utf-8'));
+      const projs = briefsData.projects || briefsData.brief?.trending_repos || [];
+      for (const project of projs) {
+        const key = project.fullName || project.name;
+        if (!projectMap.has(key)) {
+          // normalize stars field
+          if (!project.stars && project.totalStars) project.stars = project.totalStars;
+          projectMap.set(key, { ...project });
+          allProjects.push(projectMap.get(key));
+        }
+      }
+      if (allProjects.length > 0) hasData = true;
+      logger.info(`从 briefs 加载 ${allProjects.length} 个项目`);
+    }
+  }
+
+  // 4. 如果还是没有数据但有 AI 分析，从 insights 中提取项目信息
   if (!hasData && aiInsights) {
     logger.info('从 AI 分析中提取项目信息...');
 
@@ -540,17 +561,25 @@ async function resendPush(reportType, reportId) {
 
     logger.info(`推送 URL: ${reportUrl}`);
 
-    const result = await sender.sendFeishu({
+    // 同时发送飞书和 WeLink
+    const results = await sender.sendAll({
       type: reportType,
       title: `GitHub ${reportType === 'daily' ? '日报' : reportType === 'weekly' ? '周报' : reportType === 'monthly' ? '月报' : '论文'}报告`,
       reportUrl: reportUrl
     });
 
-    if (result.success) {
-      logger.success('✅ 推送通知已发送');
+    const feishuOk = results.some(r => r.platform === 'feishu' && r.success);
+    const welinkOk = results.some(r => r.platform === 'welink' && r.success);
+    const hasFeishu = results.some(r => r.platform === 'feishu');
+    const hasWelink = results.some(r => r.platform === 'welink');
+
+    if ((hasFeishu && feishuOk) || (hasWelink && welinkOk)) {
+      const msg = [];
+      if (hasFeishu) msg.push(`飞书${feishuOk ? '✅' : '❌'}`);
+      if (hasWelink) msg.push(`WeLink${welinkOk ? '✅' : '❌'}`);
+      logger.success(`✅ 推送已发送: ${msg.join(', ')}`);
     } else {
-      logger.error(`❌ 推送发送失败：${result.error}`);
-      throw new Error(result.error);
+      throw new Error('所有平台推送失败');
     }
 
   } catch (error) {
