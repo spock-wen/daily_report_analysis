@@ -2,9 +2,9 @@
 
 ## 领域概览
 
-- 项目总数：19
+- 项目总数：17
 - 最近更新：2026-05-25
-- 报告类型：weekly
+- 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
 
@@ -20,15 +20,15 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 6 | [virattt/dexter](../../wiki/projects/virattt_dexter.md) | 2026-05-11 | 1 | 25155 |
 | 7 | [1jehuang/jcode](../../wiki/projects/1jehuang_jcode.md) | 2026-05-11 | 1 | 5546 |
 | 8 | [anthropics/claude-plugins-official](../../wiki/projects/anthropics_claude-plugins-official.md) | 2026-05-24 | 1 | 27213 |
-| 9 | [anthropics/knowledge-work-plugins](../../wiki/projects/anthropics_knowledge-work-plugins.md) | 2026-05-24 | 1 | 13996 |
-| 10 | [colbymchenry/codegraph](../../wiki/projects/colbymchenry_codegraph.md) | 2026-05-25 | 1 | 21943 |
+| 9 | [Lum1104/Understand-Anything](../../wiki/projects/Lum1104_Understand-Anything.md) | 2026-05-25 | 1 | 30897 |
+| 10 | [anthropics/knowledge-work-plugins](../../wiki/projects/anthropics_knowledge-work-plugins.md) | 2026-05-25 | 1 | 15369 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：718,433
-- 最热项目：[obra/superpowers](../../wiki/projects/obra_superpowers.md) (204924 ⭐)
+- 总 Stars 数：910,898
+- 最热项目：[affaan-m/ECC](../../wiki/projects/affaan-m_ECC.md) (192276 ⭐)
 
 
 ---

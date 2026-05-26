@@ -6,7 +6,7 @@
 - 上榜次数：3
 - 领域分类：general
 - 语言：TypeScript
-- GitHub Stars: 38283（最后更新：2026-04-18）
+- GitHub Stars: 39692（最后更新：2026-05-25）
 
 ## 核心功能
 - 跨平台（Web/macOS/Windows）+ 实时语音 + VRM/Live2D + Minecraft/Factorio 游戏联动
@@ -32,7 +32,14 @@
 **来源**: [日报 2026-03-07](../../reports/daily/github-ai-trending-2026-03-07.html)
 **分析**: moeru-ai/airi：首个支持实时语音+Minecraft/Factorio游戏内交互的开源AI VTuber伴侣，融合Neuro-sama风格人格容器与Web/macOS/Windows全端部署 - 立即试用moeru-ai/airi的Web版并贡献Live2D动作插件（TS+WebGL），参与构建AI人格开源标准
 
-## 跨项目关联
+
+### 2026-05-25（日报收录）
+**来源**: [日报 2026-05-25](../../daily/github-ai-trending-2026-05-25.html)
+**分析**: ⭐ 明星项目，在开发者社区具有重要影响力
+🎤 边缘设备语音处理需求增长，轻量化模型受关注
+👥 社区活跃度：高 - 社区活跃，持续有开发者关注和贡献
+
+## 跨项目关联
 
 | 项目 | 关联类型 | 说明 |
 |------|----------|------|
