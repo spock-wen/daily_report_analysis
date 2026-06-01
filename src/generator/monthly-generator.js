@@ -205,12 +205,12 @@ class MonthlyGenerator {
   renderWikiTracking(aggregation) {
     if (!aggregation) return '';
 
-    const projects = aggregation.topGainers || aggregation.recurringProjects || [];
+    const projects = aggregation.recurringProjects || aggregation.topGainers || [];
     const domains = {};
 
     // 按领域分组
     projects.forEach(p => {
-      const domain = p.type || p.domain || 'other';
+      const domain = p.analysis?.type || p.type || p.domain || 'other';
       if (!domains[domain]) {
         domains[domain] = [];
       }
@@ -225,6 +225,8 @@ class MonthlyGenerator {
       vision: '👁️ 视觉处理',
       speech: '🎤 语音音频',
       devtools: '🛠️ 开发工具',
+      devtool: '🛠️ 开发工具',
+      general: '📦 通用工具',
       other: '📦 其他领域'
     };
 
@@ -248,7 +250,7 @@ class MonthlyGenerator {
                       <a href="../wiki/projects/${p.repo.replace('/', '_')}.md" class="wiki-project-link">
                         ${p.repo}
                       </a>
-                      <span class="wiki-appearances">上榜 ${p.appearances || 1} 次</span>
+                      <span class="wiki-appearances">上榜 ${p.count || p.appearanceCount || 1} 次</span>
                     </li>
                   `).join('')}
                 </ul>

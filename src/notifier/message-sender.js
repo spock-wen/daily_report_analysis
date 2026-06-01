@@ -431,7 +431,7 @@ class MessageSender {
 
     // 周报：content 是已生成的简版字符串，直接使用
     // 日报/月报：content 是飞书详细版，需要用 top5/insight 构建简版
-    if (type === 'weekly' && content && typeof content === 'string') {
+    if ((type === 'weekly' || type === 'monthly') && content && typeof content === 'string') {
       const message = {
         messageType: 'text',
         content: {
