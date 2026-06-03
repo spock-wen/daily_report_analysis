@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：1
-- 最近更新：2026-05-06
+- 项目总数：2
+- 最近更新：2026-06-02
 - 报告类型：daily
 
 database 领域收录了与AI 相关技术相关的项目。
@@ -13,12 +13,13 @@ database 领域收录了与AI 相关技术相关的项目。
 | 排名 | 项目 | 首次上榜 | 上榜次数 | Stars |
 |------|------|----------|----------|-------|
 | 1 | [LadybirdBrowser/ladybird](../../wiki/projects/LadybirdBrowser_ladybird.md) | 2026-05-06 | 1 | 62970 |
+| 2 | [reconurge/flowsint](../../wiki/projects/reconurge_flowsint.md) | 2026-06-02 | 1 | 4483 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：62,970
+- 总 Stars 数：67,453
 - 最热项目：[LadybirdBrowser/ladybird](../../wiki/projects/LadybirdBrowser_ladybird.md) (62970 ⭐)
 
 
