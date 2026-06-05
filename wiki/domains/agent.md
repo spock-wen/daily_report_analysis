@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：13
-- 最近更新：2026-06-03
+- 项目总数：14
+- 最近更新：2026-06-04
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -21,13 +21,13 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 7 | [anthropics/claude-plugins-official](../../wiki/projects/anthropics_claude-plugins-official.md) | 2026-05-24 | 1 | 27213 |
 | 8 | [obra/superpowers](../../wiki/projects/obra_superpowers.md) | 2026-05-28 | 1 | 211029 |
 | 9 | [EveryInc/compound-engineering-plugin](../../wiki/projects/EveryInc_compound-engineering-plugin.md) | 2026-06-01 | 1 | 19085 |
-| 10 | [affaan-m/ECC](../../wiki/projects/affaan-m_ECC.md) | 2026-06-03 | 1 | 205669 |
+| 10 | [NousResearch/hermes-agent](../../wiki/projects/NousResearch_hermes-agent.md) | 2026-06-04 | 1 | 180914 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：882,188
+- 总 Stars 数：908,086
 - 最热项目：[obra/superpowers](../../wiki/projects/obra_superpowers.md) (211029 ⭐)
 
 
