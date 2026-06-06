@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：12
-- 最近更新：2026-06-04
+- 项目总数：13
+- 最近更新：2026-06-05
 - 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
@@ -21,14 +21,14 @@ general 领域收录了与AI 相关技术相关的项目。
 | 7 | [docusealco/docuseal](../../wiki/projects/docusealco_docuseal.md) | 2026-05-11 | 1 | 16229 |
 | 8 | [tinyhumansai/openhuman](../../wiki/projects/tinyhumansai_openhuman.md) | 2026-05-25 | 1 | 27146 |
 | 9 | [rohitg00/ai-engineering-from-scratch](../../wiki/projects/rohitg00_ai-engineering-from-scratch.md) | 2026-06-01 | 1 | 25755 |
-| 10 | [lfnovo/open-notebook](../../wiki/projects/lfnovo_open-notebook.md) | 2026-06-04 | 1 | 24969 |
+| 10 | [lfnovo/open-notebook](../../wiki/projects/lfnovo_open-notebook.md) | 2026-06-05 | 1 | 25974 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：502,699
-- 最热项目：[jwasham/coding-interview-university](../../wiki/projects/jwasham_coding-interview-university.md) (349691 ⭐)
+- 总 Stars 数：558,436
+- 最热项目：[jwasham/coding-interview-university](../../wiki/projects/jwasham_coding-interview-university.md) (350370 ⭐)
 
 
 ---
