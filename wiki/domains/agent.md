@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：18
-- 最近更新：2026-06-05
+- 项目总数：15
+- 最近更新：2026-06-06
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -19,16 +19,16 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 5 | [virattt/dexter](../../wiki/projects/virattt_dexter.md) | 2026-05-11 | 1 | 25155 |
 | 6 | [1jehuang/jcode](../../wiki/projects/1jehuang_jcode.md) | 2026-05-11 | 1 | 5546 |
 | 7 | [anthropics/claude-plugins-official](../../wiki/projects/anthropics_claude-plugins-official.md) | 2026-05-24 | 1 | 27213 |
-| 8 | [obra/superpowers](../../wiki/projects/obra_superpowers.md) | 2026-05-28 | 1 | 211029 |
-| 9 | [EveryInc/compound-engineering-plugin](../../wiki/projects/EveryInc_compound-engineering-plugin.md) | 2026-06-01 | 1 | 19085 |
-| 10 | [NousResearch/hermes-agent](../../wiki/projects/NousResearch_hermes-agent.md) | 2026-06-05 | 1 | 183067 |
+| 8 | [EveryInc/compound-engineering-plugin](../../wiki/projects/EveryInc_compound-engineering-plugin.md) | 2026-06-01 | 1 | 19085 |
+| 9 | [NousResearch/hermes-agent](../../wiki/projects/NousResearch_hermes-agent.md) | 2026-06-05 | 1 | 183067 |
+| 10 | [mvanhorn/last30days-skill](../../wiki/projects/mvanhorn_last30days-skill.md) | 2026-06-06 | 1 | 28766 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：1,036,122
-- 最热项目：[obra/superpowers](../../wiki/projects/obra_superpowers.md) (211029 ⭐)
+- 总 Stars 数：814,694
+- 最热项目：[obra/superpowers](../../wiki/projects/obra_superpowers.md) (219634 ⭐)
 
 
 ---
