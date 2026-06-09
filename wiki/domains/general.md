@@ -2,9 +2,9 @@
 
 ## 领域概览
 
-- 项目总数：15
+- 项目总数：11
 - 最近更新：2026-06-08
-- 报告类型：weekly
+- 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
 
@@ -21,14 +21,14 @@ general 领域收录了与AI 相关技术相关的项目。
 | 7 | [docusealco/docuseal](../../wiki/projects/docusealco_docuseal.md) | 2026-05-11 | 1 | 16229 |
 | 8 | [tinyhumansai/openhuman](../../wiki/projects/tinyhumansai_openhuman.md) | 2026-05-25 | 1 | 27146 |
 | 9 | [rohitg00/ai-engineering-from-scratch](../../wiki/projects/rohitg00_ai-engineering-from-scratch.md) | 2026-06-01 | 1 | 25755 |
-| 10 | [MemPalace/mempalace](../../wiki/projects/MemPalace_mempalace.md) | 2026-06-06 | 1 | 54260 |
+| 10 | [MemPalace/mempalace](../../wiki/projects/MemPalace_mempalace.md) | 2026-06-08 | 1 | 54913 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：308,094
-- 最热项目：[MemPalace/mempalace](../../wiki/projects/MemPalace_mempalace.md) (54260 ⭐)
+- 总 Stars 数：220,256
+- 最热项目：[TapXWorld/ChinaTextbook](../../wiki/projects/TapXWorld_ChinaTextbook.md) (72960 ⭐)
 
 
 ---
