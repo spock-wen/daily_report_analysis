@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：17
-- 最近更新：2026-06-11
+- 项目总数：14
+- 最近更新：2026-06-13
 - 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
@@ -27,8 +27,8 @@ general 领域收录了与AI 相关技术相关的项目。
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：369,419
-- 最热项目：[TapXWorld/ChinaTextbook](../../wiki/projects/TapXWorld_ChinaTextbook.md) (73915 ⭐)
+- 总 Stars 数：465,683
+- 最热项目：[microsoft/PowerToys](../../wiki/projects/microsoft_PowerToys.md) (134656 ⭐)
 
 
 ---
