@@ -4,7 +4,7 @@
 
 - 项目总数：17
 - 最近更新：2026-06-15
-- 报告类型：weekly
+- 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
 
@@ -27,7 +27,7 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：732,802
+- 总 Stars 数：631,558
 - 最热项目：[affaan-m/ECC](../../wiki/projects/affaan-m_ECC.md) (209825 ⭐)
 
 
