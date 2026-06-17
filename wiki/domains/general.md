@@ -3,7 +3,7 @@
 ## 领域概览
 
 - 项目总数：18
-- 最近更新：2026-06-15
+- 最近更新：2026-06-16
 - 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
@@ -21,14 +21,14 @@ general 领域收录了与AI 相关技术相关的项目。
 | 7 | [tinyhumansai/openhuman](../../wiki/projects/tinyhumansai_openhuman.md) | 2026-05-25 | 1 | 27146 |
 | 8 | [MemPalace/mempalace](../../wiki/projects/MemPalace_mempalace.md) | 2026-06-08 | 1 | 54913 |
 | 9 | [maziyarpanahi/openmed](../../wiki/projects/maziyarpanahi_openmed.md) | 2026-06-11 | 1 | 2735 |
-| 10 | [iptv-org/iptv](../../wiki/projects/iptv-org_iptv.md) | 2026-06-15 | 1 | 122819 |
+| 10 | [freeCodeCamp/freeCodeCamp](../../wiki/projects/freeCodeCamp_freeCodeCamp.md) | 2026-06-16 | 1 | 448524 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：1,272,421
-- 最热项目：[freeCodeCamp/freeCodeCamp](../../wiki/projects/freeCodeCamp_freeCodeCamp.md) (447859 ⭐)
+- 总 Stars 数：910,891
+- 最热项目：[freeCodeCamp/freeCodeCamp](../../wiki/projects/freeCodeCamp_freeCodeCamp.md) (448524 ⭐)
 
 
 ---
