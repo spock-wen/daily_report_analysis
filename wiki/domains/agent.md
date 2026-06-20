@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：14
-- 最近更新：2026-06-18
+- 项目总数：15
+- 最近更新：2026-06-19
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -27,8 +27,8 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：766,693
-- 最热项目：[obra/superpowers](../../wiki/projects/obra_superpowers.md) (232377 ⭐)
+- 总 Stars 数：753,615
+- 最热项目：[obra/superpowers](../../wiki/projects/obra_superpowers.md) (233315 ⭐)
 
 
 ---
