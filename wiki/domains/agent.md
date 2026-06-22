@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：14
-- 最近更新：2026-06-20
+- 项目总数：15
+- 最近更新：2026-06-21
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -21,13 +21,13 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 7 | [affaan-m/ECC](../../wiki/projects/affaan-m_ECC.md) | 2026-06-08 | 1 | 209825 |
 | 8 | [revfactory/harness](../../wiki/projects/revfactory_harness.md) | 2026-06-08 | 1 | 6410 |
 | 9 | [mvanhorn/last30days-skill](../../wiki/projects/mvanhorn_last30days-skill.md) | 2026-06-15 | 1 | 41985 |
-| 10 | [calesthio/OpenMontage](../../wiki/projects/calesthio_OpenMontage.md) | 2026-06-20 | 1 | 7018 |
+| 10 | [calesthio/OpenMontage](../../wiki/projects/calesthio_OpenMontage.md) | 2026-06-21 | 1 | 8619 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：679,074
+- 总 Stars 数：798,566
 - 最热项目：[affaan-m/ECC](../../wiki/projects/affaan-m_ECC.md) (209825 ⭐)
 
 
