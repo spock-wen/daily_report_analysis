@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：12
-- 最近更新：2026-06-21
+- 项目总数：10
+- 最近更新：2026-06-23
 - 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
@@ -21,14 +21,14 @@ general 领域收录了与AI 相关技术相关的项目。
 | 7 | [tinyhumansai/openhuman](../../wiki/projects/tinyhumansai_openhuman.md) | 2026-05-25 | 1 | 27146 |
 | 8 | [MemPalace/mempalace](../../wiki/projects/MemPalace_mempalace.md) | 2026-06-08 | 1 | 54913 |
 | 9 | [maziyarpanahi/openmed](../../wiki/projects/maziyarpanahi_openmed.md) | 2026-06-11 | 1 | 2735 |
-| 10 | [koala73/worldmonitor](../../wiki/projects/koala73_worldmonitor.md) | 2026-06-21 | 1 | 58043 |
+| 10 | [koala73/worldmonitor](../../wiki/projects/koala73_worldmonitor.md) | 2026-06-23 | 1 | 59052 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：239,667
-- 最热项目：[koala73/worldmonitor](../../wiki/projects/koala73_worldmonitor.md) (58043 ⭐)
+- 总 Stars 数：180,825
+- 最热项目：[koala73/worldmonitor](../../wiki/projects/koala73_worldmonitor.md) (59052 ⭐)
 
 
 ---

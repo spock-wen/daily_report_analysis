@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuggingFace AI Papers 日报 - 2026-06-23</title>
+  <link rel="stylesheet" href="../../public/css/style.css">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-card: #161b22;
+      --text-primary: #c9d1d9;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-orange: #d29922;
+      --border: #30363d;
+      --border-light: #21262d;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.5; padding: 24px 16px; font-size: 13px; }
+    .container { max-width: 960px; margin: 0 auto; }
+    header { text-align: center; padding: 32px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+    h1 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+    .date { color: var(--text-secondary); font-size: 0.8125rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); padding: 12px; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
+    .stat-value { font-size: 1.25rem; font-weight: 600; color: var(--accent-green); line-height: 1.2; }
+    .stat-value .star-icon { color: #fbbf24; width: 20px; height: 20px; vertical-align: middle; display: inline-block; }
+    .stat-label { color: var(--text-secondary); margin-top: 4px; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    section { margin-bottom: 24px; }
+    h2 { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .project-list { display: flex; flex-direction: column; gap: 8px; }
+    .star-icon { width: 16px; height: 16px; vertical-align: middle; }
+    .paper-card { background: var(--bg-card); border-radius: 6px; padding: 12px; margin: 8px 0; border: 1px solid var(--border); transition: border-color 0.2s; }
+    .paper-card:hover { border-color: var(--text-muted); }
+    .paper-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; }
+    .paper-name { font-size: 0.875rem; font-weight: 600; color: var(--accent); text-decoration: none; line-height: 1.4; }
+    .paper-name:hover { text-decoration: underline; }
+    .paper-stats { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+    .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.6875rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 2px 6px; border-radius: 10px; border: 1px solid var(--border); white-space: nowrap; }
+    .stat-badge .star-icon { color: #fbbf24; width: 12px; height: 12px; }
+    .paper-abstract { background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin: 8px 0; border: 1px solid var(--border); }
+    .paper-abstract strong { color: var(--text-primary); }
+    .paper-meta { color: var(--text-secondary); font-size: 0.75rem; margin: 8px 0; }
+    .paper-meta a { color: var(--accent); text-decoration: none; }
+    .paper-meta a:hover { text-decoration: underline; }
+    .toggle-btn { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.6875rem; font-weight: 500; transition: all 0.2s; }
+    .toggle-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+    .paper-details { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .paper-details.active { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .detail-column { background: var(--bg-secondary); padding: 8px; border-radius: 6px; }
+    .detail-column h4 { color: var(--text-primary); margin-bottom: 6px; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
+    .detail-column ul { list-style: none; }
+    .detail-column li { color: var(--text-secondary); padding: 3px 0; font-size: 0.75rem; line-height: 1.4; }
+    .ai-section { background: var(--bg-card); padding: 16px; border-radius: 6px; border: 1px solid var(--border); }
+    .ai-section h2, .ai-section h3 { color: var(--text-primary); margin: 16px 0 8px; font-size: 0.75rem; font-weight: 600; }
+    .ai-section h2:first-child, .ai-section h3:first-child { margin-top: 0; }
+    .ai-section p { color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; font-size: 0.8125rem; }
+    .ai-section ul { margin-bottom: 12px; padding-left: 16px; }
+    .ai-section li { color: var(--text-secondary); margin-bottom: 4px; font-size: 0.8125rem; line-height: 1.5; }
+    .lang-dist { display: flex; flex-wrap: wrap; gap: 10px; }
+    .lang-item { background: var(--accent); color: var(--bg-primary); padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+    .paper-type { background: var(--accent-orange); color: var(--bg-primary); padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; margin-left: 6px; }
+    .quick-actions { display: flex; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .action-btn { background: var(--accent); color: var(--bg-primary); padding: 4px 12px; border-radius: 4px; text-decoration: none; font-size: 0.75rem; font-weight: 500; border: none; cursor: pointer; }
+    .action-btn:hover { opacity: 0.9; }
+    .bibtex-block { background: var(--bg-primary); padding: 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.6875rem; color: var(--text-secondary); white-space: pre-wrap; margin-top: 8px; }
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } .paper-details.active { grid-template-columns: 1fr; } .paper-header { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>HuggingFace AI Papers 日报</h1>
+      <div class="date">2026-06-23</div>
+    </header>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">9</div>
+        <div class="stat-label">论文总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">4</div>
+        <div class="stat-label">有 Stars 论文</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">
+          <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor" style="width: 20px; height: 20px;"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+          <span style="vertical-align: middle;">95</span>
+        </div>
+        <div class="stat-label">总 Stars</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">11</div>
+        <div class="stat-label">平均 Stars</div>
+      </div>
+    </section>
+
+    
+      <section class="ai-section">
+        <h2>AI 深度洞察</h2>
+        <p>多模态扩散、智能体记忆与具身规划引领今日开源前沿</p>
+
+        
+          <h3>技术亮点</h3>
+          <ul>
+            
+              <li>
+                <strong><a href="https://github.com/MSALab-PKU/PerceptionDLM" target="_blank" style="color: var(--accent); text-decoration: none;">MSALab-PKU/PerceptionDLM</a></strong>: 将扩散模型与语言模型深度融合，实现多模态并行区域感知。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/rzhub/GateMem" target="_blank" style="color: var(--accent); text-decoration: none;">rzhub/GateMem</a></strong>: 首个面向多主体共享内存治理的基准测试与评估框架。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/AIGeeksGroup/GeneralVLA-2" target="_blank" style="color: var(--accent); text-decoration: none;">AIGeeksGroup/GeneralVLA-2</a></strong>: 引入几何感知重建与受控记忆机制，增强机器人任务规划鲁棒性。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/huohua325/Memslides" target="_blank" style="color: var(--accent); text-decoration: none;">huohua325/Memslides</a></strong>: 基于分层记忆驱动的Agent框架，支持多轮局部修订的个性化演示生成。
+              </li>
+            
+          </ul>
+        
+
+        
+          <h3>社区价值</h3>
+          <ul>
+            <li>提供多智能体记忆治理与VLA机器人规划的标准化开源基准，大幅降低具身与协作AI研发门槛</li><li>开放多模态扩散感知与分层记忆架构代码，促进生成式AI底层机制的可复现与快速迭代</li>
+          </ul>
+        
+
+        
+          <h3>应用前景</h3>
+          <ul>
+            <li>自动化办公与个性化内容生成领域将实现更智能的多轮交互与精准定制</li><li>具身智能与医疗影像生成技术将加速向工业机器人控制与临床辅助诊断场景落地</li>
+          </ul>
+        
+      </section>
+    
+
+    <section>
+      <h2>论文列表（共 9 篇）</h2>
+      <div class="project-list">
+        
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2606.18829" class="paper-name" target="_blank">
+            1. GateMem: Benchmarking Memory Governance in Multi-Principal Shared-Memory Agents
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              63
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Benshuo Fu, Zijun Zhao, Yimeng Chen, Yibo Yang, Ray368</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>感谢您查看GateMem ！ GateMem是多主体共享内存代理内存治理的基准。GateMem不是仅询问代理是否可以记住信息，而是评估永久内存代理是否可以保持有用，强制执行请求者特定的访问控制，并尊重删除请求。我们发布： 91个长篇多方剧集...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(0)" id="btn-0">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-0">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2606.18829" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2606.18829" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(0)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：GateMem: Benchmarking Memory Governance in Multi-Principal Shared-Memory Agents</li>
+              <li>Stars: 63</li>
+              <li>类型：数据</li>
+              <li>作者：Benshuo Fu, Zijun Zhao, Yimeng Chen, Yibo Yang, Ray368</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2606.18829" target="_blank">https://huggingface.co/papers/2606.18829</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2606.18829" target="_blank">https://arxiv.org/abs/2606.18829</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>感谢您查看GateMem ！ GateMem是多主体共享内存代理内存治理的基准。GateMem不是仅询问代理是否可以记住信息，而是评估永久内存代理是否可以保持有用，强制执行请求者特定的访问控制，并尊重删除请求。我们发布： 91个长篇多方剧集2,218个隐藏评估检查点4个共享内存域：医疗、办公室...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Thanks for checking out GateMem! GateMem is a benchmark for memory governance in multi-principal shared-memory agents. Instead of only asking whether an agent can remember information, GateMem evaluates whether a persistent-memory agent can remain useful, enforce requester-specific access control, and honor deletion requests. We release: 91 long-form multi-party episodes 2,218 hidden evaluation checkpoints 4 shared-memory domains: medical, office, education, and household 7 memory-agent baselines across 6 backbone LLMs official evaluation code a public leaderboard and online submission interface Resources: 📄 Paper: https://arxiv.org/abs/2606.18829 🌐 Project page: https://rzhub.github.io/GateMem/project.html 💻 Code: https://github.com/rzhub/GateMem 🤗 Dataset: https://huggingface.co/datasets/Ray368/GateMem 🏆 Leaderboard: https://rzhub.github.io/GateMem/ 🚀 Submit results: https://huggingface.co/spaces/Ray368/GateMem-Submit We welcome new submissions to the leaderboard and feedback from the community.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-0">@article{fu26,
+  title = {GateMem: Benchmarking Memory Governance in Multi-Principal Shared-Memory Agents},
+  author = {Benshuo Fu and Zijun Zhao and Yimeng Chen and Yibo Yang and Ray368},
+  journal = {arXiv preprint},
+  volume = {arXiv:2606.18829},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2606.19534" class="paper-name" target="_blank">
+            2. PerceptionDLM: Parallel Region Perception with Multimodal Diffusion Language Models
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              24
+            </span>
+            <span class="stat-badge" title="GitHub">MSALab-PKU/PerceptionDLM</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>🚀 PerceptionDLM ：使用多模态扩散语言模型的并行区域感知我们介绍了PerceptionDLM ，这是一种专为高效并行区域感知而构建的多模态扩散VLM。它不是像自回归字幕一样逐个描述图像区域，而是利用dLLM的并行解码特性：给...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(1)" id="btn-1">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-1">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2606.19534" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2606.19534" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/MSALab-PKU/PerceptionDLM" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(1)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：PerceptionDLM: Parallel Region Perception with Multimodal Diffusion Language Models</li>
+              <li>Stars: 24</li>
+              <li>类型：数据</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2606.19534" target="_blank">https://huggingface.co/papers/2606.19534</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2606.19534" target="_blank">https://arxiv.org/abs/2606.19534</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>🚀 PerceptionDLM ：使用多模态扩散语言模型的并行区域感知我们介绍了PerceptionDLM ，这是一种专为高效并行区域感知而构建的多模态扩散VLM。它不是像自回归字幕一样逐个描述图像区域，而是利用dLLM的并行解码特性：给定一个图像和多个区域掩码，它在一个去噪通道中生成所有区域的描述—避免线...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>🚀 PerceptionDLM: Parallel Region Perception with Multimodal Diffusion Language Models We introduce PerceptionDLM, a multimodal diffusion VLM built for efficient parallel region perception. Instead of describing image regions one-by-one like autoregressive captioners, it exploits the parallel decoding nature of dLLMs: given an image and multiple region masks, it generates descriptions for all regions in a single denoising pass — avoiding the linear latency growth of AR region captioners. Highlights: 🏆 Strong open diffusion VLM baseline. PerceptionDLM-Base outperforms LLaDA-V on 15/16 multimodal benchmarks and stays competitive with leading AR VLMs (Qwen2.5-VL, InternVL3) at the same scale. 🧩 Parallel region captioning for a much better accuracy–efficiency trade-off on multi-region dense captioning. 📊 New benchmark — ParaDLC-Bench, jointly evaluating caption quality and inference efficiency. 🔁 Fully open: code, model weights, training data, and the full evaluation suite. 📄 Paper: https://arxiv.org/abs/2606.19534 💻 Code: https://github.com/MSALab-PKU/PerceptionDLM 🤗 Models & Data: https://huggingface.co/collections/MSALab/perceptiondlm-model-zoo Feedback and discussion welcome! 🙌</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-1">@article{unknown26,
+  title = {PerceptionDLM: Parallel Region Perception with Multimodal Diffusion Language Models},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2606.19534},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2606.17162" class="paper-name" target="_blank">
+            3. MemSlides: A Hierarchical Memory Driven Agent Framework for Personalized Slide Generation with Multi-turn Local Revision
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              4
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Yibo Yang, Jun Zhu, Yangyang Xu, huohua325</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>感谢您查看MemSlides ！ MemSlides是一个分层内存驱动的代理框架，用于个性化幻灯片生成和多圈本地修订。链接：项目页面： https://memslides.github.io/代码： https://github.com/h...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(2)" id="btn-2">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-2">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2606.17162" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2606.17162" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(2)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：MemSlides: A Hierarchical Memory Driven Agent Framework for Personalized Slide Generation with Multi-turn Local Revision</li>
+              <li>Stars: 4</li>
+              <li>类型：工具</li>
+              <li>作者：Yibo Yang, Jun Zhu, Yangyang Xu, huohua325</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2606.17162" target="_blank">https://huggingface.co/papers/2606.17162</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2606.17162" target="_blank">https://arxiv.org/abs/2606.17162</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>感谢您查看MemSlides ！ MemSlides是一个分层内存驱动的代理框架，用于个性化幻灯片生成和多圈本地修订。链接：项目页面： https://memslides.github.io/代码： https://github.com/huohua325/Memslides演示网站： https://memslides.com/ arXiv ： https://arxiv.org/abs/2606.17162主要思路是分离持久用户配置文件内存、会话级工作内存和可重用工具内存，因此...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Thanks for checking out MemSlides! MemSlides is a hierarchical memory-driven agent framework for personalized slide generation and multi-turn local revision. Links: Project page: https://memslides.github.io/ Code: https://github.com/huohua325/Memslides Demo Website: https://memslides.com/ arXiv: https://arxiv.org/abs/2606.17162 The main idea is to separate persistent user profile memory, session-level working memory, and reusable tool memory, so the slide generation agent can personalize initial decks and perform reliable localized revisions across turns.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-2">@article{yang26,
+  title = {MemSlides: A Hierarchical Memory Driven Agent Framework for Personalized Slide Generation with Multi-turn Local Revision},
+  author = {Yibo Yang and Jun Zhu and Yangyang Xu and huohua325},
+  journal = {arXiv preprint},
+  volume = {arXiv:2606.17162},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2606.17480" class="paper-name" target="_blank">
+            4. GeneralVLA-2: Geometry-Aware Reconstruction and Governed Memory for Robot Planning
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              4
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>开源
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(3)" id="btn-3">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-3">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2606.17480" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2606.17480" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(3)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：GeneralVLA-2: Geometry-Aware Reconstruction and Governed Memory for Robot Planning</li>
+              <li>Stars: 4</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2606.17480" target="_blank">https://huggingface.co/papers/2606.17480</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2606.17480" target="_blank">https://arxiv.org/abs/2606.17480</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>开源</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>open-sourced</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-3">@article{unknown26,
+  title = {GeneralVLA-2: Geometry-Aware Reconstruction and Governed Memory for Robot Planning},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2606.17480},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2606.19651" class="paper-name" target="_blank">
+            5. BrainG3N: A Dual-Purpose Tokenizer for Controllable 3D Brain MRI Generation
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>BrainG3N ：用于可控3D脑MRI生成BrainG3N的双用途标记器是基于强大的自我监督基础编码器构建的3D脑MRI的可控生成器。冻结的3D MAE编码器（在18个队列、4种模式、200多个站点的35,309卷上进行预训练）产生临床信...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(4)" id="btn-4">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-4">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2606.19651" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2606.19651" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(4)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：BrainG3N: A Dual-Purpose Tokenizer for Controllable 3D Brain MRI Generation</li>
+              <li>Stars: 0</li>
+              <li>类型：数据</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2606.19651" target="_blank">https://huggingface.co/papers/2606.19651</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2606.19651" target="_blank">https://arxiv.org/abs/2606.19651</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>BrainG3N ：用于可控3D脑MRI生成BrainG3N的双用途标记器是基于强大的自我监督基础编码器构建的3D脑MRI的可控生成器。冻结的3D MAE编码器（在18个队列、4种模式、200多个站点的35,309卷上进行预训练）产生临床信息嵌入；条件流匹配的DiT然后直接在该空间中生成新的扫描，并且微调的CNN解码器映射t...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>BrainG3N: A Dual-Purpose Tokenizer for Controllable 3D Brain MRI Generation BrainG3N is a controllable generator for 3D brain MRI built on top of a strong self-supervised foundation encoder. A frozen 3D MAE encoder (pretrained on 35,309 volumes across 18 cohorts, 4 modalities, 200+ sites) produces clinically informative embeddings; a conditional flow-matching DiT then generates new scans directly in that space, and a fine-tuned CNN decoder maps them back to voxels. Because generation happens in a clinically grounded latent space, the synthetic scans actually carry the conditioned attributes: Controllable along disease, age, sex, modality, site, and IDH1 status, plus patient-specific longitudinal forecasting. Real-data clinical probes recover the requested attribute from generated scans (age Pearson r=0.93). The same frozen encoder is a strong foundation model in its own right — beats/matches BrainIAC, BrainSegFounder, and MedicalNet on 21/23 linear-probing tasks (IDH1 AUC 0.937, brain-age MAE 4.43 y), with no fine-tuning. Useful for augmenting under-represented cohorts, counterfactual disease trajectories ("what would this patient look like under disease X"), and privacy-preserving synthetic data sharing. 📄 https://arxiv.org/abs/2606.19651 — model, code, and synthetic dataset coming soon. Feel free to reach out! 🤗</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-4">@article{unknown26,
+  title = {BrainG3N: A Dual-Purpose Tokenizer for Controllable 3D Brain MRI Generation},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2606.19651},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2606.18847" class="paper-name" target="_blank">
+            6. WorldLines: Benchmarking and Modeling Long-Horizon Stateful Embodied Agents
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Tianhao Zhou, Yifan Chang, Haojian Huang, Jianchong Su, Yehang Zhang</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>为了在真实家庭中长时间帮助人类，具体的代理必须记住用户例程、世界状态和过去的互动。现有的长期记忆基准主要评估以语言为中心的检索和问答，而具体化的基准通常侧重于短期任务执行，而无需测试动态环境中的长期记忆使用情况。我们推出了WorldLine...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(5)" id="btn-5">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-5">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2606.18847" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2606.18847" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(5)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：WorldLines: Benchmarking and Modeling Long-Horizon Stateful Embodied Agents</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              <li>作者：Tianhao Zhou, Yifan Chang, Haojian Huang, Jianchong Su, Yehang Zhang</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2606.18847" target="_blank">https://huggingface.co/papers/2606.18847</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2606.18847" target="_blank">https://arxiv.org/abs/2606.18847</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>为了在真实家庭中长时间帮助人类，具体的代理必须记住用户例程、世界状态和过去的互动。现有的长期记忆基准主要评估以语言为中心的检索和问答，而具体化的基准通常侧重于短期任务执行，而无需测试动态环境中的长期记忆使用情况。我们推出了WorldLines ，这是一个项目驱动的基准，用于长期体现...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>To assist humans over extended periods in real homes, embodied agents must remember user routines, world states, and past interactions. Existing long-term memory benchmarks mainly evaluate language-centric retrieval and question answering, while embodied benchmarks often focus on short-horizon task execution without testing long-term memory use in dynamic environments. We introduce WorldLines, a project-driven benchmark for long-horizon embodied household assistance. It constructs temporally extended household traces with dialogues, actions, execution feedback, object and device state changes, and converts them into evidence-linked samples for Memory QA and Embodied Task Planning. We further propose ObsMem, an observer-grounded memory framework that maintains visibility-aware memories and action-native state trails for state-aware decisions. Experiments reveal persistent challenges in partial observability, overwritten world states, and translating long-term memory into embodied plans, while ObsMem offers a stronger reference architecture for this setting.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-5">@article{zhou26,
+  title = {WorldLines: Benchmarking and Modeling Long-Horizon Stateful Embodied Agents},
+  author = {Tianhao Zhou and Yifan Chang and Haojian Huang and Jianchong Su and Yehang Zhang},
+  journal = {arXiv preprint},
+  volume = {arXiv:2606.18847},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2606.15641" class="paper-name" target="_blank">
+            7. Distilling Examples into Task Instructions: Enhanced In-Context Learning for Real-World B2B Conversations
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">gong-io/call-playbook</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Omri Allouche, Danit Berger Zalmanson, Adi Kopilov, Guy Rotman</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>上下文学习（ ICL ）是低资源分类的标准方法，但其在专业领域的功效在很大程度上仍未得到探索。我们解决了对语义复杂、多方B2B对话进行分类的挑战，在这些对话中，传统的ICL遇到了显著的局限性，特别是当由于多个几拍示例的串联而导致上下文长度增...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(6)" id="btn-6">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-6">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2606.15641" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2606.15641" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/gong-io/call-playbook" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(6)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Distilling Examples into Task Instructions: Enhanced In-Context Learning for Real-World B2B Conversations</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              <li>作者：Omri Allouche, Danit Berger Zalmanson, Adi Kopilov, Guy Rotman</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2606.15641" target="_blank">https://huggingface.co/papers/2606.15641</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2606.15641" target="_blank">https://arxiv.org/abs/2606.15641</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>上下文学习（ ICL ）是低资源分类的标准方法，但其在专业领域的功效在很大程度上仍未得到探索。我们解决了对语义复杂、多方B2B对话进行分类的挑战，在这些对话中，传统的ICL遇到了显著的局限性，特别是当由于多个几拍示例的串联而导致上下文长度增加时。我们介绍了Call Playbook数据集，其中包括五个...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>In-context learning (ICL) is the standard method for low-resource classification, yet its efficacy in specialized domains remains largely unexplored. We address the challenge of classifying semantically complex, multi-party B2B conversations, where traditional ICL encounters significant limitations, especially as context length increases due to the concatenation of multiple few-shot examples. We introduce the Call Playbook dataset, featuring five classification tasks derived from real-world B2B conversations targeting core sales concepts. To bridge the gap between performance and practical utility, we propose novel knowledge extraction methods that distill verbose examples into compact, interpretable representations of structured classification criteria and precise task descriptions. Our approach achieves a 99% reduction in token usage and improves macro-averaged AUC by up to 7% over traditional ICL. Notably, it remains robust as context grows, unlike advanced token compression baselines which degrade by over 9 F1 points. Importantly, our framework enables direct refinement of classification logic, addressing critical needs for transparency, efficiency, and user interaction in real-world NLP applications.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-6">@article{allouche26,
+  title = {Distilling Examples into Task Instructions: Enhanced In-Context Learning for Real-World B2B Conversations},
+  author = {Omri Allouche and Danit Berger Zalmanson and Adi Kopilov and Guy Rotman},
+  journal = {arXiv preprint},
+  volume = {arXiv:2606.15641},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2606.16700" class="paper-name" target="_blank">
+            8. Multi-Turn Reflective Masking Elicits Reasoning in Mask Diffusion Models
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>掩模扩散模型（ LLaDa、DiffusionGemma等）的原生推理形式是什么？对于自回归语言模型，推理在很大程度上被构建为延续：生成思维链，对其进行反思，并追加更多令牌。但是掩模扩散模型不是从左到右的。它们生成和细化具有双向上下文的完整...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(7)" id="btn-7">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-7">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2606.16700" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2606.16700" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(7)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Multi-Turn Reflective Masking Elicits Reasoning in Mask Diffusion Models</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2606.16700" target="_blank">https://huggingface.co/papers/2606.16700</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2606.16700" target="_blank">https://arxiv.org/abs/2606.16700</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>掩模扩散模型（ LLaDa、DiffusionGemma等）的原生推理形式是什么？对于自回归语言模型，推理在很大程度上被构建为延续：生成思维链，对其进行反思，并追加更多令牌。但是掩模扩散模型不是从左到右的。它们生成和细化具有双向上下文的完整画布。所以也许他们的自然推理机制不应该是延续，而是修正……</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>What is the native form of reasoning for Mask Diffusion Models (LLaDa, DiffusionGemma, etc.)? For autoregressive language models, reasoning has largely been framed as continuation: generate a chain of thought, reflect on it, and append more tokens. But Mask Diffusion Models are not left-to-right. They generate and refine a full canvas with bidirectional context. So perhaps their natural reasoning mechanism should not be continuation, but revision. In our recent work, we introduce Reflective Masking, a lightweight post-training method that elicits multi-turn self-revision in existing Mask Diffusion Models. The core idea is simple: Instead of committing to every generated token, the model learns a token-level revision policy: ✅ Keep reliable tokens 🟨 Re-mask uncertain or wrong tokens ✨ Reveal better replacements This turns generation into an iterative process of sparse, local self-correction. A key challenge in this setting is that revision can loop: a model may re-mask an incorrect token and later generate the same mistake again. To address this, we introduce History Reference, a parameter-free memory mechanism that exposes previous denoising states to the model. This helps the model remember what it has already tried and avoid repeated errors. We find this direction exciting because it suggests a different view of reasoning for diffusion language models: Autoregressive reflection thinks by continuing. Reflective Masking thinks by revising. Recent systems such as DiffusionGemma and Gemini Diffusion highlight the growing promise of diffusion-based text generation, including bidirectional context and iterative refinement. Our work studies a complementary question: how can existing MDMs be post-trained to explicitly perform sparse, multi-turn reasoning through self-revision? We evaluate Reflective Masking across several settings: 🧩 Sudoku revision 🧠 mathematical reasoning 💻 code generation 🎨 image editing Across these tasks, Reflective Masking improves performance by allowing the model to selectively revisit previous outputs rather than regenerate from scratch or commit too early. The broader takeaway is that diffusion language models may not simply be faster parallel generators. They may enable a different reasoning paradigm: reasoning as iterative state refinement.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-7">@article{unknown26,
+  title = {Multi-Turn Reflective Masking Elicits Reasoning in Mask Diffusion Models},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2606.16700},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2606.15659" class="paper-name" target="_blank">
+            9. SpatialAvatar-0: High-Quality 4D Head Avatar with Multi-Stage Reconstruction
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Yang Zhao, Ziming Wang, Yuanming Li, Zeyu Zhang, Yiran Wang</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>https://spatialwalk.github.io/SpatialAvatar-0/
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(8)" id="btn-8">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-8">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2606.15659" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2606.15659" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(8)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：SpatialAvatar-0: High-Quality 4D Head Avatar with Multi-Stage Reconstruction</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Yang Zhao, Ziming Wang, Yuanming Li, Zeyu Zhang, Yiran Wang</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2606.15659" target="_blank">https://huggingface.co/papers/2606.15659</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2606.15659" target="_blank">https://arxiv.org/abs/2606.15659</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>https://spatialwalk.github.io/SpatialAvatar-0/</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>https://spatialwalk.github.io/SpatialAvatar-0/</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-8">@article{zhao26,
+  title = {SpatialAvatar-0: High-Quality 4D Head Avatar with Multi-Stage Reconstruction},
+  author = {Yang Zhao and Ziming Wang and Yuanming Li and Zeyu Zhang and Yiran Wang},
+  journal = {arXiv preprint},
+  volume = {arXiv:2606.15659},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function toggleDetails(paperId) {
+      const details = document.getElementById('details-' + paperId);
+      const btn = document.getElementById('btn-' + paperId);
+      if (details && btn) {
+        details.classList.toggle('active');
+        btn.textContent = details.classList.contains('active') ? '收起详情' : '查看详情';
+      }
+    }
+
+    function copyBibtex(paperId) {
+      const bibtexBlock = document.getElementById('bibtex-' + paperId);
+      if (bibtexBlock) {
+        navigator.clipboard.writeText(bibtexBlock.textContent).then(() => {
+          const btn = event.target;
+          const originalText = btn.textContent;
+          btn.textContent = '已复制!';
+          setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }).catch(err => {
+          alert('复制失败，请手动复制');
+        });
+      }
+    }
+  </script>
+</body>
+</html>
