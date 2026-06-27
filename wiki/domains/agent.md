@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：17
-- 最近更新：2026-06-25
+- 项目总数：16
+- 最近更新：2026-06-26
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -19,16 +19,16 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 5 | [virattt/dexter](../../wiki/projects/virattt_dexter.md) | 2026-05-11 | 1 | 25155 |
 | 6 | [mvanhorn/last30days-skill](../../wiki/projects/mvanhorn_last30days-skill.md) | 2026-06-15 | 1 | 41985 |
 | 7 | [bytedance/deer-flow](../../wiki/projects/bytedance_deer-flow.md) | 2026-06-23 | 1 | 73876 |
-| 8 | [google-labs-code/design.md](../../wiki/projects/google-labs-code_design.md.md) | 2026-06-25 | 1 | 19099 |
-| 9 | [calesthio/OpenMontage](../../wiki/projects/calesthio_OpenMontage.md) | 2026-06-25 | 1 | 22000 |
-| 10 | [xbtlin/ai-berkshire](../../wiki/projects/xbtlin_ai-berkshire.md) | 2026-06-25 | 1 | 1812 |
+| 8 | [google-labs-code/design.md](../../wiki/projects/google-labs-code_design.md.md) | 2026-06-26 | 1 | 21192 |
+| 9 | [commaai/openpilot](../../wiki/projects/commaai_openpilot.md) | 2026-06-26 | 1 | 61770 |
+| 10 | [opendatalab/MinerU](../../wiki/projects/opendatalab_MinerU.md) | 2026-06-26 | 1 | 70389 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：678,679
-- 最热项目：[garrytan/gstack](../../wiki/projects/garrytan_gstack.md) (115767 ⭐)
+- 总 Stars 数：689,100
+- 最热项目：[garrytan/gstack](../../wiki/projects/garrytan_gstack.md) (116607 ⭐)
 
 
 ---
