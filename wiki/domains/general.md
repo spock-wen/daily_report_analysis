@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：15
-- 最近更新：2026-06-29
+- 项目总数：14
+- 最近更新：2026-06-30
 - 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
@@ -27,8 +27,8 @@ general 领域收录了与AI 相关技术相关的项目。
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：321,766
-- 最热项目：[ripienaar/free-for-dev](../../wiki/projects/ripienaar_free-for-dev.md) (126691 ⭐)
+- 总 Stars 数：310,042
+- 最热项目：[ripienaar/free-for-dev](../../wiki/projects/ripienaar_free-for-dev.md) (127297 ⭐)
 
 
 ---
