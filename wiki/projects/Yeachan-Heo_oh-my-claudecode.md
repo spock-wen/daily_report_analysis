@@ -4,7 +4,7 @@
 - 首次上榜：2026-03-27
 - 最近上榜：2026-03-27
 - 上榜次数：1
-- 领域分类：agent, orchestration, multi-agent
+- 领域分类：other
 - 语言：TypeScript
 - GitHub Stars: 29675（最后更新：2026-04-18）
 

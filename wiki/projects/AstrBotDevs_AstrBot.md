@@ -4,7 +4,7 @@
 - 首次上榜：2026-03-13
 - 最近上榜：2026-03-13
 - 上榜次数：1
-- 领域分类：agent, chatbot, ai, multi-platform
+- 领域分类：other
 - 语言：Python
 - GitHub Stars: 30166（最后更新：2026-04-18）
 

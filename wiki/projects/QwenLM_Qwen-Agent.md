@@ -4,7 +4,7 @@
 - 首次上榜：2026-03-07
 - 最近上榜：2026-03-08
 - 上榜次数：2
-- 领域分类：ai-agent, framework, llm-applications
+- 领域分类：other
 - 语言：Python
 - GitHub Stars: 12400+（最后更新：2026-04-20）
 

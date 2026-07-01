@@ -4,7 +4,7 @@
 - 首次上榜：2026-03-18
 - 最近上榜：2026-03-20
 - 上榜次数：3
-- 领域分类：ai-agent, coding-agent, dev-tools
+- 领域分类：other
 - 语言：TypeScript
 - GitHub Stars: 9600+（最后更新：2026-04-20）
 

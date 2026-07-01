@@ -4,7 +4,7 @@
 - 首次上榜：2026-04-18
 - 最近上榜：2026-04-18
 - 上榜次数：1
-- 领域分类：android, reverse-engineering, security, data
+- 领域分类：other
 - 语言：Shell
 - GitHub Stars: 5148（最后更新：2026-04-27）
 

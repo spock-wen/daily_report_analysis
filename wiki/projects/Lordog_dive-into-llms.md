@@ -4,7 +4,7 @@
 - 首次上榜：2026-04-18
 - 最近上榜：2026-04-18
 - 上榜次数：1
-- 领域分类：llm, education, tutorial, ai
+- 领域分类：other
 - 语言：Python
 - GitHub Stars: 37270（最后更新：2026-05-11）
 

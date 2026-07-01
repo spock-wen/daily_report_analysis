@@ -4,7 +4,7 @@
 - 首次上榜：2026-04-18
 - 最近上榜：2026-04-18
 - 上榜次数：1
-- 领域分类：ai-agent, dev-tools
+- 领域分类：other
 - 语言：Markdown, Shell, JSON
 - GitHub Stars: 59457（最后更新：2026-06-15）
 

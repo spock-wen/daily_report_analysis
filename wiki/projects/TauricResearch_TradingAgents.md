@@ -4,7 +4,7 @@
 - 首次上榜：2026-03-20
 - 最近上榜：2026-03-25
 - 上榜次数：3
-- 领域分类：finance, agent, trading, ai
+- 领域分类：other
 - 语言：Python
 - GitHub Stars: 81734（最后更新：2026-06-01）
 

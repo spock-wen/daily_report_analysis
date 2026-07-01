@@ -4,7 +4,7 @@
 - 首次上榜：2026-03-12
 - 最近上榜：2026-03-15
 - 上榜次数：3
-- 领域分类：plugins, ai-tools, dev-tools
+- 领域分类：other
 - 语言：Python
 - GitHub Stars: 30821（最后更新：2026-06-23）
 

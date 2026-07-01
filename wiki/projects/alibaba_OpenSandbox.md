@@ -4,7 +4,7 @@
 - 首次上榜：2026-03-05
 - 最近上榜：2026-03-05
 - 上榜次数：1
-- 领域分类：sandbox, containerization, ai-infrastructure
+- 领域分类：other
 - 语言：Python, TypeScript, JavaScript
 - GitHub Stars: 10000+（最后更新：2026-04-20）
 

@@ -4,7 +4,7 @@
 - 首次上榜：2026-03-14
 - 最近上榜：2026-03-16
 - 上榜次数：3
-- 领域分类：agent, ai, context-database, rag
+- 领域分类：other
 - 语言：Python
 - GitHub Stars: 22486（最后更新：2026-04-18）
 
