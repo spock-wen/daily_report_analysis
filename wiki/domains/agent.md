@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：18
-- 最近更新：2026-06-30
+- 项目总数：16
+- 最近更新：2026-07-01
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -20,15 +20,15 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 6 | [mvanhorn/last30days-skill](../../wiki/projects/mvanhorn_last30days-skill.md) | 2026-06-15 | 1 | 41985 |
 | 7 | [calesthio/OpenMontage](../../wiki/projects/calesthio_OpenMontage.md) | 2026-06-29 | 1 | 26895 |
 | 8 | [commaai/openpilot](../../wiki/projects/commaai_openpilot.md) | 2026-06-29 | 1 | 62753 |
-| 9 | [msitarzewski/agency-agents](../../wiki/projects/msitarzewski_agency-agents.md) | 2026-06-30 | 1 | 120805 |
-| 10 | [diegosouzapw/OmniRoute](../../wiki/projects/diegosouzapw_OmniRoute.md) | 2026-06-30 | 1 | 8448 |
+| 9 | [msitarzewski/agency-agents](../../wiki/projects/msitarzewski_agency-agents.md) | 2026-07-01 | 1 | 123281 |
+| 10 | [HKUDS/Vibe-Trading](../../wiki/projects/HKUDS_Vibe-Trading.md) | 2026-07-01 | 1 | 16491 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：774,495
-- 最热项目：[obra/superpowers](../../wiki/projects/obra_superpowers.md) (242459 ⭐)
+- 总 Stars 数：526,203
+- 最热项目：[msitarzewski/agency-agents](../../wiki/projects/msitarzewski_agency-agents.md) (123281 ⭐)
 
 
 ---
