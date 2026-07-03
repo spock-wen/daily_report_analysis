@@ -85,8 +85,22 @@ async function callLLM(prompt, options = {}) {
       }
     }
 
+    // 构建 dispatcher：跳过自签名证书验证（undici 不受 NODE_TLS_REJECT_UNAUTHORIZED 控制）
+    let dispatcher = null;
+    const urlObj = new URL(url.toString());
+    if (urlObj.protocol === 'https:') {
+      try {
+        const { Agent } = await import('undici');
+        dispatcher = new Agent({
+          connect: { rejectUnauthorized: false }
+        });
+      } catch (e) {
+        // undici Agent 不可用，回退到默认行为
+      }
+    }
+
     logger.info('开始流式请求 LLM...');
-    const response = await fetchFn(url.toString(), {
+    const fetchOptions = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -94,7 +108,11 @@ async function callLLM(prompt, options = {}) {
       },
       body: JSON.stringify(requestBody),
       signal: controller.signal
-    });
+    };
+    if (dispatcher) {
+      fetchOptions.dispatcher = dispatcher;
+    }
+    const response = await fetchFn(url.toString(), fetchOptions);
 
     clearTimeout(timeoutId);
 
