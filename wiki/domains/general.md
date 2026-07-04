@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：14
-- 最近更新：2026-07-02
+- 项目总数：15
+- 最近更新：2026-07-03
 - 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
@@ -27,8 +27,8 @@ general 领域收录了与AI 相关技术相关的项目。
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：355,317
-- 最热项目：[pytorch/pytorch](../../wiki/projects/pytorch_pytorch.md) (101221 ⭐)
+- 总 Stars 数：276,677
+- 最热项目：[pytorch/pytorch](../../wiki/projects/pytorch_pytorch.md) (101424 ⭐)
 
 
 ---
