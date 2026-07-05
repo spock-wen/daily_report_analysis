@@ -3,7 +3,7 @@
 ## 领域概览
 
 - 项目总数：20
-- 最近更新：2026-07-03
+- 最近更新：2026-07-04
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -20,15 +20,15 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 6 | [mvanhorn/last30days-skill](../../wiki/projects/mvanhorn_last30days-skill.md) | 2026-06-15 | 1 | 41985 |
 | 7 | [calesthio/OpenMontage](../../wiki/projects/calesthio_OpenMontage.md) | 2026-06-29 | 1 | 26895 |
 | 8 | [commaai/openpilot](../../wiki/projects/commaai_openpilot.md) | 2026-06-29 | 1 | 62753 |
-| 9 | [openai/codex-plugin-cc](../../wiki/projects/openai_codex-plugin-cc.md) | 2026-07-03 | 1 | 23187 |
-| 10 | [JuliusBrussee/caveman](../../wiki/projects/JuliusBrussee_caveman.md) | 2026-07-03 | 1 | 82904 |
+| 9 | [openai/codex-plugin-cc](../../wiki/projects/openai_codex-plugin-cc.md) | 2026-07-04 | 1 | 24361 |
+| 10 | [JuliusBrussee/caveman](../../wiki/projects/JuliusBrussee_caveman.md) | 2026-07-04 | 1 | 83931 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：1,193,416
-- 最热项目：[obra/superpowers](../../wiki/projects/obra_superpowers.md) (245507 ⭐)
+- 总 Stars 数：810,305
+- 最热项目：[mattpocock/skills](../../wiki/projects/mattpocock_skills.md) (156529 ⭐)
 
 
 ---
