@@ -3,8 +3,8 @@
 ## 领域概览
 
 - 项目总数：20
-- 最近更新：2026-07-04
-- 报告类型：daily
+- 最近更新：2026-07-06
+- 报告类型：weekly
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
 
@@ -18,17 +18,17 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 4 | [ruvnet/ruflo](../../wiki/projects/ruvnet_ruflo.md) | 2026-05-11 | 1 | 48465 |
 | 5 | [virattt/dexter](../../wiki/projects/virattt_dexter.md) | 2026-05-11 | 1 | 25155 |
 | 6 | [mvanhorn/last30days-skill](../../wiki/projects/mvanhorn_last30days-skill.md) | 2026-06-15 | 1 | 41985 |
-| 7 | [calesthio/OpenMontage](../../wiki/projects/calesthio_OpenMontage.md) | 2026-06-29 | 1 | 26895 |
-| 8 | [commaai/openpilot](../../wiki/projects/commaai_openpilot.md) | 2026-06-29 | 1 | 62753 |
-| 9 | [openai/codex-plugin-cc](../../wiki/projects/openai_codex-plugin-cc.md) | 2026-07-04 | 1 | 24361 |
-| 10 | [JuliusBrussee/caveman](../../wiki/projects/JuliusBrussee_caveman.md) | 2026-07-04 | 1 | 83931 |
+| 7 | [commaai/openpilot](../../wiki/projects/commaai_openpilot.md) | 2026-06-29 | 1 | 62753 |
+| 8 | [xbtlin/ai-berkshire](../../wiki/projects/xbtlin_ai-berkshire.md) | 2026-07-06 | 1 | 10289 |
+| 9 | [diegosouzapw/OmniRoute](../../wiki/projects/diegosouzapw_OmniRoute.md) | 2026-07-06 | 1 | 11846 |
+| 10 | [Robbyant/lingbot-map](../../wiki/projects/Robbyant_lingbot-map.md) | 2026-07-06 | 1 | 9888 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：810,305
-- 最热项目：[mattpocock/skills](../../wiki/projects/mattpocock_skills.md) (156529 ⭐)
+- 总 Stars 数：668,108
+- 最热项目：[msitarzewski/agency-agents](../../wiki/projects/msitarzewski_agency-agents.md) (127500 ⭐)
 
 
 ---

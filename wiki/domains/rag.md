@@ -3,8 +3,8 @@
 ## 领域概览
 
 - 项目总数：11
-- 最近更新：2026-07-03
-- 报告类型：daily
+- 最近更新：2026-07-06
+- 报告类型：weekly
 
 rag 领域收录了与RAG、检索增强生成、知识库、向量检索相关的项目。
 
@@ -27,7 +27,7 @@ rag 领域收录了与RAG、检索增强生成、知识库、向量检索相关�
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：507,365
+- 总 Stars 数：456,746
 - 最热项目：[trimstray/the-book-of-secret-knowledge](../../wiki/projects/trimstray_the-book-of-secret-knowledge.md) (223817 ⭐)
 
 
