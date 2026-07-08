@@ -3,7 +3,7 @@
 ## 领域概览
 
 - 项目总数：11
-- 最近更新：2026-07-06
+- 最近更新：2026-07-07
 - 报告类型：daily
 
 devtool 领域收录了与开发工具、IDE 插件、代码辅助相关的项目。
@@ -27,8 +27,8 @@ devtool 领域收录了与开发工具、IDE 插件、代码辅助相关的项�
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：242,966
-- 最热项目：[ruvnet/RuView](../../wiki/projects/ruvnet_RuView.md) (77486 ⭐)
+- 总 Stars 数：243,950
+- 最热项目：[ruvnet/RuView](../../wiki/projects/ruvnet_RuView.md) (78470 ⭐)
 
 
 ---

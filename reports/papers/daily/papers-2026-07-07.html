@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuggingFace AI Papers 日报 - 2026-07-07</title>
+  <link rel="stylesheet" href="../../public/css/style.css">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-card: #161b22;
+      --text-primary: #c9d1d9;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-orange: #d29922;
+      --border: #30363d;
+      --border-light: #21262d;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.5; padding: 24px 16px; font-size: 13px; }
+    .container { max-width: 960px; margin: 0 auto; }
+    header { text-align: center; padding: 32px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+    h1 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+    .date { color: var(--text-secondary); font-size: 0.8125rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); padding: 12px; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
+    .stat-value { font-size: 1.25rem; font-weight: 600; color: var(--accent-green); line-height: 1.2; }
+    .stat-value .star-icon { color: #fbbf24; width: 20px; height: 20px; vertical-align: middle; display: inline-block; }
+    .stat-label { color: var(--text-secondary); margin-top: 4px; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    section { margin-bottom: 24px; }
+    h2 { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .project-list { display: flex; flex-direction: column; gap: 8px; }
+    .star-icon { width: 16px; height: 16px; vertical-align: middle; }
+    .paper-card { background: var(--bg-card); border-radius: 6px; padding: 12px; margin: 8px 0; border: 1px solid var(--border); transition: border-color 0.2s; }
+    .paper-card:hover { border-color: var(--text-muted); }
+    .paper-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; }
+    .paper-name { font-size: 0.875rem; font-weight: 600; color: var(--accent); text-decoration: none; line-height: 1.4; }
+    .paper-name:hover { text-decoration: underline; }
+    .paper-stats { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+    .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.6875rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 2px 6px; border-radius: 10px; border: 1px solid var(--border); white-space: nowrap; }
+    .stat-badge .star-icon { color: #fbbf24; width: 12px; height: 12px; }
+    .paper-abstract { background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin: 8px 0; border: 1px solid var(--border); }
+    .paper-abstract strong { color: var(--text-primary); }
+    .paper-meta { color: var(--text-secondary); font-size: 0.75rem; margin: 8px 0; }
+    .paper-meta a { color: var(--accent); text-decoration: none; }
+    .paper-meta a:hover { text-decoration: underline; }
+    .toggle-btn { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.6875rem; font-weight: 500; transition: all 0.2s; }
+    .toggle-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+    .paper-details { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .paper-details.active { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .detail-column { background: var(--bg-secondary); padding: 8px; border-radius: 6px; }
+    .detail-column h4 { color: var(--text-primary); margin-bottom: 6px; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
+    .detail-column ul { list-style: none; }
+    .detail-column li { color: var(--text-secondary); padding: 3px 0; font-size: 0.75rem; line-height: 1.4; }
+    .ai-section { background: var(--bg-card); padding: 16px; border-radius: 6px; border: 1px solid var(--border); }
+    .ai-section h2, .ai-section h3 { color: var(--text-primary); margin: 16px 0 8px; font-size: 0.75rem; font-weight: 600; }
+    .ai-section h2:first-child, .ai-section h3:first-child { margin-top: 0; }
+    .ai-section p { color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; font-size: 0.8125rem; }
+    .ai-section ul { margin-bottom: 12px; padding-left: 16px; }
+    .ai-section li { color: var(--text-secondary); margin-bottom: 4px; font-size: 0.8125rem; line-height: 1.5; }
+    .lang-dist { display: flex; flex-wrap: wrap; gap: 10px; }
+    .lang-item { background: var(--accent); color: var(--bg-primary); padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+    .paper-type { background: var(--accent-orange); color: var(--bg-primary); padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; margin-left: 6px; }
+    .quick-actions { display: flex; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .action-btn { background: var(--accent); color: var(--bg-primary); padding: 4px 12px; border-radius: 4px; text-decoration: none; font-size: 0.75rem; font-weight: 500; border: none; cursor: pointer; }
+    .action-btn:hover { opacity: 0.9; }
+    .bibtex-block { background: var(--bg-primary); padding: 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.6875rem; color: var(--text-secondary); white-space: pre-wrap; margin-top: 8px; }
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } .paper-details.active { grid-template-columns: 1fr; } .paper-header { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>HuggingFace AI Papers 日报</h1>
+      <div class="date">2026-07-07</div>
+    </header>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">9</div>
+        <div class="stat-label">论文总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">2</div>
+        <div class="stat-label">有 Stars 论文</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">
+          <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor" style="width: 20px; height: 20px;"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+          <span style="vertical-align: middle;">35</span>
+        </div>
+        <div class="stat-label">总 Stars</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">4</div>
+        <div class="stat-label">平均 Stars</div>
+      </div>
+    </section>
+
+    
+      <section class="ai-section">
+        <h2>AI 深度洞察</h2>
+        <p>具身智能与推理优化并进，开源生态加速模型落地</p>
+
+        
+          <h3>技术亮点</h3>
+          <ul>
+            
+              <li>
+                <strong><a href="https://github.com/ZJU-OmniAI/vla-corrector" target="_blank" style="color: var(--accent); text-decoration: none;">ZJU-OmniAI/vla-corrector</a></strong>: 提出轻量级检测-纠正框架，实现视觉语言动作模型的自适应动作时域推理，无需重新训练即可动态调整执行步长
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/SEU-PAISys/Embodied.cpp" target="_blank" style="color: var(--accent); text-decoration: none;">SEU-PAISys/Embodied.cpp</a></strong>: 构建跨异构机器人平台的可移植推理运行时，统一具身AI模型的部署接口
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/mlfoundations/dcvlm" target="_blank" style="color: var(--accent); text-decoration: none;">mlfoundations/dcvlm</a></strong>: 通过系统性数据筛选与组合优化，构建高质量开放视觉语言数据集，挑战闭源数据垄断
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/huggingface" target="_blank" style="color: var(--accent); text-decoration: none;">huggingface</a></strong>: 揭示LLM强化学习中训练策略优化的幻象，证明单调推理策略才是真正目标
+              </li>
+            
+          </ul>
+        
+
+        
+          <h3>社区价值</h3>
+          <ul>
+            <li>Embodied.cpp提供统一C++推理运行时，极大降低具身AI在异构硬件上的部署成本</li><li>DataComp-VLM开源高质量数据集构建方案，推动视觉语言模型的开放研究生态</li><li>VLA-Corrector轻量级框架无需重训练即可优化现有模型，即插即用价值高</li>
+          </ul>
+        
+
+        
+          <h3>应用前景</h3>
+          <ul>
+            <li>具身智能领域：轻量级推理框架与自适应控制策略将加速服务机器人、无人机等实际部署</li><li>模型优化方向：量化技术与训练策略简化将降低大模型推理成本，推动边缘设备应用</li><li>安全与可信AI：AI Agent多层红队测试框架为智能体安全评估提供标准化方案</li>
+          </ul>
+        
+      </section>
+    
+
+    <section>
+      <h2>论文列表（共 9 篇）</h2>
+      <div class="project-list">
+        
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.01804" class="paper-name" target="_blank">
+            1. VLA-Corrector: Lightweight Detect-and-Correct Inference for Adaptive Action Horizon
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              18
+            </span>
+            <span class="stat-badge" title="GitHub">ZJU-OmniAI/vla-corrector</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>我们引入了VLA-Corrector ，这是一种轻量级的检测和校正推理框架，适用于动作分块的视觉-语言-动作策略。现代VLA策略通常预测并执行动作块，以减少策略调用频率并提高时间平滑度。但是，这种固定水平执行会产生一个开环盲点：当对象滑动、...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(0)" id="btn-0">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-0">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.01804" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.01804" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/ZJU-OmniAI/vla-corrector" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(0)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：VLA-Corrector: Lightweight Detect-and-Correct Inference for Adaptive Action Horizon</li>
+              <li>Stars: 18</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.01804" target="_blank">https://huggingface.co/papers/2607.01804</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.01804" target="_blank">https://arxiv.org/abs/2607.01804</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>我们引入了VLA-Corrector ，这是一种轻量级的检测和校正推理框架，适用于动作分块的视觉-语言-动作策略。现代VLA策略通常预测并执行动作块，以减少策略调用频率并提高时间平滑度。但是，这种固定水平执行会产生一个开环盲点：当对象滑动、机器人摆姿势漂移或执行过程中场景发生变化时，策略可能会继续执行...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>We introduce VLA-Corrector, a lightweight detect-and-correct inference framework for action-chunked Vision-Language-Action policies. Modern VLA policies often predict and execute action chunks to reduce policy-call frequency and improve temporal smoothness. However, this fixed-horizon execution creates an open-loop blind spot: when an object slips, the robot pose drifts, or the scene changes during execution, the policy may continue executing stale actions before querying the model again. VLA-Corrector addresses this issue without retraining or modifying the VLA backbone. It adds a lightweight external correction pathway that monitors latent visual dynamics during execution. When the observed visual evolution persistently deviates from the expected one, VLA-Corrector interrupts the current action chunk, discards stale actions, and triggers corrective replanning with Online Gradient Guidance. This turns a fixed action horizon into an adaptive one: long-horizon execution is preserved when the chunk remains reliable, while short-horizon corrective behavior is activated when execution starts to drift. Across MetaWorld, LIBERO, and real-world AgileX PiPER experiments, VLA-Corrector improves robustness and success-per-call efficiency across multiple VLA backbones, showing that small inference-time modules can provide meaningful gains for reliable robot manipulation. Project Page: https://zju-omniai.github.io/vla-corrector/ GitHub: https://github.com/ZJU-OmniAI/vla-corrector Paper: https://arxiv.org/abs/2607.01804 Contact: Yi Pan: panyi0304@gmail.com Wenqi Zhang: zhangwenqi@zju.edu.cn</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-0">@article{unknown26,
+  title = {VLA-Corrector: Lightweight Detect-and-Correct Inference for Adaptive Action Horizon},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.01804},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.02501" class="paper-name" target="_blank">
+            2. Embodied.cpp: A Portable Inference Runtime of Embodied AI Models on Heterogeneous Robots
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              17
+            </span>
+            <span class="stat-badge" title="GitHub">SEU-PAISys/Embodied.cpp</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>我们引入了Embodied.cpp ，这是一种便携式C + +推理运行时，用于异构机器人上的具体AI模型。这项工作背后的一个关键动机是，具体的人工智能社区更多地关注模型训练，而不是实际的推断和部署。今天，我们已经看到了许多令人兴奋的体现模型...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(1)" id="btn-1">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-1">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.02501" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.02501" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/SEU-PAISys/Embodied.cpp" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(1)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Embodied.cpp: A Portable Inference Runtime of Embodied AI Models on Heterogeneous Robots</li>
+              <li>Stars: 17</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.02501" target="_blank">https://huggingface.co/papers/2607.02501</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.02501" target="_blank">https://arxiv.org/abs/2607.02501</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>我们引入了Embodied.cpp ，这是一种便携式C + +推理运行时，用于异构机器人上的具体AI模型。这项工作背后的一个关键动机是，具体的人工智能社区更多地关注模型训练，而不是实际的推断和部署。今天，我们已经看到了许多令人兴奋的体现模型，但仍然没有通用的推理框架设计用于：闭环体现推理边缘/机器人部署异质...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>We introduce Embodied.cpp , a portable C++ inference runtime for embodied AI models on heterogeneous robots. A key motivation behind this work is that the embodied AI community has focused much more on model training than on practical inference and deployment . Today, we already see many exciting embodied models, but there is still no general inference framework designed for: closed-loop embodied inference edge-side / on-robot deployment heterogeneous devices and hardware backends unified support across different embodied model families This is exactly the gap we target with Embodied.cpp : a portable C++ inference runtime for embodied AI models on heterogeneous robots. In the paper, we focus on the runtime side of embodied intelligence: how to support latency-first batch-1 inference how to handle multi-rate closed-loop execution how to bridge diverse embodied models through a unified runtime abstraction how to make deployment more practical across simulators, robots, and hardware We evaluate the system on representative models including HY-VLA , pi0.5 , and LingBot-VA Transformer block benchmark. This is only the beginning. We plan to continue updating: more embodied models more complete runtime and system support more edge-side and heterogeneous-device optimization methods Code and model artifacts: GitHub: https://github.com/SEU-PAISys/Embodied.cpp Hugging Face: https://huggingface.co/SEU-PAISys/Embodied.cpp Paper: https://arxiv.org/abs/2607.02501</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-1">@article{unknown26,
+  title = {Embodied.cpp: A Portable Inference Runtime of Embodied AI Models on Heterogeneous Robots},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.02501},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2606.29526" class="paper-name" target="_blank">
+            3. The Mirage of Optimizing Training Policies: Monotonic Inference Policies as the Real Objective for LLM Reinforcement Learning
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Weixun Wang, Yancheng He, Yi Ma, Hongyao Tang, Jing Liang</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>我们介绍了MIPI （单调推理策略改进）及其实例化MIPU ，这是一种用于训练-推理不匹配下的大型语言模型的两步RL框架。如图所示，标准LLM RL方法优化训练侧代理，由于持续的引擎级不匹配（例如， FP8量化或后端不一致） ，这并不一定转...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(2)" id="btn-2">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-2">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2606.29526" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2606.29526" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(2)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：The Mirage of Optimizing Training Policies: Monotonic Inference Policies as the Real Objective for LLM Reinforcement Learning</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              <li>作者：Weixun Wang, Yancheng He, Yi Ma, Hongyao Tang, Jing Liang</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2606.29526" target="_blank">https://huggingface.co/papers/2606.29526</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2606.29526" target="_blank">https://arxiv.org/abs/2606.29526</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>我们介绍了MIPI （单调推理策略改进）及其实例化MIPU ，这是一种用于训练-推理不匹配下的大型语言模型的两步RL框架。如图所示，标准LLM RL方法优化训练侧代理，由于持续的引擎级不匹配（例如， FP8量化或后端不一致） ，这并不一定转化为部署推理策略的改进。MIPU地址...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>We introduce MIPI (Monotonic Inference Policy Improvement) and its instantiation MIPU, a two-step RL framework for large language models under training–inference mismatch. As illustrated in the figure, standard LLM RL methods optimize training-side surrogates, which do not necessarily translate into improvements of the deployed inference policy due to persistent engine-level mismatch (e.g., FP8 quantization or backend inconsistency). MIPU addresses this by explicitly decomposing inference-policy improvement into (i) training-side update and (ii) post-synchronization inference gap. Step 1 constructs sampler-referenced policy updates to improve candidate quality, while Step 2 performs inference-gap-aware acceptance to filter updates that do not yield consistent improvements after synchronization. Under FP8-quantized rollout, MIPU achieves both improved reasoning performance and significantly enhanced training stability across Qwen3-1.7B and Qwen3-4B. The figure summarizes the core idea: instead of optimizing only the training policy, MIPU directly aligns optimization with inference-policy improvement under real deployment mismatch. Project Page: https://anitaleungxx.github.io/MIPU/ Paper: https://arxiv.org/pdf/2606.29526</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-2">@article{wang26,
+  title = {The Mirage of Optimizing Training Policies: Monotonic Inference Policies as the Real Objective for LLM Reinforcement Learning},
+  author = {Weixun Wang and Yancheng He and Yi Ma and Hongyao Tang and Jing Liang},
+  journal = {arXiv preprint},
+  volume = {arXiv:2606.29526},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.02461" class="paper-name" target="_blank">
+            4. OrbitQuant: Data-Agnostic Quantization for Image and Video Diffusion Transformers
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>OrbitQuant是一种数据无关的权重激活量化器，用于不使用校准数据的图像和视频扩散变压器。DiT激活在时间步长、提示和指导分支之间漂移，这迫使先前的PTQ方法为每个新的检查点或模式重新拟合校准。相反， OrbitQuant在归一化、旋转...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(3)" id="btn-3">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-3">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.02461" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.02461" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(3)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：OrbitQuant: Data-Agnostic Quantization for Image and Video Diffusion Transformers</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.02461" target="_blank">https://huggingface.co/papers/2607.02461</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.02461" target="_blank">https://arxiv.org/abs/2607.02461</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>OrbitQuant是一种数据无关的权重激活量化器，用于不使用校准数据的图像和视频扩散变压器。DiT激活在时间步长、提示和指导分支之间漂移，这迫使先前的PTQ方法为每个新的检查点或模式重新拟合校准。相反， OrbitQuant在归一化、旋转的基础上进行量化：随机置换块-Hadamard （ RPBH ）旋转将每个坐标集中在一个f...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>OrbitQuant is a data-agnostic weight–activation quantizer for image and video diffusion transformers that uses no calibration data. DiT activations drift across timesteps, prompts, and guidance branches, which forces prior PTQ methods to re-fit calibration for every new checkpoint or modality. OrbitQuant instead quantizes in a normalized, rotated basis: a randomized permuted block-Hadamard (RPBH) rotation concentrates each coordinate around one fixed, known marginal regardless of input, so a single Lloyd–Max codebook serves all timesteps, prompts, and layers. The rotation is folded into the weights offline and cancels inside each linear layer, leaving only a cheap forward rotation on activations at runtime and the same recipe transfers from image to video with no per-modality tuning. Across FLUX.1, Z-Image-Turbo, Wan 2.1, and CogVideoX it sets the state of the art at several low-bit settings. It can produce usable images at 2-bit weights (W2A4) where prior approaches collapse.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-3">@article{unknown26,
+  title = {OrbitQuant: Data-Agnostic Quantization for Image and Video Diffusion Transformers},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.02461},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2606.31227" class="paper-name" target="_blank">
+            5. Securing the AI Agent: A Unified Framework for Multi-Layer Agent Red Teaming
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>从模型服务引擎和代理平台到模型上下文协议(MCP)生态系统和语言模型本身，开源人工智能基础设施的快速增长已经超过了可用于保护它的安全工具。我们介绍AI-Infra-Guard ，这是一个开源框架，围绕单个观察组织AI红色分组： AI代理的攻...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(4)" id="btn-4">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-4">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2606.31227" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2606.31227" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(4)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Securing the AI Agent: A Unified Framework for Multi-Layer Agent Red Teaming</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2606.31227" target="_blank">https://huggingface.co/papers/2606.31227</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2606.31227" target="_blank">https://arxiv.org/abs/2606.31227</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>从模型服务引擎和代理平台到模型上下文协议(MCP)生态系统和语言模型本身，开源人工智能基础设施的快速增长已经超过了可用于保护它的安全工具。我们介绍AI-Infra-Guard ，这是一个开源框架，围绕单个观察组织AI红色分组： AI代理的攻击面跨层分层（基础设施、协议/工具、代理是...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>The fast growth of open-source AI infrastructure, from model serving engines and agent platforms to the Model Context Protocol (MCP) ecosystem and the language models themselves, has outpaced the security tooling available to defend it. We present AI-Infra-Guard, an open-source framework that organizes AI red teaming around a single observation: the attack surface of an AI agent is stratified across layers (infrastructure, protocol/tool, agent behavior, and model), and no single detection paradigm fits all of them. The framework therefore matches a paradigm to each layer, from deterministic rule matching over 75+ AI components and 1{,}400+ vulnerability rules, through LLM-driven agentic auditing of MCP servers and agent-skill packages and multi-turn black-box agent red teaming, to a jailbreak harness with 26+ attack operators over sixteen datasets. To our knowledge it is the only open-source framework to span all of these, including supply-chain auditing of the agent skills that increasingly extend AI agents. We release AI-Infra-Guard as open source so that \emph{layer-paradigm matching} can serve as a practical foundation for agent security and a shared base for the community to build on.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-4">@article{unknown26,
+  title = {Securing the AI Agent: A Unified Framework for Multi-Layer Agent Red Teaming},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2606.31227},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2606.28551" class="paper-name" target="_blank">
+            6. DataComp-VLM: Improved Open Datasets for Vision-Language Models
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">mlfoundations/dcvlm</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Maximilian Böther, Selim Kuzucu, Thao Nguyen, Vishaal Udandarao, Matteo Farina</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>构建高性能的视觉语言模型（ VLM ）需要仔细策划大规模的训练数据集，但社区缺乏评估此类策划策略的系统基准。我们引入了DataComp for VLMs （ DCVLM ） ，这是一个用于受控数据中心实验的基准，以改进VLM训练。作为DCV...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(5)" id="btn-5">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-5">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2606.28551" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2606.28551" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/mlfoundations/dcvlm" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(5)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：DataComp-VLM: Improved Open Datasets for Vision-Language Models</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              <li>作者：Maximilian Böther, Selim Kuzucu, Thao Nguyen, Vishaal Udandarao, Matteo Farina</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2606.28551" target="_blank">https://huggingface.co/papers/2606.28551</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2606.28551" target="_blank">https://arxiv.org/abs/2606.28551</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>构建高性能的视觉语言模型（ VLM ）需要仔细策划大规模的训练数据集，但社区缺乏评估此类策划策略的系统基准。我们引入了DataComp for VLMs （ DCVLM ） ，这是一个用于受控数据中心实验的基准，以改进VLM训练。作为DCVLM的一部分，我们收集了160个数据集，涵盖四种数据类型--图像-字幕对、多模态交错文档、纯文本、...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Building performant Vision-Language Models (VLMs) requires carefully curating large-scale training datasets, yet the community lacks systematic benchmarks for evaluating such curation strategies. We introduce DataComp for VLMs (DCVLM), a benchmark for controlled data-centric experiments to improve VLM training. As part of DCVLM, we collect 160 datasets spanning four data types -- image-caption pairs, multimodal interleaved documents, text-only, and instruction-tuning data -- into a corpus of 6T multimodal tokens. DCVLM allows participants to test curation strategies (filtering, mixing, formatting, sampling) across 1B-8B models and 6.25B-200B token budgets. Models are then evaluated on a carefully selected suite of up to 52 downstream benchmarks across 9 domains. We conduct extensive experiments on DCVLM and find that data mixing, not filtering, is key to a high-quality training dataset: instruction-heavy mixtures scale better than caption-heavy ones, with gains widening at larger scales. The resulting dataset, DCVLM-Baseline, enables training an 8B VLM to 63.6% accuracy on our 33-task core suite with 200B training tokens. Compared to FineVision, the state-of-the-art open VLM training dataset, this represents an improvement of +5.4pp.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-5">@article{böther26,
+  title = {DataComp-VLM: Improved Open Datasets for Vision-Language Models},
+  author = {Maximilian Böther and Selim Kuzucu and Thao Nguyen and Vishaal Udandarao and Matteo Farina},
+  journal = {arXiv preprint},
+  volume = {arXiv:2606.28551},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.00052" class="paper-name" target="_blank">
+            7. AGE: Adaptive-masking for Graph Embedding in Graph Retrieval-Augmented Generation
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>我们提出了用于图嵌入（ AGE ）的自适应掩码，以改进结构化图嵌入并增强GraphQA任务的LLM性能。该方法引入了JEPA ，这是一种自监督学习架构，增强了下游推理任务的图结构嵌入。我们的节点采样器在消融研究中证明了其有效性，成功识别了给...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(6)" id="btn-6">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-6">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.00052" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.00052" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(6)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：AGE: Adaptive-masking for Graph Embedding in Graph Retrieval-Augmented Generation</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.00052" target="_blank">https://huggingface.co/papers/2607.00052</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.00052" target="_blank">https://arxiv.org/abs/2607.00052</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>我们提出了用于图嵌入（ AGE ）的自适应掩码，以改进结构化图嵌入并增强GraphQA任务的LLM性能。该方法引入了JEPA ，这是一种自监督学习架构，增强了下游推理任务的图结构嵌入。我们的节点采样器在消融研究中证明了其有效性，成功识别了给定图形中的关键节点。定量结果证实年龄'…</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>We proposed Adaptive-masking for Graph Embedding (AGE) to improve structured graph embeddings and enhance LLM performance on GraphQA tasks. The method introduced JEPA, a self-supervised learning architecture which enhanced the graph-structure embedding for downstream reasoning tasks. Our node sampler demonstrated its effectiveness in the ablation study, successfully identified key nodes within given graphs. The quantitative results confirmed AGE's consistent performance gain in GraphRAG tasks while maintaining computational cost. We hope this work contributes to structured knowledge representation for intelligent agents and facilitates cross-modal reasoning through structured perceptual representations.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-6">@article{unknown26,
+  title = {AGE: Adaptive-masking for Graph Embedding in Graph Retrieval-Augmented Generation},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.00052},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.01420" class="paper-name" target="_blank">
+            8. MultAttnAttrib: Training-Free Multimodal Attribution in Long Document Question Answering
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Trang Nguyen, Sai Soorya Rao Veeravalli, Vinamra Tyagi, Quang V. Dang, Dang Quang Thien Tran</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(7)" id="btn-7">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-7">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.01420" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.01420" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(7)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：MultAttnAttrib: Training-Free Multimodal Attribution in Long Document Question Answering</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Trang Nguyen, Sai Soorya Rao Veeravalli, Vinamra Tyagi, Quang V. Dang, Dang Quang Thien Tran</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.01420" target="_blank">https://huggingface.co/papers/2607.01420</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.01420" target="_blank">https://arxiv.org/abs/2607.01420</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-7">@article{nguyen26,
+  title = {MultAttnAttrib: Training-Free Multimodal Attribution in Long Document Question Answering},
+  author = {Trang Nguyen and Sai Soorya Rao Veeravalli and Vinamra Tyagi and Quang V. Dang and Dang Quang Thien Tran},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.01420},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.02471" class="paper-name" target="_blank">
+            9. Interpretation-Oriented Cloud Removal via Observation-Anchored Residual Flow with Geo-Contextual Alignment
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">wzy6055/GACR</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>我们很高兴分享我们的ECCV 2026论文。云去除（ CR ）对于光学遥感至关重要，是语义分割和变化检测等可靠下游解释的先决条件。然而，现有的CR方法往往优先考虑视觉真实感，而忽略了它们对后续分析任务的影响，导致语义漂移和下游性能下降。为了...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(8)" id="btn-8">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-8">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.02471" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.02471" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/wzy6055/GACR" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(8)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Interpretation-Oriented Cloud Removal via Observation-Anchored Residual Flow with Geo-Contextual Alignment</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.02471" target="_blank">https://huggingface.co/papers/2607.02471</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.02471" target="_blank">https://arxiv.org/abs/2607.02471</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>我们很高兴分享我们的ECCV 2026论文。云去除（ CR ）对于光学遥感至关重要，是语义分割和变化检测等可靠下游解释的先决条件。然而，现有的CR方法往往优先考虑视觉真实感，而忽略了它们对后续分析任务的影响，导致语义漂移和下游性能下降。为了解决这个问题，我们建议地理位置……</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>We are excited to share our ECCV 2026 paper. Cloud removal (CR) is essential for optical remote sensing, serving as a prerequisite for reliable downstream interpretation, such as semantic segmentation and change detection. However, existing CR approaches often prioritize visual realism while overlooking their impact on subsequent analytical tasks, leading to semantic drift and degraded downstream performance. To address this issue, we propose Geo-Anchored Cloud Removal (GACR), a unified framework that jointly ensures faithful reconstruction and robust interpretability. At its core, GACR incorporates Observation-Anchored Residual Flow (OAR-Flow), which reformulates CR as a physically grounded residual inversion process. By anchoring the generative trajectory to the cloudy observation rather than pure noise, OAR-Flow enables fast, stable, and faithful reconstruction. To further preserve semantic structures critical for downstream interpretation, GACR integrates Geo-Contextual Prior Alignment (GCPA) to constrain the reconstruction within a semantic manifold induced by a Vision Foundation Model (VFM). Consequently, GACR strictly maintains the spatial-semantic integrity of complex landscapes. Extensive experiments across six CR datasets and twelve downstream tasks demonstrate that GACR produces superior reconstruction quality while consistently improving downstream task accuracy. Code: https://github.com/wzy6055/GACR</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-8">@article{unknown26,
+  title = {Interpretation-Oriented Cloud Removal via Observation-Anchored Residual Flow with Geo-Contextual Alignment},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.02471},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function toggleDetails(paperId) {
+      const details = document.getElementById('details-' + paperId);
+      const btn = document.getElementById('btn-' + paperId);
+      if (details && btn) {
+        details.classList.toggle('active');
+        btn.textContent = details.classList.contains('active') ? '收起详情' : '查看详情';
+      }
+    }
+
+    function copyBibtex(paperId) {
+      const bibtexBlock = document.getElementById('bibtex-' + paperId);
+      if (bibtexBlock) {
+        navigator.clipboard.writeText(bibtexBlock.textContent).then(() => {
+          const btn = event.target;
+          const originalText = btn.textContent;
+          btn.textContent = '已复制!';
+          setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }).catch(err => {
+          alert('复制失败，请手动复制');
+        });
+      }
+    }
+  </script>
+</body>
+</html>
