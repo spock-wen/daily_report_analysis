@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：16
-- 最近更新：2026-07-10
+- 项目总数：17
+- 最近更新：2026-07-11
 - 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
@@ -27,8 +27,8 @@ general 领域收录了与AI 相关技术相关的项目。
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：432,121
-- 最热项目：[microsoft/TypeScript](../../wiki/projects/microsoft_TypeScript.md) (109762 ⭐)
+- 总 Stars 数：468,956
+- 最热项目：[microsoft/PowerToys](../../wiki/projects/microsoft_PowerToys.md) (136420 ⭐)
 
 
 ---
