@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：11
-- 最近更新：2026-07-08
+- 项目总数：10
+- 最近更新：2026-07-12
 - 报告类型：daily
 
 rag 领域收录了与RAG、检索增强生成、知识库、向量检索相关的项目。
@@ -18,16 +18,16 @@ rag 领域收录了与RAG、检索增强生成、知识库、向量检索相关�
 | 4 | [Fincept-Corporation/FinceptTerminal](../../wiki/projects/Fincept-Corporation_FinceptTerminal.md) | 2026-05-25 | 1 | 23857 |
 | 5 | [paperless-ngx/paperless-ngx](../../wiki/projects/paperless-ngx_paperless-ngx.md) | 2026-05-25 | 1 | 41309 |
 | 6 | [galilai-group/stable-worldmodel](../../wiki/projects/galilai-group_stable-worldmodel.md) | 2026-05-30 | 1 | 1453 |
-| 7 | [Crosstalk-Solutions/project-nomad](../../wiki/projects/Crosstalk-Solutions_project-nomad.md) | 2026-06-07 | 1 | 29697 |
-| 8 | [RyanCodrai/turbovec](../../wiki/projects/RyanCodrai_turbovec.md) | 2026-06-09 | 1 | 10130 |
-| 9 | [chopratejas/headroom](../../wiki/projects/chopratejas_headroom.md) | 2026-06-21 | 1 | 44248 |
-| 10 | [refactoringhq/tolaria](../../wiki/projects/refactoringhq_tolaria.md) | 2026-07-01 | 1 | 18013 |
+| 7 | [RyanCodrai/turbovec](../../wiki/projects/RyanCodrai_turbovec.md) | 2026-06-09 | 1 | 10130 |
+| 8 | [chopratejas/headroom](../../wiki/projects/chopratejas_headroom.md) | 2026-06-21 | 1 | 44248 |
+| 9 | [refactoringhq/tolaria](../../wiki/projects/refactoringhq_tolaria.md) | 2026-07-01 | 1 | 18013 |
+| 10 | [Crosstalk-Solutions/project-nomad](../../wiki/projects/Crosstalk-Solutions_project-nomad.md) | 2026-07-12 | 1 | 33781 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：444,415
+- 总 Stars 数：434,120
 - 最热项目：[trimstray/the-book-of-secret-knowledge](../../wiki/projects/trimstray_the-book-of-secret-knowledge.md) (223817 ⭐)
 
 
