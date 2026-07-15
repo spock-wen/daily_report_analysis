@@ -3,7 +3,7 @@
 ## 领域概览
 
 - 项目总数：11
-- 最近更新：2026-07-13
+- 最近更新：2026-07-14
 - 报告类型：daily
 
 devtool 领域收录了与开发工具、IDE 插件、代码辅助相关的项目。
@@ -27,8 +27,8 @@ devtool 领域收录了与开发工具、IDE 插件、代码辅助相关的项�
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：286,044
-- 最热项目：[github/spec-kit](../../wiki/projects/github_spec-kit.md) (120564 ⭐)
+- 总 Stars 数：168,084
+- 最热项目：[D4Vinci/Scrapling](../../wiki/projects/D4Vinci_Scrapling.md) (60190 ⭐)
 
 
 ---
