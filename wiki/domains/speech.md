@@ -3,7 +3,7 @@
 ## 领域概览
 
 - 项目总数：10
-- 最近更新：2026-07-13
+- 最近更新：2026-07-15
 - 报告类型：daily
 
 speech 领域收录了与语音识别、语音合成、音频处理相关的项目。
@@ -21,13 +21,13 @@ speech 领域收录了与语音识别、语音合成、音频处理相关的项�
 | 7 | [jamiepine/voicebox](../../wiki/projects/jamiepine_voicebox.md) | 2026-06-29 | 1 | 35418 |
 | 8 | [altic-dev/FluidVoice](../../wiki/projects/altic-dev_FluidVoice.md) | 2026-06-29 | 1 | 4360 |
 | 9 | [Starmel/OpenSuperWhisper](../../wiki/projects/Starmel_OpenSuperWhisper.md) | 2026-07-06 | 1 | 1804 |
-| 10 | [moeru-ai/airi](../../wiki/projects/moeru-ai_airi.md) | 2026-07-13 | 1 | 41849 |
+| 10 | [moeru-ai/airi](../../wiki/projects/moeru-ai_airi.md) | 2026-07-15 | 1 | 42477 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：471,996
+- 总 Stars 数：472,624
 - 最热项目：[yt-dlp/yt-dlp](../../wiki/projects/yt-dlp_yt-dlp.md) (164940 ⭐)
 
 
