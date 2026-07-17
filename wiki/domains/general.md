@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：14
-- 最近更新：2026-07-15
+- 项目总数：18
+- 最近更新：2026-07-16
 - 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
@@ -27,8 +27,8 @@ general 领域收录了与AI 相关技术相关的项目。
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：239,388
-- 最热项目：[OpenCut-app/OpenCut](../../wiki/projects/OpenCut-app_OpenCut.md) (71573 ⭐)
+- 总 Stars 数：981,586
+- 最热项目：[codecrafters-io/build-your-own-x](../../wiki/projects/codecrafters-io_build-your-own-x.md) (526260 ⭐)
 
 
 ---
