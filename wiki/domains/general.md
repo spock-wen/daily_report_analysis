@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：18
-- 最近更新：2026-07-16
+- 项目总数：16
+- 最近更新：2026-07-17
 - 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
@@ -17,18 +17,18 @@ general 领域收录了与AI 相关技术相关的项目。
 | 3 | [rowboatlabs/rowboat](../../wiki/projects/rowboatlabs_rowboat.md) | 2026-05-09 | 1 | 13762 |
 | 4 | [owner/repo1](../../wiki/projects/owner_repo1.md) | 2026-05-10 | 1 | 1000 |
 | 5 | [owner/repo2](../../wiki/projects/owner_repo2.md) | 2026-05-10 | 1 | 500 |
-| 6 | [docusealco/docuseal](../../wiki/projects/docusealco_docuseal.md) | 2026-05-11 | 1 | 16229 |
-| 7 | [tinyhumansai/openhuman](../../wiki/projects/tinyhumansai_openhuman.md) | 2026-05-25 | 1 | 27146 |
-| 8 | [MemPalace/mempalace](../../wiki/projects/MemPalace_mempalace.md) | 2026-06-08 | 1 | 54913 |
-| 9 | [maziyarpanahi/openmed](../../wiki/projects/maziyarpanahi_openmed.md) | 2026-06-11 | 1 | 2735 |
-| 10 | [kunchenguid/no-mistakes](../../wiki/projects/kunchenguid_no-mistakes.md) | 2026-06-29 | 1 | 4053 |
+| 6 | [tinyhumansai/openhuman](../../wiki/projects/tinyhumansai_openhuman.md) | 2026-05-25 | 1 | 27146 |
+| 7 | [MemPalace/mempalace](../../wiki/projects/MemPalace_mempalace.md) | 2026-06-08 | 1 | 54913 |
+| 8 | [maziyarpanahi/openmed](../../wiki/projects/maziyarpanahi_openmed.md) | 2026-06-11 | 1 | 2735 |
+| 9 | [kunchenguid/no-mistakes](../../wiki/projects/kunchenguid_no-mistakes.md) | 2026-06-29 | 1 | 4053 |
+| 10 | [codecrafters-io/build-your-own-x](../../wiki/projects/codecrafters-io_build-your-own-x.md) | 2026-07-17 | 1 | 527298 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：981,586
-- 最热项目：[codecrafters-io/build-your-own-x](../../wiki/projects/codecrafters-io_build-your-own-x.md) (526260 ⭐)
+- 总 Stars 数：831,697
+- 最热项目：[codecrafters-io/build-your-own-x](../../wiki/projects/codecrafters-io_build-your-own-x.md) (527298 ⭐)
 
 
 ---
