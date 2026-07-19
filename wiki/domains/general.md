@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：16
-- 最近更新：2026-07-17
+- 项目总数：13
+- 最近更新：2026-07-18
 - 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
@@ -21,14 +21,14 @@ general 领域收录了与AI 相关技术相关的项目。
 | 7 | [MemPalace/mempalace](../../wiki/projects/MemPalace_mempalace.md) | 2026-06-08 | 1 | 54913 |
 | 8 | [maziyarpanahi/openmed](../../wiki/projects/maziyarpanahi_openmed.md) | 2026-06-11 | 1 | 2735 |
 | 9 | [kunchenguid/no-mistakes](../../wiki/projects/kunchenguid_no-mistakes.md) | 2026-06-29 | 1 | 4053 |
-| 10 | [codecrafters-io/build-your-own-x](../../wiki/projects/codecrafters-io_build-your-own-x.md) | 2026-07-17 | 1 | 527298 |
+| 10 | [ibelick/ui-skills](../../wiki/projects/ibelick_ui-skills.md) | 2026-07-18 | 1 | 4979 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：831,697
-- 最热项目：[codecrafters-io/build-your-own-x](../../wiki/projects/codecrafters-io_build-your-own-x.md) (527298 ⭐)
+- 总 Stars 数：691,379
+- 最热项目：[codecrafters-io/build-your-own-x](../../wiki/projects/codecrafters-io_build-your-own-x.md) (528224 ⭐)
 
 
 ---
