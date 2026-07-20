@@ -3,7 +3,7 @@
 ## 领域概览
 
 - 项目总数：10
-- 最近更新：2026-07-15
+- 最近更新：2026-07-19
 - 报告类型：daily
 
 speech 领域收录了与语音识别、语音合成、音频处理相关的项目。
@@ -18,16 +18,16 @@ speech 领域收录了与语音识别、语音合成、音频处理相关的项�
 | 4 | [microsoft/VibeVoice](../../wiki/projects/microsoft_VibeVoice.md) | 2026-06-06 | 1 | 48462 |
 | 5 | [OpenBMB/VoxCPM](../../wiki/projects/OpenBMB_VoxCPM.md) | 2026-06-16 | 1 | 30114 |
 | 6 | [hugohe3/ppt-master](../../wiki/projects/hugohe3_ppt-master.md) | 2026-06-27 | 1 | 33041 |
-| 7 | [jamiepine/voicebox](../../wiki/projects/jamiepine_voicebox.md) | 2026-06-29 | 1 | 35418 |
-| 8 | [altic-dev/FluidVoice](../../wiki/projects/altic-dev_FluidVoice.md) | 2026-06-29 | 1 | 4360 |
-| 9 | [Starmel/OpenSuperWhisper](../../wiki/projects/Starmel_OpenSuperWhisper.md) | 2026-07-06 | 1 | 1804 |
-| 10 | [moeru-ai/airi](../../wiki/projects/moeru-ai_airi.md) | 2026-07-15 | 1 | 42477 |
+| 7 | [altic-dev/FluidVoice](../../wiki/projects/altic-dev_FluidVoice.md) | 2026-06-29 | 1 | 4360 |
+| 8 | [Starmel/OpenSuperWhisper](../../wiki/projects/Starmel_OpenSuperWhisper.md) | 2026-07-06 | 1 | 1804 |
+| 9 | [moeru-ai/airi](../../wiki/projects/moeru-ai_airi.md) | 2026-07-15 | 1 | 42477 |
+| 10 | [jamiepine/voicebox](../../wiki/projects/jamiepine_voicebox.md) | 2026-07-19 | 1 | 43306 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：472,624
+- 总 Stars 数：480,512
 - 最热项目：[yt-dlp/yt-dlp](../../wiki/projects/yt-dlp_yt-dlp.md) (164940 ⭐)
 
 
