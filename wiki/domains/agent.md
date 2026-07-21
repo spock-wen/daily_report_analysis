@@ -2,9 +2,9 @@
 
 ## 领域概览
 
-- 项目总数：20
+- 项目总数：19
 - 最近更新：2026-07-20
-- 报告类型：weekly
+- 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
 
@@ -21,14 +21,14 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 7 | [xbtlin/ai-berkshire](../../wiki/projects/xbtlin_ai-berkshire.md) | 2026-07-06 | 1 | 10289 |
 | 8 | [MadsLorentzen/ai-job-search](../../wiki/projects/MadsLorentzen_ai-job-search.md) | 2026-07-07 | 1 | 10698 |
 | 9 | [Zackriya-Solutions/meetily](../../wiki/projects/Zackriya-Solutions_meetily.md) | 2026-07-13 | 1 | 23569 |
-| 10 | [Robbyant/lingbot-map](../../wiki/projects/Robbyant_lingbot-map.md) | 2026-07-18 | 1 | 12898 |
+| 10 | [tirth8205/code-review-graph](../../wiki/projects/tirth8205_code-review-graph.md) | 2026-07-20 | 1 | 23067 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：956,319
-- 最热项目：[mattpocock/skills](../../wiki/projects/mattpocock_skills.md) (177455 ⭐)
+- 总 Stars 数：610,584
+- 最热项目：[msitarzewski/agency-agents](../../wiki/projects/msitarzewski_agency-agents.md) (134682 ⭐)
 
 
 ---
