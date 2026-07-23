@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuggingFace AI Papers 日报 - 2026-07-22</title>
+  <link rel="stylesheet" href="../../public/css/style.css">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-card: #161b22;
+      --text-primary: #c9d1d9;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-orange: #d29922;
+      --border: #30363d;
+      --border-light: #21262d;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.5; padding: 24px 16px; font-size: 13px; }
+    .container { max-width: 960px; margin: 0 auto; }
+    header { text-align: center; padding: 32px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+    h1 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+    .date { color: var(--text-secondary); font-size: 0.8125rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); padding: 12px; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
+    .stat-value { font-size: 1.25rem; font-weight: 600; color: var(--accent-green); line-height: 1.2; }
+    .stat-value .star-icon { color: #fbbf24; width: 20px; height: 20px; vertical-align: middle; display: inline-block; }
+    .stat-label { color: var(--text-secondary); margin-top: 4px; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    section { margin-bottom: 24px; }
+    h2 { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .project-list { display: flex; flex-direction: column; gap: 8px; }
+    .star-icon { width: 16px; height: 16px; vertical-align: middle; }
+    .paper-card { background: var(--bg-card); border-radius: 6px; padding: 12px; margin: 8px 0; border: 1px solid var(--border); transition: border-color 0.2s; }
+    .paper-card:hover { border-color: var(--text-muted); }
+    .paper-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; }
+    .paper-name { font-size: 0.875rem; font-weight: 600; color: var(--accent); text-decoration: none; line-height: 1.4; }
+    .paper-name:hover { text-decoration: underline; }
+    .paper-stats { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+    .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.6875rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 2px 6px; border-radius: 10px; border: 1px solid var(--border); white-space: nowrap; }
+    .stat-badge .star-icon { color: #fbbf24; width: 12px; height: 12px; }
+    .paper-abstract { background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin: 8px 0; border: 1px solid var(--border); }
+    .paper-abstract strong { color: var(--text-primary); }
+    .paper-meta { color: var(--text-secondary); font-size: 0.75rem; margin: 8px 0; }
+    .paper-meta a { color: var(--accent); text-decoration: none; }
+    .paper-meta a:hover { text-decoration: underline; }
+    .toggle-btn { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.6875rem; font-weight: 500; transition: all 0.2s; }
+    .toggle-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+    .paper-details { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .paper-details.active { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .detail-column { background: var(--bg-secondary); padding: 8px; border-radius: 6px; }
+    .detail-column h4 { color: var(--text-primary); margin-bottom: 6px; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
+    .detail-column ul { list-style: none; }
+    .detail-column li { color: var(--text-secondary); padding: 3px 0; font-size: 0.75rem; line-height: 1.4; }
+    .ai-section { background: var(--bg-card); padding: 16px; border-radius: 6px; border: 1px solid var(--border); }
+    .ai-section h2, .ai-section h3 { color: var(--text-primary); margin: 16px 0 8px; font-size: 0.75rem; font-weight: 600; }
+    .ai-section h2:first-child, .ai-section h3:first-child { margin-top: 0; }
+    .ai-section p { color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; font-size: 0.8125rem; }
+    .ai-section ul { margin-bottom: 12px; padding-left: 16px; }
+    .ai-section li { color: var(--text-secondary); margin-bottom: 4px; font-size: 0.8125rem; line-height: 1.5; }
+    .lang-dist { display: flex; flex-wrap: wrap; gap: 10px; }
+    .lang-item { background: var(--accent); color: var(--bg-primary); padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+    .paper-type { background: var(--accent-orange); color: var(--bg-primary); padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; margin-left: 6px; }
+    .quick-actions { display: flex; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .action-btn { background: var(--accent); color: var(--bg-primary); padding: 4px 12px; border-radius: 4px; text-decoration: none; font-size: 0.75rem; font-weight: 500; border: none; cursor: pointer; }
+    .action-btn:hover { opacity: 0.9; }
+    .bibtex-block { background: var(--bg-primary); padding: 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.6875rem; color: var(--text-secondary); white-space: pre-wrap; margin-top: 8px; }
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } .paper-details.active { grid-template-columns: 1fr; } .paper-header { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>HuggingFace AI Papers 日报</h1>
+      <div class="date">2026-07-22</div>
+    </header>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">19</div>
+        <div class="stat-label">论文总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">6</div>
+        <div class="stat-label">有 Stars 论文</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">
+          <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor" style="width: 20px; height: 20px;"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+          <span style="vertical-align: middle;">591</span>
+        </div>
+        <div class="stat-label">总 Stars</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">31</div>
+        <div class="stat-label">平均 Stars</div>
+      </div>
+    </section>
+
+    
+      <section class="ai-section">
+        <h2>AI 深度洞察</h2>
+        <p>世界模型与生成式渲染成热点，AlayaWorld领跑</p>
+
+        
+          <h3>技术亮点</h3>
+          <ul>
+            
+              <li>
+                <strong><a href="https://github.com/AlayaLab/AlayaWorld" target="_blank" style="color: var(--accent); text-decoration: none;">AlayaLab/AlayaWorld</a></strong>: 实现交互式长时程世界建模，支持用户实时交互并生成连贯的3D场景序列。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/AlayaLab/AlayaRenderer-Flash" target="_blank" style="color: var(--accent); text-decoration: none;">AlayaLab/AlayaRenderer-Flash</a></strong>: 将生成式世界渲染速度提升至实时交互级别，延迟极低。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/microsoft/Mage" target="_blank" style="color: var(--accent); text-decoration: none;">microsoft/Mage</a></strong>: 提出原生分辨率图像生成与编辑基础模型，避免传统超分或补丁拼接造成的伪影。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/AgentDebugX/AgentDebugX" target="_blank" style="color: var(--accent); text-decoration: none;">AgentDebugX/AgentDebugX</a></strong>: 首个针对LLM代理的开源故障可观测性、归因和恢复工具包。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/Met4physics/DiT-Interpretability" target="_blank" style="color: var(--accent); text-decoration: none;">Met4physics/DiT-Interpretability</a></strong>: 揭示扩散变换器中文本模板令牌的隐式语义寄存器功能，提高生成可控性。
+              </li>
+            
+          </ul>
+        
+
+        
+          <h3>社区价值</h3>
+          <ul>
+            <li>AlayaWorld等交互式世界模型完全开源（包括训练代码和模型），加速具身智能与仿真研究。</li><li>AgentDebugX为LLM代理提供一站式调试工具，降低复杂代理系统的开发和维护门槛。</li>
+          </ul>
+        
+
+        
+          <h3>应用前景</h3>
+          <ul>
+            <li>世界模型可用于开放世界游戏、虚拟现实和自动驾驶仿真，提供无限交互环境。</li><li>扩散模型可解释性和原生分辨率生成将提升AI设计、科学图表自动化等专业工具的可控性与质量。</li>
+          </ul>
+        
+      </section>
+    
+
+    <section>
+      <h2>论文列表（共 19 篇）</h2>
+      <div class="project-list">
+        
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.18367" class="paper-name" target="_blank">
+            1. AlayaWorld: Interactive Long-Horizon World Modeling -- Full Technical Report
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              556
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>与依赖劳动密集型管道进行资产制作、动画、物理和编程的传统视频游戏开发不同，视频世界模型从用户输入即时生成交互式环境。它使我们能够从文本、图像或视频中创建定制、可探索和不断发展的虚拟世界。实现这一愿景需要四种紧密耦合的能力：交互、持续时空……
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(0)" id="btn-0">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-0">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.18367" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.18367" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(0)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：AlayaWorld: Interactive Long-Horizon World Modeling -- Full Technical Report</li>
+              <li>Stars: 556</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.18367" target="_blank">https://huggingface.co/papers/2607.18367</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.18367" target="_blank">https://arxiv.org/abs/2607.18367</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>与依赖劳动密集型管道进行资产制作、动画、物理和编程的传统视频游戏开发不同，视频世界模型从用户输入即时生成交互式环境。它使我们能够从文本、图像或视频中创建定制、可探索和不断发展的虚拟世界。实现这一愿景需要四种紧密耦合的能力：交互、持续时空……</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Unlike conventional video game development, which relies on labor-intensive pipelines for asset production, animation, physics, and programming, video world models generate interactive environments from user inputs instantly. It enable us to create customized, explorable, and continuously evolving virtual world from text, an image, or video. Realizing this vision requires four tightly coupled capabilities: interaction, persistent spatiotemporal consistency, stable long-horizon generation, and efficient response. We present AlayaWorld, an interactive long-horizon video world model that generates 24-fps video at 540p and 720p. Built on a 15B video diffusion transformer, AlayaWorld generates short latent chunks autoregressively under camera trajectories and switchable text prompts. Its bounded visual context combines a persistent sink frame, compressed temporal history, geometry-aligned spatial memory, and recent-frame conditioning. To reduce long-term drift, the model is trained with corrupted histories and prediction residuals collected from its own roll-outs. We further introduce a discrete autoregressive distillation formulation that combines distribution-matching distillation, self-forcing++, and consistency distillation, reducing inference from approximately 30 sampling steps to four steps per chunk. On iWorld-Bench, AlayaWorld achieves the best performance over long-horizon generation. Conceived as a full-stack, open-source, and long-term project, AlayaWorld is intended to provide an extensible foundation for future research on interactive video world models.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-0">@article{unknown26,
+  title = {AlayaWorld: Interactive Long-Horizon World Modeling -- Full Technical Report},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.18367},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.18703" class="paper-name" target="_blank">
+            2. Generative World Renderer at the Speed of Play
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              16
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>生成世界渲染器AlayaRenderer接收从物理引擎导出的结构化世界状态，并合成RGB帧。与从文本/控件提示提示生成帧的模型不同， AlayaRenderer在不改变底层世界动态的情况下保留场景结构。这展示了通往交互式世界建模和用户可控游...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(1)" id="btn-1">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-1">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.18703" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.18703" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(1)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Generative World Renderer at the Speed of Play</li>
+              <li>Stars: 16</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.18703" target="_blank">https://huggingface.co/papers/2607.18703</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.18703" target="_blank">https://arxiv.org/abs/2607.18703</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>生成世界渲染器AlayaRenderer接收从物理引擎导出的结构化世界状态，并合成RGB帧。与从文本/控件提示提示生成帧的模型不同， AlayaRenderer在不改变底层世界动态的情况下保留场景结构。这展示了通往交互式世界建模和用户可控游戏的替代途径。然而，最初的AlayaRenderer计算量太大了……</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Generative world renderer AlayaRenderer receives structured world states exported from physics engines and synthesizes RGB frames. Unlike models that generate frames from text/control-hints prompts, AlayaRenderer preserves scene structure without altering the underlying world dynamics. This demonstrates an alternative path toward interactive world modeling and user-controllable play. However, the original AlayaRenderer is too computationally expensive for real-time deployment. This technical report introduces AlayaRenderer-Flash, a real-time-oriented generative forward world renderer that pushes AlayaRenderer from 0.56 FPS to 31.54 FPS, reaching the speed of play. AlayaRenderer-Flash reformulates the original renderer as a few-step autoregressive streaming model and introduces lightweight distilled codecs for efficient latent encoding and frame reconstruction. It retains the teacher model's G-buffer and text-prompt interfaces while enabling continuous rendering over input streams of unbounded length. We evaluate AlayaRenderer-Flash on G-buffer streams across content preservation, temporal consistency, cross-window stability, prompt controllability, and runtime efficiency. Our results show that AlayaRenderer-Flash substantially reduces inference cost while preserving the core rendering capabilities of the teacher model. By integrating AlayaRenderer-Flash with a physics engine, we build a fully playable generative world running at 30 FPS.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-1">@article{unknown26,
+  title = {Generative World Renderer at the Speed of Play},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.18703},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.18722" class="paper-name" target="_blank">
+            3. Stale but Stable: Staleness-Adaptive Trust Regions for Stabilizing Asynchronous Reinforcement Learning
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              9
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>博客页面： https://jyyang26.github.io/stable_async_analysis arXiv ： https://arxiv.org/abs/2607.18722 GitHub ： https://github....
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(2)" id="btn-2">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-2">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.18722" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.18722" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(2)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Stale but Stable: Staleness-Adaptive Trust Regions for Stabilizing Asynchronous Reinforcement Learning</li>
+              <li>Stars: 9</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.18722" target="_blank">https://huggingface.co/papers/2607.18722</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.18722" target="_blank">https://arxiv.org/abs/2607.18722</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>博客页面： https://jyyang26.github.io/stable_async_analysis arXiv ： https://arxiv.org/abs/2607.18722 GitHub ： https://github.com/jyyang26/SAT</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Blog Page: https://jyyang26.github.io/stable_async_analysis arXiv: https://arxiv.org/abs/2607.18722 GitHub: https://github.com/jyyang26/SAT</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-2">@article{unknown26,
+  title = {Stale but Stable: Staleness-Adaptive Trust Regions for Stabilizing Asynchronous Reinforcement Learning},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.18722},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.18754" class="paper-name" target="_blank">
+            4. AgentDebugX: An Open-Source Toolkit for Failure Observability, Attribution, and Recovery in LLM Agents
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              5
+            </span>
+            <span class="stat-badge" title="GitHub">AgentDebugX/AgentDebugX</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>AgentDebugX是一个开源框架，可帮助您分析代理跟踪并提高其性能
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(3)" id="btn-3">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-3">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.18754" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.18754" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/AgentDebugX/AgentDebugX" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(3)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：AgentDebugX: An Open-Source Toolkit for Failure Observability, Attribution, and Recovery in LLM Agents</li>
+              <li>Stars: 5</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.18754" target="_blank">https://huggingface.co/papers/2607.18754</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.18754" target="_blank">https://arxiv.org/abs/2607.18754</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>AgentDebugX是一个开源框架，可帮助您分析代理跟踪并提高其性能</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>AgentDebugX is a opensource framework that help you analysis your agent traces and improve its performance</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-3">@article{unknown26,
+  title = {AgentDebugX: An Open-Source Toolkit for Failure Observability, Attribution, and Recovery in LLM Agents},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.18754},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.19064" class="paper-name" target="_blank">
+            5. Mage-Flow: An Efficient Native-Resolution Foundation Model for Image Generation and Editing
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              4
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">综述</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>Mage-Flow是一个紧凑的4B级生成堆栈，用于高效的文本到图像生成和基于指令的图像编辑。Mage-Flow不是扩展到数百亿个参数，而是通过仔细的标记器-主干系统协同设计达到最先进的竞争质量，因此它保持快速，内存轻，并且易于在逼真的计算预...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(4)" id="btn-4">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-4">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.19064" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.19064" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(4)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Mage-Flow: An Efficient Native-Resolution Foundation Model for Image Generation and Editing</li>
+              <li>Stars: 4</li>
+              <li>类型：综述</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.19064" target="_blank">https://huggingface.co/papers/2607.19064</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.19064" target="_blank">https://arxiv.org/abs/2607.19064</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>Mage-Flow是一个紧凑的4B级生成堆栈，用于高效的文本到图像生成和基于指令的图像编辑。Mage-Flow不是扩展到数百亿个参数，而是通过仔细的标记器-主干系统协同设计达到最先进的竞争质量，因此它保持快速，内存轻，并且易于在逼真的计算预算下进行微调。该堆栈由两个共享、共同设计的组件构建而成： Mage-VAE —一个...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Mage-Flow is a compact 4B-scale generative stack for efficient text-to-image generation and instruction-based image editing . Instead of scaling to tens of billions of parameters, Mage-Flow reaches state-of-the-art-competitive quality through careful tokenizer–backbone–system co-design , so it stays fast, memory-light, and easy to fine-tune under realistic compute budgets. The stack is built from two shared, co-designed components : Mage-VAE — a lightweight, high-fidelity latent tokenizer (one-step diffusion encode/decode with anchor-latent KL regularization). NR-MMDiT — a shared 4B Native-Resolution Multimodal Diffusion Transformer , trained with rectified flow matching in the Mage-VAE latent space. Together with native-resolution packing and a fused-kernel training infrastructure, this shared stack powers two model instantiations : Mage-Flow for text-to-image generation and Mage-Flow-Edit for instruction-based image editing. Each ships in Base , RL-aligned , and 4-step Turbo variants. ✨ Highlights Compact & competitive. A single 4B family for generation and editing that matches or beats much larger open systems (Qwen-Image 20B, Z-Image 6B, FLUX.2 32B, FireRed-Image-Edit 20B). Efficient tokenizer. Mage-VAE matches FLUX.2-VAE reconstruction fidelity while using ~12× / ~22× fewer encode / decode MACs per pixel , removing the VAE as the high-resolution bottleneck. Native resolution. One checkpoint generates from 512 to 2048 on any aspect ratio, including extreme 4:1 (e.g. 512×2048 , 2048×512 ). System-level speed. Native-resolution packing (FlashAttention var-len + per-sample 2D RoPE) + fused CUDA kernels achieve ~2.5× faster training; CFG's conditional/unconditional branches run in one packed forward. Full family. Base , RL-aligned , and 4-step Turbo variants for both generation and editing. Versatile editing. Mage-Flow-Edit supports semantic content editing, appearance transformation, image restoration, and structure-aware outputs within a unified image-and-text-conditioned model. See the report's editing galleries. Interactive latency. At 1024² on a single A100: Mage-Flow-Turbo 0.59 s/image , Mage-Flow-Edit-Turbo 1.02 s/edit , peak memory ~18–20 GB (lowest among compared systems).</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-4">@article{unknown26,
+  title = {Mage-Flow: An Efficient Native-Resolution Foundation Model for Image Generation and Editing},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.19064},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.19343" class="paper-name" target="_blank">
+            6. Masked Visual Actions for Unified World Modeling
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              1
+            </span>
+            <span class="stat-badge" title="GitHub">HadiZayer/masked-visual-actions</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Lvmin Zhang, Christopher Luey, Haonan Chen, Wenlong Huang, Hadi Alzayer</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(5)" id="btn-5">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-5">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.19343" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.19343" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/HadiZayer/masked-visual-actions" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(5)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Masked Visual Actions for Unified World Modeling</li>
+              <li>Stars: 1</li>
+              <li>类型：研究</li>
+              <li>作者：Lvmin Zhang, Christopher Luey, Haonan Chen, Wenlong Huang, Hadi Alzayer</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.19343" target="_blank">https://huggingface.co/papers/2607.19343</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.19343" target="_blank">https://arxiv.org/abs/2607.19343</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-5">@article{zhang26,
+  title = {Masked Visual Actions for Unified World Modeling},
+  author = {Lvmin Zhang and Christopher Luey and Haonan Chen and Wenlong Huang and Hadi Alzayer},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.19343},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.19139" class="paper-name" target="_blank">
+            7. Text Template Tokens Are Implicit Semantic Registers in Diffusion Transformers
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>我们发现， T2I扩散变换器中的“无用”文本模板令牌不是任何东西—它们充当隐式语义寄存器，在生成过程中因果地维护对象身份。🧐使用因果可解释性框架（注意力分解+跨代币跨度、头部和层的有针对性的干预措施） ，我们展示了：🔍模板代币在编码器输...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(6)" id="btn-6">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-6">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.19139" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.19139" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(6)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Text Template Tokens Are Implicit Semantic Registers in Diffusion Transformers</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.19139" target="_blank">https://huggingface.co/papers/2607.19139</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.19139" target="_blank">https://arxiv.org/abs/2607.19139</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>我们发现， T2I扩散变换器中的“无用”文本模板令牌不是任何东西—它们充当隐式语义寄存器，在生成过程中因果地维护对象身份。🧐使用因果可解释性框架（注意力分解+跨代币跨度、头部和层的有针对性的干预措施） ，我们展示了：🔍模板代币在编码器输出时几乎不携带提示特定信息，但却成为主导的图像到文本衰减...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>We find that "useless" text template tokens in T2I diffusion transformers are anything but — they act as implicit semantic registers that causally maintain object identity during generation. 🧐 Using a causal interpretability framework (attention decomposition + targeted interventions across token spans, heads, and layers), we show: 🔍 Template tokens carry little prompt-specific info at the encoder output, yet become dominant image-to-text attention sinks inside the DiT. 🔁 They acquire semantics indirectly: prompt meaning is first injected into image latents, then read back into template tokens — not transferred directly from prompt tokens. ✂️ This insight yields a training-free pruning rule: heads attending most to prompt tokens are dispensable — pruning them cuts 20% of attention FLOPs with only a 1.4-point drop on GenEval. 🗺️ We also map how generative computation is organized across heads and depth: semantic routing vs. visual synthesis, from identity formation to propagation and refinement. Takeaway: the tokens that encode semantics at input need not be the ones that maintain it during generation.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-6">@article{unknown26,
+  title = {Text Template Tokens Are Implicit Semantic Registers in Diffusion Transformers},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.19139},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.16617" class="paper-name" target="_blank">
+            8. DataFlow-Harness: A Grounded Code-Agent Platform for Constructing Editable LLM Data Pipelines
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>用于自动LLM数据准备管道的数据线束
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(7)" id="btn-7">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-7">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.16617" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.16617" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(7)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：DataFlow-Harness: A Grounded Code-Agent Platform for Constructing Editable LLM Data Pipelines</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.16617" target="_blank">https://huggingface.co/papers/2607.16617</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.16617" target="_blank">https://arxiv.org/abs/2607.16617</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>用于自动LLM数据准备管道的数据线束</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Data Harness for automatic LLM data preparation pipelines</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-7">@article{unknown26,
+  title = {DataFlow-Harness: A Grounded Code-Agent Platform for Constructing Editable LLM Data Pipelines},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.16617},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.18091" class="paper-name" target="_blank">
+            9. SciForma: Structure-Faithful Generation of Scientific Diagrams
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">microsoft/SciForma</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Zhouhui Lian, Xun Guo, Xinjie Zhang, Peng Zhang, LoYuXrqw</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>结构保真度对于科学方法图至关重要。为了传达研究逻辑，这些图表必须忠实地呈现组件、方向关系和文本注释。由于单个错误（如反向箭头或不可读方程）可以使整个图形无效，因此结构保真度本质上是连词的：一个轴上的正确性不能补偿另一个轴上的故障。当前的开源...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(8)" id="btn-8">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-8">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.18091" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.18091" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/microsoft/SciForma" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(8)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：SciForma: Structure-Faithful Generation of Scientific Diagrams</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              <li>作者：Zhouhui Lian, Xun Guo, Xinjie Zhang, Peng Zhang, LoYuXrqw</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.18091" target="_blank">https://huggingface.co/papers/2607.18091</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.18091" target="_blank">https://arxiv.org/abs/2607.18091</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>结构保真度对于科学方法图至关重要。为了传达研究逻辑，这些图表必须忠实地呈现组件、方向关系和文本注释。由于单个错误（如反向箭头或不可读方程）可以使整个图形无效，因此结构保真度本质上是连词的：一个轴上的正确性不能补偿另一个轴上的故障。当前的开源模型失败了……</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Structural fidelity is essential to scientific methodology diagrams. To communicate research logic, these diagrams must faithfully render components, directional relations, and textual annotations. Since a single error, such as a reversed arrow or an unreadable equation, can invalidate the entire figure, structural fidelity is inherently conjunctive: correctness on one axis cannot compensate for failure on another. Current open-source models fail to satisfy this criterion. Supervised fine-tuning (SFT) learns plausible layouts but cannot reliably ensure structural correctness, while scalar reward-based post-training obscures which structural dimension has failed. To address this, we introduce SciForma, a framework for the structure-faithful generation of scientific methodology diagrams. Specifically, SciForma decomposes diagram quality into three structural axes: Component, Arrow, and Text, guided by a structural inventory. Built on this foundation, we curate SciFormaData-700K for structured training and SciFormaBench-2K for logic-verified evaluation. To close the gap left by SFT, we develop Multi-Dimensional Conjunctive Preference Optimization (M-DPO), which enforces simultaneous correctness across all axes and adaptively routes gradients to the most deficient dimension in post-training. The same structural inventory also enables iterative editing at inference time to correct residual errors. This combination allows SciForma-9B to exceed all open-source baselines and GPT-Image-1.5 on both SciFormaBench-2K and AIBench, bringing open scientific diagram generation close to proprietary-level structural fidelity. Our code and data will be available at: https://github.com/microsoft/SciForma .</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-8">@article{lian26,
+  title = {SciForma: Structure-Faithful Generation of Scientific Diagrams},
+  author = {Zhouhui Lian and Xun Guo and Xinjie Zhang and Peng Zhang and LoYuXrqw},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.18091},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.19191" class="paper-name" target="_blank">
+            10. ABot-World-0: Infinite Interactive World Rollout on a Single Desktop GPU
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Chiyu Wang, Ziyu Zhu, Mengchao Wang, Zhaoxu Sun, Fan Jiang</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>Github ： arxiv.org/pdf/2607.19191
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(9)" id="btn-9">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-9">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.19191" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.19191" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(9)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：ABot-World-0: Infinite Interactive World Rollout on a Single Desktop GPU</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Chiyu Wang, Ziyu Zhu, Mengchao Wang, Zhaoxu Sun, Fan Jiang</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.19191" target="_blank">https://huggingface.co/papers/2607.19191</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.19191" target="_blank">https://arxiv.org/abs/2607.19191</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>Github ： arxiv.org/pdf/2607.19191</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Github: arxiv.org/pdf/2607.19191</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-9">@article{wang26,
+  title = {ABot-World-0: Infinite Interactive World Rollout on a Single Desktop GPU},
+  author = {Chiyu Wang and Ziyu Zhu and Mengchao Wang and Zhaoxu Sun and Fan Jiang},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.19191},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.18839" class="paper-name" target="_blank">
+            11. HPD-Parsing: Hierarchical Parallel Document Parsing
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>PaddleOCR团队的文档解析新范式
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(10)" id="btn-10">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-10">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.18839" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.18839" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(10)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：HPD-Parsing: Hierarchical Parallel Document Parsing</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.18839" target="_blank">https://huggingface.co/papers/2607.18839</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.18839" target="_blank">https://arxiv.org/abs/2607.18839</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>PaddleOCR团队的文档解析新范式</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>A New Paradigm for Document Parsing from the PaddleOCR Team</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-10">@article{unknown26,
+  title = {HPD-Parsing: Hierarchical Parallel Document Parsing},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.18839},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.19322" class="paper-name" target="_blank">
+            12. Two-Level Meta-Rubrics for Evaluating Open-Ended Generation: GAMUT, a Benchmark for Factual Completeness
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>对开放式生成任务的基于评分的评估的新视角。
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(11)" id="btn-11">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-11">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.19322" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.19322" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(11)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Two-Level Meta-Rubrics for Evaluating Open-Ended Generation: GAMUT, a Benchmark for Factual Completeness</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.19322" target="_blank">https://huggingface.co/papers/2607.19322</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.19322" target="_blank">https://arxiv.org/abs/2607.19322</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>对开放式生成任务的基于评分的评估的新视角。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>A new perspective looking at rubric-based evaluation for open-ended generation tasks.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-11">@article{unknown26,
+  title = {Two-Level Meta-Rubrics for Evaluating Open-Ended Generation: GAMUT, a Benchmark for Factual Completeness},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.19322},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.19331" class="paper-name" target="_blank">
+            13. ISO: An RLVR-Native Optimization Stack
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>🪐 ISO ：继承频谱，优化帧。该发现。RLVR几乎不重写基本模型的奇异值谱，并且新功能存在于奇异帧（ U ， V ）中。我们在两个方向上进行功能验证：以任何混合比率将基础频谱放回RL检查点—每个基准都保持在RL水平。将RL光谱移植到RL...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(12)" id="btn-12">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-12">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.19331" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.19331" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(12)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：ISO: An RLVR-Native Optimization Stack</li>
+              <li>Stars: 0</li>
+              <li>类型：数据</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.19331" target="_blank">https://huggingface.co/papers/2607.19331</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.19331" target="_blank">https://arxiv.org/abs/2607.19331</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>🪐 ISO ：继承频谱，优化帧。该发现。RLVR几乎不重写基本模型的奇异值谱，并且新功能存在于奇异帧（ U ， V ）中。我们在两个方向上进行功能验证：以任何混合比率将基础频谱放回RL检查点—每个基准都保持在RL水平。将RL光谱移植到RL前框架中—没有任何改进。ISO将其转换为优化堆栈： • ISO...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>🪐 ISO: Inherit the spectrum, optimize the frames. The finding. RLVR barely rewrites the base model's singular-value spectra, and the new capability lives in the singular frames (U, V).  We verify this functionally in both directions: put the base spectrum back into an RL checkpoint at any mixing ratio — every benchmark stays at RL level. Graft the RL spectrum into pre-RL frames — nothing improves. ISO turns this into an optimization stack: • ISO-Merger (offline) : compose shared-base RL experts with no data, rollouts, gradients, or distillation — beats TA/TIES/TSV/RAM/OrthoMerge on 7B and 1.5B suites. • ISO-Optimizer (online) : run AdamW/Muon on (U, V) with Σ₀ frozen — matched RLVR accuracy in up to 2.7× fewer steps, on-par or higher final rewards. Interactive spectrum-swap demos (drag α yourself): https://iso-rlvr.github.io/</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-12">@article{unknown26,
+  title = {ISO: An RLVR-Native Optimization Stack},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.19331},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.18529" class="paper-name" target="_blank">
+            14. EduPanel: A Three-Agent LLM Judge for Teaching Videos -- Reliability, Complementarity, and Human Trust Calibration
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>法学硕士对教育视频的评估能力如何？我们推出了EduPanel ，这是一个多代理评估框架，通过专业代理和广泛的人工验证，产生更可靠、可解释和教学基础的判断！
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(13)" id="btn-13">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-13">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.18529" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.18529" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(13)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：EduPanel: A Three-Agent LLM Judge for Teaching Videos -- Reliability, Complementarity, and Human Trust Calibration</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.18529" target="_blank">https://huggingface.co/papers/2607.18529</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.18529" target="_blank">https://arxiv.org/abs/2607.18529</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>法学硕士对教育视频的评估能力如何？我们推出了EduPanel ，这是一个多代理评估框架，通过专业代理和广泛的人工验证，产生更可靠、可解释和教学基础的判断！</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>How well can LLMs evaluate educational videos? We introduce EduPanel, a multi-agent evaluation framework that produces more reliable, interpretable, and pedagogically grounded judgments through specialized agents and extensive human validation!</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-13">@article{unknown26,
+  title = {EduPanel: A Three-Agent LLM Judge for Teaching Videos -- Reliability, Complementarity, and Human Trust Calibration},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.18529},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.18955" class="paper-name" target="_blank">
+            15. H^2SD: Hybrid Hindsight Self-Distillation
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Yongkang Chen, Peiji Li, Linyang Li, Yichuan Ma, Qiye Cai</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(14)" id="btn-14">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-14">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.18955" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.18955" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(14)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：H^2SD: Hybrid Hindsight Self-Distillation</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Yongkang Chen, Peiji Li, Linyang Li, Yichuan Ma, Qiye Cai</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.18955" target="_blank">https://huggingface.co/papers/2607.18955</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.18955" target="_blank">https://arxiv.org/abs/2607.18955</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-14">@article{chen26,
+  title = {H^2SD: Hybrid Hindsight Self-Distillation},
+  author = {Yongkang Chen and Peiji Li and Linyang Li and Yichuan Ma and Qiye Cai},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.18955},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.19058" class="paper-name" target="_blank">
+            16. Where Should Optimizer State Live? Tiered State Allocation for Memory-Efficient Mixture-of-Experts Training
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">nuemaan/skewadam</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：anonnumaan01</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>优化器状态是教育部培训中最大的内存瓶颈。SkewAdam使用分层状态分配--根据梯度统计数据为密集骨干、专家和路由器分配不同的精度。这可将优化器状态内存减少97.4% （从50.6 GB降至1.29 GB ） ，并将总峰值训练内存从81.4...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(15)" id="btn-15">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-15">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.19058" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.19058" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/nuemaan/skewadam" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(15)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Where Should Optimizer State Live? Tiered State Allocation for Memory-Efficient Mixture-of-Experts Training</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：anonnumaan01</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.19058" target="_blank">https://huggingface.co/papers/2607.19058</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.19058" target="_blank">https://arxiv.org/abs/2607.19058</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>优化器状态是教育部培训中最大的内存瓶颈。SkewAdam使用分层状态分配--根据梯度统计数据为密集骨干、专家和路由器分配不同的精度。这可将优化器状态内存减少97.4% （从50.6 GB降至1.29 GB ） ，并将总峰值训练内存从81.4 GB降至31.3 GB。这为标准40GB内存预算带来了数十亿参数的MoE培训，而不会牺牲...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Optimizer state is the largest memory bottleneck in MoE training. SkewAdam uses a tiered state allocation—assigning different precisions to the dense backbone, experts, and router based on their gradient statistics. This cuts optimizer state memory by 97.4% (from 50.6 GB down to 1.29 GB) and drops total peak training memory from 81.4 GB to 31.3 GB. This brings multi-billion parameter MoE training onto standard 40GB memory budgets without sacrificing validation perplexity, establishing a scalable allocation strategy for much deeper architectures.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-15">@article{anonnumaan0126,
+  title = {Where Should Optimizer State Live? Tiered State Allocation for Memory-Efficient Mixture-of-Experts Training},
+  author = {anonnumaan01},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.19058},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.15491" class="paper-name" target="_blank">
+            17. Trajectory-aware Cross-view Geo-localization with Sequential Observations
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>跨视图地理定位将地面观测与地理标记卫星图像相匹配。最近的方法表明，视频剪辑等顺序查询比单个图像产生更丰富的时空线索，但它们忽略了一个互补的顺序模态：路线描述--它以更高的抽象水平捕获相同的轨迹，并且通常是唯一可用的输入（例如，用户将自动驾驶...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(16)" id="btn-16">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-16">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.15491" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.15491" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(16)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Trajectory-aware Cross-view Geo-localization with Sequential Observations</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.15491" target="_blank">https://huggingface.co/papers/2607.15491</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.15491" target="_blank">https://arxiv.org/abs/2607.15491</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>跨视图地理定位将地面观测与地理标记卫星图像相匹配。最近的方法表明，视频剪辑等顺序查询比单个图像产生更丰富的时空线索，但它们忽略了一个互补的顺序模态：路线描述--它以更高的抽象水平捕获相同的轨迹，并且通常是唯一可用的输入（例如，用户将自动驾驶车辆引导到...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Cross-view geo-localization matches ground-level observations against geo-tagged satellite imagery. Recent methods show that sequential queries such as video clips yield richer spatiotemporal cues than single images, yet they overlook a complementary sequential modality: route descriptions -- which capture the same trajectory at a higher level of abstraction and are often the only input available (e.g., a user directing an autonomous vehicle to a pickup point). To bridge this gap, we introduce SeqGeo-VL, a dataset of ∼39K video-text-satellite triplets, and TrajLoc, a unified framework capable of processing both video clips and route descriptions. By leveraging both dense visual and abstract linguistic semantics, TrajLoc enables these modalities to mutually reinforce cross-view matching. We further propose TrajMod, a lightweight module that conditions query embeddings on trajectory geometry, yielding spatially-aware representations. Experiments show that TrajLoc achieves substantial gains over state-of-the-art methods on both video and text geo-localization.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-16">@article{unknown26,
+  title = {Trajectory-aware Cross-view Geo-localization with Sequential Observations},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.15491},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.19344" class="paper-name" target="_blank">
+            18. Appearance Pointers -- Multimodal Region Control of Diffusion Transformers
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Matheus Gadelha, Srinath Sridhar, Radomír Měch, Yulia Gryaditskaya, Rahul Sajnani</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(17)" id="btn-17">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-17">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.19344" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.19344" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(17)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Appearance Pointers -- Multimodal Region Control of Diffusion Transformers</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Matheus Gadelha, Srinath Sridhar, Radomír Měch, Yulia Gryaditskaya, Rahul Sajnani</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.19344" target="_blank">https://huggingface.co/papers/2607.19344</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.19344" target="_blank">https://arxiv.org/abs/2607.19344</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-17">@article{gadelha26,
+  title = {Appearance Pointers -- Multimodal Region Control of Diffusion Transformers},
+  author = {Matheus Gadelha and Srinath Sridhar and Radomír Měch and Yulia Gryaditskaya and Rahul Sajnani},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.19344},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.17599" class="paper-name" target="_blank">
+            19. ConsiSpace: Learning Geometric Consistency Matters for Video Spatial Reasoning
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Hao Tang, Jian Yang, Wenyuan Huang, Zhenyu Zhang, Believe0029</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>我们提出了一种用于视频空间推理的几何一致性感知框架。
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(18)" id="btn-18">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-18">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.17599" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.17599" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(18)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：ConsiSpace: Learning Geometric Consistency Matters for Video Spatial Reasoning</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              <li>作者：Hao Tang, Jian Yang, Wenyuan Huang, Zhenyu Zhang, Believe0029</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.17599" target="_blank">https://huggingface.co/papers/2607.17599</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.17599" target="_blank">https://arxiv.org/abs/2607.17599</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>我们提出了一种用于视频空间推理的几何一致性感知框架。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>We propose a geometry-consistency-aware framework for video spatial reasoning.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-18">@article{tang26,
+  title = {ConsiSpace: Learning Geometric Consistency Matters for Video Spatial Reasoning},
+  author = {Hao Tang and Jian Yang and Wenyuan Huang and Zhenyu Zhang and Believe0029},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.17599},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function toggleDetails(paperId) {
+      const details = document.getElementById('details-' + paperId);
+      const btn = document.getElementById('btn-' + paperId);
+      if (details && btn) {
+        details.classList.toggle('active');
+        btn.textContent = details.classList.contains('active') ? '收起详情' : '查看详情';
+      }
+    }
+
+    function copyBibtex(paperId) {
+      const bibtexBlock = document.getElementById('bibtex-' + paperId);
+      if (bibtexBlock) {
+        navigator.clipboard.writeText(bibtexBlock.textContent).then(() => {
+          const btn = event.target;
+          const originalText = btn.textContent;
+          btn.textContent = '已复制!';
+          setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }).catch(err => {
+          alert('复制失败，请手动复制');
+        });
+      }
+    }
+  </script>
+</body>
+</html>
