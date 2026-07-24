@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuggingFace AI Papers 日报 - 2026-07-23</title>
+  <link rel="stylesheet" href="../../public/css/style.css">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-card: #161b22;
+      --text-primary: #c9d1d9;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-orange: #d29922;
+      --border: #30363d;
+      --border-light: #21262d;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.5; padding: 24px 16px; font-size: 13px; }
+    .container { max-width: 960px; margin: 0 auto; }
+    header { text-align: center; padding: 32px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+    h1 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+    .date { color: var(--text-secondary); font-size: 0.8125rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); padding: 12px; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
+    .stat-value { font-size: 1.25rem; font-weight: 600; color: var(--accent-green); line-height: 1.2; }
+    .stat-value .star-icon { color: #fbbf24; width: 20px; height: 20px; vertical-align: middle; display: inline-block; }
+    .stat-label { color: var(--text-secondary); margin-top: 4px; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    section { margin-bottom: 24px; }
+    h2 { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .project-list { display: flex; flex-direction: column; gap: 8px; }
+    .star-icon { width: 16px; height: 16px; vertical-align: middle; }
+    .paper-card { background: var(--bg-card); border-radius: 6px; padding: 12px; margin: 8px 0; border: 1px solid var(--border); transition: border-color 0.2s; }
+    .paper-card:hover { border-color: var(--text-muted); }
+    .paper-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; }
+    .paper-name { font-size: 0.875rem; font-weight: 600; color: var(--accent); text-decoration: none; line-height: 1.4; }
+    .paper-name:hover { text-decoration: underline; }
+    .paper-stats { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+    .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.6875rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 2px 6px; border-radius: 10px; border: 1px solid var(--border); white-space: nowrap; }
+    .stat-badge .star-icon { color: #fbbf24; width: 12px; height: 12px; }
+    .paper-abstract { background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin: 8px 0; border: 1px solid var(--border); }
+    .paper-abstract strong { color: var(--text-primary); }
+    .paper-meta { color: var(--text-secondary); font-size: 0.75rem; margin: 8px 0; }
+    .paper-meta a { color: var(--accent); text-decoration: none; }
+    .paper-meta a:hover { text-decoration: underline; }
+    .toggle-btn { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.6875rem; font-weight: 500; transition: all 0.2s; }
+    .toggle-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+    .paper-details { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .paper-details.active { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .detail-column { background: var(--bg-secondary); padding: 8px; border-radius: 6px; }
+    .detail-column h4 { color: var(--text-primary); margin-bottom: 6px; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
+    .detail-column ul { list-style: none; }
+    .detail-column li { color: var(--text-secondary); padding: 3px 0; font-size: 0.75rem; line-height: 1.4; }
+    .ai-section { background: var(--bg-card); padding: 16px; border-radius: 6px; border: 1px solid var(--border); }
+    .ai-section h2, .ai-section h3 { color: var(--text-primary); margin: 16px 0 8px; font-size: 0.75rem; font-weight: 600; }
+    .ai-section h2:first-child, .ai-section h3:first-child { margin-top: 0; }
+    .ai-section p { color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; font-size: 0.8125rem; }
+    .ai-section ul { margin-bottom: 12px; padding-left: 16px; }
+    .ai-section li { color: var(--text-secondary); margin-bottom: 4px; font-size: 0.8125rem; line-height: 1.5; }
+    .lang-dist { display: flex; flex-wrap: wrap; gap: 10px; }
+    .lang-item { background: var(--accent); color: var(--bg-primary); padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+    .paper-type { background: var(--accent-orange); color: var(--bg-primary); padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; margin-left: 6px; }
+    .quick-actions { display: flex; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .action-btn { background: var(--accent); color: var(--bg-primary); padding: 4px 12px; border-radius: 4px; text-decoration: none; font-size: 0.75rem; font-weight: 500; border: none; cursor: pointer; }
+    .action-btn:hover { opacity: 0.9; }
+    .bibtex-block { background: var(--bg-primary); padding: 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.6875rem; color: var(--text-secondary); white-space: pre-wrap; margin-top: 8px; }
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } .paper-details.active { grid-template-columns: 1fr; } .paper-header { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>HuggingFace AI Papers 日报</h1>
+      <div class="date">2026-07-23</div>
+    </header>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">14</div>
+        <div class="stat-label">论文总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">10</div>
+        <div class="stat-label">有 Stars 论文</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">
+          <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor" style="width: 20px; height: 20px;"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+          <span style="vertical-align: middle;">67</span>
+        </div>
+        <div class="stat-label">总 Stars</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">5</div>
+        <div class="stat-label">平均 Stars</div>
+      </div>
+    </section>
+
+    
+      <section class="ai-section">
+        <h2>AI 深度洞察</h2>
+        <p>长视频外推、大模型后训练与知识注入等新方法引领多模态与具身智能前沿。</p>
+
+        
+          <h3>技术亮点</h3>
+          <ul>
+            
+              <li>
+                <strong><a href="https://github.com/zhuang2002/Self_Gradient_Forcing" target="_blank" style="color: var(--accent); text-decoration: none;">zhuang2002/Self_Gradient_Forcing</a></strong>: 首次提出自梯度强制（Self Gradient Forcing）机制，无需额外微调即可实现原生长视频外推，突破视频扩散模型时长限制。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/SLAI-AITP/SLAI-T-Rex" target="_blank" style="color: var(--accent); text-decoration: none;">SLAI-AITP/SLAI-T-Rex</a></strong>: 在国产昇腾 SuperPOD 上完成 DeepSeek-V4 家族的全参数后训练，验证了全国产大模型训练栈的可行性与效率。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/hdnndh/Latent-Geometry-Beyond-Search-Amortizing-Planning-in-World-Models" target="_blank" style="color: var(--accent); text-decoration: none;">hdnndh/Latent-Geometry-Beyond-Search-Amortizing-Planning-in-World-Models</a></strong>: 首次系统研究超网络知识注入的扩展规律，为 LLM 低成本持续学习提供理论指导。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/Aiolus-X/RIPO" target="_blank" style="color: var(--accent); text-decoration: none;">Aiolus-X/RIPO</a></strong>: 将黎曼等距映射引入 LLM 强化学习，解决传统欧氏空间裁剪导致的探索坍缩问题。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/dwipddalal/Anchor-Align" target="_blank" style="color: var(--accent); text-decoration: none;">dwipddalal/Anchor-Align</a></strong>: 提出表示锚定与语言-动作对齐的两阶段微调框架，显著提升视觉-语言-动作模型在新场景的泛化能力。
+              </li>
+            
+          </ul>
+        
+
+        
+          <h3>社区价值</h3>
+          <ul>
+            <li>开放全参数后训练方案与昇腾适配代码，为国产 AI 加速卡社区提供成熟的大模型训练范本。</li><li>发布长视频生成、主动视觉评测、博弈数据合成等多个数据集与基准，丰富多模态与具身智能研究资源。</li>
+          </ul>
+        
+
+        
+          <h3>应用前景</h3>
+          <ul>
+            <li>长视频生成技术可直接应用于短视频创作、影视预演和虚拟仿真，降低长内容制作成本。</li><li>知识注入扩展律有望驱动个人化、持续学习的 LLM 助手，实现高效知识更新而无须完整重训。</li><li>具身智能通用微调方法将加速机器人从实验室走向开放世界的落地方案，赋能家庭服务与工业柔性操作。</li>
+          </ul>
+        
+      </section>
+    
+
+    <section>
+      <h2>论文列表（共 14 篇）</h2>
+      <div class="project-list">
+        
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.20368" class="paper-name" target="_blank">
+            1. Self Gradient Forcing: Native Long Video Extrapolation
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              17
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Yawen Luo, Yaowei Li, Yuxuan Bian, Shiyi Zhang, Junhao Zhuang</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>自渐变强制：本地长视频外推代码： https://github.com/zhuang2002/Self_Gradient_Forcing页面： https://zhuang2002.github.io/SelfGradientForcing...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(0)" id="btn-0">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-0">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.20368" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.20368" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(0)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Self Gradient Forcing: Native Long Video Extrapolation</li>
+              <li>Stars: 17</li>
+              <li>类型：研究</li>
+              <li>作者：Yawen Luo, Yaowei Li, Yuxuan Bian, Shiyi Zhang, Junhao Zhuang</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.20368" target="_blank">https://huggingface.co/papers/2607.20368</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.20368" target="_blank">https://arxiv.org/abs/2607.20368</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>自渐变强制：本地长视频外推代码： https://github.com/zhuang2002/Self_Gradient_Forcing页面： https://zhuang2002.github.io/SelfGradientForcing/高频纸： https://huggingface.co/papers/2607.20368 Arxiv ： https://arxiv.org/abs/2607.20368</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Self Gradient Forcing: Native Long Video Extrapolation Code: https://github.com/zhuang2002/Self_Gradient_Forcing Page: https://zhuang2002.github.io/SelfGradientForcing/ HF paper: https://huggingface.co/papers/2607.20368 Arxiv: https://arxiv.org/abs/2607.20368</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-0">@article{luo26,
+  title = {Self Gradient Forcing: Native Long Video Extrapolation},
+  author = {Yawen Luo and Yaowei Li and Yuxuan Bian and Shiyi Zhang and Junhao Zhuang},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.20368},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.19604" class="paper-name" target="_blank">
+            2. Scaling Laws for Hypernetwork-Based Knowledge Injection in Large Language Models
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              13
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Abulhair Saparov, Dos Baha, Nischay Dhankhar</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(1)" id="btn-1">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-1">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.19604" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.19604" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(1)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Scaling Laws for Hypernetwork-Based Knowledge Injection in Large Language Models</li>
+              <li>Stars: 13</li>
+              <li>类型：研究</li>
+              <li>作者：Abulhair Saparov, Dos Baha, Nischay Dhankhar</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.19604" target="_blank">https://huggingface.co/papers/2607.19604</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.19604" target="_blank">https://arxiv.org/abs/2607.19604</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-1">@article{saparov26,
+  title = {Scaling Laws for Hypernetwork-Based Knowledge Injection in Large Language Models},
+  author = {Abulhair Saparov and Dos Baha and Nischay Dhankhar},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.19604},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.20145" class="paper-name" target="_blank">
+            3. SLAI T-Rex: Full-Parameter Post-training of the DeepSeek-V4 Family on Ascend SuperPOD
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              12
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Linyuan Qiu, Xuhui Chen, Ruoyu Sun, Xiaodong Luo, Dongfang Li</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>万亿参数级MoE模型的全参数后训练为大规模分布式训练带来了巨大的系统级挑战，包括严重的内存压力、非重叠的通信开销和低效的内核执行。虽然大多数大规模LLM培训系统都是围绕基于GPU的集群构建的，但本报告介绍了Ascend NPU SuperP...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(2)" id="btn-2">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-2">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.20145" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.20145" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(2)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：SLAI T-Rex: Full-Parameter Post-training of the DeepSeek-V4 Family on Ascend SuperPOD</li>
+              <li>Stars: 12</li>
+              <li>类型：工具</li>
+              <li>作者：Linyuan Qiu, Xuhui Chen, Ruoyu Sun, Xiaodong Luo, Dongfang Li</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.20145" target="_blank">https://huggingface.co/papers/2607.20145</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.20145" target="_blank">https://arxiv.org/abs/2607.20145</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>万亿参数级MoE模型的全参数后训练为大规模分布式训练带来了巨大的系统级挑战，包括严重的内存压力、非重叠的通信开销和低效的内核执行。虽然大多数大规模LLM培训系统都是围绕基于GPU的集群构建的，但本报告介绍了Ascend NPU SuperPOD的端到端优化实践。使用DeepSeek-V4 mo...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Full-parameter post-training of trillion-parameter-scale MoE models introduces substantial system-level challenges for large-scale distributed training, including severe memory pressure, non-overlapped communication overhead, and inefficient kernel execution. While most large-scale LLM training systems are built around GPU-based clusters, this report presents an end-to-end optimization practice on the Ascend NPU SuperPOD. Using the DeepSeek-V4 model family as the target workload, we develop a hierarchical optimization framework spanning model-level parallelism, computation-communication orchestration, and low-level kernel execution. The resulting system achieves 34.22% Model FLOPs Utilization (MFU) with a 2.93x improvement over the open-source baseline recipe while maintaining training stability. Building on this optimized infrastructure, we further establish a CPT and SFT workflow for complex Operations Research (OR) tasks. We refer to the integrated framework as SLAI T-Rex. Using DeepSeek-V4-Flash, we develop OR-oriented CPT and SFT data pipelines that combine collected domain resources with solver-verified synthetic optimization documents. The resulting dataset contains 10K high-quality SFT samples spanning four task categories and three problem representations. The specialized model achieves the highest average zero-shot Pass@1 score among the evaluated models, reaching 71.81% and outperforming GPT-5.4-Mini and the base DeepSeek-V4-Flash model by 3.98 and 11.27 percentage points, respectively. Overall, this work demonstrates a full-stack pathway from efficient trillion-parameter model post-training on Ascend infra to domain-specialized Flash models for solver-grounded mathematical modeling, advancing frontier-model systems for complex reasoning.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-2">@article{qiu26,
+  title = {SLAI T-Rex: Full-Parameter Post-training of the DeepSeek-V4 Family on Ascend SuperPOD},
+  author = {Linyuan Qiu and Xuhui Chen and Ruoyu Sun and Xiaodong Luo and Dongfang Li},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.20145},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.13429" class="paper-name" target="_blank">
+            4. Generalizable VLA Finetuning via Representation Anchoring and Language-Action Alignment
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              11
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Utkarsh Mishra, Jeonghwan Kim, Chahit Jain, Shivansh Patel, Dwipz</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>TL; Dr. Behavior克隆（ BC ）微调慢慢覆盖了VLA依赖于视觉和语义泛化的预训练VLM表示。Anchor-Align为标准BC添加了两个目标：视觉-语言锚定（从冻结的VLM副本中分层蒸馏，防止表示漂移）和语言-动作对齐（每个...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(3)" id="btn-3">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-3">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.13429" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.13429" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(3)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Generalizable VLA Finetuning via Representation Anchoring and Language-Action Alignment</li>
+              <li>Stars: 11</li>
+              <li>类型：研究</li>
+              <li>作者：Utkarsh Mishra, Jeonghwan Kim, Chahit Jain, Shivansh Patel, Dwipz</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.13429" target="_blank">https://huggingface.co/papers/2607.13429</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.13429" target="_blank">https://arxiv.org/abs/2607.13429</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>TL; Dr. Behavior克隆（ BC ）微调慢慢覆盖了VLA依赖于视觉和语义泛化的预训练VLM表示。Anchor-Align为标准BC添加了两个目标：视觉-语言锚定（从冻结的VLM副本中分层蒸馏，防止表示漂移）和语言-动作对齐（每个动作目标变成离散的运动方向标签，语言和动作被训练j...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>TL;DR. Behavior cloning (BC) finetuning slowly overwrites the pretrained VLM representations a VLA relies on for visual and semantic generalization. Anchor-Align adds two objectives to standard BC: Vision-Language Anchoring (layer-wise distillation from a frozen VLM copy, which keeps the representations from drifting) and Language-Action Alignment (each action target becomes a discrete motion-direction label, and language and action are trained jointly on the same robot observation). Anchor-Align achieves stronger OOD generalization. In simulation, it improves robustness to unseen spatial rearrangements, camera perturbations, and other shifts absent from training on LIBERO-PRO and LIBERO-Plus, plus long-horizon control on CALVIN. On a physical xArm7, real-robot success under unseen spatial rearrangements, semantic perturbations, and cluttered scenes rises from 28% to 54% and from 37% to 60% across two VLA architectures.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-3">@article{mishra26,
+  title = {Generalizable VLA Finetuning via Representation Anchoring and Language-Action Alignment},
+  author = {Utkarsh Mishra and Jeonghwan Kim and Chahit Jain and Shivansh Patel and Dwipz},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.13429},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.16165" class="paper-name" target="_blank">
+            5. An Exam for Active Observers
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              7
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>视觉是一个循环，而不是一瞥。我们介绍了ActiveVision ，这是一种基准测试，用于测试模型是否可以反复观察、推理和寻找新的视觉证据。人类解决96.1% ，最好的前沿模式： 10.6%。寓言5 ，擅长推理和编码，得分仅为3.5 ％。🌐...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(4)" id="btn-4">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-4">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.16165" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.16165" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(4)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：An Exam for Active Observers</li>
+              <li>Stars: 7</li>
+              <li>类型：数据</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.16165" target="_blank">https://huggingface.co/papers/2607.16165</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.16165" target="_blank">https://arxiv.org/abs/2607.16165</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>视觉是一个循环，而不是一瞥。我们介绍了ActiveVision ，这是一种基准测试，用于测试模型是否可以反复观察、推理和寻找新的视觉证据。人类解决96.1% ，最好的前沿模式： 10.6%。寓言5 ，擅长推理和编码，得分仅为3.5 ％。🌐网址： https://activevision.dev💻代码： https://github.com/saccharomycetes/ActiveVision🤗数据集： https://huggingface.co/datasets/activevisionai/ActiveVision📄论文： https ：...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Vision is a loop, not a glance. We introduce ActiveVision, a benchmark testing whether models can repeatedly observe, reason, and seek new visual evidence. Humans solve 96.1%.  The best frontier model: 10.6%. Fable 5, strong at reasoning and coding, scores just 3.5%. 🌐 Website: https://activevision.dev 💻 Code: https://github.com/saccharomycetes/ActiveVision 🤗 Dataset: https://huggingface.co/datasets/activevisionai/ActiveVision 📄 Paper: https://arxiv.org/abs/2607.16165</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-4">@article{unknown26,
+  title = {An Exam for Active Observers},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.16165},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.19790" class="paper-name" target="_blank">
+            6. Trace: A Taxonomy-Guided Environment for Multidomain Visual Reasoning
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              2
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">综述</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Md Tanvirul Alam</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>我们引入了TRACE ，这是一个分类学引导的环境，包含跨11个域的1,000个确定性视觉推理任务。在64,000个跟踪实例上对Qwen2.5-VL-3B和Qwen2.5-VL-7B进行培训，可将24个外部基准的宏观平均绩效分别提高3.51和...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(5)" id="btn-5">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-5">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.19790" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.19790" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(5)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Trace: A Taxonomy-Guided Environment for Multidomain Visual Reasoning</li>
+              <li>Stars: 2</li>
+              <li>类型：综述</li>
+              <li>作者：Md Tanvirul Alam</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.19790" target="_blank">https://huggingface.co/papers/2607.19790</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.19790" target="_blank">https://arxiv.org/abs/2607.19790</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>我们引入了TRACE ，这是一个分类学引导的环境，包含跨11个域的1,000个确定性视觉推理任务。在64,000个跟踪实例上对Qwen2.5-VL-3B和Qwen2.5-VL-7B进行培训，可将24个外部基准的宏观平均绩效分别提高3.51和4.06个百分点。我们发布完整的研究堆栈，包括任务生成器、数据集、经过训练的检查点、培训和评估代码，并运行artif...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>We introduce TRACE, a taxonomy-guided environment containing 1,000 deterministic visual-reasoning tasks across 11 domains. Training Qwen2.5-VL-3B and Qwen2.5-VL-7B on 64,000 TRACE instances improves their macro-average performance across 24 external benchmarks by 3.51 and 4.06 percentage points, respectively. We release the full research stack, including the task generator, dataset, trained checkpoints, training and evaluation code, and run artifacts. 💻 Code: https://github.com/maveryn/trace 📄 Paper: https://huggingface.co/papers/2607.19790 🌐 Project page: https://maveryn.github.io/trace/ 🤗 Hugging Face collection: https://huggingface.co/collections/maveryn/trace Contributions are welcome—please feel free to open an issue or submit a pull request!</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-5">@article{alam26,
+  title = {Trace: A Taxonomy-Guided Environment for Multidomain Visual Reasoning},
+  author = {Md Tanvirul Alam},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.19790},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.19942" class="paper-name" target="_blank">
+            7. G-MAD: A Game-Based Data Generation Framework for Multi-View RGB-T Aerial Object Detection
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              2
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Moongu Jeon, Namhoon Jung, Dongho Yoon, JongHyun Park, Yechan Kim</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(6)" id="btn-6">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-6">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.19942" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.19942" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(6)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：G-MAD: A Game-Based Data Generation Framework for Multi-View RGB-T Aerial Object Detection</li>
+              <li>Stars: 2</li>
+              <li>类型：研究</li>
+              <li>作者：Moongu Jeon, Namhoon Jung, Dongho Yoon, JongHyun Park, Yechan Kim</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.19942" target="_blank">https://huggingface.co/papers/2607.19942</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.19942" target="_blank">https://arxiv.org/abs/2607.19942</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-6">@article{jeon26,
+  title = {G-MAD: A Game-Based Data Generation Framework for Multi-View RGB-T Aerial Object Detection},
+  author = {Moongu Jeon and Namhoon Jung and Dongho Yoon and JongHyun Park and Yechan Kim},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.19942},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.19747" class="paper-name" target="_blank">
+            8. Beyond Relevance-Centric Retrieval: Rubric-Oriented Document Set Selection and Ranking
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              1
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>随着大型语言模型和人工智能代理成为搜索结果的主要消费者，文档集的质量决定了下游生成的上限。然而，现有的评估系统仍然局限于通过nDCG对文档进行独立评分和汇总，忽略了文档之间的相互作用（冗余、冲突、互补性） ，并且无法回答是什么使一个文档集优...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(7)" id="btn-7">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-7">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.19747" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.19747" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(7)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Beyond Relevance-Centric Retrieval: Rubric-Oriented Document Set Selection and Ranking</li>
+              <li>Stars: 1</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.19747" target="_blank">https://huggingface.co/papers/2607.19747</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.19747" target="_blank">https://arxiv.org/abs/2607.19747</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>随着大型语言模型和人工智能代理成为搜索结果的主要消费者，文档集的质量决定了下游生成的上限。然而，现有的评估系统仍然局限于通过nDCG对文档进行独立评分和汇总，忽略了文档之间的相互作用（冗余、冲突、互补性） ，并且无法回答是什么使一个文档集优于另一个文档集。为了解决这些问题，我们建议...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>As large language models and AI agents become the primary consumers of search results, document set quality determines the upper bound of downstream generation. Yet existing evaluation systems remain confined to scoring documents independently and aggregating via nDCG, ignoring inter-document interactions (redundancy, conflict, complementarity) and unable to answer what makes one document set better than another. To address these issues, we propose a complete evaluate-diagnose-optimize framework. We design SetwiseEvalKit, a three-level, nine-dimension document set evaluation benchmark covering both short-form and long-form scenarios, comprising approximately 28K high-quality evaluation rubrics. We systematically evaluate 12 rerankers: even the best method achieves no more than 45% coverage, cross-document coordination dimensions are universally weak, and no single method maintains top performance across both settings. Building on this, we propose Rubric4Setwise, a training-free method that converts rubric-based evaluation criteria into document set selection signals, achieving the best downstream generation performance with fewer documents and search rounds. It is the only method that maintains state-of-the-art results across both scenarios, validating the effectiveness of closing the loop from evaluation to optimization.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-7">@article{unknown26,
+  title = {Beyond Relevance-Centric Retrieval: Rubric-Oriented Document Set Selection and Ranking},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.19747},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.19691" class="paper-name" target="_blank">
+            9. SLPO: Scaling Latent Reasoning via a Surrogate Policy
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              1
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Wenjie Li, Yongqi Li, Zhiyuan Liu, Runyang You</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(8)" id="btn-8">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-8">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.19691" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.19691" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(8)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：SLPO: Scaling Latent Reasoning via a Surrogate Policy</li>
+              <li>Stars: 1</li>
+              <li>类型：研究</li>
+              <li>作者：Wenjie Li, Yongqi Li, Zhiyuan Liu, Runyang You</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.19691" target="_blank">https://huggingface.co/papers/2607.19691</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.19691" target="_blank">https://arxiv.org/abs/2607.19691</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-8">@article{li26,
+  title = {SLPO: Scaling Latent Reasoning via a Surrogate Policy},
+  author = {Wenjie Li and Yongqi Li and Zhiyuan Liu and Runyang You},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.19691},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.20207" class="paper-name" target="_blank">
+            10. SeededGrasp: Language-Guided Grasping in Complex Scenes with Multiple Embodiments
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              1
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Maria Attarian, Jasper Gerigk, Raymond Wang, Gurpreet Singh Mukker, Yang Xu</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(9)" id="btn-9">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-9">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.20207" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.20207" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(9)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：SeededGrasp: Language-Guided Grasping in Complex Scenes with Multiple Embodiments</li>
+              <li>Stars: 1</li>
+              <li>类型：研究</li>
+              <li>作者：Maria Attarian, Jasper Gerigk, Raymond Wang, Gurpreet Singh Mukker, Yang Xu</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.20207" target="_blank">https://huggingface.co/papers/2607.20207</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.20207" target="_blank">https://arxiv.org/abs/2607.20207</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-9">@article{attarian26,
+  title = {SeededGrasp: Language-Guided Grasping in Complex Scenes with Multiple Embodiments},
+  author = {Maria Attarian and Jasper Gerigk and Raymond Wang and Gurpreet Singh Mukker and Yang Xu},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.20207},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.10169" class="paper-name" target="_blank">
+            11. Beyond Euclidean Clipping: Overcoming Exploration Collapse in LLM RL via Riemannian Isometric Policy Optimization
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>本文解决了PPO中一个具有十年历史的基本理论缺陷：其启发式裁剪机制隐式假设欧几里得度量，导致与潜在的黎曼策略分布流形的几何不匹配。这种不匹配导致病理信任区域缩放，并引发LLM的探索崩溃。为了解决这个问题，我们引入了黎曼等距策略优化（ RIP...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(10)" id="btn-10">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-10">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.10169" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.10169" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(10)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Beyond Euclidean Clipping: Overcoming Exploration Collapse in LLM RL via Riemannian Isometric Policy Optimization</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.10169" target="_blank">https://huggingface.co/papers/2607.10169</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.10169" target="_blank">https://arxiv.org/abs/2607.10169</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>本文解决了PPO中一个具有十年历史的基本理论缺陷：其启发式裁剪机制隐式假设欧几里得度量，导致与潜在的黎曼策略分布流形的几何不匹配。这种不匹配导致病理信任区域缩放，并引发LLM的探索崩溃。为了解决这个问题，我们引入了黎曼等距策略优化（ RIPO ） ，它动态对齐...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>This paper addresses a fundamental, decade-old theoretical flaw in PPO: its heuristic clipping mechanism implicitly assumes a Euclidean metric, resulting in a geometric mismatch with the underlying Riemannian manifold of policy distributions. This mismatch leads to pathological trust region scaling and triggers exploration collapse in LLMs. To resolve this, we introduce Riemannian Isometric Policy Optimization (RIPO), which dynamically aligns trust regions with local geometry, achieving a more balanced exploration-exploitation trade-off and establishing new SOTA performance in LLM RL.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-10">@article{unknown26,
+  title = {Beyond Euclidean Clipping: Overcoming Exploration Collapse in LLM RL via Riemannian Isometric Policy Optimization},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.10169},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.16190" class="paper-name" target="_blank">
+            12. FVAttn: Adaptive Sparse Attention with Runtime Load Balancing for Video Generation
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Hao Liu, Zhiying Wen, Ye Huang, Chenghuan Huang, Hao Liu</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>视频扩散变压器处理长时空序列，使自注意力成为高分辨率视频生成的主要瓶颈。无训练稀疏注意降低了这一成本，但自适应Top-p路由在多GPU序列并行性下会产生不均匀的每头工作负载。由此产生的工作负载异构性将稀疏的注意力转化为等级级的离散问题。我们...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(11)" id="btn-11">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-11">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.16190" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.16190" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(11)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：FVAttn: Adaptive Sparse Attention with Runtime Load Balancing for Video Generation</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              <li>作者：Hao Liu, Zhiying Wen, Ye Huang, Chenghuan Huang, Hao Liu</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.16190" target="_blank">https://huggingface.co/papers/2607.16190</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.16190" target="_blank">https://arxiv.org/abs/2607.16190</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>视频扩散变压器处理长时空序列，使自注意力成为高分辨率视频生成的主要瓶颈。无训练稀疏注意降低了这一成本，但自适应Top-p路由在多GPU序列并行性下会产生不均匀的每头工作负载。由此产生的工作负载异构性将稀疏的注意力转化为等级级的离散问题。我们介绍FVattn ，一种无需训练的稀疏注意力系统...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Video Diffusion Transformers process long spatio-temporal sequences, making self-attention the main bottleneck in high-resolution video generation. Training-free sparse attention reduces this cost, but adaptive Top-p routing creates uneven per-head workloads under multi-GPU sequence parallelism. The resulting workload heterogeneity turns sparse attention into a rank-level straggler problem. We present FVattn, a training-free sparse-attention system that improves the distributed execution efficiency of adaptive sparse attention under multi-GPU sequence parallelism. FVattn uses Top-p routing, a Top-k safety floor, and video-aware block organization as the sparse-routing frontend, then repairs the materialized mask at runtime. Runtime Load Balancing migrates a small number of heavy heads via P2P communication to shorten the current critical path. Slack-Aware Sparse Augmentation fills residual non-critical-rank slack with additional high-value blocks, while overlap hides scheduling and migration overhead behind existing computation. On step-distilled Wan2.2 I2V, FVattn reduces average load imbalance from 1.34 to 1.08 and delivers a 4.41× attention speedup over FlashAttention, while achieving a 2.02--2.11× DiT inference speedup with competitive video quality.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-11">@article{liu26,
+  title = {FVAttn: Adaptive Sparse Attention with Runtime Load Balancing for Video Generation},
+  author = {Hao Liu and Zhiying Wen and Ye Huang and Chenghuan Huang and Hao Liu},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.16190},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.20379" class="paper-name" target="_blank">
+            13. Train the Model, Not the Reader: Decodability Supervision for Verifiable Activation Explanations
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Hiskias Dingeto</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>重建被广泛用于评估隐藏激活的自然语言解释，但高重建分数实际上是否意味着解释的具体主张是真实的？我们发现事实并非如此。在发布的Qwen-2.5-7B语言器上，即使只有约2%的具体主张影响重建，解释的重建也远高于机会。在对照实验中，标准培训设置...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(12)" id="btn-12">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-12">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.20379" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.20379" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(12)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Train the Model, Not the Reader: Decodability Supervision for Verifiable Activation Explanations</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Hiskias Dingeto</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.20379" target="_blank">https://huggingface.co/papers/2607.20379</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.20379" target="_blank">https://arxiv.org/abs/2607.20379</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>重建被广泛用于评估隐藏激活的自然语言解释，但高重建分数实际上是否意味着解释的具体主张是真实的？我们发现事实并非如此。在发布的Qwen-2.5-7B语言器上，即使只有约2%的具体主张影响重建，解释的重建也远高于机会。在对照实验中，标准培训设置也始终如一地开发……</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Reconstruction is widely used to evaluate natural-language explanations of hidden activations, but does a high reconstruction score actually mean the explanation’s specific claims are true? We find that it does not. On a released Qwen-2.5-7B verbalizer, explanations reconstruct well above chance even though only ~2% of their specific claims affect reconstruction. In controlled experiments, the standard training setup also consistently develops private codes: false wording that the model nevertheless relies on. The paper introduces two auditing protocols for detecting these failures and RECAP, a training method that keeps designated internal content independently decodable by simple probes. RECAP removes the private codes at negligible cost and remains effective even when an adversary edits explanations to preserve reconstruction while introducing lies. The broader takeaway: high reconstruction does not certify the truth of individual claims in an activation explanation.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-12">@article{dingeto26,
+  title = {Train the Model, Not the Reader: Decodability Supervision for Verifiable Activation Explanations},
+  author = {Hiskias Dingeto},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.20379},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.20417" class="paper-name" target="_blank">
+            14. ATSplat: Compact Feed-forward 3D Gaussian Splatting with Adaptive Token Expansion
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Seon Joo Kim, Gim Hee Lee, Mijin Yoo, Jeonghwan Cho, Cho In</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(13)" id="btn-13">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-13">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.20417" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.20417" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(13)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：ATSplat: Compact Feed-forward 3D Gaussian Splatting with Adaptive Token Expansion</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Seon Joo Kim, Gim Hee Lee, Mijin Yoo, Jeonghwan Cho, Cho In</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.20417" target="_blank">https://huggingface.co/papers/2607.20417</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.20417" target="_blank">https://arxiv.org/abs/2607.20417</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-13">@article{kim26,
+  title = {ATSplat: Compact Feed-forward 3D Gaussian Splatting with Adaptive Token Expansion},
+  author = {Seon Joo Kim and Gim Hee Lee and Mijin Yoo and Jeonghwan Cho and Cho In},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.20417},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function toggleDetails(paperId) {
+      const details = document.getElementById('details-' + paperId);
+      const btn = document.getElementById('btn-' + paperId);
+      if (details && btn) {
+        details.classList.toggle('active');
+        btn.textContent = details.classList.contains('active') ? '收起详情' : '查看详情';
+      }
+    }
+
+    function copyBibtex(paperId) {
+      const bibtexBlock = document.getElementById('bibtex-' + paperId);
+      if (bibtexBlock) {
+        navigator.clipboard.writeText(bibtexBlock.textContent).then(() => {
+          const btn = event.target;
+          const originalText = btn.textContent;
+          btn.textContent = '已复制!';
+          setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }).catch(err => {
+          alert('复制失败，请手动复制');
+        });
+      }
+    }
+  </script>
+</body>
+</html>
