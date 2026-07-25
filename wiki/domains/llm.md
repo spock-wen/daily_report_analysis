@@ -3,7 +3,7 @@
 ## 领域概览
 
 - 项目总数：11
-- 最近更新：2026-07-22
+- 最近更新：2026-07-24
 - 报告类型：daily
 
 llm 领域收录了与大语言模型、Transformer、基础模型相关的项目。
@@ -15,19 +15,19 @@ llm 领域收录了与大语言模型、Transformer、基础模型相关的项�
 | 1 | [cheahjs/free-llm-api-resources](../../wiki/projects/cheahjs_free-llm-api-resources.md) | 2026-05-06 | 1 | 20469 |
 | 2 | [PriorLabs/TabPFN](../../wiki/projects/PriorLabs_TabPFN.md) | 2026-05-07 | 1 | 6779 |
 | 3 | [jundot/omlx](../../wiki/projects/jundot_omlx.md) | 2026-05-10 | 1 | 13258 |
-| 4 | [Lordog/dive-into-llms](../../wiki/projects/Lordog_dive-into-llms.md) | 2026-05-11 | 1 | 37270 |
-| 5 | [NVlabs/Sana](../../wiki/projects/NVlabs_Sana.md) | 2026-05-18 | 1 | 6505 |
-| 6 | [truelockmc/streambert](../../wiki/projects/truelockmc_streambert.md) | 2026-05-21 | 1 | 3947 |
-| 7 | [ggml-org/llama.cpp](../../wiki/projects/ggml-org_llama.cpp.md) | 2026-06-07 | 1 | 115308 |
-| 8 | [harry0703/MoneyPrinterTurbo](../../wiki/projects/harry0703_MoneyPrinterTurbo.md) | 2026-06-10 | 1 | 84964 |
-| 9 | [Anil-matcha/Open-Generative-AI](../../wiki/projects/Anil-matcha_Open-Generative-AI.md) | 2026-06-27 | 1 | 21365 |
-| 10 | [ZhuLinsen/daily_stock_analysis](../../wiki/projects/ZhuLinsen_daily_stock_analysis.md) | 2026-07-06 | 1 | 54688 |
+| 4 | [NVlabs/Sana](../../wiki/projects/NVlabs_Sana.md) | 2026-05-18 | 1 | 6505 |
+| 5 | [truelockmc/streambert](../../wiki/projects/truelockmc_streambert.md) | 2026-05-21 | 1 | 3947 |
+| 6 | [ggml-org/llama.cpp](../../wiki/projects/ggml-org_llama.cpp.md) | 2026-06-07 | 1 | 115308 |
+| 7 | [harry0703/MoneyPrinterTurbo](../../wiki/projects/harry0703_MoneyPrinterTurbo.md) | 2026-06-10 | 1 | 84964 |
+| 8 | [Anil-matcha/Open-Generative-AI](../../wiki/projects/Anil-matcha_Open-Generative-AI.md) | 2026-06-27 | 1 | 21365 |
+| 9 | [ZhuLinsen/daily_stock_analysis](../../wiki/projects/ZhuLinsen_daily_stock_analysis.md) | 2026-07-06 | 1 | 54688 |
+| 10 | [shiyu-coder/Kronos](../../wiki/projects/shiyu-coder_Kronos.md) | 2026-07-24 | 1 | 33473 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：397,137
+- 总 Stars 数：405,736
 - 最热项目：[ggml-org/llama.cpp](../../wiki/projects/ggml-org_llama.cpp.md) (115308 ⭐)
 
 
