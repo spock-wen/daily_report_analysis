@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：9
-- 最近更新：2026-07-11
+- 项目总数：11
+- 最近更新：2026-07-27
 - 报告类型：daily
 
 database 领域收录了与AI 相关技术相关的项目。
@@ -21,12 +21,13 @@ database 领域收录了与AI 相关技术相关的项目。
 | 7 | [dbt-labs/dbt-core](../../wiki/projects/dbt-labs_dbt-core.md) | 2026-06-27 | 1 | 13208 |
 | 8 | [supabase/supabase](../../wiki/projects/supabase_supabase.md) | 2026-07-03 | 1 | 105458 |
 | 9 | [prisma/prisma](../../wiki/projects/prisma_prisma.md) | 2026-07-11 | 1 | 47231 |
+| 10 | [apache/cassandra](../../wiki/projects/apache_cassandra.md) | 2026-07-27 | 1 | 9951 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：312,431
+- 总 Stars 数：397,575
 - 最热项目：[supabase/supabase](../../wiki/projects/supabase_supabase.md) (105458 ⭐)
 
 
