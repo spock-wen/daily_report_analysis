@@ -3,7 +3,7 @@
 ## 领域概览
 
 - 项目总数：10
-- 最近更新：2026-07-28
+- 最近更新：2026-07-29
 - 报告类型：daily
 
 speech 领域收录了与语音识别、语音合成、音频处理相关的项目。
@@ -15,19 +15,19 @@ speech 领域收录了与语音识别、语音合成、音频处理相关的项�
 | 1 | [yt-dlp/yt-dlp](../../wiki/projects/yt-dlp_yt-dlp.md) | 2026-05-23 | 1 | 164940 |
 | 2 | [supertone-inc/supertonic](../../wiki/projects/supertone-inc_supertonic.md) | 2026-05-25 | 1 | 10169 |
 | 3 | [openai/whisper](../../wiki/projects/openai_whisper.md) | 2026-06-06 | 1 | 101839 |
-| 4 | [microsoft/VibeVoice](../../wiki/projects/microsoft_VibeVoice.md) | 2026-06-06 | 1 | 48462 |
-| 5 | [OpenBMB/VoxCPM](../../wiki/projects/OpenBMB_VoxCPM.md) | 2026-06-16 | 1 | 30114 |
-| 6 | [hugohe3/ppt-master](../../wiki/projects/hugohe3_ppt-master.md) | 2026-06-27 | 1 | 33041 |
-| 7 | [altic-dev/FluidVoice](../../wiki/projects/altic-dev_FluidVoice.md) | 2026-06-29 | 1 | 4360 |
-| 8 | [Starmel/OpenSuperWhisper](../../wiki/projects/Starmel_OpenSuperWhisper.md) | 2026-07-06 | 1 | 1804 |
-| 9 | [jamiepine/voicebox](../../wiki/projects/jamiepine_voicebox.md) | 2026-07-22 | 1 | 45726 |
-| 10 | [moeru-ai/airi](../../wiki/projects/moeru-ai_airi.md) | 2026-07-28 | 1 | 44731 |
+| 4 | [OpenBMB/VoxCPM](../../wiki/projects/OpenBMB_VoxCPM.md) | 2026-06-16 | 1 | 30114 |
+| 5 | [hugohe3/ppt-master](../../wiki/projects/hugohe3_ppt-master.md) | 2026-06-27 | 1 | 33041 |
+| 6 | [altic-dev/FluidVoice](../../wiki/projects/altic-dev_FluidVoice.md) | 2026-06-29 | 1 | 4360 |
+| 7 | [Starmel/OpenSuperWhisper](../../wiki/projects/Starmel_OpenSuperWhisper.md) | 2026-07-06 | 1 | 1804 |
+| 8 | [jamiepine/voicebox](../../wiki/projects/jamiepine_voicebox.md) | 2026-07-22 | 1 | 45726 |
+| 9 | [moeru-ai/airi](../../wiki/projects/moeru-ai_airi.md) | 2026-07-29 | 1 | 45361 |
+| 10 | [microsoft/VibeVoice](../../wiki/projects/microsoft_VibeVoice.md) | 2026-07-29 | 1 | 51242 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：485,186
+- 总 Stars 数：488,596
 - 最热项目：[yt-dlp/yt-dlp](../../wiki/projects/yt-dlp_yt-dlp.md) (164940 ⭐)
 
 
