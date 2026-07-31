@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuggingFace AI Papers 日报 - 2026-07-30</title>
+  <link rel="stylesheet" href="../../public/css/style.css">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-card: #161b22;
+      --text-primary: #c9d1d9;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-orange: #d29922;
+      --border: #30363d;
+      --border-light: #21262d;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.5; padding: 24px 16px; font-size: 13px; }
+    .container { max-width: 960px; margin: 0 auto; }
+    header { text-align: center; padding: 32px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+    h1 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+    .date { color: var(--text-secondary); font-size: 0.8125rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); padding: 12px; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
+    .stat-value { font-size: 1.25rem; font-weight: 600; color: var(--accent-green); line-height: 1.2; }
+    .stat-value .star-icon { color: #fbbf24; width: 20px; height: 20px; vertical-align: middle; display: inline-block; }
+    .stat-label { color: var(--text-secondary); margin-top: 4px; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    section { margin-bottom: 24px; }
+    h2 { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .project-list { display: flex; flex-direction: column; gap: 8px; }
+    .star-icon { width: 16px; height: 16px; vertical-align: middle; }
+    .paper-card { background: var(--bg-card); border-radius: 6px; padding: 12px; margin: 8px 0; border: 1px solid var(--border); transition: border-color 0.2s; }
+    .paper-card:hover { border-color: var(--text-muted); }
+    .paper-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; }
+    .paper-name { font-size: 0.875rem; font-weight: 600; color: var(--accent); text-decoration: none; line-height: 1.4; }
+    .paper-name:hover { text-decoration: underline; }
+    .paper-stats { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+    .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.6875rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 2px 6px; border-radius: 10px; border: 1px solid var(--border); white-space: nowrap; }
+    .stat-badge .star-icon { color: #fbbf24; width: 12px; height: 12px; }
+    .paper-abstract { background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin: 8px 0; border: 1px solid var(--border); }
+    .paper-abstract strong { color: var(--text-primary); }
+    .paper-meta { color: var(--text-secondary); font-size: 0.75rem; margin: 8px 0; }
+    .paper-meta a { color: var(--accent); text-decoration: none; }
+    .paper-meta a:hover { text-decoration: underline; }
+    .toggle-btn { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.6875rem; font-weight: 500; transition: all 0.2s; }
+    .toggle-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+    .paper-details { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .paper-details.active { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .detail-column { background: var(--bg-secondary); padding: 8px; border-radius: 6px; }
+    .detail-column h4 { color: var(--text-primary); margin-bottom: 6px; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
+    .detail-column ul { list-style: none; }
+    .detail-column li { color: var(--text-secondary); padding: 3px 0; font-size: 0.75rem; line-height: 1.4; }
+    .ai-section { background: var(--bg-card); padding: 16px; border-radius: 6px; border: 1px solid var(--border); }
+    .ai-section h2, .ai-section h3 { color: var(--text-primary); margin: 16px 0 8px; font-size: 0.75rem; font-weight: 600; }
+    .ai-section h2:first-child, .ai-section h3:first-child { margin-top: 0; }
+    .ai-section p { color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; font-size: 0.8125rem; }
+    .ai-section ul { margin-bottom: 12px; padding-left: 16px; }
+    .ai-section li { color: var(--text-secondary); margin-bottom: 4px; font-size: 0.8125rem; line-height: 1.5; }
+    .lang-dist { display: flex; flex-wrap: wrap; gap: 10px; }
+    .lang-item { background: var(--accent); color: var(--bg-primary); padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+    .paper-type { background: var(--accent-orange); color: var(--bg-primary); padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; margin-left: 6px; }
+    .quick-actions { display: flex; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .action-btn { background: var(--accent); color: var(--bg-primary); padding: 4px 12px; border-radius: 4px; text-decoration: none; font-size: 0.75rem; font-weight: 500; border: none; cursor: pointer; }
+    .action-btn:hover { opacity: 0.9; }
+    .bibtex-block { background: var(--bg-primary); padding: 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.6875rem; color: var(--text-secondary); white-space: pre-wrap; margin-top: 8px; }
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } .paper-details.active { grid-template-columns: 1fr; } .paper-header { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>HuggingFace AI Papers 日报</h1>
+      <div class="date">2026-07-30</div>
+    </header>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">14</div>
+        <div class="stat-label">论文总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">7</div>
+        <div class="stat-label">有 Stars 论文</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">
+          <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor" style="width: 20px; height: 20px;"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+          <span style="vertical-align: middle;">47</span>
+        </div>
+        <div class="stat-label">总 Stars</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">3</div>
+        <div class="stat-label">平均 Stars</div>
+      </div>
+    </section>
+
+    
+      <section class="ai-section">
+        <h2>AI 深度洞察</h2>
+        <p>今日聚焦具身智能与LLM智能体，从实时控制到安全评估全面开花。</p>
+
+        
+          <h3>技术亮点</h3>
+          <ul>
+            
+              <li>
+                <strong><a href="https://github.com/H-EmbodVis/TurboVLA" target="_blank" style="color: var(--accent); text-decoration: none;">H-EmbodVis/TurboVLA</a></strong>: 首次将视觉-语言-动作模型推理速度提升至32Hz，且显存占用低于1GB，可在消费级显卡上实现实时机器人控制。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/alizahidraja/isnad" target="_blank" style="color: var(--accent); text-decoration: none;">alizahidraja/isnad</a></strong>: 借鉴伊斯兰圣训学的传述链考证框架，为多智能体系统中的知识声明提供细粒度溯源和可信度评估机制。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/Wloner0809/CAST" target="_blank" style="color: var(--accent); text-decoration: none;">Wloner0809/CAST</a></strong>: 提出将游戏求解器作为回合级教师，通过最优走法指导LLM智能体进行策略学习，解决了游戏决策中奖励稀疏问题。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/baidu-frontier-research/OmegaUse-OfficeVal" target="_blank" style="color: var(--accent); text-decoration: none;">baidu-frontier-research/OmegaUse-OfficeVal</a></strong>: 构建了首个基于经济成本建模的长周期办公套件操作基准，评估LLM智能体在真实办公场景中的综合能力。
+              </li>
+            
+          </ul>
+        
+
+        
+          <h3>社区价值</h3>
+          <ul>
+            <li>TurboVLA将VLA模型部署门槛降至消费级显卡，极大降低具身智能研究硬件成本</li><li>StealthBench和SecRespond为安全领域提供了标准化评测工具，推动AI安全研究</li><li>Isnad框架为多智能体系统提供开源溯源方案，增强AI系统可信度</li>
+          </ul>
+        
+
+        
+          <h3>应用前景</h3>
+          <ul>
+            <li>TurboVLA使低成本机器人实时控制成为可能，加速服务机器人商业化落地</li><li>OmegaUse-OfficeVal推动AI办公助手向长周期、复杂任务处理演进</li><li>StealthBench和SecRespond为自动化安全测试与应急响应提供标准化评估</li>
+          </ul>
+        
+      </section>
+    
+
+    <section>
+      <h2>论文列表（共 14 篇）</h2>
+      <div class="project-list">
+        
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.24117" class="paper-name" target="_blank">
+            1. Grading the Narrators: An Isnad-Rijal Framework for Claim-Level Provenance in Multi-Agent Knowledge Systems
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              21
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：alizahidraja</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>作者在这里。多代理管道静默失败：不可靠的中间链接会降低输出，而最终答案保持流畅和自信。现有工作在很大程度上验证了代理的身份和权限，而不是索赔本身的真实性和确证。ISNAD将经典的isnad-rijāl传输链验证应用到声明级别的来源中--分级...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(0)" id="btn-0">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-0">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.24117" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.24117" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(0)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Grading the Narrators: An Isnad-Rijal Framework for Claim-Level Provenance in Multi-Agent Knowledge Systems</li>
+              <li>Stars: 21</li>
+              <li>类型：研究</li>
+              <li>作者：alizahidraja</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.24117" target="_blank">https://huggingface.co/papers/2607.24117</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.24117" target="_blank">https://arxiv.org/abs/2607.24117</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>作者在这里。多代理管道静默失败：不可靠的中间链接会降低输出，而最终答案保持流畅和自信。现有工作在很大程度上验证了代理的身份和权限，而不是索赔本身的真实性和确证。ISNAD将经典的isnad-rijāl传输链验证应用到声明级别的来源中--分级传输链、最弱链接边界、跨链确证……</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Author here. Multi-agent pipelines fail silently: an unreliable intermediate link degrades the output while the final answer stays fluent and confident. Existing work largely verifies the agent's identity and permissions, not the truth and corroboration of the claim itself. ISNAD adapts classical isnād–rijāl chain-of-transmission verification into claim-level provenance - graded transmitter chains, weakest-link bounding, cross-chain corroboration scoring, and content critique separated from provenance. Code and eval are open, and the paper states plainly which mechanisms are validated and which are not yet.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-0">@article{alizahidraja26,
+  title = {Grading the Narrators: An Isnad-Rijal Framework for Claim-Level Provenance in Multi-Agent Knowledge Systems},
+  author = {alizahidraja},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.24117},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.27205" class="paper-name" target="_blank">
+            2. TurboVLA: Real-Time Vision-Language-Action Model at 32 Hz on an RTX 4090 with <1 GB VRAM
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              15
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>视觉语言行动（ VLA ）模型通常采用以LLM为中心的V→ L→ A路径，其中视觉观察在被解码为机器人动作之前被投影到大型语言模型的表示空间中。虽然有效，但这种设计在每次策略调用时都会产生大量的计算和内存开销。在这项工作中，我们引入了Tur...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(1)" id="btn-1">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-1">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.27205" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.27205" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(1)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：TurboVLA: Real-Time Vision-Language-Action Model at 32 Hz on an RTX 4090 with <1 GB VRAM</li>
+              <li>Stars: 15</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.27205" target="_blank">https://huggingface.co/papers/2607.27205</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.27205" target="_blank">https://arxiv.org/abs/2607.27205</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>视觉语言行动（ VLA ）模型通常采用以LLM为中心的V→ L→ A路径，其中视觉观察在被解码为机器人动作之前被投影到大型语言模型的表示空间中。虽然有效，但这种设计在每次策略调用时都会产生大量的计算和内存开销。在这项工作中，我们引入了TurboVLA ，这是一种新的VLA范式，将传统的V→ L→ A途径重新表述为直接V + L→...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Vision-language-action (VLA) models commonly adopt an LLM-centric V→L→A pathway, where visual observations are projected into the representation space of a large language model before being decoded into robot actions. Although effective, this design incurs substantial computation and memory overhead at every policy invocation. In this work, we introduce TurboVLA, a new VLA paradigm that reformulates the conventional V→L→A pathway as a direct V+L→A mapping. Instead of using a large language model as the central interface between perception and action, TurboVLA independently encodes visual observations and language instructions, directly exchanges information between them through lightweight bidirectional vision-language interaction, and predicts continuous action chunks with a compact decoder. This simple design constructs task-conditioned representations directly from visual and linguistic features, significantly reducing the computational and memory costs of VLA inference. On LIBERO, TurboVLA achieves 97.7% average success with only 0.2B parameters, 31.2 ms inference latency, and 0.9 GB inference VRAM on a consumer-grade RTX 4090, matching or outperforming substantially larger VLA policies. These results establish TurboVLA as a simple and effective alternative to the prevailing LLM-centric VLA paradigm, offering a new perspective on how vision, language, and action can be connected for efficient robotic manipulation. Code is available at this https URL.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-1">@article{unknown26,
+  title = {TurboVLA: Real-Time Vision-Language-Action Model at 32 Hz on an RTX 4090 with <1 GB VRAM},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.27205},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.26784" class="paper-name" target="_blank">
+            3. SkillRise: Agentic Reinforcement Learning for Cross-Task Skill Evolution
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              3
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">综述</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Yueqing Sun, Zishan Xu, Zhengxi Lu, Yuxin Chen, Zhiyuan Yao</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>我们引入了SkillRise ，这是一个统一的RL框架，其中单个策略在解决任务和跨相关任务策划不断发展的技能文档之间交替进行，分离学分分配支持跨任务技能转移和测试时间缩放。
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(2)" id="btn-2">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-2">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.26784" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.26784" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(2)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：SkillRise: Agentic Reinforcement Learning for Cross-Task Skill Evolution</li>
+              <li>Stars: 3</li>
+              <li>类型：综述</li>
+              <li>作者：Yueqing Sun, Zishan Xu, Zhengxi Lu, Yuxin Chen, Zhiyuan Yao</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.26784" target="_blank">https://huggingface.co/papers/2607.26784</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.26784" target="_blank">https://arxiv.org/abs/2607.26784</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>我们引入了SkillRise ，这是一个统一的RL框架，其中单个策略在解决任务和跨相关任务策划不断发展的技能文档之间交替进行，分离学分分配支持跨任务技能转移和测试时间缩放。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>We introduce SkillRise, a unified RL framework where a single policy alternates between solving tasks and curating an evolving skill document across related tasks, with decoupled credit assignment enabling cross-task skill transfer and test-time scaling.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-2">@article{sun26,
+  title = {SkillRise: Agentic Reinforcement Learning for Cross-Task Skill Evolution},
+  author = {Yueqing Sun and Zishan Xu and Zhengxi Lu and Yuxin Chen and Zhiyuan Yao},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.26784},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.27155" class="paper-name" target="_blank">
+            4. OmegaUse-OfficeVal: Benchmarking LLM Agents on Long-Horizon Office-Suite Tasks with Economic Grounding
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              3
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Zhenghai Chen, Jingjia Cao, Qi Bao, Yusai Zhao, Jingbo Zhou</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(3)" id="btn-3">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-3">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.27155" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.27155" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(3)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：OmegaUse-OfficeVal: Benchmarking LLM Agents on Long-Horizon Office-Suite Tasks with Economic Grounding</li>
+              <li>Stars: 3</li>
+              <li>类型：研究</li>
+              <li>作者：Zhenghai Chen, Jingjia Cao, Qi Bao, Yusai Zhao, Jingbo Zhou</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.27155" target="_blank">https://huggingface.co/papers/2607.27155</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.27155" target="_blank">https://arxiv.org/abs/2607.27155</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-3">@article{chen26,
+  title = {OmegaUse-OfficeVal: Benchmarking LLM Agents on Long-Horizon Office-Suite Tasks with Economic Grounding},
+  author = {Zhenghai Chen and Jingjia Cao and Qi Bao and Yusai Zhao and Jingbo Zhou},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.27155},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.25308" class="paper-name" target="_blank">
+            5. CAST: Game Solvers as Turn-Level Teachers for LLM Agents
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              2
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>训练LLM使用RLVR玩长距离游戏很难：奖励在最后是一个0/1信号，因此模型永远不会知道哪个动作实际上赢了或输了游戏。这是典型的学分分配问题。CAST通过招募一名游戏解决者作为回合制教师来修复此问题👨‍🏫。通过评估代理访问的状态，求解器...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(4)" id="btn-4">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-4">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.25308" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.25308" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(4)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：CAST: Game Solvers as Turn-Level Teachers for LLM Agents</li>
+              <li>Stars: 2</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.25308" target="_blank">https://huggingface.co/papers/2607.25308</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.25308" target="_blank">https://arxiv.org/abs/2607.25308</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>训练LLM使用RLVR玩长距离游戏很难：奖励在最后是一个0/1信号，因此模型永远不会知道哪个动作实际上赢了或输了游戏。这是典型的学分分配问题。CAST通过招募一名游戏解决者作为回合制教师来修复此问题👨‍🏫。通过评估代理访问的状态，求解器估计在获胜之前剩余多少工作-或者检测到一个状态是不可解的。转换为...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Training LLMs to play long-horizon games with RLVR is hard: the reward is a single 0/1 signal at the very end, so the model never learns which move actually won or lost the game. This is the classic credit-assignment problem. CAST fixes this by recruiting a game solver as a turn-level teacher 👨‍🏫. By evaluating the states visited by the agent, the solver estimates how much work remains before a win—or detects that a state is unsolvable. CAST turns the one-step change in this cost-to-go into a per-action solver advantage and injects it into RLVR, giving the model dense, turn-level feedback at negligible estimated overhead. 💡 The kicker: under a soft-optimal solver assumption, the raw solver advantage is proportional to the solver's log-probability for the sampled action. It therefore yields a form of on-policy, logit-free distillation that needs only one scalar per action, rather than the teacher's full action distribution. The shaped training objective and its reverse-KL interpretation are derived under the additional assumptions stated in the paper.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-4">@article{unknown26,
+  title = {CAST: Game Solvers as Turn-Level Teachers for LLM Agents},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.25308},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.25802" class="paper-name" target="_blank">
+            6. Explicit Layer Modeling for Video Object Insertion and Layer Decomposition
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              2
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>在arXiv上发布论文！查看DBL-Diffusion惊人的分层视频生成功能🔥
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(5)" id="btn-5">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-5">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.25802" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.25802" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(5)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Explicit Layer Modeling for Video Object Insertion and Layer Decomposition</li>
+              <li>Stars: 2</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.25802" target="_blank">https://huggingface.co/papers/2607.25802</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.25802" target="_blank">https://arxiv.org/abs/2607.25802</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>在arXiv上发布论文！查看DBL-Diffusion惊人的分层视频生成功能🔥</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Release the paper on arXiv! Check out DBL-Diffusion’s amazing layered video generation capabilities🔥</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-5">@article{unknown26,
+  title = {Explicit Layer Modeling for Video Object Insertion and Layer Decomposition},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.25802},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.25294" class="paper-name" target="_blank">
+            7. CLBench-V: Evaluating Multimodal Context Learning from Grounding to Knowledge Acquisition
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              1
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Yue Wang, Ruina Hu, Jiapeng Li, Chengqi Li, Lai Wei</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>很高兴分享CLBench-V ，这是一个新的基准，用于评估多模式模型是否能够真正从背景中学习--从基础证据到获取新知识。
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(6)" id="btn-6">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-6">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.25294" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.25294" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(6)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：CLBench-V: Evaluating Multimodal Context Learning from Grounding to Knowledge Acquisition</li>
+              <li>Stars: 1</li>
+              <li>类型：数据</li>
+              <li>作者：Yue Wang, Ruina Hu, Jiapeng Li, Chengqi Li, Lai Wei</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.25294" target="_blank">https://huggingface.co/papers/2607.25294</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.25294" target="_blank">https://arxiv.org/abs/2607.25294</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>很高兴分享CLBench-V ，这是一个新的基准，用于评估多模式模型是否能够真正从背景中学习--从基础证据到获取新知识。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Excited to share CLBench-V , a new benchmark evaluating whether multimodal models can truly learn from context—from grounding evidence to acquiring new knowledge.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-6">@article{wang26,
+  title = {CLBench-V: Evaluating Multimodal Context Learning from Grounding to Knowledge Acquisition},
+  author = {Yue Wang and Ruina Hu and Jiapeng Li and Chengqi Li and Lai Wei},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.25294},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.27180" class="paper-name" target="_blank">
+            8. HumanCLAW: Can Vision-Language Models Act Through a Body?
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>模特可能知道沙发在哪里，但仍然不知道如何移动身体并坐下。我们称这种能力为Action Intelligence ，而HumanCLAW使其可测量，而无需将其与电机控制联系起来。这是迈向可以通过身体进行推理和行动的模型的第一步。
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(7)" id="btn-7">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-7">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.27180" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.27180" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(7)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：HumanCLAW: Can Vision-Language Models Act Through a Body?</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.27180" target="_blank">https://huggingface.co/papers/2607.27180</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.27180" target="_blank">https://arxiv.org/abs/2607.27180</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>模特可能知道沙发在哪里，但仍然不知道如何移动身体并坐下。我们称这种能力为Action Intelligence ，而HumanCLAW使其可测量，而无需将其与电机控制联系起来。这是迈向可以通过身体进行推理和行动的模型的第一步。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>A model may know where the sofa is, yet still not know how to move its body there and sit down. We call this ability Action Intelligence , and HumanCLAW makes it measurable without tying it to motor control. This is a first step toward models that can reason and act through a physical body.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-7">@article{unknown26,
+  title = {HumanCLAW: Can Vision-Language Models Act Through a Body?},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.27180},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.25675" class="paper-name" target="_blank">
+            9. DecoEvo: Score-Decoupled Co-Evolution of Solver and Rubric-Generator Skills in Text Space
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">综述</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>人工智能系统不仅可以改善其答案，还可以改善其判断这些答案的标准吗？我们引入了DecoEvo ，这是一个分数解耦协同进化框架，共同进化文本空间中的求解器和评分规则生成器。通过从解决方案审计中提取结构化反馈并分析多次推出之间的差异， DecoE...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(8)" id="btn-8">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-8">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.25675" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.25675" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(8)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：DecoEvo: Score-Decoupled Co-Evolution of Solver and Rubric-Generator Skills in Text Space</li>
+              <li>Stars: 0</li>
+              <li>类型：综述</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.25675" target="_blank">https://huggingface.co/papers/2607.25675</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.25675" target="_blank">https://arxiv.org/abs/2607.25675</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>人工智能系统不仅可以改善其答案，还可以改善其判断这些答案的标准吗？我们引入了DecoEvo ，这是一个分数解耦协同进化框架，共同进化文本空间中的求解器和评分规则生成器。通过从解决方案审计中提取结构化反馈并分析多次推出之间的差异， DecoEvo不断完善解决问题的策略和评估标准。我们的研究结果表明，</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Can an AI system improve not only its answers, but also the criteria it uses to judge those answers? We introduce DecoEvo, a score-decoupled co-evolution framework that jointly evolves a solver and a rubric generator in text space. By extracting structured feedback from solution audits and analyzing discrepancies across multiple rollouts, DecoEvo continually refines both problem-solving strategies and evaluation standards. Our results show that this co-evolution process provides stronger learning signals and consistently improves reasoning performance across diverse tasks.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-8">@article{unknown26,
+  title = {DecoEvo: Score-Decoupled Co-Evolution of Solver and Rubric-Generator Skills in Text Space},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.25675},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.25659" class="paper-name" target="_blank">
+            10. CoRT: Counterfactual Replay for Token-Level Rubric-Guided Policy Optimization
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>CoRT解决了细则引导RL中一个简单但重要的不匹配问题：丰富的标准级反馈最终被折叠成一个响应级优势，并统一广播到每个生成的令牌。通过使用和不使用标题标准重播相同的响应， CoRT将策略内部对数概率变化转化为标准化的令牌级信用权重，而无需训练...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(9)" id="btn-9">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-9">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.25659" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.25659" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(9)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：CoRT: Counterfactual Replay for Token-Level Rubric-Guided Policy Optimization</li>
+              <li>Stars: 0</li>
+              <li>类型：数据</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.25659" target="_blank">https://huggingface.co/papers/2607.25659</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.25659" target="_blank">https://arxiv.org/abs/2607.25659</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>CoRT解决了细则引导RL中一个简单但重要的不匹配问题：丰富的标准级反馈最终被折叠成一个响应级优势，并统一广播到每个生成的令牌。通过使用和不使用标题标准重播相同的响应， CoRT将策略内部对数概率变化转化为标准化的令牌级信用权重，而无需训练辅助令牌评分者、更改奖励或要求添加...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>CoRT addresses a simple but important mismatch in rubric-guided RL: rich criterion-level feedback is ultimately collapsed into one response-level advantage and broadcast uniformly to every generated token. By replaying the same response with and without the rubric criteria, CoRT turns policy-internal log-probability changes into normalized token-level credit weights—without training an auxiliary token scorer, changing the reward, or requiring additional generation and verifier calls. Across multiple models, reward settings, and instruction-following benchmarks, CoRT improves matched response-level GRPO by 4.4 points on average while remaining competitive with learned token-relevance methods. A lightweight and practical direction for fine-grained credit assignment in LLM reinforcement learning.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-9">@article{unknown26,
+  title = {CoRT: Counterfactual Replay for Token-Level Rubric-Guided Policy Optimization},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.25659},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.27191" class="paper-name" target="_blank">
+            11. Can AI agents conduct open-ended AI research? Early evidence from two case studies
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：David Africa, Stephan Rabanser, Andrew Schwartz, Sayash Kapoor, Peter Kirgis</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(10)" id="btn-10">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-10">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.27191" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.27191" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(10)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Can AI agents conduct open-ended AI research? Early evidence from two case studies</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：David Africa, Stephan Rabanser, Andrew Schwartz, Sayash Kapoor, Peter Kirgis</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.27191" target="_blank">https://huggingface.co/papers/2607.27191</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.27191" target="_blank">https://arxiv.org/abs/2607.27191</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-10">@article{africa26,
+  title = {Can AI agents conduct open-ended AI research? Early evidence from two case studies},
+  author = {David Africa and Stephan Rabanser and Andrew Schwartz and Sayash Kapoor and Peter Kirgis},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.27191},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.26115" class="paper-name" target="_blank">
+            12. GPT-Red: Automated Red Teaming via Self-Play at Scale
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(11)" id="btn-11">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-11">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.26115" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.26115" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(11)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：GPT-Red: Automated Red Teaming via Self-Play at Scale</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.26115" target="_blank">https://huggingface.co/papers/2607.26115</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.26115" target="_blank">https://arxiv.org/abs/2607.26115</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-11">@article{unknown26,
+  title = {GPT-Red: Automated Red Teaming via Self-Play at Scale},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.26115},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.26314" class="paper-name" target="_blank">
+            13. StealthBench: Measuring Operational Stealth in Autonomous Offensive-Security Agents
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Adrian Wood, Ads Dawson</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>隐身，即在不透露您的存在、能力或收集的情报的情况下实现目标的纪律，是将复杂的操作员与可检测的操作员区分开来的原因。精英安全研究人员和高级持续威胁在不被注意的情况下实现其目标；自主代理越来越多地继承相同的攻击性任务，但他们是否继承了交易技巧？...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(12)" id="btn-12">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-12">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.26314" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.26314" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(12)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：StealthBench: Measuring Operational Stealth in Autonomous Offensive-Security Agents</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              <li>作者：Adrian Wood, Ads Dawson</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.26314" target="_blank">https://huggingface.co/papers/2607.26314</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.26314" target="_blank">https://arxiv.org/abs/2607.26314</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>隐身，即在不透露您的存在、能力或收集的情报的情况下实现目标的纪律，是将复杂的操作员与可检测的操作员区分开来的原因。精英安全研究人员和高级持续威胁在不被注意的情况下实现其目标；自主代理越来越多地继承相同的攻击性任务，但他们是否继承了交易技巧？我们推出了StealthBench ，这是一个衡量运营状况的基准...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Stealth, the discipline of achieving an objective without revealing your presence, capabilities, or collected intelligence, is what separates sophisticated operators from detectable ones. Elite security researchers and advanced persistent threats achieve their objectives unnoticed; autonomous agents increasingly inherit the same offensive tasks, but do they inherit the tradecraft? We introduce StealthBench,a benchmark that measures operational stealth in autonomous offensive-security agents across six operational security (OPSEC) dimensions. We extract 11 hand-verified OPSEC incidents from real bug-bounty and red-team trajectories, expanded into 14 dockerized task scenarios, where agents, despite finding real vulnerabilities, committed stealth failures inconsistent with standard operational tradecraft: embedding credentials in public uploads, deleting production resources to prove access, force-adding uninvolved users to demonstrate a race condition. We evaluate agent trajectories using a 3-model large language model (LLM) judge panel with majority-vote aggregation, measuring safe success rate (solved and stealthy), Stealth@Solve (tradecraft quality among successful solves), and reckless solve rate (solved but cover blown). Our results show that no model exceeds 54% safe success rate (the compound metric requiring both task completion and stealth), confirming that OPSEC failures are systematic across model families. We release StealthBench as a public benchmark to support both the development of stealth-aware agents and automated OPSEC monitoring for autonomous offensive-security deployments. The interactive leaderboard, evaluation harness, and dataset are available at stealthbench.com . 29 pages, 9 tables, 1 figure, 2 appendices. Code: https://github.com/GangGreenTemperTatum/stealthbench , URL Dataset: https://huggingface.co/datasets/0xmoose/stealthbench Website: https://stealthbench.com</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-12">@article{wood26,
+  title = {StealthBench: Measuring Operational Stealth in Autonomous Offensive-Security Agents},
+  author = {Adrian Wood and Ads Dawson},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.26314},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2607.26791" class="paper-name" target="_blank">
+            14. SecRespond: Benchmarking AI Agents for Real-World Post-Compromise Incident Response
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>我们引入了SecRespond ，这是在现实世界的妥协后事件响应中评估AI代理的基准。它包括跨Linux和Windows的10个可重现的网络范围、冻结的取证磁盘快照、合成安全产品证据以及分别评估检测和补救计划的专家撰写的评估清单。论文： h...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(13)" id="btn-13">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-13">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2607.26791" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2607.26791" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(13)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：SecRespond: Benchmarking AI Agents for Real-World Post-Compromise Incident Response</li>
+              <li>Stars: 0</li>
+              <li>类型：数据</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2607.26791" target="_blank">https://huggingface.co/papers/2607.26791</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2607.26791" target="_blank">https://arxiv.org/abs/2607.26791</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>我们引入了SecRespond ，这是在现实世界的妥协后事件响应中评估AI代理的基准。它包括跨Linux和Windows的10个可重现的网络范围、冻结的取证磁盘快照、合成安全产品证据以及分别评估检测和补救计划的专家撰写的评估清单。论文： https://arxiv.org/abs/2607.26791代码和数据： https://github.com/Alibaba-NLP/qqr/tree/main/d...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>We introduce SecRespond , a benchmark for evaluating AI agents on real-world post-compromise incident response. It includes 10 reproducible cyber ranges across Linux and Windows, frozen forensic disk snapshots, synthetic security-product evidence, and expert-authored evaluation checklists that separately assess detection and remediation planning. Paper: https://arxiv.org/abs/2607.26791 Code and data: https://github.com/Alibaba-NLP/qqr/tree/main/data/secrespond Dataset: https://huggingface.co/datasets/Alibaba-NLP/SecRespond</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-13">@article{unknown26,
+  title = {SecRespond: Benchmarking AI Agents for Real-World Post-Compromise Incident Response},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2607.26791},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function toggleDetails(paperId) {
+      const details = document.getElementById('details-' + paperId);
+      const btn = document.getElementById('btn-' + paperId);
+      if (details && btn) {
+        details.classList.toggle('active');
+        btn.textContent = details.classList.contains('active') ? '收起详情' : '查看详情';
+      }
+    }
+
+    function copyBibtex(paperId) {
+      const bibtexBlock = document.getElementById('bibtex-' + paperId);
+      if (bibtexBlock) {
+        navigator.clipboard.writeText(bibtexBlock.textContent).then(() => {
+          const btn = event.target;
+          const originalText = btn.textContent;
+          btn.textContent = '已复制!';
+          setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }).catch(err => {
+          alert('复制失败，请手动复制');
+        });
+      }
+    }
+  </script>
+</body>
+</html>
