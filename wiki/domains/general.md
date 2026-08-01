@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：16
-- 最近更新：2026-07-30
+- 项目总数：17
+- 最近更新：2026-07-31
 - 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
@@ -27,8 +27,8 @@ general 领域收录了与AI 相关技术相关的项目。
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：425,967
-- 最热项目：[microsoft/PowerToys](../../wiki/projects/microsoft_PowerToys.md) (137104 ⭐)
+- 总 Stars 数：366,326
+- 最热项目：[OpenCut-app/OpenCut](../../wiki/projects/OpenCut-app_OpenCut.md) (75850 ⭐)
 
 
 ---
