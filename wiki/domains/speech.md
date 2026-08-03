@@ -2,9 +2,9 @@
 
 ## 领域概览
 
-- 项目总数：11
-- 最近更新：2026-08-01
-- 报告类型：daily
+- 项目总数：10
+- 最近更新：2026-08-03
+- 报告类型：weekly
 
 speech 领域收录了与语音识别、语音合成、音频处理相关的项目。
 
@@ -20,14 +20,14 @@ speech 领域收录了与语音识别、语音合成、音频处理相关的项�
 | 6 | [altic-dev/FluidVoice](../../wiki/projects/altic-dev_FluidVoice.md) | 2026-06-29 | 1 | 4360 |
 | 7 | [Starmel/OpenSuperWhisper](../../wiki/projects/Starmel_OpenSuperWhisper.md) | 2026-07-06 | 1 | 1804 |
 | 8 | [jamiepine/voicebox](../../wiki/projects/jamiepine_voicebox.md) | 2026-07-22 | 1 | 45726 |
-| 9 | [moeru-ai/airi](../../wiki/projects/moeru-ai_airi.md) | 2026-07-29 | 1 | 45361 |
-| 10 | [microsoft/VibeVoice](../../wiki/projects/microsoft_VibeVoice.md) | 2026-07-29 | 1 | 51242 |
+| 9 | [microsoft/VibeVoice](../../wiki/projects/microsoft_VibeVoice.md) | 2026-07-29 | 1 | 51242 |
+| 10 | [moeru-ai/airi](../../wiki/projects/moeru-ai_airi.md) | 2026-08-03 | 1 | 46542 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：500,324
+- 总 Stars 数：489,777
 - 最热项目：[yt-dlp/yt-dlp](../../wiki/projects/yt-dlp_yt-dlp.md) (164940 ⭐)
 
 
