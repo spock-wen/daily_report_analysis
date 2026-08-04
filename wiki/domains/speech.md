@@ -4,7 +4,7 @@
 
 - 项目总数：10
 - 最近更新：2026-08-03
-- 报告类型：weekly
+- 报告类型：daily
 
 speech 领域收录了与语音识别、语音合成、音频处理相关的项目。
 
@@ -19,15 +19,15 @@ speech 领域收录了与语音识别、语音合成、音频处理相关的项�
 | 5 | [hugohe3/ppt-master](../../wiki/projects/hugohe3_ppt-master.md) | 2026-06-27 | 1 | 33041 |
 | 6 | [altic-dev/FluidVoice](../../wiki/projects/altic-dev_FluidVoice.md) | 2026-06-29 | 1 | 4360 |
 | 7 | [Starmel/OpenSuperWhisper](../../wiki/projects/Starmel_OpenSuperWhisper.md) | 2026-07-06 | 1 | 1804 |
-| 8 | [jamiepine/voicebox](../../wiki/projects/jamiepine_voicebox.md) | 2026-07-22 | 1 | 45726 |
-| 9 | [microsoft/VibeVoice](../../wiki/projects/microsoft_VibeVoice.md) | 2026-07-29 | 1 | 51242 |
-| 10 | [moeru-ai/airi](../../wiki/projects/moeru-ai_airi.md) | 2026-08-03 | 1 | 46542 |
+| 8 | [microsoft/VibeVoice](../../wiki/projects/microsoft_VibeVoice.md) | 2026-07-29 | 1 | 51242 |
+| 9 | [moeru-ai/airi](../../wiki/projects/moeru-ai_airi.md) | 2026-08-03 | 1 | 46542 |
+| 10 | [jamiepine/voicebox](../../wiki/projects/jamiepine_voicebox.md) | 2026-08-03 | 1 | 48645 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：489,777
+- 总 Stars 数：492,696
 - 最热项目：[yt-dlp/yt-dlp](../../wiki/projects/yt-dlp_yt-dlp.md) (164940 ⭐)
 
 

@@ -2,9 +2,9 @@
 
 ## 领域概览
 
-- 项目总数：17
+- 项目总数：16
 - 最近更新：2026-08-03
-- 报告类型：weekly
+- 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
 
@@ -27,7 +27,7 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：476,083
+- 总 Stars 数：513,555
 - 最热项目：[forrestchang/andrej-karpathy-skills](../../wiki/projects/forrestchang_andrej-karpathy-skills.md) (113775 ⭐)
 
 
