@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：11
-- 最近更新：2026-08-05
+- 项目总数：13
+- 最近更新：2026-08-06
 - 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
@@ -27,8 +27,8 @@ general 领域收录了与AI 相关技术相关的项目。
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：546,940
-- 最热项目：[donnemartin/system-design-primer](../../wiki/projects/donnemartin_system-design-primer.md) (361493 ⭐)
+- 总 Stars 数：337,195
+- 最热项目：[TapXWorld/ChinaTextbook](../../wiki/projects/TapXWorld_ChinaTextbook.md) (77043 ⭐)
 
 
 ---
