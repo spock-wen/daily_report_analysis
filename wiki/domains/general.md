@@ -3,7 +3,7 @@
 ## 领域概览
 
 - 项目总数：14
-- 最近更新：2026-08-07
+- 最近更新：2026-08-08
 - 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
@@ -27,8 +27,8 @@ general 领域收录了与AI 相关技术相关的项目。
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：270,102
-- 最热项目：[OpenCut-app/OpenCut](../../wiki/projects/OpenCut-app_OpenCut.md) (75850 ⭐)
+- 总 Stars 数：341,718
+- 最热项目：[TapXWorld/ChinaTextbook](../../wiki/projects/TapXWorld_ChinaTextbook.md) (77912 ⭐)
 
 
 ---

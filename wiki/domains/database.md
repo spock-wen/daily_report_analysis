@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：11
-- 最近更新：2026-07-27
+- 项目总数：10
+- 最近更新：2026-08-08
 - 报告类型：daily
 
 database 领域收录了与AI 相关技术相关的项目。
@@ -12,22 +12,22 @@ database 领域收录了与AI 相关技术相关的项目。
 
 | 排名 | 项目 | 首次上榜 | 上榜次数 | Stars |
 |------|------|----------|----------|-------|
-| 1 | [LadybirdBrowser/ladybird](../../wiki/projects/LadybirdBrowser_ladybird.md) | 2026-05-06 | 1 | 62970 |
-| 2 | [reconurge/flowsint](../../wiki/projects/reconurge_flowsint.md) | 2026-06-04 | 1 | 5286 |
-| 3 | [microsoft/pg_durable](../../wiki/projects/microsoft_pg_durable.md) | 2026-06-07 | 1 | 1441 |
-| 4 | [bannedbook/fanqiang](../../wiki/projects/bannedbook_fanqiang.md) | 2026-06-13 | 1 | 47471 |
-| 5 | [Universal-Debloater-Alliance/universal-android-debloater-next-generation](../../wiki/projects/Universal-Debloater-Alliance_universal-android-debloater-next-generation.md) | 2026-06-18 | 1 | 7914 |
-| 6 | [tursodatabase/turso](../../wiki/projects/tursodatabase_turso.md) | 2026-06-22 | 1 | 21452 |
-| 7 | [dbt-labs/dbt-core](../../wiki/projects/dbt-labs_dbt-core.md) | 2026-06-27 | 1 | 13208 |
-| 8 | [supabase/supabase](../../wiki/projects/supabase_supabase.md) | 2026-07-03 | 1 | 105458 |
-| 9 | [prisma/prisma](../../wiki/projects/prisma_prisma.md) | 2026-07-11 | 1 | 47231 |
-| 10 | [apache/cassandra](../../wiki/projects/apache_cassandra.md) | 2026-07-27 | 1 | 9951 |
+| 1 | [reconurge/flowsint](../../wiki/projects/reconurge_flowsint.md) | 2026-06-04 | 1 | 5286 |
+| 2 | [microsoft/pg_durable](../../wiki/projects/microsoft_pg_durable.md) | 2026-06-07 | 1 | 1441 |
+| 3 | [Universal-Debloater-Alliance/universal-android-debloater-next-generation](../../wiki/projects/Universal-Debloater-Alliance_universal-android-debloater-next-generation.md) | 2026-06-18 | 1 | 7914 |
+| 4 | [tursodatabase/turso](../../wiki/projects/tursodatabase_turso.md) | 2026-06-22 | 1 | 21452 |
+| 5 | [dbt-labs/dbt-core](../../wiki/projects/dbt-labs_dbt-core.md) | 2026-06-27 | 1 | 13208 |
+| 6 | [supabase/supabase](../../wiki/projects/supabase_supabase.md) | 2026-07-03 | 1 | 105458 |
+| 7 | [prisma/prisma](../../wiki/projects/prisma_prisma.md) | 2026-07-11 | 1 | 47231 |
+| 8 | [apache/cassandra](../../wiki/projects/apache_cassandra.md) | 2026-07-27 | 1 | 9951 |
+| 9 | [LadybirdBrowser/ladybird](../../wiki/projects/LadybirdBrowser_ladybird.md) | 2026-08-08 | 1 | 64977 |
+| 10 | [bannedbook/fanqiang](../../wiki/projects/bannedbook_fanqiang.md) | 2026-08-08 | 1 | 49865 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：397,575
+- 总 Stars 数：326,783
 - 最热项目：[supabase/supabase](../../wiki/projects/supabase_supabase.md) (105458 ⭐)
 
 
