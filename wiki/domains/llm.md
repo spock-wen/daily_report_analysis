@@ -2,9 +2,9 @@
 
 ## 领域概览
 
-- 项目总数：10
-- 最近更新：2026-08-05
-- 报告类型：daily
+- 项目总数：11
+- 最近更新：2026-08-10
+- 报告类型：weekly
 
 llm 领域收录了与大语言模型、Transformer、基础模型相关的项目。
 
@@ -20,15 +20,15 @@ llm 领域收录了与大语言模型、Transformer、基础模型相关的项�
 | 6 | [ggml-org/llama.cpp](../../wiki/projects/ggml-org_llama.cpp.md) | 2026-06-07 | 1 | 115308 |
 | 7 | [harry0703/MoneyPrinterTurbo](../../wiki/projects/harry0703_MoneyPrinterTurbo.md) | 2026-06-10 | 1 | 84964 |
 | 8 | [Anil-matcha/Open-Generative-AI](../../wiki/projects/Anil-matcha_Open-Generative-AI.md) | 2026-06-27 | 1 | 21365 |
-| 9 | [ZhuLinsen/daily_stock_analysis](../../wiki/projects/ZhuLinsen_daily_stock_analysis.md) | 2026-07-06 | 1 | 54688 |
-| 10 | [lyogavin/airllm](../../wiki/projects/lyogavin_airllm.md) | 2026-08-05 | 1 | 29060 |
+| 9 | [ZhuLinsen/daily_stock_analysis](../../wiki/projects/ZhuLinsen_daily_stock_analysis.md) | 2026-08-10 | 1 | 61189 |
+| 10 | [lyogavin/airllm](../../wiki/projects/lyogavin_airllm.md) | 2026-08-10 | 1 | 30372 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：356,343
-- 最热项目：[ggml-org/llama.cpp](../../wiki/projects/ggml-org_llama.cpp.md) (115308 ⭐)
+- 总 Stars 数：489,674
+- 最热项目：[Comfy-Org/ComfyUI](../../wiki/projects/Comfy-Org_ComfyUI.md) (125518 ⭐)
 
 
 ---
