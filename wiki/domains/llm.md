@@ -4,7 +4,7 @@
 
 - 项目总数：11
 - 最近更新：2026-08-10
-- 报告类型：weekly
+- 报告类型：daily
 
 llm 领域收录了与大语言模型、Transformer、基础模型相关的项目。
 
@@ -21,14 +21,14 @@ llm 领域收录了与大语言模型、Transformer、基础模型相关的项�
 | 7 | [harry0703/MoneyPrinterTurbo](../../wiki/projects/harry0703_MoneyPrinterTurbo.md) | 2026-06-10 | 1 | 84964 |
 | 8 | [Anil-matcha/Open-Generative-AI](../../wiki/projects/Anil-matcha_Open-Generative-AI.md) | 2026-06-27 | 1 | 21365 |
 | 9 | [ZhuLinsen/daily_stock_analysis](../../wiki/projects/ZhuLinsen_daily_stock_analysis.md) | 2026-08-10 | 1 | 61189 |
-| 10 | [lyogavin/airllm](../../wiki/projects/lyogavin_airllm.md) | 2026-08-10 | 1 | 30372 |
+| 10 | [lyogavin/airllm](../../wiki/projects/lyogavin_airllm.md) | 2026-08-10 | 1 | 30374 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：489,674
-- 最热项目：[Comfy-Org/ComfyUI](../../wiki/projects/Comfy-Org_ComfyUI.md) (125518 ⭐)
+- 总 Stars 数：490,448
+- 最热项目：[Comfy-Org/ComfyUI](../../wiki/projects/Comfy-Org_ComfyUI.md) (126290 ⭐)
 
 
 ---
