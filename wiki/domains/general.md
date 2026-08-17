@@ -2,9 +2,9 @@
 
 ## 领域概览
 
-- 项目总数：12
-- 最近更新：2026-08-15
-- 报告类型：daily
+- 项目总数：11
+- 最近更新：2026-08-17
+- 报告类型：weekly
 
 general 领域收录了与AI 相关技术相关的项目。
 
@@ -21,14 +21,14 @@ general 领域收录了与AI 相关技术相关的项目。
 | 7 | [MemPalace/mempalace](../../wiki/projects/MemPalace_mempalace.md) | 2026-06-08 | 1 | 54913 |
 | 8 | [maziyarpanahi/openmed](../../wiki/projects/maziyarpanahi_openmed.md) | 2026-06-11 | 1 | 2735 |
 | 9 | [kunchenguid/no-mistakes](../../wiki/projects/kunchenguid_no-mistakes.md) | 2026-06-29 | 1 | 4053 |
-| 10 | [OpenCut-app/OpenCut](../../wiki/projects/OpenCut-app_OpenCut.md) | 2026-07-20 | 1 | 75850 |
+| 10 | [megadose/holehe](../../wiki/projects/megadose_holehe.md) | 2026-08-17 | 1 | 13288 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：658,681
-- 最热项目：[public-apis/public-apis](../../wiki/projects/public-apis_public-apis.md) (460126 ⭐)
+- 总 Stars 数：148,248
+- 最热项目：[MemPalace/mempalace](../../wiki/projects/MemPalace_mempalace.md) (54913 ⭐)
 
 
 ---
