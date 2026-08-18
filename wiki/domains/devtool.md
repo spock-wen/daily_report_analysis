@@ -2,9 +2,9 @@
 
 ## 领域概览
 
-- 项目总数：11
+- 项目总数：13
 - 最近更新：2026-08-17
-- 报告类型：weekly
+- 报告类型：daily
 
 devtool 领域收录了与开发工具、IDE 插件、代码辅助相关的项目。
 
@@ -27,8 +27,8 @@ devtool 领域收录了与开发工具、IDE 插件、代码辅助相关的项�
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：256,826
-- 最热项目：[3b1b/manim](../../wiki/projects/3b1b_manim.md) (91346 ⭐)
+- 总 Stars 数：336,288
+- 最热项目：[immich-app/immich](../../wiki/projects/immich-app_immich.md) (111133 ⭐)
 
 
 ---
