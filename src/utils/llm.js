@@ -24,7 +24,7 @@ const config = {
 async function callLLM(prompt, options = {}) {
   const {
     temperature = 0.7,
-    maxTokens = 3000,
+    maxTokens = options.max_tokens || options.maxTokens || 3000,
     model = config.model,
   } = options;
 
@@ -66,6 +66,9 @@ async function callLLM(prompt, options = {}) {
   } else {
     requestBody.max_tokens = maxTokens;
     requestBody.stream = true;
+    // 禁用推理模型的思考阶段（deepseek-v4-flash 等）：
+    // 否则 reasoning 会耗尽 max_tokens 预算，导致 content 为空或 JSON 被截断
+    requestBody.thinking = { type: 'disabled' };
   }
 
   try {

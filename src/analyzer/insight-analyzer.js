@@ -61,7 +61,7 @@ class InsightAnalyzer {
 
       const result = await callLLMWithRetry(prompt, {
         temperature: 0.7,
-        max_tokens: 2000
+        max_tokens: 8000
       });
 
       const insights = this.parseInsights(result, dailyData.brief);
@@ -93,7 +93,7 @@ class InsightAnalyzer {
       try {
         result = await callLLMWithRetry(prompt, {
           temperature: 0.7,
-          maxTokens: 3000
+          max_tokens: 8000
         });
         logger.info('LLM 调用完成，开始解析结果...');
       } catch (llmError) {
@@ -126,7 +126,7 @@ class InsightAnalyzer {
 
       const result = await callLLMWithRetry(prompt, {
         temperature: 0.7,
-        max_tokens: 3000
+        max_tokens: 8000
       });
 
       const insights = this.parseInsights(result, monthlyData.brief);
@@ -168,7 +168,7 @@ class InsightAnalyzer {
 
       const result = await callLLMWithRetry(prompt, {
         temperature: 0.8,
-        max_tokens: 4000
+        max_tokens: 8000
       });
 
       const deepTrends = this.parseDeepTrends(result);
@@ -372,6 +372,9 @@ class InsightAnalyzer {
       jsonContent = jsonContent.substring(firstBrace, lastBrace + 1);
       logger.debug('提取的 JSON 内容', { jsonContent: jsonContent.substring(0, 300) });
 
+      // 清洗字符串字面量内的裸控制字符（LLM 输出可能包含未转义的换行/制表符，JSON.parse 会拒绝）
+      jsonContent = jsonContent.replace(/[\u0000-\u001F\u007F]/g, ' ');
+
       const insights = JSON.parse(jsonContent);
 
       if (insights.project_insights) {
@@ -405,7 +408,10 @@ class InsightAnalyzer {
       const lastBrace = jsonContent.lastIndexOf('}');
       if (firstBrace === -1 || lastBrace === -1) throw new Error('无效的 JSON 结构');
 
-      return JSON.parse(jsonContent.substring(firstBrace, lastBrace + 1));
+      // 清洗字符串字面量内的裸控制字符（LLM 输出可能包含未转义的换行/制表符，JSON.parse 会拒绝）
+      jsonContent = jsonContent.substring(firstBrace, lastBrace + 1).replace(/[\u0000-\u001F\u007F]/g, ' ');
+
+      return JSON.parse(jsonContent);
     } catch (error) {
       logger.warn(`解析深度趋势 JSON 失败: ${error.message}`);
       return null;
