@@ -2,9 +2,9 @@
 
 ## 领域概览
 
-- 项目总数：15
+- 项目总数：21
 - 最近更新：2026-08-24
-- 报告类型：weekly
+- 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
 
@@ -18,17 +18,17 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 4 | [virattt/dexter](../../wiki/projects/virattt_dexter.md) | 2026-05-11 | 1 | 25155 |
 | 5 | [commaai/openpilot](../../wiki/projects/commaai_openpilot.md) | 2026-06-29 | 1 | 62753 |
 | 6 | [xbtlin/ai-berkshire](../../wiki/projects/xbtlin_ai-berkshire.md) | 2026-07-06 | 1 | 10289 |
-| 7 | [MadsLorentzen/ai-job-search](../../wiki/projects/MadsLorentzen_ai-job-search.md) | 2026-07-07 | 1 | 10698 |
-| 8 | [Zackriya-Solutions/meetily](../../wiki/projects/Zackriya-Solutions_meetily.md) | 2026-07-13 | 1 | 23569 |
-| 9 | [zhaoxuya520/reverse-skill](../../wiki/projects/zhaoxuya520_reverse-skill.md) | 2026-08-10 | 1 | 22517 |
-| 10 | [openai/codex](../../wiki/projects/openai_codex.md) | 2026-08-23 | 1 | 115114 |
+| 7 | [Zackriya-Solutions/meetily](../../wiki/projects/Zackriya-Solutions_meetily.md) | 2026-07-13 | 1 | 23569 |
+| 8 | [zhaoxuya520/reverse-skill](../../wiki/projects/zhaoxuya520_reverse-skill.md) | 2026-08-10 | 1 | 22517 |
+| 9 | [Alishahryar1/free-claude-code](../../wiki/projects/Alishahryar1_free-claude-code.md) | 2026-08-24 | 1 | 48911 |
+| 10 | [openai/codex](../../wiki/projects/openai_codex.md) | 2026-08-24 | 1 | 117005 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：563,388
-- 最热项目：[harry0703/MoneyPrinterTurbo](../../wiki/projects/harry0703_MoneyPrinterTurbo.md) (115282 ⭐)
+- 总 Stars 数：1,451,516
+- 最热项目：[openclaw/openclaw](../../wiki/projects/openclaw_openclaw.md) (387430 ⭐)
 
 
 ---

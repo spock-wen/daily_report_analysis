@@ -4,7 +4,7 @@
 
 - 项目总数：14
 - 最近更新：2026-08-24
-- 报告类型：weekly
+- 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
 
@@ -27,8 +27,8 @@ general 领域收录了与AI 相关技术相关的项目。
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：665,056
-- 最热项目：[public-apis/public-apis](../../wiki/projects/public-apis_public-apis.md) (469193 ⭐)
+- 总 Stars 数：283,180
+- 最热项目：[dani-garcia/vaultwarden](../../wiki/projects/dani-garcia_vaultwarden.md) (66124 ⭐)
 
 
 ---
