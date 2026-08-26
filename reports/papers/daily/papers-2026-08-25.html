@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuggingFace AI Papers 日报 - 2026-08-25</title>
+  <link rel="stylesheet" href="../../public/css/style.css">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-card: #161b22;
+      --text-primary: #c9d1d9;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-orange: #d29922;
+      --border: #30363d;
+      --border-light: #21262d;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.5; padding: 24px 16px; font-size: 13px; }
+    .container { max-width: 960px; margin: 0 auto; }
+    header { text-align: center; padding: 32px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+    h1 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+    .date { color: var(--text-secondary); font-size: 0.8125rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); padding: 12px; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
+    .stat-value { font-size: 1.25rem; font-weight: 600; color: var(--accent-green); line-height: 1.2; }
+    .stat-value .star-icon { color: #fbbf24; width: 20px; height: 20px; vertical-align: middle; display: inline-block; }
+    .stat-label { color: var(--text-secondary); margin-top: 4px; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    section { margin-bottom: 24px; }
+    h2 { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .project-list { display: flex; flex-direction: column; gap: 8px; }
+    .star-icon { width: 16px; height: 16px; vertical-align: middle; }
+    .paper-card { background: var(--bg-card); border-radius: 6px; padding: 12px; margin: 8px 0; border: 1px solid var(--border); transition: border-color 0.2s; }
+    .paper-card:hover { border-color: var(--text-muted); }
+    .paper-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; }
+    .paper-name { font-size: 0.875rem; font-weight: 600; color: var(--accent); text-decoration: none; line-height: 1.4; }
+    .paper-name:hover { text-decoration: underline; }
+    .paper-stats { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+    .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.6875rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 2px 6px; border-radius: 10px; border: 1px solid var(--border); white-space: nowrap; }
+    .stat-badge .star-icon { color: #fbbf24; width: 12px; height: 12px; }
+    .paper-abstract { background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin: 8px 0; border: 1px solid var(--border); }
+    .paper-abstract strong { color: var(--text-primary); }
+    .paper-meta { color: var(--text-secondary); font-size: 0.75rem; margin: 8px 0; }
+    .paper-meta a { color: var(--accent); text-decoration: none; }
+    .paper-meta a:hover { text-decoration: underline; }
+    .toggle-btn { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.6875rem; font-weight: 500; transition: all 0.2s; }
+    .toggle-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+    .paper-details { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .paper-details.active { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .detail-column { background: var(--bg-secondary); padding: 8px; border-radius: 6px; }
+    .detail-column h4 { color: var(--text-primary); margin-bottom: 6px; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
+    .detail-column ul { list-style: none; }
+    .detail-column li { color: var(--text-secondary); padding: 3px 0; font-size: 0.75rem; line-height: 1.4; }
+    .ai-section { background: var(--bg-card); padding: 16px; border-radius: 6px; border: 1px solid var(--border); }
+    .ai-section h2, .ai-section h3 { color: var(--text-primary); margin: 16px 0 8px; font-size: 0.75rem; font-weight: 600; }
+    .ai-section h2:first-child, .ai-section h3:first-child { margin-top: 0; }
+    .ai-section p { color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; font-size: 0.8125rem; }
+    .ai-section ul { margin-bottom: 12px; padding-left: 16px; }
+    .ai-section li { color: var(--text-secondary); margin-bottom: 4px; font-size: 0.8125rem; line-height: 1.5; }
+    .lang-dist { display: flex; flex-wrap: wrap; gap: 10px; }
+    .lang-item { background: var(--accent); color: var(--bg-primary); padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+    .paper-type { background: var(--accent-orange); color: var(--bg-primary); padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; margin-left: 6px; }
+    .quick-actions { display: flex; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .action-btn { background: var(--accent); color: var(--bg-primary); padding: 4px 12px; border-radius: 4px; text-decoration: none; font-size: 0.75rem; font-weight: 500; border: none; cursor: pointer; }
+    .action-btn:hover { opacity: 0.9; }
+    .bibtex-block { background: var(--bg-primary); padding: 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.6875rem; color: var(--text-secondary); white-space: pre-wrap; margin-top: 8px; }
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } .paper-details.active { grid-template-columns: 1fr; } .paper-header { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>HuggingFace AI Papers 日报</h1>
+      <div class="date">2026-08-25</div>
+    </header>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">16</div>
+        <div class="stat-label">论文总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">9</div>
+        <div class="stat-label">有 Stars 论文</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">
+          <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor" style="width: 20px; height: 20px;"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+          <span style="vertical-align: middle;">291</span>
+        </div>
+        <div class="stat-label">总 Stars</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">18</div>
+        <div class="stat-label">平均 Stars</div>
+      </div>
+    </section>
+
+    
+      <section class="ai-section">
+        <h2>AI 深度洞察</h2>
+        <p>Agent智能体、世界模型与RAG鲁棒性成今日热点</p>
+
+        
+          <h3>技术亮点</h3>
+          <ul>
+            
+              <li>
+                <strong><a href="https://github.com/ApodexAI/FrontierAgent" target="_blank" style="color: var(--accent); text-decoration: none;">ApodexAI/FrontierAgent</a></strong>: 提出规模化智能体架构，通过任务分解与多智能体协作提升复杂工作流处理能力
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/COOWAI/RISE" target="_blank" style="color: var(--accent); text-decoration: none;">COOWAI/RISE</a></strong>: 自适应想象机制用于世界行动模型，实现多模态环境下的动态规划与行动生成
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/PrimeIntellect-ai/prime-agent" target="_blank" style="color: var(--accent); text-decoration: none;">PrimeIntellect-ai/prime-agent</a></strong>: 自改进强化学习机（RLM）框架，通过自我对弈与元学习持续提升智能体决策能力
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/zhifeichen097/ReWorld" target="_blank" style="color: var(--accent); text-decoration: none;">zhifeichen097/ReWorld</a></strong>: 引入长期记忆的世界模型，实现交互环境中跨会话的持续学习与知识积累
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/ZhenghuaBao/spoken-multihop-rag" target="_blank" style="color: var(--accent); text-decoration: none;">ZhenghuaBao/spoken-multihop-rag</a></strong>: 揭示多跳RAG系统对上游语音识别错误的放大效应，并提出鲁棒性增强方法
+              </li>
+            
+          </ul>
+        
+
+        
+          <h3>社区价值</h3>
+          <ul>
+            <li>多个项目提供完整开源代码与预训练模型，降低复现门槛</li><li>包含基准测试与评估工具，促进智能体与RAG领域标准化发展</li>
+          </ul>
+        
+
+        
+          <h3>应用前景</h3>
+          <ul>
+            <li>智能体技术可应用于自动化办公、复杂决策支持与游戏AI</li><li>世界模型与记忆机制有望推动具身智能与虚拟现实交互发展</li><li>RAG鲁棒性研究对语音助手与多模态搜索产品至关重要</li>
+          </ul>
+        
+      </section>
+    
+
+    <section>
+      <h2>论文列表（共 16 篇）</h2>
+      <div class="project-list">
+        
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2608.23283" class="paper-name" target="_blank">
+            1. Apodex 1.1: Scaling Agentic Intelligence for Complex Work
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              219
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>了解Apodex 1.1 ：为复杂工作扩展Agentic Intelligence开源线束： https://github.com/ApodexAI/FrontierAgent开放权重： https://huggingface.co/col...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(0)" id="btn-0">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-0">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2608.23283" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2608.23283" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(0)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Apodex 1.1: Scaling Agentic Intelligence for Complex Work</li>
+              <li>Stars: 219</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2608.23283" target="_blank">https://huggingface.co/papers/2608.23283</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2608.23283" target="_blank">https://arxiv.org/abs/2608.23283</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>了解Apodex 1.1 ：为复杂工作扩展Agentic Intelligence开源线束： https://github.com/ApodexAI/FrontierAgent开放权重： https://huggingface.co/collections/apodex/apodex-11我们很高兴推出Apodex 1.1 ，这是我们为专业工作扩展Agentic Intelligence而构建的新型号系列。适用于复杂🧠工作的前沿级智能Apodex 1.1为复杂专业工作带来了前沿级代理性能，科学...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Meet Apodex 1.1: Scaling Agentic Intelligence for Complex Work Open Source Harness: https://github.com/ApodexAI/FrontierAgent Open Weights: https://huggingface.co/collections/apodex/apodex-11 We’re excited to introduce Apodex 1.1, our new model family built to scale agentic intelligence for professional work. 🧠 Frontier-level intelligence for complex work Apodex 1.1 brings frontier-level agentic performance across complex professional work, scientific research, financial analysis, and deep search. 🤝 Asynchronous Agent Team Apodex 1.1 can break down complex tasks, coordinate multiple agents in parallel, continuously integrate their findings, and let you step in to guide or redirect the work at any time. 🔬 Open-source research workbench We’re open-sourcing FrontierAgent—a locally deployable research workbench for the Apodex 1.1 family, including asynchronous Agent Team. Available now: 🔹 Apodex 1.1 — our most capable frontier model, available through the Apodex online workbench 🔹 Apodex 1.1 mini — open-weight model for running complex work locally 🔹 FrontierAgent — open-source, locally deployable research workbench 🌐 Live workbench: https://apodex.ai 🦾 API platform: https://platform.apodex.ai 📃 Paper: https://apodex.com/pdf/20260824</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-0">@article{unknown26,
+  title = {Apodex 1.1: Scaling Agentic Intelligence for Complex Work},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2608.23283},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2608.20430" class="paper-name" target="_blank">
+            2. RISE: Adaptive Imagination for World Action Models
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              20
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>我们推出了RISE ，这是一种适用于自动驾驶领域的世界行动模型（ WAM ）的自适应想象力框架。RISE不是为每个场景使用固定的推出深度，而是根据规划效益、揭示的风险和计算成本动态决定是否继续想象未来的潜伏状态。
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(1)" id="btn-1">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-1">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2608.20430" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2608.20430" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(1)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：RISE: Adaptive Imagination for World Action Models</li>
+              <li>Stars: 20</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2608.20430" target="_blank">https://huggingface.co/papers/2608.20430</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2608.20430" target="_blank">https://arxiv.org/abs/2608.20430</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>我们推出了RISE ，这是一种适用于自动驾驶领域的世界行动模型（ WAM ）的自适应想象力框架。RISE不是为每个场景使用固定的推出深度，而是根据规划效益、揭示的风险和计算成本动态决定是否继续想象未来的潜伏状态。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>We introduce RISE, an adaptive imagination framework for World Action Models (WAMs) in autonomous driving. Instead of using a fixed rollout depth for every scene, RISE dynamically decides whether to continue imagining future latent states based on planning benefit, revealed risk, and computation cost.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-1">@article{unknown26,
+  title = {RISE: Adaptive Imagination for World Action Models},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2608.20430},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2608.23552" class="paper-name" target="_blank">
+            3. Prime Agent: A Self-Improving RLM Harness
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              18
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(2)" id="btn-2">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-2">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2608.23552" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2608.23552" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(2)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Prime Agent: A Self-Improving RLM Harness</li>
+              <li>Stars: 18</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2608.23552" target="_blank">https://huggingface.co/papers/2608.23552</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2608.23552" target="_blank">https://arxiv.org/abs/2608.23552</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-2">@article{unknown26,
+  title = {Prime Agent: A Self-Improving RLM Harness},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2608.23552},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2608.20958" class="paper-name" target="_blank">
+            4. TLive-Omni: An Omni-Modal Understanding Model for E-Commerce Live Streaming
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              15
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>✨ 突出显示带时间戳的每个vGrid布局—音频和视频令牌被组织成带有明确边界的时间戳网格，使音频段与其相应的视觉内容相邻，以便在长流上进行精细的时间对齐。三阶段SFT食谱—从音频语言对齐到完整的多模态SFT的渐进式培训，从全模态感知到指令遵...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(3)" id="btn-3">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-3">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2608.20958" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2608.20958" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(3)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：TLive-Omni: An Omni-Modal Understanding Model for E-Commerce Live Streaming</li>
+              <li>Stars: 15</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2608.20958" target="_blank">https://huggingface.co/papers/2608.20958</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2608.20958" target="_blank">https://arxiv.org/abs/2608.20958</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>✨ 突出显示带时间戳的每个vGrid布局—音频和视频令牌被组织成带有明确边界的时间戳网格，使音频段与其相应的视觉内容相邻，以便在长流上进行精细的时间对齐。三阶段SFT食谱—从音频语言对齐到完整的多模态SFT的渐进式培训，从全模态感知到指令遵循响应开发实时商务理解...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>✨ Highlights Timestamped Per-vGrid layout — Audio and video tokens are organized into timestamped grid with explicit boundaries, keeping audio segments adjacent to their corresponding visual content for fine-grained temporal alignment over long streams. Three-stage SFT recipe — Progressive training from audio-language alignment to full multimodal SFT, developing live-commerce understanding from omni-modal perception to instruction-following responses. Faithful-RFT — A reinforcement fine-tuning stage for faithful and real-time live-stream demands, suppressing explicit reasoning traces and directly optimizing answer quality for live-commerce tasks. Rich atomic capabilities — A scenario-oriented taxonomy covering speech recognition, speaker analysis, product visual grounding, text recognition, temporal grounding, video dense caption, and omni-modal QA, etc, supported by a compact data production engine. Strong live-commerce performance with competitive generalization — 4B and 9B variants demonstrate strong results across live-commerce audio, image, and video tasks, together with excellent generalization on general benchmarks. 📦 Resources & Code: https://github.com/TaoLiveAIGC/TLive-Omni</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-3">@article{unknown26,
+  title = {TLive-Omni: An Omni-Modal Understanding Model for E-Commerce Live Streaming},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2608.20958},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2608.20169" class="paper-name" target="_blank">
+            5. Task-CoEvolve: Efficient Harness Optimization via Adaptive Validation Task Selection
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              7
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>扩展递归自我改进的一个主要挑战，特别是在线束优化方面，是进化的成本。我们引入了一种截然不同的方法，将现有线束优化的进化成本降低了80%。🚀引入Task-CoEvolve现有方法的重点是使用更少的候选人或更少的迭代。Task-CoEvolv...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(4)" id="btn-4">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-4">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2608.20169" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2608.20169" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(4)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Task-CoEvolve: Efficient Harness Optimization via Adaptive Validation Task Selection</li>
+              <li>Stars: 7</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2608.20169" target="_blank">https://huggingface.co/papers/2608.20169</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2608.20169" target="_blank">https://arxiv.org/abs/2608.20169</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>扩展递归自我改进的一个主要挑战，特别是在线束优化方面，是进化的成本。我们引入了一种截然不同的方法，将现有线束优化的进化成本降低了80%。🚀引入Task-CoEvolve现有方法的重点是使用更少的候选人或更少的迭代。Task-CoEvolve采用正交的方向：我们不是减少搜索本身，而是减少数量...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>A major challenge for scaling recursive self-improvement, especially in harness optimization, is the cost of evolution. We introduce a fundamentally different approach that cuts the evolution cost of existing harness optimization by up to 80%. 🚀 Introducing Task-CoEvolve Existing approaches focus on using fewer candidates or fewer iterations. Task-CoEvolve takes an orthogonal direction: instead of reducing the search itself, we reduce the number of evaluation tasks at each iteration. 💡 The key idea is simple: not every validation task needs to be evaluated at every iteration. Task-CoEvolve co-evolves the validation tasks together with the harness: Select informative tasks based on the evolving harnesses Adaptively update which tasks are evaluated Estimate full-set performance from partial evaluations 📊 Results On online text classification and Terminal-Bench 2.1, Task-CoEvolve matches the performance of full-set search using only 20% of the evaluations (reducing the overall search cost by 67–80% in Terminal-Bench 2.1)🔥 📄 https://arxiv.org/abs/2608.20169 Github: https://github.com/Agent4Science-UTokyo/Task-CoEvolve</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-4">@article{unknown26,
+  title = {Task-CoEvolve: Efficient Harness Optimization via Adaptive Validation Task Selection},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2608.20169},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2608.16812" class="paper-name" target="_blank">
+            6. Unlocking the Potential of Image Editing via Concept Scaling and Dense Supervision
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              5
+            </span>
+            <span class="stat-badge" title="GitHub">inclusionAI/ConceptEdit</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>🚀 ConceptEdit ：通过概念扩展和密集监控释放图像编辑的潜力。📄arXiv 💻 GitHub🤗数据集🤗基准
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(5)" id="btn-5">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-5">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2608.16812" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2608.16812" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/inclusionAI/ConceptEdit" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(5)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Unlocking the Potential of Image Editing via Concept Scaling and Dense Supervision</li>
+              <li>Stars: 5</li>
+              <li>类型：数据</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2608.16812" target="_blank">https://huggingface.co/papers/2608.16812</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2608.16812" target="_blank">https://arxiv.org/abs/2608.16812</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>🚀 ConceptEdit ：通过概念扩展和密集监控释放图像编辑的潜力。📄arXiv 💻 GitHub🤗数据集🤗基准</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>🚀 ConceptEdit : Unlocking the Potential of Image Editing via Concept Scaling and Dense Supervision. 📄 arXiv 💻 GitHub 🤗 Dataset 🤗 Benchmark</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-5">@article{unknown26,
+  title = {Unlocking the Potential of Image Editing via Concept Scaling and Dense Supervision},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2608.16812},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2608.23565" class="paper-name" target="_blank">
+            7. ReWorld: An Interactive World Model with Long-Horizon Memory
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              3
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(6)" id="btn-6">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-6">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2608.23565" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2608.23565" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(6)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：ReWorld: An Interactive World Model with Long-Horizon Memory</li>
+              <li>Stars: 3</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2608.23565" target="_blank">https://huggingface.co/papers/2608.23565</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2608.23565" target="_blank">https://arxiv.org/abs/2608.23565</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-6">@article{unknown26,
+  title = {ReWorld: An Interactive World Model with Long-Horizon Memory},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2608.23565},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2608.19567" class="paper-name" target="_blank">
+            8. Block3D: Efficient Text-to-3D Generation via Block-Wise Diffusion
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              3
+            </span>
+            <span class="stat-badge" title="GitHub">ziplab/Block3D</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>Block3D是一个高效的文本到3D生成框架，可将离散形状令牌的因果关系从单个令牌转移到连续块。
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(7)" id="btn-7">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-7">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2608.19567" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2608.19567" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/ziplab/Block3D" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(7)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Block3D: Efficient Text-to-3D Generation via Block-Wise Diffusion</li>
+              <li>Stars: 3</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2608.19567" target="_blank">https://huggingface.co/papers/2608.19567</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2608.19567" target="_blank">https://arxiv.org/abs/2608.19567</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>Block3D是一个高效的文本到3D生成框架，可将离散形状令牌的因果关系从单个令牌转移到连续块。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Block3D is an efficient text-to-3D generation framework that shifts the causal dependency of discrete shape tokens from individual tokens to contiguous blocks.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-7">@article{unknown26,
+  title = {Block3D: Efficient Text-to-3D Generation via Block-Wise Diffusion},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2608.19567},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2608.22872" class="paper-name" target="_blank">
+            9. Better Retrieval, Worse Robustness:How Multi-hop RAG Amplifies Upstream ASR Errors
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              1
+            </span>
+            <span class="stat-badge" title="GitHub">ZhenghuaBao/spoken-multihop-rag</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Zhenghua Bao</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>语音接口将ASR置于检索之前，因此RAG系统看到的查询已经损坏。我们测试标准多跳方法、实体图链接和迭代重构是否吸收或放大了腐败。研究结果表明，他们放大了它。结构更丰富的配置通常在ASR输入下达到更高的绝对F1 ，但它们放弃了更多的纯文本优势...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(8)" id="btn-8">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-8">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2608.22872" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2608.22872" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/ZhenghuaBao/spoken-multihop-rag" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(8)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Better Retrieval, Worse Robustness:How Multi-hop RAG Amplifies Upstream ASR Errors</li>
+              <li>Stars: 1</li>
+              <li>类型：工具</li>
+              <li>作者：Zhenghua Bao</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2608.22872" target="_blank">https://huggingface.co/papers/2608.22872</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2608.22872" target="_blank">https://arxiv.org/abs/2608.22872</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>语音接口将ASR置于检索之前，因此RAG系统看到的查询已经损坏。我们测试标准多跳方法、实体图链接和迭代重构是否吸收或放大了腐败。研究结果表明，他们放大了它。结构更丰富的配置通常在ASR输入下达到更高的绝对F1 ，但它们放弃了更多的纯文本优势：与纯文本的差距......</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Speech interfaces put ASR in front of retrieval, so the query a RAG system sees is already corrupted. We test whether the standard multi-hop methods, entity-graph linking and iterative reformulation, absorb that corruption or amplify it. The findings suggest that they amplify it. The structurally richer configurations generally reach higher absolute F1 under ASR input, but they give up more of their clean-text advantage: the gap from clean text to the highest-WER accent is 36-67% larger under IRCoT+HippoRAG2 than under naive dense retrieval, on all three benchmarks. Corruption of one or more query entities is the dominant failure mode, accounting for 87-96% of degradation cases on 2WikiMultiHopQA across all four methods. Two lightweight surface-form mitigations, N-best decoding and phonetic entity correction, leave most of the gap intact, which points at retrieval structure rather than transcription surface form. We release the code and a transcript dataset covering 3 multi-hop QA benchmarks x 4 English accents (3,000 questions, 12,000 rows).</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-8">@article{bao26,
+  title = {Better Retrieval, Worse Robustness:How Multi-hop RAG Amplifies Upstream ASR Errors},
+  author = {Zhenghua Bao},
+  journal = {arXiv preprint},
+  volume = {arXiv:2608.22872},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2608.23035" class="paper-name" target="_blank">
+            10. MobilePA-Bench: Benchmarking Mobile Planner Agents on Complex Real-World Tasks
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Jiajun Liu, Tingyu Qu, Qiyi Wang, Xiongwei Wu, Yi Zhu</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>MobilePA-Bench
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(9)" id="btn-9">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-9">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2608.23035" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2608.23035" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(9)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：MobilePA-Bench: Benchmarking Mobile Planner Agents on Complex Real-World Tasks</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Jiajun Liu, Tingyu Qu, Qiyi Wang, Xiongwei Wu, Yi Zhu</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2608.23035" target="_blank">https://huggingface.co/papers/2608.23035</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2608.23035" target="_blank">https://arxiv.org/abs/2608.23035</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>MobilePA-Bench</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>MobilePA-Bench</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-9">@article{liu26,
+  title = {MobilePA-Bench: Benchmarking Mobile Planner Agents on Complex Real-World Tasks},
+  author = {Jiajun Liu and Tingyu Qu and Qiyi Wang and Xiongwei Wu and Yi Zhu},
+  journal = {arXiv preprint},
+  volume = {arXiv:2608.23035},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2608.13622" class="paper-name" target="_blank">
+            11. ARC: Fair Relative Advantage Comparison in Open-Ended Real-World Interaction
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>ARC ：开放式真实世界互动中的公平相对优势比较
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(10)" id="btn-10">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-10">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2608.13622" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2608.13622" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(10)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：ARC: Fair Relative Advantage Comparison in Open-Ended Real-World Interaction</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2608.13622" target="_blank">https://huggingface.co/papers/2608.13622</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2608.13622" target="_blank">https://arxiv.org/abs/2608.13622</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>ARC ：开放式真实世界互动中的公平相对优势比较</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>ARC: Fair Relative Advantage Comparison in Open-Ended Real-World Interaction</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-10">@article{unknown26,
+  title = {ARC: Fair Relative Advantage Comparison in Open-Ended Real-World Interaction},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2608.13622},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2608.21833" class="paper-name" target="_blank">
+            12. GameXpert-Bench: How Far Are Coding Agents from Expert Game Development?
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(11)" id="btn-11">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-11">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2608.21833" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2608.21833" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(11)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：GameXpert-Bench: How Far Are Coding Agents from Expert Game Development?</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2608.21833" target="_blank">https://huggingface.co/papers/2608.21833</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2608.21833" target="_blank">https://arxiv.org/abs/2608.21833</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-11">@article{unknown26,
+  title = {GameXpert-Bench: How Far Are Coding Agents from Expert Game Development?},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2608.21833},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2608.19408" class="paper-name" target="_blank">
+            13. Beyond Imitation: Filtering On-Policy Distillation by Reasoning Progress
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">综述</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Danny H. K. Tsang, Yize Chen, Rengrong Xiong, Haiyuan Wan, Chen Yang</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(12)" id="btn-12">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-12">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2608.19408" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2608.19408" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(12)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Beyond Imitation: Filtering On-Policy Distillation by Reasoning Progress</li>
+              <li>Stars: 0</li>
+              <li>类型：综述</li>
+              <li>作者：Danny H. K. Tsang, Yize Chen, Rengrong Xiong, Haiyuan Wan, Chen Yang</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2608.19408" target="_blank">https://huggingface.co/papers/2608.19408</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2608.19408" target="_blank">https://arxiv.org/abs/2608.19408</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-12">@article{tsang26,
+  title = {Beyond Imitation: Filtering On-Policy Distillation by Reasoning Progress},
+  author = {Danny H. K. Tsang and Yize Chen and Rengrong Xiong and Haiyuan Wan and Chen Yang},
+  journal = {arXiv preprint},
+  volume = {arXiv:2608.19408},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2608.22856" class="paper-name" target="_blank">
+            14. Same Agent, Different Answers: A Repeat-Aware Audit of Corpus-Induced Answer Churn in Retrieval-Augmented QA
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>相同的客服代表，不同的答案
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(13)" id="btn-13">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-13">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2608.22856" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2608.22856" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(13)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Same Agent, Different Answers: A Repeat-Aware Audit of Corpus-Induced Answer Churn in Retrieval-Augmented QA</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2608.22856" target="_blank">https://huggingface.co/papers/2608.22856</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2608.22856" target="_blank">https://arxiv.org/abs/2608.22856</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>相同的客服代表，不同的答案</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Same Agent, Different Answers</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-13">@article{unknown26,
+  title = {Same Agent, Different Answers: A Repeat-Aware Audit of Corpus-Induced Answer Churn in Retrieval-Augmented QA},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2608.22856},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2608.17336" class="paper-name" target="_blank">
+            15. TileMix: Tile-Centric Mixed-Precision Attention for LLM Inference Acceleration
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Yan Huang, Heng Fan, Qinglei Cao, Qiao Zhang, Hanzhi Zhang</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>TileMix为长上下文LLM推断引入了以瓷砖为中心的混合精度关注。它不是在注意力中统一应用单一精度，而是在同一融合的FlashAttention样式内核中在FP16和INT8之间路由硬件对齐的瓦片组。这在不进行再培训或建筑变化的情况下保持...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(14)" id="btn-14">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-14">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2608.17336" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2608.17336" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(14)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：TileMix: Tile-Centric Mixed-Precision Attention for LLM Inference Acceleration</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Yan Huang, Heng Fan, Qinglei Cao, Qiao Zhang, Hanzhi Zhang</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2608.17336" target="_blank">https://huggingface.co/papers/2608.17336</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2608.17336" target="_blank">https://arxiv.org/abs/2608.17336</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>TileMix为长上下文LLM推断引入了以瓷砖为中心的混合精度关注。它不是在注意力中统一应用单一精度，而是在同一融合的FlashAttention样式内核中在FP16和INT8之间路由硬件对齐的瓦片组。这在不进行再培训或建筑变化的情况下保持了高度关注，同时恢复了均匀INT8造成的大部分质量损失，并提高了FP16的预充效率。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>TileMix introduces tile-centric mixed-precision attention for long-context LLM inference. Instead of applying a single precision uniformly across attention, it routes hardware-aligned tile groups between FP16 and INT8 within the same fused FlashAttention-style kernel. This preserves dense attention without retraining or architectural changes, while recovering much of the quality lost by uniform INT8 and improving prefill efficiency over FP16.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-14">@article{huang26,
+  title = {TileMix: Tile-Centric Mixed-Precision Attention for LLM Inference Acceleration},
+  author = {Yan Huang and Heng Fan and Qinglei Cao and Qiao Zhang and Hanzhi Zhang},
+  journal = {arXiv preprint},
+  volume = {arXiv:2608.17336},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2606.13610" class="paper-name" target="_blank">
+            16. One Polluted Page Is Enough: Evaluating Web Content Pollution in LLM Recommenders
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Liang Chen, leoluo25933</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>接受EMNLP 2026调查结果。单个受污染的网页就足以让生产LLM推荐一个不存在的品牌—排名第1的品牌占27 ％ ，前三名页面交换时占73.8 ％。开启推理会让情况变得更糟。
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(15)" id="btn-15">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-15">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2606.13610" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2606.13610" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(15)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：One Polluted Page Is Enough: Evaluating Web Content Pollution in LLM Recommenders</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Liang Chen, leoluo25933</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2606.13610" target="_blank">https://huggingface.co/papers/2606.13610</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2606.13610" target="_blank">https://arxiv.org/abs/2606.13610</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>接受EMNLP 2026调查结果。单个受污染的网页就足以让生产LLM推荐一个不存在的品牌—排名第1的品牌占27 ％ ，前三名页面交换时占73.8 ％。开启推理会让情况变得更糟。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Accepted to EMNLP 2026 Findings.  A single polluted web page is enough to make production LLMs recommend a brand that does not exist — 27% at rank 1, 73.8% when the top three pages are swapped. Turning on reasoning makes it worse.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-15">@article{chen26,
+  title = {One Polluted Page Is Enough: Evaluating Web Content Pollution in LLM Recommenders},
+  author = {Liang Chen and leoluo25933},
+  journal = {arXiv preprint},
+  volume = {arXiv:2606.13610},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function toggleDetails(paperId) {
+      const details = document.getElementById('details-' + paperId);
+      const btn = document.getElementById('btn-' + paperId);
+      if (details && btn) {
+        details.classList.toggle('active');
+        btn.textContent = details.classList.contains('active') ? '收起详情' : '查看详情';
+      }
+    }
+
+    function copyBibtex(paperId) {
+      const bibtexBlock = document.getElementById('bibtex-' + paperId);
+      if (bibtexBlock) {
+        navigator.clipboard.writeText(bibtexBlock.textContent).then(() => {
+          const btn = event.target;
+          const originalText = btn.textContent;
+          btn.textContent = '已复制!';
+          setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }).catch(err => {
+          alert('复制失败，请手动复制');
+        });
+      }
+    }
+  </script>
+</body>
+</html>
