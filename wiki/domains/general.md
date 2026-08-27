@@ -3,7 +3,7 @@
 ## 领域概览
 
 - 项目总数：12
-- 最近更新：2026-08-25
+- 最近更新：2026-08-26
 - 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
@@ -27,7 +27,7 @@ general 领域收录了与AI 相关技术相关的项目。
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：203,012
+- 总 Stars 数：204,427
 - 最热项目：[MemPalace/mempalace](../../wiki/projects/MemPalace_mempalace.md) (54913 ⭐)
 
 
