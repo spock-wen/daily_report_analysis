@@ -6,7 +6,7 @@
 - 上榜次数：3
 - 领域分类：other
 - 语言：Python
-- GitHub Stars: 34353（最后更新：2026-08-26）
+- GitHub Stars: 34676（最后更新：2026-08-27）
 
 ## 核心功能
 - Anthropic管理的高质量Claude Code插件目录
@@ -94,6 +94,14 @@
 **来源**: [日报 2026-08-26](../../daily/github-ai-trending-2026-08-26.html)
 **分析**: 🔥 Claude Code插件生态成型：'anthropics/claude-plugins-official'（官方插件目录）与'anthropics/claude-plugins-community'（社区插件市场）双轨并行，配合'Alishahryar1/free-claude-code'（免费使用Claude Code）降低使用门槛，推动插件生态快速壮大。
 📈 今日增长迅速，值得关注
+⭐ 明星项目，在开发者社区具有重要影响力
+🤖 AI Agent 领域持续火热，多智能体协作成为趋势
+👥 社区活跃度：高 - 社区活跃，持续有开发者关注和贡献
+
+
+### 2026-08-27（日报收录）
+**来源**: [日报 2026-08-27](../../daily/github-ai-trending-2026-08-27.html)
+**分析**: 📈 今日增长迅速，值得关注
 ⭐ 明星项目，在开发者社区具有重要影响力
 🤖 AI Agent 领域持续火热，多智能体协作成为趋势
 👥 社区活跃度：高 - 社区活跃，持续有开发者关注和贡献
