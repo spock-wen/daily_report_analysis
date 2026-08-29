@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：19
-- 最近更新：2026-08-27
+- 项目总数：18
+- 最近更新：2026-08-28
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -20,15 +20,15 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 6 | [xbtlin/ai-berkshire](../../wiki/projects/xbtlin_ai-berkshire.md) | 2026-07-06 | 1 | 10289 |
 | 7 | [Zackriya-Solutions/meetily](../../wiki/projects/Zackriya-Solutions_meetily.md) | 2026-07-13 | 1 | 23569 |
 | 8 | [zhaoxuya520/reverse-skill](../../wiki/projects/zhaoxuya520_reverse-skill.md) | 2026-08-10 | 1 | 22517 |
-| 9 | [freestylefly/awesome-gpt-image-2](../../wiki/projects/freestylefly_awesome-gpt-image-2.md) | 2026-08-27 | 1 | 22977 |
-| 10 | [tt-a1i/archify](../../wiki/projects/tt-a1i_archify.md) | 2026-08-27 | 1 | 23068 |
+| 9 | [tt-a1i/archify](../../wiki/projects/tt-a1i_archify.md) | 2026-08-28 | 1 | 27256 |
+| 10 | [K-Dense-AI/scientific-agent-skills](../../wiki/projects/K-Dense-AI_scientific-agent-skills.md) | 2026-08-28 | 1 | 36547 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：847,767
-- 最热项目：[DietrichGebert/ponytail](../../wiki/projects/DietrichGebert_ponytail.md) (114008 ⭐)
+- 总 Stars 数：685,971
+- 最热项目：[DietrichGebert/ponytail](../../wiki/projects/DietrichGebert_ponytail.md) (115324 ⭐)
 
 
 ---

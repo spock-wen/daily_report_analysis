@@ -6,7 +6,7 @@
 - 上榜次数：3
 - 领域分类：other
 - 语言：Python
-- GitHub Stars: 34676（最后更新：2026-08-27）
+- GitHub Stars: 35011（最后更新：2026-08-28）
 
 ## 核心功能
 - Anthropic管理的高质量Claude Code插件目录
@@ -102,6 +102,15 @@
 ### 2026-08-27（日报收录）
 **来源**: [日报 2026-08-27](../../daily/github-ai-trending-2026-08-27.html)
 **分析**: 📈 今日增长迅速，值得关注
+⭐ 明星项目，在开发者社区具有重要影响力
+🤖 AI Agent 领域持续火热，多智能体协作成为趋势
+👥 社区活跃度：高 - 社区活跃，持续有开发者关注和贡献
+
+
+### 2026-08-28（日报收录）
+**来源**: [日报 2026-08-28](../../daily/github-ai-trending-2026-08-28.html)
+**分析**: 🔥 智能体技能库生态爆发：K-Dense-AI/scientific-agent-skills（36.5k stars）提供163个科学技能库，anthropics/claude-plugins-official（35k stars）和cursor/plugins（5.9k stars）确立官方插件标准，推动Agent从通用对话向专业任务执行演进。
+📈 今日增长迅速，值得关注
 ⭐ 明星项目，在开发者社区具有重要影响力
 🤖 AI Agent 领域持续火热，多智能体协作成为趋势
 👥 社区活跃度：高 - 社区活跃，持续有开发者关注和贡献
