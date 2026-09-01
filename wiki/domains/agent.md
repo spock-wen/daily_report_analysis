@@ -2,9 +2,9 @@
 
 ## 领域概览
 
-- 项目总数：19
+- 项目总数：16
 - 最近更新：2026-08-31
-- 报告类型：weekly
+- 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
 
@@ -19,16 +19,16 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 5 | [commaai/openpilot](../../wiki/projects/commaai_openpilot.md) | 2026-06-29 | 1 | 62753 |
 | 6 | [xbtlin/ai-berkshire](../../wiki/projects/xbtlin_ai-berkshire.md) | 2026-07-06 | 1 | 10289 |
 | 7 | [Zackriya-Solutions/meetily](../../wiki/projects/Zackriya-Solutions_meetily.md) | 2026-07-13 | 1 | 23569 |
-| 8 | [zhaoxuya520/reverse-skill](../../wiki/projects/zhaoxuya520_reverse-skill.md) | 2026-08-10 | 1 | 22517 |
-| 9 | [freestylefly/awesome-gpt-image-2](../../wiki/projects/freestylefly_awesome-gpt-image-2.md) | 2026-08-31 | 1 | 25628 |
-| 10 | [anthropics/claude-plugins-community](../../wiki/projects/anthropics_claude-plugins-community.md) | 2026-08-31 | 1 | 2874 |
+| 8 | [freestylefly/awesome-gpt-image-2](../../wiki/projects/freestylefly_awesome-gpt-image-2.md) | 2026-08-31 | 1 | 25628 |
+| 9 | [anthropics/claude-plugins-community](../../wiki/projects/anthropics_claude-plugins-community.md) | 2026-08-31 | 1 | 2874 |
+| 10 | [THU-MAIC/OpenMAIC](../../wiki/projects/THU-MAIC_OpenMAIC.md) | 2026-08-31 | 1 | 26903 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：697,695
-- 最热项目：[openai/codex](../../wiki/projects/openai_codex.md) (120084 ⭐)
+- 总 Stars 数：679,337
+- 最热项目：[affaan-m/ECC](../../wiki/projects/affaan-m_ECC.md) (245226 ⭐)
 
 
 ---
