@@ -3,7 +3,7 @@
 ## 领域概览
 
 - 项目总数：12
-- 最近更新：2026-08-31
+- 最近更新：2026-09-01
 - 报告类型：daily
 
 llm 领域收录了与大语言模型、Transformer、基础模型相关的项目。
@@ -27,7 +27,7 @@ llm 领域收录了与大语言模型、Transformer、基础模型相关的项�
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：457,958
+- 总 Stars 数：510,116
 - 最热项目：[ggml-org/llama.cpp](../../wiki/projects/ggml-org_llama.cpp.md) (115308 ⭐)
 
 
