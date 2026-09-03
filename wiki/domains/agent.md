@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：16
-- 最近更新：2026-09-01
+- 项目总数：21
+- 最近更新：2026-09-02
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -21,14 +21,14 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 7 | [Zackriya-Solutions/meetily](../../wiki/projects/Zackriya-Solutions_meetily.md) | 2026-07-13 | 1 | 23569 |
 | 8 | [freestylefly/awesome-gpt-image-2](../../wiki/projects/freestylefly_awesome-gpt-image-2.md) | 2026-08-31 | 1 | 25628 |
 | 9 | [anthropics/claude-plugins-community](../../wiki/projects/anthropics_claude-plugins-community.md) | 2026-08-31 | 1 | 2874 |
-| 10 | [Gitlawb/openclaude](../../wiki/projects/Gitlawb_openclaude.md) | 2026-09-01 | 1 | 31257 |
+| 10 | [DietrichGebert/ponytail](../../wiki/projects/DietrichGebert_ponytail.md) | 2026-09-02 | 1 | 121445 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：816,675
-- 最热项目：[affaan-m/ECC](../../wiki/projects/affaan-m_ECC.md) (245746 ⭐)
+- 总 Stars 数：1,430,000
+- 最热项目：[affaan-m/ECC](../../wiki/projects/affaan-m_ECC.md) (246297 ⭐)
 
 
 ---
