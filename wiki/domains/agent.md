@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：22
-- 最近更新：2026-09-03
+- 项目总数：19
+- 最近更新：2026-09-04
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -21,14 +21,14 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 7 | [Zackriya-Solutions/meetily](../../wiki/projects/Zackriya-Solutions_meetily.md) | 2026-07-13 | 1 | 23569 |
 | 8 | [freestylefly/awesome-gpt-image-2](../../wiki/projects/freestylefly_awesome-gpt-image-2.md) | 2026-08-31 | 1 | 25628 |
 | 9 | [anthropics/claude-plugins-community](../../wiki/projects/anthropics_claude-plugins-community.md) | 2026-08-31 | 1 | 2874 |
-| 10 | [mattpocock/skills](../../wiki/projects/mattpocock_skills.md) | 2026-09-03 | 1 | 247295 |
+| 10 | [mattpocock/skills](../../wiki/projects/mattpocock_skills.md) | 2026-09-04 | 1 | 250298 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：2,087,577
-- 最热项目：[obra/superpowers](../../wiki/projects/obra_superpowers.md) (281319 ⭐)
+- 总 Stars 数：1,712,206
+- 最热项目：[mattpocock/skills](../../wiki/projects/mattpocock_skills.md) (250298 ⭐)
 
 
 ---
