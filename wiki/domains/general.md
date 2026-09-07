@@ -2,9 +2,9 @@
 
 ## 领域概览
 
-- 项目总数：12
-- 最近更新：2026-09-05
-- 报告类型：daily
+- 项目总数：15
+- 最近更新：2026-09-07
+- 报告类型：weekly
 
 general 领域收录了与AI 相关技术相关的项目。
 
@@ -27,8 +27,8 @@ general 领域收录了与AI 相关技术相关的项目。
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：220,474
-- 最热项目：[nvm-sh/nvm](../../wiki/projects/nvm-sh_nvm.md) (94910 ⭐)
+- 总 Stars 数：293,017
+- 最热项目：[punkpeye/awesome-mcp-servers](../../wiki/projects/punkpeye_awesome-mcp-servers.md) (94479 ⭐)
 
 
 ---
