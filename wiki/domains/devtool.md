@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：13
-- 最近更新：2026-09-07
+- 项目总数：12
+- 最近更新：2026-09-08
 - 报告类型：daily
 
 devtool 领域收录了与开发工具、IDE 插件、代码辅助相关的项目。
@@ -27,8 +27,8 @@ devtool 领域收录了与开发工具、IDE 插件、代码辅助相关的项�
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：371,738
-- 最热项目：[microsoft/markitdown](../../wiki/projects/microsoft_markitdown.md) (180147 ⭐)
+- 总 Stars 数：352,890
+- 最热项目：[microsoft/markitdown](../../wiki/projects/microsoft_markitdown.md) (181643 ⭐)
 
 
 ---
