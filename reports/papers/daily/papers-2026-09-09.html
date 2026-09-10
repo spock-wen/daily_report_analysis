@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuggingFace AI Papers 日报 - 2026-09-09</title>
+  <link rel="stylesheet" href="../../public/css/style.css">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-card: #161b22;
+      --text-primary: #c9d1d9;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-orange: #d29922;
+      --border: #30363d;
+      --border-light: #21262d;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.5; padding: 24px 16px; font-size: 13px; }
+    .container { max-width: 960px; margin: 0 auto; }
+    header { text-align: center; padding: 32px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+    h1 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+    .date { color: var(--text-secondary); font-size: 0.8125rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); padding: 12px; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
+    .stat-value { font-size: 1.25rem; font-weight: 600; color: var(--accent-green); line-height: 1.2; }
+    .stat-value .star-icon { color: #fbbf24; width: 20px; height: 20px; vertical-align: middle; display: inline-block; }
+    .stat-label { color: var(--text-secondary); margin-top: 4px; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    section { margin-bottom: 24px; }
+    h2 { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .project-list { display: flex; flex-direction: column; gap: 8px; }
+    .star-icon { width: 16px; height: 16px; vertical-align: middle; }
+    .paper-card { background: var(--bg-card); border-radius: 6px; padding: 12px; margin: 8px 0; border: 1px solid var(--border); transition: border-color 0.2s; }
+    .paper-card:hover { border-color: var(--text-muted); }
+    .paper-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; }
+    .paper-name { font-size: 0.875rem; font-weight: 600; color: var(--accent); text-decoration: none; line-height: 1.4; }
+    .paper-name:hover { text-decoration: underline; }
+    .paper-stats { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+    .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.6875rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 2px 6px; border-radius: 10px; border: 1px solid var(--border); white-space: nowrap; }
+    .stat-badge .star-icon { color: #fbbf24; width: 12px; height: 12px; }
+    .paper-abstract { background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin: 8px 0; border: 1px solid var(--border); }
+    .paper-abstract strong { color: var(--text-primary); }
+    .paper-meta { color: var(--text-secondary); font-size: 0.75rem; margin: 8px 0; }
+    .paper-meta a { color: var(--accent); text-decoration: none; }
+    .paper-meta a:hover { text-decoration: underline; }
+    .toggle-btn { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.6875rem; font-weight: 500; transition: all 0.2s; }
+    .toggle-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+    .paper-details { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .paper-details.active { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .detail-column { background: var(--bg-secondary); padding: 8px; border-radius: 6px; }
+    .detail-column h4 { color: var(--text-primary); margin-bottom: 6px; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
+    .detail-column ul { list-style: none; }
+    .detail-column li { color: var(--text-secondary); padding: 3px 0; font-size: 0.75rem; line-height: 1.4; }
+    .ai-section { background: var(--bg-card); padding: 16px; border-radius: 6px; border: 1px solid var(--border); }
+    .ai-section h2, .ai-section h3 { color: var(--text-primary); margin: 16px 0 8px; font-size: 0.75rem; font-weight: 600; }
+    .ai-section h2:first-child, .ai-section h3:first-child { margin-top: 0; }
+    .ai-section p { color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; font-size: 0.8125rem; }
+    .ai-section ul { margin-bottom: 12px; padding-left: 16px; }
+    .ai-section li { color: var(--text-secondary); margin-bottom: 4px; font-size: 0.8125rem; line-height: 1.5; }
+    .lang-dist { display: flex; flex-wrap: wrap; gap: 10px; }
+    .lang-item { background: var(--accent); color: var(--bg-primary); padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+    .paper-type { background: var(--accent-orange); color: var(--bg-primary); padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; margin-left: 6px; }
+    .quick-actions { display: flex; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .action-btn { background: var(--accent); color: var(--bg-primary); padding: 4px 12px; border-radius: 4px; text-decoration: none; font-size: 0.75rem; font-weight: 500; border: none; cursor: pointer; }
+    .action-btn:hover { opacity: 0.9; }
+    .bibtex-block { background: var(--bg-primary); padding: 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.6875rem; color: var(--text-secondary); white-space: pre-wrap; margin-top: 8px; }
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } .paper-details.active { grid-template-columns: 1fr; } .paper-header { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>HuggingFace AI Papers 日报</h1>
+      <div class="date">2026-09-09</div>
+    </header>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">6</div>
+        <div class="stat-label">论文总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">2</div>
+        <div class="stat-label">有 Stars 论文</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">
+          <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor" style="width: 20px; height: 20px;"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+          <span style="vertical-align: middle;">70</span>
+        </div>
+        <div class="stat-label">总 Stars</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">12</div>
+        <div class="stat-label">平均 Stars</div>
+      </div>
+    </section>
+
+    
+      <section class="ai-section">
+        <h2>AI 深度洞察</h2>
+        <p>今日聚焦扩散加速、推理自改进与VLA框架，强调验证器与测试时计算</p>
+
+        
+          <h3>技术亮点</h3>
+          <ul>
+            
+              <li>
+                <strong><a href="https://github.com/ifm-ai/uno" target="_blank" style="color: var(--accent); text-decoration: none;">ifm-ai/uno</a></strong>: 提出基于离散扩散的无损加速方法，在LLM推理中实现速度提升而不损失质量
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/alexhuang13/FlowBalance" target="_blank" style="color: var(--accent); text-decoration: none;">alexhuang13/FlowBalance</a></strong>: 提出验证器引导的自我改进框架，利用在线策略推理经验提升模型能力
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/DCDmllm/EmbodiedSkills" target="_blank" style="color: var(--accent); text-decoration: none;">DCDmllm/EmbodiedSkills</a></strong>: 统一框架用于编排、训练和部署VLA（视觉-语言-动作）智能体，简化复杂机器人任务
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/ntt-dkiku/llm-revision-propagation" target="_blank" style="color: var(--accent); text-decoration: none;">ntt-dkiku/llm-revision-propagation</a></strong>: 探索对话生成物中修订传播的成本效益测试时计算，提出有效策略
+              </li>
+            
+          </ul>
+        
+
+        
+          <h3>社区价值</h3>
+          <ul>
+            <li>uno 开源实现离散扩散加速，可复现并集成到现有LLM推理流程</li><li>FlowBalance 提供完整的训练代码和验证器接口，便于社区复现和扩展</li><li>EmbodiedSkills 提供统一框架和示例，降低VLA智能体开发门槛</li><li>llm-revision-propagation 开源对话修订数据集和评估脚本，促进测试时计算研究</li>
+          </ul>
+        
+
+        
+          <h3>应用前景</h3>
+          <ul>
+            <li>离散扩散加速可应用于实时对话系统和长文本生成场景，降低推理成本</li><li>FlowBalance 的自我改进框架可提升AI助手的推理能力，用于教育、编程辅助</li><li>EmbodiedSkills 有望推动家庭服务机器人和智能制造自动化</li><li>修订传播策略可优化多轮对话编辑工具，提高协作效率</li>
+          </ul>
+        
+      </section>
+    
+
+    <section>
+      <h2>论文列表（共 6 篇）</h2>
+      <div class="project-list">
+        
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.04010" class="paper-name" target="_blank">
+            1. Unlocking Lossless Speedups in LLMs via Discrete Diffusion
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              44
+            </span>
+            <span class="stat-badge" title="GitHub">ifm-ai/uno</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>这里的核心框架不就和四个月前发布的 Orthrus 完全一样吗？https://arxiv.org/abs/2605.12825
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(0)" id="btn-0">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-0">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2605.12825" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.04010" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/ifm-ai/uno" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(0)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Unlocking Lossless Speedups in LLMs via Discrete Diffusion</li>
+              <li>Stars: 44</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.04010" target="_blank">https://huggingface.co/papers/2609.04010</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2605.12825" target="_blank">https://arxiv.org/abs/2605.12825</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>这里的核心框架不就和四个月前发布的 Orthrus 完全一样吗？https://arxiv.org/abs/2605.12825</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Isn't the core framework here exactly the same as Orthrus, released 4 months ago? https://arxiv.org/abs/2605.12825</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-0">@article{unknown26,
+  title = {Unlocking Lossless Speedups in LLMs via Discrete Diffusion},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.04010},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.01281" class="paper-name" target="_blank">
+            2. EmbodiedSkills: A Unified Framework for Orchestrating, Training, and Deploying VLA Agents
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              26
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Tianwei Lin, Yuqian Yuan, Yutong Lin, Wenqiao Zhang, Thinkitin</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>EmbodiedSkills is a unified framework for organizing VLM planning, VLA execution, and environment feedback within a sing...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(1)" id="btn-1">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-1">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.01281" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.01281" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(1)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：EmbodiedSkills: A Unified Framework for Orchestrating, Training, and Deploying VLA Agents</li>
+              <li>Stars: 26</li>
+              <li>类型：工具</li>
+              <li>作者：Tianwei Lin, Yuqian Yuan, Yutong Lin, Wenqiao Zhang, Thinkitin</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.01281" target="_blank">https://huggingface.co/papers/2609.01281</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.01281" target="_blank">https://arxiv.org/abs/2609.01281</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>EmbodiedSkills is a unified framework for organizing VLM planning, VLA execution, and environment feedback within a single robot agent. It connects these components through a shared executable-skill interface and a six-stage loop: Observe, Plan, Preflight, Execute, Verify, and Recover. The loop manages how a task progresses across multiple action chunks. The planner breaks an instruction into semantic subtasks, and the VLA executes actions conditioned on the current subtask. Before execution, the system checks whether the required observations, plan, and backend are ready. After execution, fresh observations support progress verification. An unfinished subtask can continue with another action chunk, a completed subtask advances the plan, and an unsuccessful attempt can trigger recovery or replanning. This is particularly relevant when execution duration varies. Reaching, placing, or stacking an object may take different amounts of time depending on the initial state and the motion that actually occurs. Verification lets the system adjust the number of action chunks to observed progress. Ordered interaction history preserves previous skill calls and their outcomes, giving subsequent decisions access to what has already been attempted. The same interface also connects execution with training. Subtask-aligned demonstrations train the low-level action policy, while structured interaction trajectories provide supervision for high-level skill selection. The scheduler can be fine-tuned with the action backend frozen, using the same context construction and history compression rules as deployment. Planning, verification, and action components can therefore be adapted independently. The paper instantiates the framework with Qwen3-VL and π₀.₅. Task-adapted low-level policies achieve 86.20% average success across 50 RoboTwin 2.0 tasks and 97.40% across the four LIBERO suites. The reported AgentLoop ablations further examine intermediate verification, active-subtask conditioning, and repeated action chunks, highlighting how semantic planning and progress-aware execution work together.</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>EmbodiedSkills is a unified framework for organizing VLM planning, VLA execution, and environment feedback within a single robot agent. It connects these components through a shared executable-skill interface and a six-stage loop: Observe, Plan, Preflight, Execute, Verify, and Recover. The loop manages how a task progresses across multiple action chunks. The planner breaks an instruction into semantic subtasks, and the VLA executes actions conditioned on the current subtask. Before execution, the system checks whether the required observations, plan, and backend are ready. After execution, fresh observations support progress verification. An unfinished subtask can continue with another action chunk, a completed subtask advances the plan, and an unsuccessful attempt can trigger recovery or replanning. This is particularly relevant when execution duration varies. Reaching, placing, or stacking an object may take different amounts of time depending on the initial state and the motion that actually occurs. Verification lets the system adjust the number of action chunks to observed progress. Ordered interaction history preserves previous skill calls and their outcomes, giving subsequent decisions access to what has already been attempted. The same interface also connects execution with training. Subtask-aligned demonstrations train the low-level action policy, while structured interaction trajectories provide supervision for high-level skill selection. The scheduler can be fine-tuned with the action backend frozen, using the same context construction and history compression rules as deployment. Planning, verification, and action components can therefore be adapted independently. The paper instantiates the framework with Qwen3-VL and π₀.₅. Task-adapted low-level policies achieve 86.20% average success across 50 RoboTwin 2.0 tasks and 97.40% across the four LIBERO suites. The reported AgentLoop ablations further examine intermediate verification, active-subtask conditioning, and repeated action chunks, highlighting how semantic planning and progress-aware execution work together.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-1">@article{lin26,
+  title = {EmbodiedSkills: A Unified Framework for Orchestrating, Training, and Deploying VLA Agents},
+  author = {Tianwei Lin and Yuqian Yuan and Yutong Lin and Wenqiao Zhang and Thinkitin},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.01281},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.03241" class="paper-name" target="_blank">
+            3. FlowBalance: Verifier-Grounded Self-Improvement from On-Policy Reasoning Experience
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">alexhuang13/FlowBalance</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>FlowBalance是基于验证者的推理模型自我改进方法。它解决了OPSD在思维模型上的一种已知故障模式：特权反馈可以强化局部合理但验证错误的痕迹。FlowBalance将稀疏的结果奖励与密集的自我反馈相结合，同时在失败时翻转误导性的教师支...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(2)" id="btn-2">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-2">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.03241" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.03241" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/alexhuang13/FlowBalance" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(2)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：FlowBalance: Verifier-Grounded Self-Improvement from On-Policy Reasoning Experience</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.03241" target="_blank">https://huggingface.co/papers/2609.03241</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.03241" target="_blank">https://arxiv.org/abs/2609.03241</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>FlowBalance是基于验证者的推理模型自我改进方法。它解决了OPSD在思维模型上的一种已知故障模式：特权反馈可以强化局部合理但验证错误的痕迹。FlowBalance将稀疏的结果奖励与密集的自我反馈相结合，同时在失败时翻转误导性的教师支持。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>FlowBalance is a verifier-grounded self-improvement method for reasoning models. It addresses one known failure mode of OPSD on thinking models: privileged feedback can reinforce locally plausible but verifier-wrong traces. FlowBalance combines sparse outcome rewards with dense self-feedback while flipping misleading teacher support on failures.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-2">@article{unknown26,
+  title = {FlowBalance: Verifier-Grounded Self-Improvement from On-Policy Reasoning Experience},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.03241},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2608.25936" class="paper-name" target="_blank">
+            4. One Symptom, Three Levers: A Critical Review of On-Policy Self-Distillation
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">综述</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>On-Policy Self-Distillation （ OPSD ）使模型使用特权信息进行自我教学：参考解决方案、计划、环境反馈。不需要更大的老师。但是，产生信号的不对称性也会使它产生偏差，现在文献中占主导地位的是一种失败模式：崩溃，推...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(3)" id="btn-3">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-3">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2608.25936" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2608.25936" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(3)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：One Symptom, Three Levers: A Critical Review of On-Policy Self-Distillation</li>
+              <li>Stars: 0</li>
+              <li>类型：综述</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2608.25936" target="_blank">https://huggingface.co/papers/2608.25936</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2608.25936" target="_blank">https://arxiv.org/abs/2608.25936</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>On-Policy Self-Distillation （ OPSD ）使模型使用特权信息进行自我教学：参考解决方案、计划、环境反馈。不需要更大的老师。但是，产生信号的不对称性也会使它产生偏差，现在文献中占主导地位的是一种失败模式：崩溃，推理路径的逐渐缩小。本综述将塌陷视为由三个杠杆控制的单一症状： （ i ）信号的应用...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>On-Policy Self-Distillation (OPSD) makes a model teach itself using privileged information: a reference solution, a plan, environment feedback. No larger teacher is required. But the same asymmetry that creates the signal also biases it, and one failure mode now dominates the literature: collapse, the progressive narrowing of reasoning paths. This review treats collapse as a single symptom governed by three levers: (i) where the signal is applied (token weighting), (ii) what the teacher is shown (the nature of the privileged information), and (iii) when the signal changes (teacher dynamics and decay of guidance). Scope is restricted to mathematical reasoning. We report no new experiments. The contribution is structural: a shared vocabulary for phenomena named differently across papers, and a line between what is settled and what is still disputed.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-3">@article{unknown26,
+  title = {One Symptom, Three Levers: A Critical Review of On-Policy Self-Distillation},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2608.25936},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.02998" class="paper-name" target="_blank">
+            5. Verify Before You Distill: Prompt-Level Teacher Gating for On-Policy Distillation
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Bin Liang, Kang Peng, Zechen Sun, Zhiwei Zhang, Hiiamein</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>蒸馏前验证：政策性蒸馏提示级教师门控
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(4)" id="btn-4">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-4">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.02998" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.02998" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(4)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Verify Before You Distill: Prompt-Level Teacher Gating for On-Policy Distillation</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Bin Liang, Kang Peng, Zechen Sun, Zhiwei Zhang, Hiiamein</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.02998" target="_blank">https://huggingface.co/papers/2609.02998</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.02998" target="_blank">https://arxiv.org/abs/2609.02998</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>蒸馏前验证：政策性蒸馏提示级教师门控</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Verify Before You Distill: Prompt-Level Teacher Gating for On-Policy Distillation</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-4">@article{liang26,
+  title = {Verify Before You Distill: Prompt-Level Teacher Gating for On-Policy Distillation},
+  author = {Bin Liang and Kang Peng and Zechen Sun and Zhiwei Zhang and Hiiamein},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.02998},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.03254" class="paper-name" target="_blank">
+            6. What Else Needs Fixing? Exploring Cost-Effective Test-Time Compute for Revision Propagation in Artifacts Generated Through Conversation
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">ntt-dkiku/llm-revision-propagation</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：oookiku</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>在本文中，我们提出了RevPropBench ，这是一个基准，用于评估当用户仅指定本地更改时， LLM在会话生成的JSON工件中跨从属元素传播修订的能力。我们还探讨了此设置的经济高效的测试时间计算。RevPropBench概述，上半部分显示...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(5)" id="btn-5">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-5">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.03254" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.03254" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/ntt-dkiku/llm-revision-propagation" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(5)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：What Else Needs Fixing? Exploring Cost-Effective Test-Time Compute for Revision Propagation in Artifacts Generated Through Conversation</li>
+              <li>Stars: 0</li>
+              <li>类型：数据</li>
+              <li>作者：oookiku</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.03254" target="_blank">https://huggingface.co/papers/2609.03254</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.03254" target="_blank">https://arxiv.org/abs/2609.03254</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>在本文中，我们提出了RevPropBench ，这是一个基准，用于评估当用户仅指定本地更改时， LLM在会话生成的JSON工件中跨从属元素传播修订的能力。我们还探讨了此设置的经济高效的测试时间计算。RevPropBench概述，上半部分显示基准构建过程，下半部分显示评估过程。样本通过LL生成……</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>In this paper, we propose RevPropBench, a benchmark for evaluating the ability of LLMs to propagate revisions across dependent elements in conversationally generated JSON artifacts when users specify only a local change. We also explore cost-effective test-time compute for this setting. Overview of RevPropBench. The upper half shows the benchmark construction process, while the lower half shows the evaluation process. Samples are generated via LLM-based synthetic sampling and human annotation. Links: arXiv: https://arxiv.org/abs/2609.03254 alphaXiv: https://www.alphaxiv.org/abs/2609.03254 Code & dataset: https://github.com/ntt-dkiku/llm-revision-propagation</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-5">@article{oookiku26,
+  title = {What Else Needs Fixing? Exploring Cost-Effective Test-Time Compute for Revision Propagation in Artifacts Generated Through Conversation},
+  author = {oookiku},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.03254},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function toggleDetails(paperId) {
+      const details = document.getElementById('details-' + paperId);
+      const btn = document.getElementById('btn-' + paperId);
+      if (details && btn) {
+        details.classList.toggle('active');
+        btn.textContent = details.classList.contains('active') ? '收起详情' : '查看详情';
+      }
+    }
+
+    function copyBibtex(paperId) {
+      const bibtexBlock = document.getElementById('bibtex-' + paperId);
+      if (bibtexBlock) {
+        navigator.clipboard.writeText(bibtexBlock.textContent).then(() => {
+          const btn = event.target;
+          const originalText = btn.textContent;
+          btn.textContent = '已复制!';
+          setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }).catch(err => {
+          alert('复制失败，请手动复制');
+        });
+      }
+    }
+  </script>
+</body>
+</html>
