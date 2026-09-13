@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：17
-- 最近更新：2026-09-11
+- 项目总数：18
+- 最近更新：2026-09-12
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -21,14 +21,14 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 7 | [anthropics/claude-plugins-community](../../wiki/projects/anthropics_claude-plugins-community.md) | 2026-08-31 | 1 | 2874 |
 | 8 | [tt-a1i/archify](../../wiki/projects/tt-a1i_archify.md) | 2026-09-07 | 1 | 50750 |
 | 9 | [ayghri/i-have-adhd](../../wiki/projects/ayghri_i-have-adhd.md) | 2026-09-11 | 1 | 41696 |
-| 10 | [melgarafael/DeskcommCRM](../../wiki/projects/melgarafael_DeskcommCRM.md) | 2026-09-11 | 1 | 1319 |
+| 10 | [melgarafael/DeskcommCRM](../../wiki/projects/melgarafael_DeskcommCRM.md) | 2026-09-12 | 1 | 1789 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：665,940
-- 最热项目：[obra/superpowers](../../wiki/projects/obra_superpowers.md) (285355 ⭐)
+- 总 Stars 数：595,991
+- 最热项目：[Shubhamsaboo/awesome-llm-apps](../../wiki/projects/Shubhamsaboo_awesome-llm-apps.md) (137611 ⭐)
 
 
 ---
