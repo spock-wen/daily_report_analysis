@@ -374,6 +374,8 @@ class InsightAnalyzer {
 
       // 清洗字符串字面量内的裸控制字符（LLM 输出可能包含未转义的换行/制表符，JSON.parse 会拒绝）
       jsonContent = jsonContent.replace(/[\u0000-\u001F\u007F]/g, ' ');
+      // 去除尾随逗号（部分 LLM 输出 ", }" / ", ]"，JSON.parse 会拒绝）
+      jsonContent = jsonContent.replace(/,\s*([}\]])/g, '$1');
 
       const insights = JSON.parse(jsonContent);
 
@@ -410,6 +412,7 @@ class InsightAnalyzer {
 
       // 清洗字符串字面量内的裸控制字符（LLM 输出可能包含未转义的换行/制表符，JSON.parse 会拒绝）
       jsonContent = jsonContent.substring(firstBrace, lastBrace + 1).replace(/[\u0000-\u001F\u007F]/g, ' ');
+      jsonContent = jsonContent.replace(/,\s*([}\]])/g, '$1');
 
       return JSON.parse(jsonContent);
     } catch (error) {

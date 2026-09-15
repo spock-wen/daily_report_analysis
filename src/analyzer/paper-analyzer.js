@@ -65,7 +65,7 @@ class PaperAnalyzer {
 
       const result = await callLLMWithRetry(prompt, {
         temperature: 0.7,
-        max_tokens: 2000
+        max_tokens: 8000
       });
 
       const insights = this.parseInsights(result);
@@ -174,7 +174,9 @@ class PaperAnalyzer {
         throw new Error('未找到 JSON 对象');
       }
 
-      const jsonStr = clean.substring(firstBrace, lastBrace + 1);
+      const jsonStr = clean.substring(firstBrace, lastBrace + 1)
+        .replace(/[\u0000-\u001F\u007F]/g, ' ')
+        .replace(/,\s*([}\]])/g, '$1');  // 尾随逗号
       return JSON.parse(jsonStr);
     } catch (error) {
       logger.error('[PaperAnalyzer] 解析失败', { error: error.message });

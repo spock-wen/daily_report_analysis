@@ -30,7 +30,7 @@ class MonthlyAnalyzer {
       try {
         result = await callLLM(prompt, {
           temperature: 0.7,
-          max_tokens: 4000
+          max_tokens: 8000
         });
         logger.info('LLM 调用完成');
       } catch (llmError) {
@@ -263,7 +263,8 @@ ${contextData.allRepos.slice(0, 50).map(repo => `- ${repo}`).join('\n')}
         let cleaned = jsonContent
           .replace(/，/g, ',')  // 中文逗号
           .replace(/"/g, '"')   // 中文双引号
-          .replace(/:/g, ':');   // 中文冒号
+          .replace(/:/g, ':')   // 中文冒号
+          .replace(/,\s*([}\]])/g, '$1');  // 尾随逗号
         try {
           insights = JSON.parse(cleaned);
         } catch (parseError2) {
