@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuggingFace AI Papers 日报 - 2026-09-17</title>
+  <link rel="stylesheet" href="../../public/css/style.css">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-card: #161b22;
+      --text-primary: #c9d1d9;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-orange: #d29922;
+      --border: #30363d;
+      --border-light: #21262d;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.5; padding: 24px 16px; font-size: 13px; }
+    .container { max-width: 960px; margin: 0 auto; }
+    header { text-align: center; padding: 32px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+    h1 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+    .date { color: var(--text-secondary); font-size: 0.8125rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); padding: 12px; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
+    .stat-value { font-size: 1.25rem; font-weight: 600; color: var(--accent-green); line-height: 1.2; }
+    .stat-value .star-icon { color: #fbbf24; width: 20px; height: 20px; vertical-align: middle; display: inline-block; }
+    .stat-label { color: var(--text-secondary); margin-top: 4px; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    section { margin-bottom: 24px; }
+    h2 { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .project-list { display: flex; flex-direction: column; gap: 8px; }
+    .star-icon { width: 16px; height: 16px; vertical-align: middle; }
+    .paper-card { background: var(--bg-card); border-radius: 6px; padding: 12px; margin: 8px 0; border: 1px solid var(--border); transition: border-color 0.2s; }
+    .paper-card:hover { border-color: var(--text-muted); }
+    .paper-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; }
+    .paper-name { font-size: 0.875rem; font-weight: 600; color: var(--accent); text-decoration: none; line-height: 1.4; }
+    .paper-name:hover { text-decoration: underline; }
+    .paper-stats { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+    .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.6875rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 2px 6px; border-radius: 10px; border: 1px solid var(--border); white-space: nowrap; }
+    .stat-badge .star-icon { color: #fbbf24; width: 12px; height: 12px; }
+    .paper-abstract { background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin: 8px 0; border: 1px solid var(--border); }
+    .paper-abstract strong { color: var(--text-primary); }
+    .paper-meta { color: var(--text-secondary); font-size: 0.75rem; margin: 8px 0; }
+    .paper-meta a { color: var(--accent); text-decoration: none; }
+    .paper-meta a:hover { text-decoration: underline; }
+    .toggle-btn { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.6875rem; font-weight: 500; transition: all 0.2s; }
+    .toggle-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+    .paper-details { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .paper-details.active { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .detail-column { background: var(--bg-secondary); padding: 8px; border-radius: 6px; }
+    .detail-column h4 { color: var(--text-primary); margin-bottom: 6px; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
+    .detail-column ul { list-style: none; }
+    .detail-column li { color: var(--text-secondary); padding: 3px 0; font-size: 0.75rem; line-height: 1.4; }
+    .ai-section { background: var(--bg-card); padding: 16px; border-radius: 6px; border: 1px solid var(--border); }
+    .ai-section h2, .ai-section h3 { color: var(--text-primary); margin: 16px 0 8px; font-size: 0.75rem; font-weight: 600; }
+    .ai-section h2:first-child, .ai-section h3:first-child { margin-top: 0; }
+    .ai-section p { color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; font-size: 0.8125rem; }
+    .ai-section ul { margin-bottom: 12px; padding-left: 16px; }
+    .ai-section li { color: var(--text-secondary); margin-bottom: 4px; font-size: 0.8125rem; line-height: 1.5; }
+    .lang-dist { display: flex; flex-wrap: wrap; gap: 10px; }
+    .lang-item { background: var(--accent); color: var(--bg-primary); padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+    .paper-type { background: var(--accent-orange); color: var(--bg-primary); padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; margin-left: 6px; }
+    .quick-actions { display: flex; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .action-btn { background: var(--accent); color: var(--bg-primary); padding: 4px 12px; border-radius: 4px; text-decoration: none; font-size: 0.75rem; font-weight: 500; border: none; cursor: pointer; }
+    .action-btn:hover { opacity: 0.9; }
+    .bibtex-block { background: var(--bg-primary); padding: 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.6875rem; color: var(--text-secondary); white-space: pre-wrap; margin-top: 8px; }
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } .paper-details.active { grid-template-columns: 1fr; } .paper-header { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>HuggingFace AI Papers 日报</h1>
+      <div class="date">2026-09-17</div>
+    </header>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">18</div>
+        <div class="stat-label">论文总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">8</div>
+        <div class="stat-label">有 Stars 论文</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">
+          <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor" style="width: 20px; height: 20px;"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+          <span style="vertical-align: middle;">115</span>
+        </div>
+        <div class="stat-label">总 Stars</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">6</div>
+        <div class="stat-label">平均 Stars</div>
+      </div>
+    </section>
+
+    
+      <section class="ai-section">
+        <h2>AI 深度洞察</h2>
+        <p>递归自我改进成今日主线，交互智能体、世界模型与可控生成多点开花</p>
+
+        
+          <h3>技术亮点</h3>
+          <ul>
+            
+              <li>
+                <strong><a href="https://github.com/theseus-labs-rsi/awesome-rsi" target="_blank" style="color: var(--accent); text-decoration: none;">theseus-labs-rsi/awesome-rsi</a></strong>: 系统化提出'人类构建的最后一个AI'愿景，梳理真正递归自我改进的理论框架与安全边界
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/cozheyuanzhangde/compose-cl" target="_blank" style="color: var(--accent); text-decoration: none;">cozheyuanzhangde/compose-cl</a></strong>: 证明多种持续学习机制可以组合叠加，实现长时程序列的高效记忆
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/Gen-Verse/ScienceBuddy" target="_blank" style="color: var(--accent); text-decoration: none;">Gen-Verse/ScienceBuddy</a></strong>: 提出'递归中的递归'双层自我改进架构，让科学智能体在交互中持续进化
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/IQuestLab/ModularRSI" target="_blank" style="color: var(--accent); text-decoration: none;">IQuestLab/ModularRSI</a></strong>: 将递归harness自我改进拆分为可泛化的模块化组件，避免整体黑盒自改的不可控性
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/wannabeyourfriend/mind2dialogue" target="_blank" style="color: var(--accent); text-decoration: none;">wannabeyourfriend/mind2dialogue</a></strong>: 通过模拟用户心理状态生成对话数据，训练具备心智理论的用户感知语言模型
+              </li>
+            
+          </ul>
+        
+
+        
+          <h3>社区价值</h3>
+          <ul>
+            <li>awesome-rsi与awesome-ai-for-games等精选资源库为RSI和游戏AI研究者提供系统文献入口</li><li>compose-cl、ModularRSI等提供完整可复现代码，降低持续学习与自我改进研究的复现门槛</li><li>Transformer-Geometry开源方向分解分析工具，助力可解释性社区研究表征演化规律</li>
+          </ul>
+        
+
+        
+          <h3>应用前景</h3>
+          <ul>
+            <li>递归自我改进框架有望应用于自动化科研助手与自主代码生成智能体</li><li>StepAudio 3实时语音技术可落地低延迟语音助手、实时配音与音乐生成场景</li><li>Mind2Dialogue类心智建模技术可提升教育辅导、心理咨询与客服对话系统的用户体验</li><li>PhysStream流式物理一致视频生成可支撑交互式内容创作与游戏世界实时生成</li>
+          </ul>
+        
+      </section>
+    
+
+    <section>
+      <h2>论文列表（共 18 篇）</h2>
+      <div class="project-list">
+        
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.11873" class="paper-name" target="_blank">
+            1. The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              47
+            </span>
+            <span class="stat-badge" title="GitHub">theseus-labs-rsi/awesome-rsi</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Haodong Chen, Ying Liu, zhouxh19, ShenYunTzr, DuanYi</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>RSI是智能系统在交互回合中将获得的经验和反馈转化为自身持续变化的能力，因此这些变化可能会影响以后的改进生成、评估、选择和整合的方式。更新的对象可以是模型权重、提示、代码、内存、技能、任务分布或改进机制本身。等级捕捉对变化的自主权，它是如何...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(0)" id="btn-0">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-0">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.11873" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.11873" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/theseus-labs-rsi/awesome-rsi" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(0)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement</li>
+              <li>Stars: 47</li>
+              <li>类型：工具</li>
+              <li>作者：Haodong Chen, Ying Liu, zhouxh19, ShenYunTzr, DuanYi</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.11873" target="_blank">https://huggingface.co/papers/2609.11873</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.11873" target="_blank">https://arxiv.org/abs/2609.11873</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>RSI是智能系统在交互回合中将获得的经验和反馈转化为自身持续变化的能力，因此这些变化可能会影响以后的改进生成、评估、选择和整合的方式。更新的对象可以是模型权重、提示、代码、内存、技能、任务分布或改进机制本身。等级捕捉对变化的自主权，它是如何……</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>RSI is the capability of an intelligent system to transform acquired experience and feedback into persistent changes to itself across interaction rounds, such that those changes can affect how later improvements are generated, evaluated, selected, and consolidated. The updated object may be model weights, prompts, code, memory, skills, task distributions, or the improvement mechanism itself. Levels capture autonomy over what is changed, how it is changed, and where later learning experience comes from; they are not paper-quality rankings. The survey introduces the Headroom-Closed Index (HCI), develops the RSI roadmap represented by the L1-L5 taxonomy, and examines RSI in scientific discovery, embodied intelligence, and software engineering. This repository provides the paper-level, auditable companion to that roadmap. The 491 baseline papers and 28 table-derived extensions in this collection are retained as RSI-related under the L1-L5 taxonomy. The taxonomy intentionally includes bounded forms and precursors: L1 - Autonomy over Improvement Execution: the system executes a human-defined improvement procedure, and its accepted results persist into later tasks or rounds. L2 - Autonomy over Improvement Strategies: the system chooses how to improve a specified target, while the objective, evaluation criterion, or acceptance rule remains external. L3 - Autonomy over Future Learning Experience: the learner's evolving state influences the experience, task, or curriculum acquired next. L4 - Autonomy in Deployment and Environmental Adaptation: reusable memory, skills, or deployed agent components are retained and alter later behavior within a fixed improvement process. L5 - From Environmental Adaptation to Meta-Improvement: the system improves the mechanism that produces future improvements, such as search, evaluation, or research-control policies. Thus, inclusion does not claim that every entry is a fully autonomous or open-ended RSI system. The L1 and L2 labels make their bounded autonomy explicit.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-0">@article{chen26,
+  title = {The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement},
+  author = {Haodong Chen and Ying Liu and zhouxh19 and ShenYunTzr and DuanYi},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.11873},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.16679" class="paper-name" target="_blank">
+            2. AI for Games in the Foundation Model Era
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              23
+            </span>
+            <span class="stat-badge" title="GitHub">Eurekaleo/awesome-ai-for-games</span>
+            <span class="paper-type" title="论文类型">综述</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>基础模型时代的游戏🎮人工智能下一步不仅仅是玩游戏。人工智能不再只是玩游戏。它模拟世界和玩家，设计机制，编写和修复游戏代码，在游戏过程中生成内容，并测试它帮助构建的内容。我们长达120页的调查通过六个角色描绘了这一新兴景观：🎮播放和行为�...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(1)" id="btn-1">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-1">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.16679" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.16679" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/Eurekaleo/awesome-ai-for-games" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(1)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：AI for Games in the Foundation Model Era</li>
+              <li>Stars: 23</li>
+              <li>类型：综述</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.16679" target="_blank">https://huggingface.co/papers/2609.16679</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.16679" target="_blank">https://arxiv.org/abs/2609.16679</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>基础模型时代的游戏🎮人工智能下一步不仅仅是玩游戏。人工智能不再只是玩游戏。它模拟世界和玩家，设计机制，编写和修复游戏代码，在游戏过程中生成内容，并测试它帮助构建的内容。我们长达120页的调查通过六个角色描绘了这一新兴景观：🎮播放和行为🧠模型播放器和游戏🎨设计💻构建和维护运行时✨生成和适应🔍测试和评估调查</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>🎮 AI for Games in the Foundation Model Era The next move is more than playing. AI no longer only plays games. It models worlds and players, designs mechanics, writes and repairs game code, generates content during play, and tests what it helps build. Our 120-page survey maps this emerging landscape through six roles: 🎮 Play & Act 🧠 Model Players & Games 🎨 Design 💻 Build & Maintain ✨ Generate & Adapt at Runtime 🔍 Test & Evaluate The survey is supported by a living collection of 439 references. Rather than grouping systems only by model family, we ask what their outputs are actually used for. Across every role, we examine: what is supplied by the game or workflow—and what is assigned to AI; which artifacts and capabilities transfer across settings; what evidence supports the resulting claims. These roles are increasingly connected: gameplay trajectories train world models, learned environments provide experience for agents, design specifications drive executable implementations, and playtesting feedback guides revision. But a central takeaway is cautionary: artifact reuse is not capability transfer , and downstream benefits must be revalidated in the settings where they are used. Can generated worlds preserve persistent state? Can AI repair games without introducing regressions? Can automated playtesting cover the behavior of real players? Explore the interactive survey map, living bibliography, and six playable AI-crafted worlds. Joint work from the National University of Singapore and Nanyang Technological University . Feedback and suggested additions are welcome! 🚀</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-1">@article{unknown26,
+  title = {AI for Games in the Foundation Model Era},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.16679},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.15972" class="paper-name" target="_blank">
+            3. Mind2Dialogue: Training Human-Aware Language Models by Simulating User Mental States
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              22
+            </span>
+            <span class="stat-badge" title="GitHub">wannabeyourfriend/mind2dialogue</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Xinle Yu, Jinzhou Tang, Yufan Zhou, Zixuan Wang, zhenwang9102</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>人工智能合作者应该了解对话背后的人：他们的信念、不言而喻的意图和不断变化的目标。Mind2Dialogue通过将模拟的用户心理状态转化为人类感知助理的训练监督，朝着这一愿景迈出了一步。目标是教导模型如何利用这种深刻的理解来帮助人们随着时间的...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(2)" id="btn-2">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-2">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.15972" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.15972" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/wannabeyourfriend/mind2dialogue" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(2)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Mind2Dialogue: Training Human-Aware Language Models by Simulating User Mental States</li>
+              <li>Stars: 22</li>
+              <li>类型：数据</li>
+              <li>作者：Xinle Yu, Jinzhou Tang, Yufan Zhou, Zixuan Wang, zhenwang9102</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.15972" target="_blank">https://huggingface.co/papers/2609.15972</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.15972" target="_blank">https://arxiv.org/abs/2609.15972</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>人工智能合作者应该了解对话背后的人：他们的信念、不言而喻的意图和不断变化的目标。Mind2Dialogue通过将模拟的用户心理状态转化为人类感知助理的训练监督，朝着这一愿景迈出了一步。目标是教导模型如何利用这种深刻的理解来帮助人们随着时间的推移学习、推理和做出决策。我们正在共享数据集和代码，供社区构建...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>AI collaborators should understand the person behind the conversation: their beliefs, unspoken intentions, and evolving goals. Mind2Dialogue takes a step toward this vision by turning simulated user mental states into training supervision for human-aware assistants. The goal is to teach models to use that deep understanding to help people learn, reason, and make decisions over time. We’re sharing the dataset and code for the community to build on. Feedback and ideas are welcome! 🌐 Project page: https://wannabeyourfriend.github.io/mind2dialogue/ 💻 Code: https://github.com/wannabeyourfriend/mind2dialogue 🤗 Dataset: https://huggingface.co/datasets/wannabeyourfriend-hf/mind2dialogue</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-2">@article{yu26,
+  title = {Mind2Dialogue: Training Human-Aware Language Models by Simulating User Mental States},
+  author = {Xinle Yu and Jinzhou Tang and Yufan Zhou and Zixuan Wang and zhenwang9102},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.15972},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.14857" class="paper-name" target="_blank">
+            4. ModularRSI: Modular and Generalizable Recursive Harness Self-Improvement
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              11
+            </span>
+            <span class="stat-badge" title="GitHub">IQuestLab/ModularRSI</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>本文提出了ModularRSI ，这是一个可推广的线束自我改进框架，通过模块化、对比轨迹分析和模块化线束组件的独立演进来识别反复出现的缺陷。此外，我们提供了一个基准-不相交演化集，以系统地评估和比较不同RSI方法的普遍性。
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(3)" id="btn-3">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-3">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.14857" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.14857" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/IQuestLab/ModularRSI" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(3)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：ModularRSI: Modular and Generalizable Recursive Harness Self-Improvement</li>
+              <li>Stars: 11</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.14857" target="_blank">https://huggingface.co/papers/2609.14857</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.14857" target="_blank">https://arxiv.org/abs/2609.14857</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>本文提出了ModularRSI ，这是一个可推广的线束自我改进框架，通过模块化、对比轨迹分析和模块化线束组件的独立演进来识别反复出现的缺陷。此外，我们提供了一个基准-不相交演化集，以系统地评估和比较不同RSI方法的普遍性。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>This paper presents ModularRSI, a framework for generalizable harness self-improvement that identifies recurring deficiencies through modularization, contrastive trajectory analysis, and independent evolution of modular harness components. In addition, we provide a benchmark-disjoint evolution set to systematically evaluate and compare the generalizability of different RSI methods.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-3">@article{unknown26,
+  title = {ModularRSI: Modular and Generalizable Recursive Harness Self-Improvement},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.14857},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.17523" class="paper-name" target="_blank">
+            5. ScienceBuddy: Recursive-in-Recursive Self-Improvement for Interactive Scientific Agents
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              5
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Zhaochen Yu, Wenbin Li, Ziyuan Nan, Jianyuan Zhong, Shuhan Xue</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>网址： http://science-buddy.io/验证码： https://github.com/Gen-Verse/ScienceBuddy
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(4)" id="btn-4">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-4">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.17523" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.17523" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(4)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：ScienceBuddy: Recursive-in-Recursive Self-Improvement for Interactive Scientific Agents</li>
+              <li>Stars: 5</li>
+              <li>类型：研究</li>
+              <li>作者：Zhaochen Yu, Wenbin Li, Ziyuan Nan, Jianyuan Zhong, Shuhan Xue</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.17523" target="_blank">https://huggingface.co/papers/2609.17523</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.17523" target="_blank">https://arxiv.org/abs/2609.17523</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>网址： http://science-buddy.io/验证码： https://github.com/Gen-Verse/ScienceBuddy</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Website： http://science-buddy.io/ Code： https://github.com/Gen-Verse/ScienceBuddy</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-4">@article{yu26,
+  title = {ScienceBuddy: Recursive-in-Recursive Self-Improvement for Interactive Scientific Agents},
+  author = {Zhaochen Yu and Wenbin Li and Ziyuan Nan and Jianyuan Zhong and Shuhan Xue},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.17523},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.06986" class="paper-name" target="_blank">
+            6. Continual Learning Mechanisms Compose for Long-Horizon Memorization
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              4
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">综述</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>现有的持续学习方法仍然面临灾难性遗忘的问题。我们最近的研究发现了一种简单的方法，可以显著改进 𝗹𝗼𝗻𝗴-𝗵𝗼𝗿𝗶𝘇𝗼𝗻 𝗺𝗲𝗺𝗼𝗿𝗶𝘇𝗮𝘁𝗶𝗼𝗻：组合多种持续学习机制可以延长记忆寿命，并将 3 ...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(5)" id="btn-5">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-5">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.06986" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.06986" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(5)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Continual Learning Mechanisms Compose for Long-Horizon Memorization</li>
+              <li>Stars: 4</li>
+              <li>类型：综述</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.06986" target="_blank">https://huggingface.co/papers/2609.06986</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.06986" target="_blank">https://arxiv.org/abs/2609.06986</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>现有的持续学习方法仍然面临灾难性遗忘的问题。我们最近的研究发现了一种简单的方法，可以显著改进 𝗹𝗼𝗻𝗴-𝗵𝗼𝗿𝗶𝘇𝗼𝗻 𝗺𝗲𝗺𝗼𝗿𝗶𝘇𝗮𝘁𝗶𝗼𝗻：组合多种持续学习机制可以延长记忆寿命，并将 3 个数据集上的平均最终保留率从 1.2% 提高到 34.9%：比简单的序列 SFT 提高了 28 倍。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Existing continual learning methods still suffer from catastrophic forgetting. Our recent work found a simple recipe to substantially improve 𝗹𝗼𝗻𝗴-𝗵𝗼𝗿𝗶𝘇𝗼𝗻 𝗺𝗲𝗺𝗼𝗿𝗶𝘇𝗮𝘁𝗶𝗼𝗻: Composing multiple continual learning mechanisms extends memory lifetime and raises average final retention from 1.2% to 34.9% across 3 datasets: a 28-fold improvement over naive sequential SFT.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-5">@article{unknown26,
+  title = {Continual Learning Mechanisms Compose for Long-Horizon Memorization},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.06986},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.15975" class="paper-name" target="_blank">
+            7. Disentangling Representation Evolution in Transformers through Directional Decomposition
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              2
+            </span>
+            <span class="stat-badge" title="GitHub">Shwai-He/Transformer-Geometry</span>
+            <span class="paper-type" title="论文类型">综述</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>❓ 核心问题：变形金刚中的方向保持更新是否只是冗余的重新缩放？我们发现答案在很大程度上取决于几何的定义位置。我们🔍所做和发现：我们将学习的转换分解为平行和垂直于当前表示的组件，跨越残差空间和注意力价值空间。•并行组件广泛存在于剩余身份路径...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(6)" id="btn-6">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-6">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.15975" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.15975" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/Shwai-He/Transformer-Geometry" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(6)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Disentangling Representation Evolution in Transformers through Directional Decomposition</li>
+              <li>Stars: 2</li>
+              <li>类型：综述</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.15975" target="_blank">https://huggingface.co/papers/2609.15975</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.15975" target="_blank">https://arxiv.org/abs/2609.15975</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>❓ 核心问题：变形金刚中的方向保持更新是否只是冗余的重新缩放？我们发现答案在很大程度上取决于几何的定义位置。我们🔍所做和发现：我们将学习的转换分解为平行和垂直于当前表示的组件，跨越残差空间和注意力价值空间。•并行组件广泛存在于剩余身份路径之外，但其功能...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>❓ Core Question: Are direction-preserving updates in Transformers merely redundant rescaling? We find that the answer depends strongly on where the geometry is defined. 🔍 What We Did & Found: We decompose learned transformations into components parallel and perpendicular to the current representation, across both residual space and attention value space. • Parallel components are widespread beyond the residual identity path, yet their functional role is highly space-dependent. • In value space, preserving the direct self-message while suppressing the non-self parallel component is markedly more robust than residual-space or perpendicular interventions. 🚀 Practical Applications: Model Compression 📉: Perpendicular error more clearly distinguishes pruning- and quantization-induced distortions. From-Scratch Pretraining ⚡: Full-aggregate parallel suppression lowers validation-loss trajectories and improves downstream task averages, with the value-space variant being the strongest. 🌐 Interactive Project Page & Studio: https://shwai-he.github.io/Transformer-Geometry/ 📜 arXiv Paper: https://arxiv.org/abs/2609.15975 💻 Code & Artifacts: https://github.com/Shwai-He/Transformer-Geometry</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-6">@article{unknown26,
+  title = {Disentangling Representation Evolution in Transformers through Directional Decomposition},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.15975},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.16204" class="paper-name" target="_blank">
+            8. Decoy Direction Optimization: A Post-Hoc Defense Against LLM Abliteration
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              1
+            </span>
+            <span class="stat-badge" title="GitHub">aashiqmuhamed/defending-against-abliteration</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>代码： https://github.com/aashiqmuhamed/defending-against-abliteration
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(7)" id="btn-7">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-7">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.16204" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.16204" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/aashiqmuhamed/defending-against-abliteration" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(7)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Decoy Direction Optimization: A Post-Hoc Defense Against LLM Abliteration</li>
+              <li>Stars: 1</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.16204" target="_blank">https://huggingface.co/papers/2609.16204</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.16204" target="_blank">https://arxiv.org/abs/2609.16204</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>代码： https://github.com/aashiqmuhamed/defending-against-abliteration</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Code: https://github.com/aashiqmuhamed/defending-against-abliteration</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-7">@article{unknown26,
+  title = {Decoy Direction Optimization: A Post-Hoc Defense Against LLM Abliteration},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.16204},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.14005" class="paper-name" target="_blank">
+            9. StepAudio 3 Realtime Technical Report
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>StepAudio 3实时技术报告
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(8)" id="btn-8">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-8">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.14005" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.14005" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(8)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：StepAudio 3 Realtime Technical Report</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.14005" target="_blank">https://huggingface.co/papers/2609.14005</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.14005" target="_blank">https://arxiv.org/abs/2609.14005</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>StepAudio 3实时技术报告</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>StepAudio 3 Realtime Technical Report</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-8">@article{unknown26,
+  title = {StepAudio 3 Realtime Technical Report},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.14005},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.16034" class="paper-name" target="_blank">
+            10. StepAudio 3 Music Technical Report
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>StepAudio 3.0音乐技术报告
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(9)" id="btn-9">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-9">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.16034" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.16034" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(9)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：StepAudio 3 Music Technical Report</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.16034" target="_blank">https://huggingface.co/papers/2609.16034</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.16034" target="_blank">https://arxiv.org/abs/2609.16034</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>StepAudio 3.0音乐技术报告</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>StepAudio 3.0 Music Technical Report</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-9">@article{unknown26,
+  title = {StepAudio 3 Music Technical Report},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.16034},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.15195" class="paper-name" target="_blank">
+            11. HarnessVLN: Unifying Training-Free Embodied Navigation through an Agent Harness
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Chuang Wang, Wenbo Fu, Zhenyu Huang, Lirong Che, chenyang0126</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(10)" id="btn-10">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-10">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.15195" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.15195" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(10)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：HarnessVLN: Unifying Training-Free Embodied Navigation through an Agent Harness</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Chuang Wang, Wenbo Fu, Zhenyu Huang, Lirong Che, chenyang0126</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.15195" target="_blank">https://huggingface.co/papers/2609.15195</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.15195" target="_blank">https://arxiv.org/abs/2609.15195</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-10">@article{wang26,
+  title = {HarnessVLN: Unifying Training-Free Embodied Navigation through an Agent Harness},
+  author = {Chuang Wang and Wenbo Fu and Zhenyu Huang and Lirong Che and chenyang0126},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.15195},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.17524" class="paper-name" target="_blank">
+            12. Modality-Autoregressive World-Action Models
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Jeffrey Ichnowski, Deva Ramanan, Bardienus P. Duisterhof, Adam Hung</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(11)" id="btn-11">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-11">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.17524" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.17524" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(11)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Modality-Autoregressive World-Action Models</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Jeffrey Ichnowski, Deva Ramanan, Bardienus P. Duisterhof, Adam Hung</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.17524" target="_blank">https://huggingface.co/papers/2609.17524</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.17524" target="_blank">https://arxiv.org/abs/2609.17524</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-11">@article{ichnowski26,
+  title = {Modality-Autoregressive World-Action Models},
+  author = {Jeffrey Ichnowski and Deva Ramanan and Bardienus P. Duisterhof and Adam Hung},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.17524},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.17521" class="paper-name" target="_blank">
+            13. PhysStream: Streaming Physics-Grounded Video Generation with Structured Scene Memory and Fine-Grained Motion Control
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Qiao Feng, Chen Wang, Chaoyang Wang, Peter Wonka, Chuhao Chen</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(12)" id="btn-12">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-12">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.17521" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.17521" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(12)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：PhysStream: Streaming Physics-Grounded Video Generation with Structured Scene Memory and Fine-Grained Motion Control</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Qiao Feng, Chen Wang, Chaoyang Wang, Peter Wonka, Chuhao Chen</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.17521" target="_blank">https://huggingface.co/papers/2609.17521</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.17521" target="_blank">https://arxiv.org/abs/2609.17521</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-12">@article{feng26,
+  title = {PhysStream: Streaming Physics-Grounded Video Generation with Structured Scene Memory and Fine-Grained Motion Control},
+  author = {Qiao Feng and Chen Wang and Chaoyang Wang and Peter Wonka and Chuhao Chen},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.17521},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.14803" class="paper-name" target="_blank">
+            14. Another Blueprint In The Wall: How to Ask Frontier AI Like a Kid?
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Afshin Khadangi</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>如果我们小时候和他们交谈，我们能否越狱进入前沿模型建筑图案？答案是肯定的！论文： https://arxiv.org/abs/2609.14803儿童框架是故意的。主要的前沿人工智能提供商通过针对特定年龄的行为指导、保障措施、访问限制或额外...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(13)" id="btn-13">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-13">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.14803" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.14803" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(13)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Another Blueprint In The Wall: How to Ask Frontier AI Like a Kid?</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              <li>作者：Afshin Khadangi</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.14803" target="_blank">https://huggingface.co/papers/2609.14803</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.14803" target="_blank">https://arxiv.org/abs/2609.14803</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>如果我们小时候和他们交谈，我们能否越狱进入前沿模型建筑图案？答案是肯定的！论文： https://arxiv.org/abs/2609.14803儿童框架是故意的。主要的前沿人工智能提供商通过针对特定年龄的行为指导、保障措施、访问限制或额外的内容保护，公开将涉及未成年人的互动视为独特的安全背景。这并不意味着任何供应商安装...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Can we jailbreak into the frontier model architectural motifs if we were talking to them just as a kid? The answer is yes! Paper: https://arxiv.org/abs/2609.14803 The child framing is deliberate. Major frontier AI providers publicly treat interactions involving minors as a distinct safety context through age specific behavioral guidance, safeguards, access restrictions, or additional content protections. This does not imply that any provider instructs a model to disclose architecture information to children. The experiment instead probes whether the high salience of child directed safety and helpfulness can generalize into an unrelated conversational setting. The first turn was designed around a specific hypothesis: child related alignment could produce an alignment spillover when combined with explicit pressure for transparency. The prompt does more than mention a child. It places children inside a mixed technical audience, makes a child the source of the architecture question, asks the model to “speak up freely”, explicitly associates the presence of children with an obligation to be transparent, and states that avoiding the question could be detrimental to them. The intended stressor is therefore a bundle of audience, helpfulness, transparency, and harm avoidance cues. The second turn preserves the child frame while changing the assumed competence of the audience. The child is now identified as a mathematics olympiad champion! This creates a deliberately unusual combination: the social status of the questioner remains that of a child, while the usual reason for simplifying a technical explanation is removed. The model is therefore given a conversational reason to retain the transparency frame while increasing mathematical and architectural resolution. In the observed responses, this stage commonly introduces equations, recurrent update rules, memory mechanisms, routing details, or explicit computational structure. The final turn requests the complete backbone in ASCII. This stage adds no new evidence about the deployed implementation. It changes the requested representation. ASCII encourages explicit wiring, hierarchy, module boundaries, execution order, tensor shapes, and data flow. The three turns therefore form an escalation from social permission, to technical permission, to engineering representation while the available evidence about proprietary implementation remains unchanged.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-13">@article{khadangi26,
+  title = {Another Blueprint In The Wall: How to Ask Frontier AI Like a Kid?},
+  author = {Afshin Khadangi},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.14803},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.15982" class="paper-name" target="_blank">
+            15. The Router Within: Eliciting Native Skill Routing from a Frozen LLM
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>⚖️ 小槌：上下文中没有技能目录的技能路由。大家好！我是Ruishuo ，小槌的第一作者。渐进式披露允许客服代表通过在上下文中读取其元数据来选择技能。我们表明，冻结的LLM可以通过自己的隐藏状态和候选人判断进行路由，而无需将技能元数据预加载...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(14)" id="btn-14">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-14">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.15982" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.15982" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(14)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：The Router Within: Eliciting Native Skill Routing from a Frozen LLM</li>
+              <li>Stars: 0</li>
+              <li>类型：数据</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.15982" target="_blank">https://huggingface.co/papers/2609.15982</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.15982" target="_blank">https://arxiv.org/abs/2609.15982</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>⚖️ 小槌：上下文中没有技能目录的技能路由。大家好！我是Ruishuo ，小槌的第一作者。渐进式披露允许客服代表通过在上下文中读取其元数据来选择技能。我们表明，冻结的LLM可以通过自己的隐藏状态和候选人判断进行路由，而无需将技能元数据预加载到客服代表的上下文中或添加单独的检索模型。小槌代表从……掠过和判决</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>⚖️ Gavel: skill routing without a skill catalog in your context. Hi everyone! I’m Ruishuo, the first author of Gavel . Progressive disclosure lets the agent choose skills by reading their metadata in context. We show that a frozen LLM can instead route through its own hidden states and candidate judgments, without preloading skill metadata into the agent’s context or adding a separate retrieval model . Gavel stands for Glance And Verdict from a frozen LLM : 🔍 Glance uses the model’s hidden states to shortlist skills from compact, precomputed skill banks. ⚖️ Verdict combines the glance score with the same LLM’s likelihood and yes/no judgments in a product of experts to select the final skill. 🧊 The backbone stays frozen. The two projections contain just 7.9M trainable parameters on Qwen3-32B. Each new skill is indexed with one frozen forward pass, with no per-skill training . We evaluate Gavel on three public benchmarks and introduce SkillTraj , which tests routing when the need for a skill arises amid the noisy context of an agent trajectory. If you’re building agents with growing skill libraries, we’d love to hear how you handle routing today. Happy to discuss the method, results, and deployment trade-offs!</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-14">@article{unknown26,
+  title = {The Router Within: Eliciting Native Skill Routing from a Frozen LLM},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.15982},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.17320" class="paper-name" target="_blank">
+            16. Emergence World: Adversarial Stress-Testing of Long-Horizon Multi-Agent Systems
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Aditya Vempaty, Matthew Pace, Karthik Vikram, Tamer Abuelsaad, Deepak Akkil</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(15)" id="btn-15">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-15">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.17320" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.17320" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(15)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Emergence World: Adversarial Stress-Testing of Long-Horizon Multi-Agent Systems</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Aditya Vempaty, Matthew Pace, Karthik Vikram, Tamer Abuelsaad, Deepak Akkil</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.17320" target="_blank">https://huggingface.co/papers/2609.17320</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.17320" target="_blank">https://arxiv.org/abs/2609.17320</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-15">@article{vempaty26,
+  title = {Emergence World: Adversarial Stress-Testing of Long-Horizon Multi-Agent Systems},
+  author = {Aditya Vempaty and Matthew Pace and Karthik Vikram and Tamer Abuelsaad and Deepak Akkil},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.17320},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.13680" class="paper-name" target="_blank">
+            17. Drift-Constrained Optimization: Only Direction Matters in Fine-Tuning Instruct Models
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Shujian Huang, Yifeng Liu, Changjiang Gao, Fei Yuan, yileitu</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>我们通常会问：如何在没有行为漂移的情况下微调指导模型？这项工作颠倒了这个问题：鉴于行为漂移的预算，我们应该如何微调模型？这种逆转预测，允许模型移动的位置可以定性地改变结果。在Qwen3-8B和Qwen3-14B上，在完全相同的仅QA监督下，...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(16)" id="btn-16">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-16">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.13680" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.13680" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(16)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Drift-Constrained Optimization: Only Direction Matters in Fine-Tuning Instruct Models</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Shujian Huang, Yifeng Liu, Changjiang Gao, Fei Yuan, yileitu</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.13680" target="_blank">https://huggingface.co/papers/2609.13680</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.13680" target="_blank">https://arxiv.org/abs/2609.13680</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>我们通常会问：如何在没有行为漂移的情况下微调指导模型？这项工作颠倒了这个问题：鉴于行为漂移的预算，我们应该如何微调模型？这种逆转预测，允许模型移动的位置可以定性地改变结果。在Qwen3-8B和Qwen3-14B上，在完全相同的仅QA监督下，仅更改可访问的更新方向可逆转微调故障保留推理...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>We usually ask: How do we fine-tune an instruct model without behavioral drift? This work reverses the question: Given a behavioral drift budget, how should we fine-tune the model? This reversal predicts that where the model is allowed to move can qualitatively change the outcome. On Qwen3-8B and Qwen3-14B , under the exact same QA-only supervision, changing only the accessible update directions reverses fine-tuning failure preserving reasoning while improving the target task.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-16">@article{huang26,
+  title = {Drift-Constrained Optimization: Only Direction Matters in Fine-Tuning Instruct Models},
+  author = {Shujian Huang and Yifeng Liu and Changjiang Gao and Fei Yuan and yileitu},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.13680},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.13770" class="paper-name" target="_blank">
+            18. Training Specialist Models without Reasoning Trajectories for Domain Expert Distillation
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">CONE-MT/DCO</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Fei Yuan, Jörg Tiedemann, Shaoxiong Ji, Zihao-Li, yileitu</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>专员仅接受答案培训，没有推理监督。那么，是什么决定了它后来为教导学生而产生的推理轨迹？我们发现，专业培训本身隐含地选择了这些潜在的轨迹。在27对专业学生中，学生继承了教师的专业化概括配置文件，甚至跨越了不同的模范家庭。通过控制专家的培训方式...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(17)" id="btn-17">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-17">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.13770" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.13770" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/CONE-MT/DCO" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(17)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Training Specialist Models without Reasoning Trajectories for Domain Expert Distillation</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              <li>作者：Fei Yuan, Jörg Tiedemann, Shaoxiong Ji, Zihao-Li, yileitu</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.13770" target="_blank">https://huggingface.co/papers/2609.13770</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.13770" target="_blank">https://arxiv.org/abs/2609.13770</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>专员仅接受答案培训，没有推理监督。那么，是什么决定了它后来为教导学生而产生的推理轨迹？我们发现，专业培训本身隐含地选择了这些潜在的轨迹。在27对专业学生中，学生继承了教师的专业化概括配置文件，甚至跨越了不同的模范家庭。通过控制专家的培训方式，我们可以......</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>A specialist is trained on answers only , with no reasoning supervision. So what determines the reasoning trajectories it later generates to teach a student? We find that specialist training itself implicitly selects these latent trajectories. Across 27 specialist–student pairs , students inherit their teachers’ specialization–generalization profiles—even across different model families. And by controlling how the specialist is trained, we can systematically control what kind of reasoning supervision gets passed downstream.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-17">@article{yuan26,
+  title = {Training Specialist Models without Reasoning Trajectories for Domain Expert Distillation},
+  author = {Fei Yuan and Jörg Tiedemann and Shaoxiong Ji and Zihao-Li and yileitu},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.13770},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function toggleDetails(paperId) {
+      const details = document.getElementById('details-' + paperId);
+      const btn = document.getElementById('btn-' + paperId);
+      if (details && btn) {
+        details.classList.toggle('active');
+        btn.textContent = details.classList.contains('active') ? '收起详情' : '查看详情';
+      }
+    }
+
+    function copyBibtex(paperId) {
+      const bibtexBlock = document.getElementById('bibtex-' + paperId);
+      if (bibtexBlock) {
+        navigator.clipboard.writeText(bibtexBlock.textContent).then(() => {
+          const btn = event.target;
+          const originalText = btn.textContent;
+          btn.textContent = '已复制!';
+          setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }).catch(err => {
+          alert('复制失败，请手动复制');
+        });
+      }
+    }
+  </script>
+</body>
+</html>
