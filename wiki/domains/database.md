@@ -3,7 +3,7 @@
 ## 领域概览
 
 - 项目总数：10
-- 最近更新：2026-09-16
+- 最近更新：2026-09-18
 - 报告类型：daily
 
 database 领域收录了与AI 相关技术相关的项目。
@@ -21,14 +21,14 @@ database 领域收录了与AI 相关技术相关的项目。
 | 7 | [LadybirdBrowser/ladybird](../../wiki/projects/LadybirdBrowser_ladybird.md) | 2026-08-10 | 1 | 65243 |
 | 8 | [bannedbook/fanqiang](../../wiki/projects/bannedbook_fanqiang.md) | 2026-09-04 | 1 | 52756 |
 | 9 | [reconurge/flowsint](../../wiki/projects/reconurge_flowsint.md) | 2026-09-14 | 1 | 8330 |
-| 10 | [supabase/supabase](../../wiki/projects/supabase_supabase.md) | 2026-09-16 | 1 | 109690 |
+| 10 | [supabase/supabase](../../wiki/projects/supabase_supabase.md) | 2026-09-18 | 1 | 110141 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：337,216
-- 最热项目：[supabase/supabase](../../wiki/projects/supabase_supabase.md) (109690 ⭐)
+- 总 Stars 数：337,667
+- 最热项目：[supabase/supabase](../../wiki/projects/supabase_supabase.md) (110141 ⭐)
 
 
 ---

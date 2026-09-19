@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：21
-- 最近更新：2026-09-17
+- 项目总数：19
+- 最近更新：2026-09-18
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -20,15 +20,15 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 6 | [Zackriya-Solutions/meetily](../../wiki/projects/Zackriya-Solutions_meetily.md) | 2026-07-13 | 1 | 23569 |
 | 7 | [anthropics/claude-plugins-community](../../wiki/projects/anthropics_claude-plugins-community.md) | 2026-08-31 | 1 | 2874 |
 | 8 | [ayghri/i-have-adhd](../../wiki/projects/ayghri_i-have-adhd.md) | 2026-09-14 | 1 | 44384 |
-| 9 | [alibaba/open-code-review](../../wiki/projects/alibaba_open-code-review.md) | 2026-09-17 | 1 | 34646 |
-| 10 | [cloudflare/security-audit-skill](../../wiki/projects/cloudflare_security-audit-skill.md) | 2026-09-17 | 1 | 10525 |
+| 9 | [cloudflare/security-audit-skill](../../wiki/projects/cloudflare_security-audit-skill.md) | 2026-09-18 | 1 | 13575 |
+| 10 | [anthropics/claude-code](../../wiki/projects/anthropics_claude-code.md) | 2026-09-18 | 1 | 146271 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：1,193,483
-- 最热项目：[affaan-m/ECC](../../wiki/projects/affaan-m_ECC.md) (261136 ⭐)
+- 总 Stars 数：974,054
+- 最热项目：[affaan-m/ECC](../../wiki/projects/affaan-m_ECC.md) (262025 ⭐)
 
 
 ---
