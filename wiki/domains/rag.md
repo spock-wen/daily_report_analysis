@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：11
-- 最近更新：2026-09-19
+- 项目总数：10
+- 最近更新：2026-09-20
 - 报告类型：daily
 
 rag 领域收录了与RAG、检索增强生成、知识库、向量检索相关的项目。
@@ -16,18 +16,18 @@ rag 领域收录了与RAG、检索增强生成、知识库、向量检索相关�
 | 2 | [VectifyAI/PageIndex](../../wiki/projects/VectifyAI_PageIndex.md) | 2026-05-11 | 1 | 30441 |
 | 3 | [trimstray/the-book-of-secret-knowledge](../../wiki/projects/trimstray_the-book-of-secret-knowledge.md) | 2026-05-23 | 1 | 223817 |
 | 4 | [Fincept-Corporation/FinceptTerminal](../../wiki/projects/Fincept-Corporation_FinceptTerminal.md) | 2026-05-25 | 1 | 23857 |
-| 5 | [paperless-ngx/paperless-ngx](../../wiki/projects/paperless-ngx_paperless-ngx.md) | 2026-05-25 | 1 | 41309 |
-| 6 | [galilai-group/stable-worldmodel](../../wiki/projects/galilai-group_stable-worldmodel.md) | 2026-05-30 | 1 | 1453 |
-| 7 | [chopratejas/headroom](../../wiki/projects/chopratejas_headroom.md) | 2026-06-21 | 1 | 44248 |
-| 8 | [refactoringhq/tolaria](../../wiki/projects/refactoringhq_tolaria.md) | 2026-07-01 | 1 | 18013 |
-| 9 | [HenryNdubuaku/maths-cs-ai-compendium](../../wiki/projects/HenryNdubuaku_maths-cs-ai-compendium.md) | 2026-07-17 | 1 | 6596 |
-| 10 | [Crosstalk-Solutions/project-nomad](../../wiki/projects/Crosstalk-Solutions_project-nomad.md) | 2026-09-14 | 1 | 36890 |
+| 5 | [galilai-group/stable-worldmodel](../../wiki/projects/galilai-group_stable-worldmodel.md) | 2026-05-30 | 1 | 1453 |
+| 6 | [chopratejas/headroom](../../wiki/projects/chopratejas_headroom.md) | 2026-06-21 | 1 | 44248 |
+| 7 | [refactoringhq/tolaria](../../wiki/projects/refactoringhq_tolaria.md) | 2026-07-01 | 1 | 18013 |
+| 8 | [HenryNdubuaku/maths-cs-ai-compendium](../../wiki/projects/HenryNdubuaku_maths-cs-ai-compendium.md) | 2026-07-17 | 1 | 6596 |
+| 9 | [Crosstalk-Solutions/project-nomad](../../wiki/projects/Crosstalk-Solutions_project-nomad.md) | 2026-09-14 | 1 | 36890 |
+| 10 | [paperless-ngx/paperless-ngx](../../wiki/projects/paperless-ngx_paperless-ngx.md) | 2026-09-20 | 1 | 45543 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：438,912
+- 总 Stars 数：437,929
 - 最热项目：[trimstray/the-book-of-secret-knowledge](../../wiki/projects/trimstray_the-book-of-secret-knowledge.md) (223817 ⭐)
 
 
