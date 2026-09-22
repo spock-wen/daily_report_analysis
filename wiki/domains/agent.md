@@ -2,9 +2,9 @@
 
 ## 领域概览
 
-- 项目总数：24
+- 项目总数：12
 - 最近更新：2026-09-21
-- 报告类型：weekly
+- 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
 
@@ -19,16 +19,16 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 5 | [xbtlin/ai-berkshire](../../wiki/projects/xbtlin_ai-berkshire.md) | 2026-07-06 | 1 | 10289 |
 | 6 | [Zackriya-Solutions/meetily](../../wiki/projects/Zackriya-Solutions_meetily.md) | 2026-07-13 | 1 | 23569 |
 | 7 | [anthropics/claude-plugins-community](../../wiki/projects/anthropics_claude-plugins-community.md) | 2026-08-31 | 1 | 2874 |
-| 8 | [BuilderIO/agent-native](../../wiki/projects/BuilderIO_agent-native.md) | 2026-09-20 | 1 | 5180 |
-| 9 | [alibaba/open-code-review](../../wiki/projects/alibaba_open-code-review.md) | 2026-09-21 | 1 | 38367 |
-| 10 | [anthropics/claude-code](../../wiki/projects/anthropics_claude-code.md) | 2026-09-21 | 1 | 147106 |
+| 8 | [alibaba/open-code-review](../../wiki/projects/alibaba_open-code-review.md) | 2026-09-21 | 1 | 38367 |
+| 9 | [anthropics/claude-code](../../wiki/projects/anthropics_claude-code.md) | 2026-09-21 | 1 | 147106 |
+| 10 | [BuilderIO/agent-native](../../wiki/projects/BuilderIO_agent-native.md) | 2026-09-21 | 1 | 5866 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：1,400,379
-- 最热项目：[affaan-m/ECC](../../wiki/projects/affaan-m_ECC.md) (263713 ⭐)
+- 总 Stars 数：465,056
+- 最热项目：[anthropics/claude-code](../../wiki/projects/anthropics_claude-code.md) (147106 ⭐)
 
 
 ---
