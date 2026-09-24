@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：16
-- 最近更新：2026-09-22
+- 项目总数：20
+- 最近更新：2026-09-23
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -21,14 +21,14 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 7 | [anthropics/claude-plugins-community](../../wiki/projects/anthropics_claude-plugins-community.md) | 2026-08-31 | 1 | 2874 |
 | 8 | [alibaba/open-code-review](../../wiki/projects/alibaba_open-code-review.md) | 2026-09-21 | 1 | 38367 |
 | 9 | [anthropics/claude-code](../../wiki/projects/anthropics_claude-code.md) | 2026-09-21 | 1 | 147106 |
-| 10 | [BuilderIO/agent-native](../../wiki/projects/BuilderIO_agent-native.md) | 2026-09-21 | 1 | 5866 |
+| 10 | [google/ax](../../wiki/projects/google_ax.md) | 2026-09-23 | 1 | 9007 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：525,966
-- 最热项目：[anthropics/claude-code](../../wiki/projects/anthropics_claude-code.md) (147106 ⭐)
+- 总 Stars 数：880,972
+- 最热项目：[obra/superpowers](../../wiki/projects/obra_superpowers.md) (290668 ⭐)
 
 
 ---
