@@ -2,9 +2,9 @@
 
 ## 领域概览
 
-- 项目总数：14
-- 最近更新：2026-09-26
-- 报告类型：daily
+- 项目总数：19
+- 最近更新：2026-09-28
+- 报告类型：weekly
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
 
@@ -19,16 +19,16 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 5 | [xbtlin/ai-berkshire](../../wiki/projects/xbtlin_ai-berkshire.md) | 2026-07-06 | 1 | 10289 |
 | 6 | [Zackriya-Solutions/meetily](../../wiki/projects/Zackriya-Solutions_meetily.md) | 2026-07-13 | 1 | 23569 |
 | 7 | [anthropics/claude-plugins-community](../../wiki/projects/anthropics_claude-plugins-community.md) | 2026-08-31 | 1 | 2874 |
-| 8 | [alibaba/open-code-review](../../wiki/projects/alibaba_open-code-review.md) | 2026-09-21 | 1 | 38367 |
-| 9 | [anthropics/claude-code](../../wiki/projects/anthropics_claude-code.md) | 2026-09-21 | 1 | 147106 |
-| 10 | [paperclipai/paperclip](../../wiki/projects/paperclipai_paperclip.md) | 2026-09-26 | 1 | 87221 |
+| 8 | [paperclipai/paperclip](../../wiki/projects/paperclipai_paperclip.md) | 2026-09-28 | 1 | 89786 |
+| 9 | [vectorize-io/hindsight](../../wiki/projects/vectorize-io_hindsight.md) | 2026-09-28 | 1 | 37227 |
+| 10 | [cloudflare/security-audit-skill](../../wiki/projects/cloudflare_security-audit-skill.md) | 2026-09-28 | 1 | 22325 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：620,739
-- 最热项目：[anthropics/claude-code](../../wiki/projects/anthropics_claude-code.md) (147106 ⭐)
+- 总 Stars 数：1,081,567
+- 最热项目：[affaan-m/ECC](../../wiki/projects/affaan-m_ECC.md) (268399 ⭐)
 
 
 ---
