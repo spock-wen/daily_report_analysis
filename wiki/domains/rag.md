@@ -3,7 +3,7 @@
 ## 领域概览
 
 - 项目总数：10
-- 最近更新：2026-09-29
+- 最近更新：2026-09-30
 - 报告类型：daily
 
 rag 领域收录了与RAG、检索增强生成、知识库、向量检索相关的项目。
@@ -21,13 +21,13 @@ rag 领域收录了与RAG、检索增强生成、知识库、向量检索相关�
 | 7 | [HenryNdubuaku/maths-cs-ai-compendium](../../wiki/projects/HenryNdubuaku_maths-cs-ai-compendium.md) | 2026-07-17 | 1 | 6596 |
 | 8 | [paperless-ngx/paperless-ngx](../../wiki/projects/paperless-ngx_paperless-ngx.md) | 2026-09-20 | 1 | 45543 |
 | 9 | [Crosstalk-Solutions/project-nomad](../../wiki/projects/Crosstalk-Solutions_project-nomad.md) | 2026-09-21 | 1 | 37836 |
-| 10 | [VectifyAI/PageIndex](../../wiki/projects/VectifyAI_PageIndex.md) | 2026-09-29 | 1 | 37307 |
+| 10 | [VectifyAI/PageIndex](../../wiki/projects/VectifyAI_PageIndex.md) | 2026-09-30 | 1 | 38105 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：445,741
+- 总 Stars 数：446,539
 - 最热项目：[trimstray/the-book-of-secret-knowledge](../../wiki/projects/trimstray_the-book-of-secret-knowledge.md) (223817 ⭐)
 
 

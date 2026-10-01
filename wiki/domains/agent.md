@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：13
-- 最近更新：2026-09-29
+- 项目总数：18
+- 最近更新：2026-09-30
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -20,15 +20,15 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 6 | [Zackriya-Solutions/meetily](../../wiki/projects/Zackriya-Solutions_meetily.md) | 2026-07-13 | 1 | 23569 |
 | 7 | [anthropics/claude-plugins-community](../../wiki/projects/anthropics_claude-plugins-community.md) | 2026-08-31 | 1 | 2874 |
 | 8 | [cloudflare/security-audit-skill](../../wiki/projects/cloudflare_security-audit-skill.md) | 2026-09-28 | 1 | 22325 |
-| 9 | [NVIDIA/OpenShell](../../wiki/projects/NVIDIA_OpenShell.md) | 2026-09-29 | 1 | 10543 |
-| 10 | [vectorize-io/hindsight](../../wiki/projects/vectorize-io_hindsight.md) | 2026-09-29 | 1 | 42798 |
+| 9 | [vectorize-io/hindsight](../../wiki/projects/vectorize-io_hindsight.md) | 2026-09-29 | 1 | 42798 |
+| 10 | [NVIDIA/OpenShell](../../wiki/projects/NVIDIA_OpenShell.md) | 2026-09-30 | 1 | 12571 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：443,989
-- 最热项目：[forrestchang/andrej-karpathy-skills](../../wiki/projects/forrestchang_andrej-karpathy-skills.md) (113775 ⭐)
+- 总 Stars 数：1,107,882
+- 最热项目：[mattpocock/skills](../../wiki/projects/mattpocock_skills.md) (272976 ⭐)
 
 
 ---
