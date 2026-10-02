@@ -3,7 +3,7 @@
 ## 领域概览
 
 - 项目总数：12
-- 最近更新：2026-09-30
+- 最近更新：2026-10-01
 - 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
@@ -27,8 +27,8 @@ general 领域收录了与AI 相关技术相关的项目。
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：540,273
-- 最热项目：[openclaw/openclaw](../../wiki/projects/openclaw_openclaw.md) (390979 ⭐)
+- 总 Stars 数：204,620
+- 最热项目：[pbakaus/impeccable](../../wiki/projects/pbakaus_impeccable.md) (73643 ⭐)
 
 
 ---

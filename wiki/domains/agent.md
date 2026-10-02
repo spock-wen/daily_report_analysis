@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：18
-- 最近更新：2026-09-30
+- 项目总数：17
+- 最近更新：2026-10-01
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -21,14 +21,14 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 7 | [anthropics/claude-plugins-community](../../wiki/projects/anthropics_claude-plugins-community.md) | 2026-08-31 | 1 | 2874 |
 | 8 | [cloudflare/security-audit-skill](../../wiki/projects/cloudflare_security-audit-skill.md) | 2026-09-28 | 1 | 22325 |
 | 9 | [vectorize-io/hindsight](../../wiki/projects/vectorize-io_hindsight.md) | 2026-09-29 | 1 | 42798 |
-| 10 | [NVIDIA/OpenShell](../../wiki/projects/NVIDIA_OpenShell.md) | 2026-09-30 | 1 | 12571 |
+| 10 | [DietrichGebert/ponytail](../../wiki/projects/DietrichGebert_ponytail.md) | 2026-10-01 | 1 | 150452 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：1,107,882
-- 最热项目：[mattpocock/skills](../../wiki/projects/mattpocock_skills.md) (272976 ⭐)
+- 总 Stars 数：1,242,021
+- 最热项目：[obra/superpowers](../../wiki/projects/obra_superpowers.md) (293953 ⭐)
 
 
 ---
