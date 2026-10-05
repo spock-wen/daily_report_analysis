@@ -2,9 +2,9 @@
 
 ## 领域概览
 
-- 项目总数：22
-- 最近更新：2026-10-03
-- 报告类型：daily
+- 项目总数：18
+- 最近更新：2026-10-05
+- 报告类型：weekly
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
 
@@ -20,15 +20,15 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 6 | [Zackriya-Solutions/meetily](../../wiki/projects/Zackriya-Solutions_meetily.md) | 2026-07-13 | 1 | 23569 |
 | 7 | [anthropics/claude-plugins-community](../../wiki/projects/anthropics_claude-plugins-community.md) | 2026-08-31 | 1 | 2874 |
 | 8 | [cloudflare/security-audit-skill](../../wiki/projects/cloudflare_security-audit-skill.md) | 2026-09-28 | 1 | 22325 |
-| 9 | [vectorize-io/hindsight](../../wiki/projects/vectorize-io_hindsight.md) | 2026-09-29 | 1 | 42798 |
-| 10 | [DietrichGebert/ponytail](../../wiki/projects/DietrichGebert_ponytail.md) | 2026-10-03 | 1 | 153356 |
+| 9 | [coreyhaines31/marketingskills](../../wiki/projects/coreyhaines31_marketingskills.md) | 2026-10-04 | 1 | 53043 |
+| 10 | [paperclipai/paperclip](../../wiki/projects/paperclipai_paperclip.md) | 2026-10-05 | 1 | 97179 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：2,012,829
-- 最热项目：[obra/superpowers](../../wiki/projects/obra_superpowers.md) (294905 ⭐)
+- 总 Stars 数：797,943
+- 最热项目：[harry0703/MoneyPrinterTurbo](../../wiki/projects/harry0703_MoneyPrinterTurbo.md) (128454 ⭐)
 
 
 ---
