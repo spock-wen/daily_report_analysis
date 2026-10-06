@@ -2,9 +2,9 @@
 
 ## 领域概览
 
-- 项目总数：18
+- 项目总数：16
 - 最近更新：2026-10-05
-- 报告类型：weekly
+- 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
 
@@ -27,8 +27,8 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：797,943
-- 最热项目：[harry0703/MoneyPrinterTurbo](../../wiki/projects/harry0703_MoneyPrinterTurbo.md) (128454 ⭐)
+- 总 Stars 数：860,283
+- 最热项目：[msitarzewski/agency-agents](../../wiki/projects/msitarzewski_agency-agents.md) (157233 ⭐)
 
 
 ---
