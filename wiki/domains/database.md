@@ -3,7 +3,7 @@
 ## 领域概览
 
 - 项目总数：11
-- 最近更新：2026-10-07
+- 最近更新：2026-10-08
 - 报告类型：daily
 
 database 领域收录了与AI 相关技术相关的项目。
@@ -27,7 +27,7 @@ database 领域收录了与AI 相关技术相关的项目。
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：345,810
+- 总 Stars 数：346,054
 - 最热项目：[supabase/supabase](../../wiki/projects/supabase_supabase.md) (110433 ⭐)
 
 
