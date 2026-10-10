@@ -6,7 +6,7 @@
 - 上榜次数：1
 - 领域分类：other
 - 语言：Markdown, Shell, JSON
-- GitHub Stars: 102776（最后更新：2026-10-07）
+- GitHub Stars: 103962（最后更新：2026-10-09）
 
 ## 核心功能
 - 提供智能代理/自动化助手功能
@@ -278,6 +278,15 @@
 ### 2026-10-07（日报收录）
 **来源**: [日报 2026-10-07](../../daily/github-ai-trending-2026-10-07.html)
 **分析**: 🔥 Agent Skills 生态爆发：mattpocock/skills（27.9 万星）与 addyosmani/agent-skills（10.2 万星）两大技能库同日上榜，'技能即工程最佳实践'正成为 AI 编码标配
+🔥 今日热度极高，受到社区广泛关注
+⭐ 明星项目，在开发者社区具有重要影响力
+🤖 AI Agent 领域持续火热，多智能体协作成为趋势
+👥 社区活跃度：极高 - 社区非常活跃，是领域内的标杆项目
+
+
+### 2026-10-09（日报收录）
+**来源**: [日报 2026-10-09](../../daily/github-ai-trending-2026-10-09.html)
+**分析**: 🔥 addyosmani/agent-skills（10.4 万星）：Chrome 团队 Addy Osmani 出品的生产级 AI 编码技能库，与 mattpocock/skills 形成 Skills 标准双雄格局
 🔥 今日热度极高，受到社区广泛关注
 ⭐ 明星项目，在开发者社区具有重要影响力
 🤖 AI Agent 领域持续火热，多智能体协作成为趋势
