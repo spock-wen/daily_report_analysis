@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：17
-- 最近更新：2026-10-09
+- 项目总数：16
+- 最近更新：2026-10-10
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -21,14 +21,14 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 7 | [anthropics/claude-plugins-community](../../wiki/projects/anthropics_claude-plugins-community.md) | 2026-08-31 | 1 | 2874 |
 | 8 | [coreyhaines31/marketingskills](../../wiki/projects/coreyhaines31_marketingskills.md) | 2026-10-04 | 1 | 53043 |
 | 9 | [paperclipai/paperclip](../../wiki/projects/paperclipai_paperclip.md) | 2026-10-05 | 1 | 97179 |
-| 10 | [morluto/rea](../../wiki/projects/morluto_rea.md) | 2026-10-09 | 1 | 44918 |
+| 10 | [morluto/rea](../../wiki/projects/morluto_rea.md) | 2026-10-10 | 1 | 71495 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：975,691
-- 最热项目：[mattpocock/skills](../../wiki/projects/mattpocock_skills.md) (282620 ⭐)
+- 总 Stars 数：1,245,256
+- 最热项目：[mattpocock/skills](../../wiki/projects/mattpocock_skills.md) (284414 ⭐)
 
 
 ---
