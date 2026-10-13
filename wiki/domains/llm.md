@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：10
-- 最近更新：2026-10-11
+- 项目总数：11
+- 最近更新：2026-10-12
 - 报告类型：daily
 
 llm 领域收录了与大语言模型、Transformer、基础模型相关的项目。
@@ -21,13 +21,13 @@ llm 领域收录了与大语言模型、Transformer、基础模型相关的项�
 | 7 | [Anil-matcha/Open-Generative-AI](../../wiki/projects/Anil-matcha_Open-Generative-AI.md) | 2026-06-27 | 1 | 21365 |
 | 8 | [ZhuLinsen/daily_stock_analysis](../../wiki/projects/ZhuLinsen_daily_stock_analysis.md) | 2026-08-11 | 1 | 62099 |
 | 9 | [jundot/omlx](../../wiki/projects/jundot_omlx.md) | 2026-08-24 | 1 | 20448 |
-| 10 | [lyogavin/airllm](../../wiki/projects/lyogavin_airllm.md) | 2026-10-11 | 1 | 36445 |
+| 10 | [lyogavin/airllm](../../wiki/projects/lyogavin_airllm.md) | 2026-10-12 | 1 | 37491 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：378,329
+- 总 Stars 数：420,267
 - 最热项目：[ggml-org/llama.cpp](../../wiki/projects/ggml-org_llama.cpp.md) (115308 ⭐)
 
 

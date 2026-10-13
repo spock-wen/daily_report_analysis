@@ -2,9 +2,9 @@
 
 ## 领域概览
 
-- 项目总数：11
+- 项目总数：13
 - 最近更新：2026-10-12
-- 报告类型：weekly
+- 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
 
@@ -27,8 +27,8 @@ general 领域收录了与AI 相关技术相关的项目。
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：302,684
-- 最热项目：[flutter/flutter](../../wiki/projects/flutter_flutter.md) (179799 ⭐)
+- 总 Stars 数：353,270
+- 最热项目：[open-webui/open-webui](../../wiki/projects/open-webui_open-webui.md) (154944 ⭐)
 
 
 ---
