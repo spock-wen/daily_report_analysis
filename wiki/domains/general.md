@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：13
-- 最近更新：2026-10-12
+- 项目总数：12
+- 最近更新：2026-10-13
 - 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
@@ -27,8 +27,8 @@ general 领域收录了与AI 相关技术相关的项目。
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：353,270
-- 最热项目：[open-webui/open-webui](../../wiki/projects/open-webui_open-webui.md) (154944 ⭐)
+- 总 Stars 数：203,751
+- 最热项目：[bilawalsidhu/gods-eye-view](../../wiki/projects/bilawalsidhu_gods-eye-view.md) (55313 ⭐)
 
 
 ---
