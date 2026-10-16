@@ -3,7 +3,7 @@
 ## 领域概览
 
 - 项目总数：10
-- 最近更新：2026-10-14
+- 最近更新：2026-10-15
 - 报告类型：daily
 
 speech 领域收录了与语音识别、语音合成、音频处理相关的项目。
@@ -21,13 +21,13 @@ speech 领域收录了与语音识别、语音合成、音频处理相关的项�
 | 7 | [moeru-ai/airi](../../wiki/projects/moeru-ai_airi.md) | 2026-08-03 | 1 | 46542 |
 | 8 | [jamiepine/voicebox](../../wiki/projects/jamiepine_voicebox.md) | 2026-09-17 | 1 | 54826 |
 | 9 | [hugohe3/ppt-master](../../wiki/projects/hugohe3_ppt-master.md) | 2026-10-10 | 1 | 59397 |
-| 10 | [debpalash/VoiceStudio](../../wiki/projects/debpalash_VoiceStudio.md) | 2026-10-14 | 1 | 66221 |
+| 10 | [debpalash/VoiceStudio](../../wiki/projects/debpalash_VoiceStudio.md) | 2026-10-15 | 1 | 69000 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：561,340
+- 总 Stars 数：564,119
 - 最热项目：[yt-dlp/yt-dlp](../../wiki/projects/yt-dlp_yt-dlp.md) (164940 ⭐)
 
 
