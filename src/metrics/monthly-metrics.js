@@ -129,6 +129,7 @@ function buildMonthCore(month) {
     aiProjects: items.filter(item => item.isAI).length,
     avgStars: formatAvgStars(avgStars),
     newStarsTotal,
+    priorProjects: items.length - rookies.length,
   };
 
   return {

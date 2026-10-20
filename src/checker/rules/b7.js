@@ -180,7 +180,11 @@ function checkMonthlyCombinations(ctx, doc, item, findings) {
   const rookies = metrics.rookiesCount ?? ctx.brief?.stats?.newProjects;
   const prior = Number.isFinite(total) && Number.isFinite(rookies) ? total - rookies : null;
   const prev = metrics.prevMonthStats || ctx.brief?.prevMonthStats || {};
+  const seen = new Set();
   const push = (quote, message) => {
+    const key = `${quote}|${message}`;
+    if (seen.has(key)) return;
+    seen.add(key);
     findings.push(makeFinding('B7', doc, {
       field: item.path,
       line: item.line,
@@ -189,14 +193,46 @@ function checkMonthlyCombinations(ctx, doc, item, findings) {
     }));
   };
 
+  const collect = (patterns) => {
+    const values = [];
+    let match;
+    for (const re of patterns) {
+      while ((match = re.exec(text)) !== null) {
+        const value = Number(match[1]);
+        if (Number.isFinite(value)) values.push({ value, quote: match[0] });
+      }
+    }
+    return values;
+  };
+
   if (Number.isFinite(total)) {
     const comboRe = /(\d+)\s*个(?:新项目|新秀)[^。；\n]{0,16}(?:之外|以外)[^。；\n]{0,8}(?:还有|另有)\s*(\d+)\s*个[^。；\n]{0,12}(?:之前已上榜|非新秀)/g;
+    let comboMatched = false;
     let match;
     while ((match = comboRe.exec(text)) !== null) {
+      comboMatched = true;
       const newCount = Number(match[1]);
       const priorCount = Number(match[2]);
       if (newCount + priorCount !== total) {
         push(match[0], `新秀 ${newCount} + 非新秀 ${priorCount} = ${newCount + priorCount}，不等于总项目 ${total}`);
+      }
+    }
+
+    if (!comboMatched) {
+      const newCounts = collect([
+        /(\d+)\s*个\s*(?:新项目|新秀)/g,
+        /(?:新项目|新秀)\s*(\d+)\s*个/g,
+      ]);
+      const priorCounts = collect([
+        /(\d+)\s*个(?:项目)?\s*(?:本月|当月)?\s*(?:之前已上榜|非新秀)/g,
+        /(?:之前已上榜|非新秀)[^。；\n]{0,12}(\d+)\s*个/g,
+      ]);
+      if (newCounts.length > 0 && priorCounts.length > 0) {
+        const newCount = newCounts[0].value;
+        const priorCount = priorCounts[0].value;
+        if (newCount + priorCount !== total) {
+          push(`${newCount} 个新秀，${priorCount} 个非新秀`, `新秀 ${newCount} + 非新秀 ${priorCount} = ${newCount + priorCount}，不等于总项目 ${total}`);
+        }
       }
     }
 
@@ -205,10 +241,16 @@ function checkMonthlyCombinations(ctx, doc, item, findings) {
       const value = Number(match[1]);
       if (value > total) push(match[0], `部分 ${value} 大于总项目 ${total}`);
     }
+
+    const tooLargeReverseRe = /(?:新项目|新秀|之前已上榜|非新秀)\s*(\d+)\s*个/g;
+    while ((match = tooLargeReverseRe.exec(text)) !== null) {
+      const value = Number(match[1]);
+      if (value > total) push(match[0], `部分 ${value} 大于总项目 ${total}`);
+    }
   }
 
   if (Number.isFinite(prior)) {
-    const priorRe = /(\d+)\s*个[^。；\n]{0,12}(?:本月|当月)之前已上榜/g;
+    const priorRe = /(\d+)\s*个(?:项目)?\s*(?:本月|当月)?\s*之前已上榜/g;
     let match;
     while ((match = priorRe.exec(text)) !== null) {
       const value = Number(match[1]);

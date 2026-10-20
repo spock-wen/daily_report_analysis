@@ -432,7 +432,8 @@ async function main() {
 
   const dataDirOption = args.options['data-dir'];
   const outDirOption = args.options['out-dir'];
-  if (typeof dataDirOption !== 'string' || typeof outDirOption !== 'string') {
+  if (typeof dataDirOption !== 'string' || typeof outDirOption !== 'string'
+    || !dataDirOption.trim() || !outDirOption.trim()) {
     console.error('错误：--data-dir 与 --out-dir 均为必填，不使用仓库根目录或 data/ 作为默认值。');
     printUsage();
     return 2;
@@ -462,8 +463,15 @@ async function main() {
   const outBriefPath = path.join(outDataDir, 'briefs', level, briefFileName(level, period));
   const outInsightsPath = path.join(outDataDir, 'insights', level, insightFileName(period));
   const outReportPath = path.join(outReportsDir, reportDirName(level), reportFileName(level, period));
-  const conflicts = [outBriefPath, outInsightsPath, outReportPath, addFailMarker(outReportPath)]
-    .filter(filePath => fs.existsSync(filePath));
+  const checkBaseName = path.join(outDir, 'check', `check-${level}-${period}`);
+  const conflicts = [
+    outBriefPath,
+    outInsightsPath,
+    outReportPath,
+    addFailMarker(outReportPath),
+    `${checkBaseName}.json`,
+    `${checkBaseName}.md`,
+  ].filter(filePath => fs.existsSync(filePath));
   if (conflicts.length > 0) {
     console.error('错误：以下输出文件已存在，拒绝覆盖：');
     for (const filePath of conflicts) console.error(`  - ${filePath}`);

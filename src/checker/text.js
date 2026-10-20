@@ -6,7 +6,7 @@
  */
 
 const SENTENCE_BREAK = /[。！？\n]/;
-const CLAUSE_BREAK = /[。！？\n，,；;：:、]/;
+const CLAUSE_BREAK = /[。！？\n，,；;、]/;
 const MAX_SENTENCE_UNITS = 2000;
 
 function normalize(text) {
@@ -223,6 +223,8 @@ function extractRepoRefs(text, options = {}) {
       results.push({ raw, owner, repo, known: true });
       continue;
     }
+    if (owner.length < 2 || repo.length < 2) continue;
+    if (/^\d+$/.test(owner)) continue;
     if (isCommonSlashPair(owner, repo, commonWords)) continue;
     results.push({ raw, owner, repo, known: false });
   }
