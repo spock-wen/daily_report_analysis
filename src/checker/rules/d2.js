@@ -7,7 +7,7 @@ function check(ctx, doc, config) {
   const findings = [];
   const known = new Set();
   for (const name of ctx.allowedFullNames || ctx.fullNames || []) {
-    known.add(String(name).toLowerCase());
+    known.add(String(name));
   }
   const commonWords = new Set((config.commonSlashWords || []).map(word => String(word).toLowerCase()));
 

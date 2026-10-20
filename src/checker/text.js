@@ -136,7 +136,6 @@ const STAR_UNIT = {
 const STAR_CONTEXT_RE = /星|★|Stars|stars/;
 const AGGREGATE_MARKER_RE = /合计|上周/;
 const THRESHOLD_MARKER_RE = /若|门槛|基准|阈值|目标|入榜线/;
-const THRESHOLD_SET_RE = /^\s*星?\s*(?:以上|以下|以内)?\s*的?\s*项目/;
 const CUMULATIVE_MARKER_RE = /总星数|累计星|累计|总计/;
 const TODAY_MARKER_RE = /当期|期内|今日|当天|单日|日增|新增|todayStars/i;
 
@@ -179,7 +178,7 @@ function parseStarNumbers(text, options = {}) {
  * 按 J25/J26/J27 判断分句内每个数字的口径与豁免：
  * - 合计/上周标记：整个分句视为汇总；
  * - 累计类词：只在该分句同时存在期内数时逐数字比较口径；
- * - 门槛/基准/阈值/若/目标/入榜线，以及「…星的项目」门槛数：仅豁免对应数字；
+ * - 若/门槛/基准/阈值/目标/入榜线：仅豁免对应数字；
  * - 比较词不整句跳过，已发生事实的比较数字照常归属并核对。
  */
 function analyzeStarClause(clause, numbers, config) {
@@ -208,8 +207,7 @@ function analyzeStarClause(clause, numbers, config) {
       cumulative,
       today: !cumulative || today,
       threshold: THRESHOLD_MARKER_RE.test(entry.before)
-        || (index === positions.length - 1 && THRESHOLD_MARKER_RE.test(after))
-        || THRESHOLD_SET_RE.test(after),
+        || (index === positions.length - 1 && THRESHOLD_MARKER_RE.test(after)),
     };
   });
 
@@ -265,7 +263,7 @@ function findProjectMentions(text, projects) {
       continue;
     }
     const name = project.name || project.fullName.split('/')[1];
-    if (!name || name.length < 3) continue;
+    if (!name) continue;
     const re = new RegExp(`(?<![A-Za-z0-9_-])${escapeRegExp(name)}(?![A-Za-z0-9_-])`, 'g');
     let match;
     while ((match = re.exec(source)) !== null) {
@@ -323,7 +321,7 @@ function isNearKnownFullName(raw, known) {
 
 /**
  * 提取 owner/repo 形式的名字。
- * 只返回命中当期 fullName（大小写不敏感）或与某个 fullName 编辑距离很近的疑似拼错；
+ * 只返回命中当期 fullName（大小写精确）或与某个 fullName 编辑距离很近的疑似拼错；
  * 其余斜杠词（A/B、Windows/Linux、CUDA/MLX 等）不当仓库名。
  */
 function extractRepoRefs(text, options = {}) {
@@ -340,7 +338,7 @@ function extractRepoRefs(text, options = {}) {
     const raw = `${owner}/${repo}`;
     if (owner.includes('.')) continue;
     if (!/[A-Za-z]/.test(repo)) continue;
-    if (known && known.has(raw.toLowerCase())) {
+    if (known && known.has(raw)) {
       results.push({ raw, owner, repo, known: true });
       continue;
     }
