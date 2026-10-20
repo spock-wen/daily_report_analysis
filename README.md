@@ -463,3 +463,11 @@ npm run format
 ## 许可证
 
 MIT License
+
+### 历史期样例生成（S5）
+
+```bash
+REPORT_NO_PUSH=1 REPORT_NO_WIKI=1 node scripts/generate-sample.js <daily|weekly|monthly> <期次> --out-dir <D> [--data-dir D] [--write-html-on-fail]
+```
+
+从既有 brief 读当期数据（不抓取），算新口径字段、跑洞察（每期主洞察 ≤2 次，打印 `AI_CALLS`）与核查闸；FAIL 清单写 `<D>/check/`，PASS 时 HTML 写 `<D>/reports/`。不调用推送、Wiki、首页更新或 git。
