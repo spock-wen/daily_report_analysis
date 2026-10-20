@@ -11,107 +11,23 @@ const translationCache = new Map();
 // 项目类型模式
 const PROJECT_PATTERNS = {
   agent: {
-    keywords: ['agent', 'bot', 'assistant', 'copilot', 'claude', 'gpt', 'autonomous', 'workflow', 'orchestration', 'swarm', '智能体', '代理'],
-    coreFunctions: [
-      '提供智能代理/自动化助手功能',
-      '支持多步骤任务规划和执行',
-      '集成 LLM 能力进行自然语言交互',
-      '支持工具调用和外部 API 集成'
-    ],
-    useCases: [
-      '自动化工作流程和任务处理',
-      '智能客服和对话系统',
-      '代码生成和开发辅助',
-      '数据处理和报告生成'
-    ]
+    keywords: ['agent', 'bot', 'assistant', 'copilot', 'claude', 'gpt', 'autonomous', 'workflow', 'orchestration', 'swarm', '智能体', '代理']
   },
   rag: {
-    keywords: ['rag', 'retrieval', 'vector', 'embedding', 'index', 'search', 'knowledge', 'semantic', '检索', '向量', '知识库'],
-    coreFunctions: [
-      '提供高效的向量检索和语义搜索',
-      '支持大规模知识库构建和管理',
-      '集成 Embedding 模型进行向量化',
-      '优化检索准确性和响应速度'
-    ],
-    useCases: [
-      '企业知识库和文档检索',
-      '智能问答系统',
-      '内容推荐和相似度匹配',
-      '多模态数据检索'
-    ]
+    keywords: ['rag', 'retrieval', 'vector', 'embedding', 'index', 'search', 'knowledge', 'semantic', '检索', '向量', '知识库']
   },
   llm: {
-    keywords: ['llm', 'language model', 'transformer', 'gpt', 'bert', 'huggingface', 'hf', 'model', 'fine-tune', '大模型', '预训练'],
-    coreFunctions: [
-      '提供大语言模型训练和推理能力',
-      '支持模型微调和参数优化',
-      '集成主流 Transformer 架构',
-      '提供模型部署和 serving 工具'
-    ],
-    useCases: [
-      '自定义大模型训练',
-      '领域特定模型微调',
-      '模型性能优化和压缩',
-      '多模型集成和对比'
-    ]
+    keywords: ['llm', 'language model', 'transformer', 'gpt', 'bert', 'huggingface', 'hf', 'model', 'fine-tune', '大模型', '预训练']
   },
   speech: {
-    keywords: ['speech', 'voice', 'asr', 'tts', 'audio', 'whisper', 'recognition', '语音', '识别', '合成'],
-    coreFunctions: [
-      '提供语音识别(ASR)和文本转语音(TTS)',
-      '支持多语言和方言识别',
-      '实时音频流处理能力',
-      '针对边缘设备优化性能'
-    ],
-    useCases: [
-      '语音助手和智能设备',
-      '会议记录和语音转写',
-      '有声内容生成',
-      '实时翻译和字幕生成'
-    ]
+    keywords: ['speech', 'voice', 'asr', 'tts', 'audio', 'whisper', 'recognition', '语音', '识别', '合成']
   },
   devtool: {
-    keywords: ['cli', 'tool', 'framework', 'sdk', 'library', 'plugin', 'extension', 'ide', 'editor', '开发工具'],
-    coreFunctions: [
-      '提供开发者工具和效率提升功能',
-      '支持多种编程语言和框架',
-      '集成开发环境和工作流优化',
-      '提供调试和测试辅助功能'
-    ],
-    useCases: [
-      '提升开发效率和代码质量',
-      '自动化重复性开发任务',
-      '团队协作和项目管理',
-      '持续集成和部署流程'
-    ]
+    keywords: ['cli', 'tool', 'framework', 'sdk', 'library', 'plugin', 'extension', 'ide', 'editor', '开发工具']
   },
   database: {
-    keywords: ['database', 'db', 'storage', 'cache', 'sql', 'nosql', 'graph', '数据库', '存储'],
-    coreFunctions: [
-      '提供高性能数据存储和查询',
-      '支持分布式和水平扩展',
-      '优化读写性能和数据一致性',
-      '提供丰富的数据类型和索引'
-    ],
-    useCases: [
-      '大规模数据存储和管理',
-      '实时数据分析和处理',
-      '缓存和会话存储',
-      '图数据和关系分析'
-    ]
+    keywords: ['database', 'db', 'storage', 'cache', 'sql', 'nosql', 'graph', '数据库', '存储']
   }
-};
-
-// 语言特性
-const LANG_FEATURES = {
-  'Python': { ecosystem: 'AI/ML 首选', strengths: '丰富的 AI 库生态，快速原型开发' },
-  'TypeScript': { ecosystem: '现代 Web 开发', strengths: '类型安全，大型企业级应用' },
-  'Rust': { ecosystem: '高性能系统', strengths: '内存安全，极致性能，适合底层开发' },
-  'Go': { ecosystem: '云原生后端', strengths: '高并发，快速编译，部署简单' },
-  'Java': { ecosystem: '企业级应用', strengths: '成熟的生态，强大的并发能力' },
-  'C++': { ecosystem: '系统/游戏开发', strengths: '极致性能，硬件控制能力强' },
-  'C': { ecosystem: '嵌入式/系统', strengths: '轻量级，高效，适合资源受限环境' },
-  'JavaScript': { ecosystem: '全栈开发', strengths: '广泛的浏览器支持，生态丰富' }
 };
 
 class ProjectAnalyzer {
@@ -229,13 +145,11 @@ class ProjectAnalyzer {
     const fullName = project.fullName || project.repo || project.name;
     const description = project.description || project.desc || '';
     const projectType = this.detectProjectType(fullName, description);
-    
+
     return {
       type: projectType,
       typeName: this.getProjectTypeName(projectType),
-      coreFunctions: this.generateCoreFunctions(project, projectType),
-      useCases: this.generateUseCases(project, projectType),
-      trends: this.generateTrendAnalysis(project),
+      oneSentence: this.generateOneSentence(project),
       community: this.generateCommunityActivity(project)
     };
   }
@@ -277,96 +191,53 @@ class ProjectAnalyzer {
   }
 
   /**
-   * 生成核心功能
+   * 生成每项目一句话：这是什么、为什么上榜
+   * 只依据该项目自身的 description/descZh/topics/README 摘要
    * @param {Object} project - 项目数据
-   * @param {string} projectType - 项目类型
-   * @returns {Array} 核心功能列表
+   * @returns {string} 一句话
    */
-  generateCoreFunctions(project, projectType) {
-    const patterns = PROJECT_PATTERNS[projectType] || PROJECT_PATTERNS.devtool;
-    const langFeature = LANG_FEATURES[project.language] || { strengths: '跨平台开发' };
+  generateOneSentence(project) {
+    const fullName = project.fullName || project.repo || project.name || '';
+    const rawDescription = project.descZh || project.description || project.desc || '';
+    let detail = String(rawDescription).replace(/\s+/g, ' ').trim();
 
-    const functions = [...patterns.coreFunctions];
-
-    if (langFeature.strengths) {
-      functions.push(`基于 ${project.language} - ${langFeature.strengths}`);
+    if (!detail) {
+      const readme = project.readmeSummary || project.readme_summary || project.readme || project.readmeText || '';
+      detail = this.firstSentence(readme);
     }
 
-    const stars = this.parseNumber(project.stars);
+    const topics = Array.isArray(project.topics)
+      ? project.topics.filter(Boolean).slice(0, 3)
+      : [];
 
-    if (stars > 10000) {
-      functions.push('经过大规模生产环境验证，社区活跃度高');
-    } else if (stars > 1000) {
-      functions.push('社区认可度良好，持续迭代更新');
+    if (detail && !/[。.!?！？]$/.test(detail)) {
+      detail += '。';
     }
 
-    return functions.slice(0, 4);
+    if (detail) {
+      const reason = topics.length > 0
+        ? `上榜与 ${topics.join('、')} 方向相关。`
+        : '上榜原因未知。';
+      return `${fullName}：${detail}${reason}`;
+    }
+
+    if (topics.length > 0) {
+      return `${fullName}：围绕 ${topics.join('、')} 的开源项目；上榜与这些方向相关。`;
+    }
+
+    return `${fullName}：暂无项目描述，上榜原因未知。`;
   }
 
   /**
-   * 生成适用场景
-   * @param {Object} project - 项目数据
-   * @param {string} projectType - 项目类型
-   * @returns {Array} 适用场景列表
+   * 提取文本的第一句
+   * @param {string} text - 原始文本
+   * @returns {string} 第一句
    */
-  generateUseCases(project, projectType) {
-    const patterns = PROJECT_PATTERNS[projectType] || PROJECT_PATTERNS.devtool;
-    return patterns.useCases.slice(0, 4);
-  }
-
-  /**
-   * 生成趋势分析
-   * @param {Object} project - 项目数据
-   * @returns {Array} 趋势分析列表
-   */
-  generateTrendAnalysis(project) {
-    const trends = [];
-
-    const todayStars = this.parseNumber(project.todayStars);
-    const totalStars = this.parseNumber(project.stars);
-
-    if (todayStars > 500) {
-      trends.push('🔥 今日热度极高，受到社区广泛关注');
-    } else if (todayStars > 200) {
-      trends.push('📈 今日增长迅速，值得关注');
-    } else if (todayStars > 50) {
-      trends.push('📊 稳定增长，社区认可度良好');
-    }
-
-    if (totalStars > 20000) {
-      trends.push('⭐ 明星项目，在开发者社区具有重要影响力');
-    } else if (totalStars > 5000) {
-      trends.push('🌟 热门项目，已被广泛采用');
-    } else if (totalStars > 1000) {
-      trends.push('💡 新兴项目，具有良好发展潜力');
-    }
-
-    if (project.hasApiData || project.has_api_data) {
-      if (project.commitsLast30Days || project.commits_last_30_days) {
-        trends.push(`📝 近 30 天 Commits：${project.commitsLast30Days || project.commits_last_30_days}`);
-      }
-
-      if (project.contributorsCount || project.contributors_count) {
-        trends.push(`👥 贡献者数量：${project.contributorsCount || project.contributors_count}+`);
-      }
-    }
-
-    const fullName = project.fullName || project.repo || project.name;
-    const description = project.description || project.desc || '';
-    const projectType = this.detectProjectType(fullName, description);
-    const typeTrends = {
-      agent: '🤖 AI Agent 领域持续火热，多智能体协作成为趋势',
-      rag: '🔍 RAG 技术不断优化，企业知识管理需求增长',
-      llm: '🧠 大模型生态日趋成熟，微调部署工具需求旺盛',
-      speech: '🎤 边缘设备语音处理需求增长，轻量化模型受关注',
-      database: '💾 高性能数据存储方案持续受到重视'
-    };
-
-    if (typeTrends[projectType]) {
-      trends.push(typeTrends[projectType]);
-    }
-
-    return trends;
+  firstSentence(text) {
+    if (!text) return '';
+    const normalized = String(text).replace(/[#>*_`\[\]]/g, ' ').replace(/\s+/g, ' ').trim();
+    const match = normalized.match(/^(.{1,120}?[。.!?！？])(?:\s|$)/);
+    return (match ? match[1] : normalized.slice(0, 120)).trim();
   }
 
   /**

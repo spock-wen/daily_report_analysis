@@ -156,9 +156,10 @@ class HTMLGenerator {
       <div class="date">${date}</div>
     </header>
 
-    ${this.renderStatsSection(stats)}
-    ${this.renderAIInsightsSection(aiInsights, projects)}
+    ${this.renderStatsSection(stats, projects, data.caption || data.brief?.caption)}
+    ${this.renderDailyDiffSection(data)}
     ${this.renderProjectListSection(projects)}
+    ${this.renderAIInsightsSection(aiInsights, projects)}
   </div>
 
   <script>
@@ -175,33 +176,20 @@ class HTMLGenerator {
 </html>`;
   }
 
-  renderStatsSection(stats) {
-    const statItems = [
-      {
-        label: '上榜项目',
-        value: stats.totalProjects || stats.total_projects || 0,
-        icon: null
-      },
-      {
-        label: 'AI 项目',
-        value: stats.aiProjects || stats.ai_projects || 0,
-        icon: null
-      },
-      {
-        label: '平均 Stars',
-        value: stats.avgStars || stats.avg_stars || '0',
-        icon: `<svg class="star-icon" viewBox="0 0 16 16" fill="currentColor" style="width: 20px; height: 20px;"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>`
-      },
-      {
-        label: '高热项目',
-        value: stats.hotProjects || stats.hot_projects || 0,
-        icon: null
-      }
-    ];
+  hasValue(value) {
+    if (value === null || value === undefined) return false;
+    if (Array.isArray(value)) return value.length > 0;
+    const text = String(value).trim();
+    return text !== '' && text !== '0' && text !== '0%' && text !== 'null' && text !== 'undefined';
+  }
+
+  renderStatCards(items) {
+    const visible = items.filter(item => this.hasValue(item.value));
+    if (visible.length === 0) return '';
 
     return `
       <section class="stats-grid">
-        ${statItems.map(stat => `
+        ${visible.map(stat => `
           <div class="stat-card">
             <div class="stat-value">
               ${stat.icon ? `${stat.icon}<span style="vertical-align: middle;">${stat.value}</span>` : stat.value}
@@ -209,6 +197,57 @@ class HTMLGenerator {
             <div class="stat-label">${stat.label}</div>
           </div>
         `).join('')}
+      </section>
+    `;
+  }
+
+  renderCaption(caption) {
+    if (!this.hasValue(caption)) return '';
+    return `<p class="metric-caption">${this.escapeHtml(caption)}</p>`;
+  }
+
+  renderStatsSection(stats, projects = [], caption = '') {
+    const totalProjects = stats.totalProjects ?? stats.total_projects ?? projects.length;
+    const aiProjects = stats.aiProjects ?? stats.ai_projects ?? projects.filter(project => project.isAI).length;
+    const avgStars = stats.avgStars ?? stats.avg_stars;
+    const hotProjects = stats.hotProjects ?? stats.hot_projects
+      ?? projects.filter(project => (Number(project.todayStars) || 0) > 100).length;
+
+    const statItems = [
+      { label: '上榜项目', value: totalProjects, icon: null },
+      {
+        label: 'AI 项目',
+        value: aiProjects,
+        icon: null
+      },
+      {
+        label: '平均 Stars',
+        value: avgStars,
+        icon: `<svg class="star-icon" viewBox="0 0 16 16" fill="currentColor" style="width: 20px; height: 20px;"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>`
+      },
+      { label: '高热项目', value: hotProjects, icon: null }
+    ];
+
+    return `${this.renderStatCards(statItems)}${this.renderCaption(caption)}`;
+  }
+
+  renderDailyDiffSection(data) {
+    const diff = data.dailyDiff || data.brief?.dailyDiff;
+    if (!diff) return '';
+
+    const counts = diff.counts || {};
+    const parts = [];
+    if (counts.new > 0) parts.push(`新上榜 ${counts.new} 个`);
+    if (counts.dropped > 0) parts.push(`掉榜 ${counts.dropped} 个`);
+    if (counts.kept > 0) parts.push(`连续在榜 ${counts.kept} 个`);
+    if (counts.returned > 0) parts.push(`回归 ${counts.returned} 个`);
+    if (parts.length === 0) return '';
+
+    const previous = diff.prevDate ? `（${diff.prevDate}）` : '';
+    return `
+      <section class="daily-diff">
+        <h2>较上期变化</h2>
+        <p>较上期${previous}：${parts.join('，')}。</p>
       </section>
     `;
   }
@@ -230,9 +269,8 @@ class HTMLGenerator {
 
   renderProjectCard(project, index) {
     const analysis = project.analysis || {};
-    const coreFeatures = analysis.coreFunctions || [];
-    const useCases = analysis.useCases || [];
-    const trends = analysis.trends || [];
+    const oneSentence = analysis.oneSentence || project.oneSentence || '';
+    const tag = project.tag || '';
 
     // 确保项目名称有 GitHub 链接
     const projectName = project.fullName || project.repo || project.name || '';
@@ -260,11 +298,12 @@ class HTMLGenerator {
           <a href="${projectUrl}" class="project-name" target="_blank">
             ${index + 1}. ${projectName}
             ${wikiBadge}
+            ${tag ? `<span class="project-tag">${this.escapeHtml(tag)}</span>` : ''}
           </a>
           <div class="project-stats">
-            <span class="stat-badge" title="总星数">
+            <span class="stat-badge" title="累计星数">
               <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
-              ${this.formatNumber(project.stars || 0)}
+              累计 ${this.formatNumber(project.stars || 0)}
             </span>
             <span class="stat-badge hot" title="今日星数">
               <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8.5 13.25a.75.75 0 01-.75-.75V9.688l-1.95 1.95a.75.75 0 01-1.06-1.06l3.25-3.25a.75.75 0 011.06 0l3.25 3.25a.75.75 0 11-1.06 1.06l-1.95-1.95v2.812a.75.75 0 01-.75.75zM8 1.25a.75.75 0 01.75.75v2.812l1.95-1.95a.75.75 0 111.06 1.06L8.5 7.172a.75.75 0 01-1.06 0L4.19 3.922a.75.75 0 111.06-1.06l1.95 1.95V2a.75.75 0 01.75-.75z"/></svg>
@@ -282,37 +321,7 @@ class HTMLGenerator {
           </div>
         </div>
         <div class="project-description">${project.descZh || project.desc || project.description || '暂无描述'}</div>
-        ${(coreFeatures.length > 0 || useCases.length > 0 || trends.length > 0) ? `
-          <button class="toggle-btn" onclick="toggleDetails(${index})" id="btn-${index}">
-            查看详情
-          </button>
-          <div class="project-details" id="details-${index}">
-            ${coreFeatures.length > 0 ? `
-              <div class="detail-column">
-                <h4>核心功能</h4>
-                <ul>
-                  ${this.renderDetailItems(coreFeatures)}
-                </ul>
-              </div>
-            ` : ''}
-            ${useCases.length > 0 ? `
-              <div class="detail-column">
-                <h4>适用场景</h4>
-                <ul>
-                  ${this.renderDetailItems(useCases)}
-                </ul>
-              </div>
-            ` : ''}
-            ${trends.length > 0 ? `
-              <div class="detail-column">
-                <h4>热度趋势</h4>
-                <ul>
-                  ${this.renderDetailItems(trends)}
-                </ul>
-              </div>
-            ` : ''}
-          </div>
-        ` : ''}
+        ${oneSentence ? `<div class="project-one-sentence">${this.escapeAndLinkify(oneSentence, [project])}</div>` : ''}
       </div>
     `;
   }
@@ -441,7 +450,6 @@ class HTMLGenerator {
 
     const summary = aiInsights.summary || aiInsights.oneLiner || '';
     const projectInsights = aiInsights.project_insights || [];
-    const trends = aiInsights.trends || aiInsights.shortTerm || aiInsights.longTerm || [];
     const recommendations = aiInsights.recommendations || aiInsights.action || [];
     const hot = aiInsights.hot || [];
     const hypeIndex = aiInsights.hypeIndex;
@@ -500,16 +508,9 @@ class HTMLGenerator {
               <div style="margin-bottom: 4px;">
                 ${insight.project_name ? `<a href="${insight.github_url || '#'}" class="project-link" target="_blank">${insight.project_name}</a>` : ''}
               </div>
-              <p>${linkifyText(insight.analysis || '')}</p>
+              <p>${linkifyText(insight.oneSentence || insight.analysis || '')}</p>
             </div>
           `).join('')}
-        ` : ''}
-
-        ${trends.length > 0 ? `
-          <h3>趋势观察</h3>
-          <ul>
-            ${Array.isArray(trends) ? trends.map(trend => `<li>${linkifyText(trend)}</li>`).join('') : ''}
-          </ul>
         ` : ''}
 
         ${recommendations.length > 0 ? `
@@ -546,7 +547,8 @@ class HTMLGenerator {
       <div class="date">${weekStart || date}</div>
     </header>
 
-    ${this.renderWeeklyStatsSection(stats, summary)}
+    ${this.renderWeeklyStatsSection(stats, summary, projects, data.caption || data.brief?.caption)}
+    ${this.renderWeeklyMetricsSection(data)}
     ${this.renderWeeklyThemeSection(aiInsights, projects)}
     ${this.renderDeepTrendsSection(aiInsights, projects)}
     ${this.renderWeeklyInsightsSection(aiInsights, projects)}
@@ -566,39 +568,6 @@ class HTMLGenerator {
   </script>
 </body>
 </html>`;
-  }
-
-  renderWeeklyStatsSection(stats, summary) {
-    const totalProjects = stats.totalProjects || stats.total_projects || summary.total || 0;
-    const aiProjects = stats.aiProjects || stats.ai_projects || summary.aiCount || 0;
-    const aiPercentage = totalProjects > 0 ? Math.round((aiProjects / totalProjects) * 100) : 0;
-    const avgStars = stats.avgStars || stats.avg_stars || summary.avgStars || '0';
-    const maxTodayStars = summary.maxTodayStars || 0;
-    const hotProject = summary.topProject || '';
-
-    return `
-      <section class="weekly-overview">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-value">${totalProjects}</div>
-            <div class="stat-label">上榜项目</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">${avgStars}</div>
-            <div class="stat-label">平均 Stars</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">${aiPercentage}%</div>
-            <div class="stat-label">AI 项目</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">${maxTodayStars.toLocaleString()}</div>
-            <div class="stat-label">最大黑马</div>
-            <div class="stat-subtitle">${hotProject.split('/')[1] || hotProject}</div>
-          </div>
-        </div>
-      </section>
-    `;
   }
 
   renderWeeklyThemeSection(aiInsights, projects = []) {
@@ -662,35 +631,98 @@ class HTMLGenerator {
     `;
   }
 
-  renderWeeklyStatsSection(stats, summary) {
-    const totalProjects = stats.totalProjects || stats.total_projects || summary.total || 0;
-    const aiProjects = stats.aiProjects || stats.ai_projects || summary.aiCount || 0;
+  renderWeeklyStatsSection(stats, summary, projects = [], caption = '') {
+    const totalProjects = stats.totalProjects ?? stats.total_projects ?? summary.total ?? projects.length;
+    const aiProjects = stats.aiProjects ?? stats.ai_projects ?? summary.aiCount
+      ?? projects.filter(project => project.isAI).length;
     const aiPercentage = totalProjects > 0 ? Math.round((aiProjects / totalProjects) * 100) : 0;
-    const avgStars = stats.avgStars || stats.avg_stars || summary.avgStars || '0';
-    const maxTodayStars = summary.maxTodayStars || 0;
+    const avgStars = stats.avgStars ?? stats.avg_stars ?? summary.avgStars;
+    const maxTodayStars = summary.maxTodayStars
+      ?? projects.reduce((max, project) => Math.max(max, Number(project.todayStars) || 0), 0);
     const hotProject = summary.topProject || '';
+
+    const statItems = [
+      { label: '上榜项目', value: totalProjects, icon: null },
+      { label: '平均 Stars', value: avgStars, icon: null },
+      { label: 'AI 项目', value: `${aiPercentage}%`, icon: null },
+      {
+        label: '最大黑马',
+        value: maxTodayStars > 0 ? maxTodayStars.toLocaleString() : null,
+        icon: null,
+        subtitle: hotProject ? (hotProject.split('/')[1] || hotProject) : ''
+      }
+    ];
+
+    const visible = statItems.filter(item => this.hasValue(item.value));
+    if (visible.length === 0) return this.renderCaption(caption);
 
     return `
       <section class="weekly-overview">
         <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-value">${totalProjects}</div>
-            <div class="stat-label">上榜项目</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">${avgStars}</div>
-            <div class="stat-label">平均 Stars</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">${aiPercentage}%</div>
-            <div class="stat-label">AI 项目</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">${maxTodayStars.toLocaleString()}</div>
-            <div class="stat-label">最大黑马</div>
-            <div class="stat-subtitle">${hotProject.split('/')[1] || hotProject}</div>
-          </div>
+          ${visible.map(stat => `
+            <div class="stat-card">
+              <div class="stat-value">${stat.value}</div>
+              <div class="stat-label">${stat.label}</div>
+              ${stat.subtitle ? `<div class="stat-subtitle">${stat.subtitle}</div>` : ''}
+            </div>
+          `).join('')}
         </div>
+      </section>
+      ${this.renderCaption(caption)}
+    `;
+  }
+
+  renderWeeklyMetricsSection(data) {
+    const metrics = data.weekMetrics || {};
+    const prev = data.prevWeekStats || metrics.prevWeekStats || {};
+    const wow = metrics.wow || {};
+    const current = data.weekNewStars ?? metrics.weekNewStars;
+    const previous = prev.newStarsTotal;
+    const dailyCounts = data.dailyCounts || metrics.dailyCounts || [];
+    const lines = [];
+
+    if (this.hasValue(current)) {
+      if (this.hasValue(previous) && wow.rate !== null && wow.rate !== undefined) {
+        const direction = wow.rate >= 0 ? '增长' : '下滑';
+        lines.push(`本周新增 ${Number(current).toLocaleString()} 星，较上周 ${Number(previous).toLocaleString()} 星${direction} ${Math.abs(wow.rate)}%。`);
+      } else {
+        lines.push(`本周新增 ${Number(current).toLocaleString()} 星；上周无可比数据。`);
+      }
+    }
+
+    if (this.hasValue(metrics.churnRate)) {
+      lines.push(`换血率 ${metrics.churnRate}%（本周榜单中上周未出现 ${metrics.churnCount || 0} 个项目）。`);
+    }
+
+    const startDate = metrics.startDate;
+    if (dailyCounts.length > 0) {
+      const start = startDate ? new Date(`${startDate}T00:00:00.000Z`) : null;
+      const parts = dailyCounts.map((count, index) => {
+        if (!this.hasValue(count)) return null;
+        let label = `第 ${index + 1} 天`;
+        if (start) {
+          const date = new Date(start);
+          date.setUTCDate(date.getUTCDate() + index);
+          label = date.toISOString().slice(0, 10);
+        }
+        return `${label}：${count} 个`;
+      }).filter(Boolean);
+      if (parts.length > 0) {
+        lines.push(`每日上榜数：${parts.join('；')}。`);
+      }
+    }
+
+    const top3 = metrics.dailyTop3Stats || [];
+    if (top3.length > 0) {
+      const text = top3.map(item => `${item.fullName}（${item.days} 天）`).join('、');
+      lines.push(`日报出现天数前 3：${text}。`);
+    }
+
+    if (lines.length === 0) return '';
+    return `
+      <section class="weekly-metrics">
+        <h2>本周与上周</h2>
+        <p>${lines.join(' ')}</p>
       </section>
     `;
   }
@@ -701,7 +733,8 @@ class HTMLGenerator {
     }
 
     const highlights = aiInsights.highlights || [];
-    const trends = aiInsights.trends || {};
+    const dailyTop3Notes = aiInsights.dailyTop3Notes || [];
+    const nextWeekPoints = aiInsights.nextWeekPoints || [];
     const emergingFields = aiInsights.emergingFields || [];
     const recommendations = aiInsights.recommendations || {};
 
@@ -718,11 +751,22 @@ class HTMLGenerator {
           </div>
         ` : ''}
 
-        ${trends.shortTerm && trends.shortTerm.length > 0 ? `
+        ${dailyTop3Notes.length > 0 ? `
           <div class="insights-block">
-            <h3>📈 短期趋势</h3>
+            <h3>日报前三与周榜</h3>
+            <ul>
+              ${dailyTop3Notes.map(item => `
+                <li>${this.escapeAndLinkify(item.repo || '', projects)}：${this.escapeAndLinkify(item.note || '', projects)}</li>
+              `).join('')}
+            </ul>
+          </div>
+        ` : ''}
+
+        ${nextWeekPoints.length > 0 ? `
+          <div class="insights-block">
+            <h3>下周看点</h3>
             <ul class="trends-list">
-              ${trends.shortTerm.map(trend => `<li>${this.escapeAndLinkify(trend, projects)}</li>`).join('')}
+              ${nextWeekPoints.map(point => `<li>${this.escapeAndLinkify(point, projects)}</li>`).join('')}
             </ul>
           </div>
         ` : ''}
@@ -773,7 +817,8 @@ class HTMLGenerator {
         <div class="top-projects-grid">
           ${topProjects.map((project, index) => {
             const fullProject = projects.find(p => (p.repo || p.fullName) === project.repo);
-            const desc = fullProject?.descZh || fullProject?.desc || fullProject?.description || project.reason || '';
+            const desc = fullProject?.descZh || fullProject?.desc || fullProject?.description || '';
+            const oneSentence = project.oneSentence || fullProject?.analysis?.oneSentence || '';
             const projectUrl = `https://github.com/${project.repo}`;
 
             return `
@@ -784,11 +829,14 @@ class HTMLGenerator {
                   </a>
                   ${project.category ? `<span class="category-badge">${project.category}</span>` : ''}
                 </div>
-                <div class="top-project-desc">${this.escapeAndLinkify(desc, projects)}</div>
-                <div class="top-project-reason">
-                  <div class="reason-label">入选理由</div>
-                  <div class="reason-text">${this.escapeAndLinkify(project.reason, projects)}</div>
-                </div>
+                ${desc ? `<div class="top-project-desc">${this.escapeAndLinkify(desc, projects)}</div>` : ''}
+                ${oneSentence ? `<div class="top-project-one-sentence">${this.escapeAndLinkify(oneSentence, projects)}</div>` : ''}
+                ${this.hasValue(project.reason) ? `
+                  <div class="top-project-reason">
+                    <div class="reason-label">入选理由</div>
+                    <div class="reason-text">${this.escapeAndLinkify(project.reason, projects)}</div>
+                  </div>
+                ` : ''}
               </div>
             `;
           }).join('')}

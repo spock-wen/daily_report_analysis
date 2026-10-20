@@ -245,7 +245,12 @@ function enrichMonthlyBrief(brief, options = {}) {
 
   const metrics = computeMonthlyMetrics(month);
 
-  brief.stats = metrics.stats;
+  brief.stats = {
+    ...metrics.stats,
+    recurringProjects: metrics.top.filter(item => item.daysOnList >= 2).length,
+    newProjects: metrics.rookiesCount,
+    top5Share: metrics.top5Share,
+  };
   brief.prevMonthStats = metrics.prevMonthStats;
   brief.weekThemes = metrics.weekThemes;
   brief.monthTop = metrics.monthTop;

@@ -3,6 +3,53 @@ const { writeJson } = require('../utils/fs');
 const { getAIInsightsPath } = require('../utils/path');
 const logger = require('../utils/logger');
 const prompts = require('../../config/prompts.json');
+const history = require('../metrics/history');
+const { computeMonthlyMetrics } = require('../metrics');
+const { loadConfig } = require('../checker/config');
+
+function collectSuggestions(insights) {
+  const lines = [];
+  const push = (value) => {
+    if (typeof value === 'string' && value.trim()) {
+      lines.push(value.trim());
+      return;
+    }
+    if (Array.isArray(value)) {
+      value.forEach(push);
+    }
+  };
+
+  push(insights?.action);
+  push(insights?.recommendations?.developers);
+  push(insights?.recommendations?.enterprises);
+  push(insights?.nextWeekPoints);
+  push(insights?.trends?.shortTerm);
+  return Array.from(new Set(lines));
+}
+
+function previousMonths(month) {
+  const months = [];
+  let cursor = month;
+  for (let i = 0; i < 2; i += 1) {
+    cursor = history.getPrevMonth(cursor);
+    if (!cursor) break;
+    months.push(cursor);
+  }
+  return months;
+}
+
+function buildRecentSuggestions(month) {
+  if (!month) return '（无）';
+  const lines = [];
+  for (const previous of previousMonths(month)) {
+    const insights = history.readMonthlyInsights(previous);
+    for (const item of collectSuggestions(insights)) {
+      lines.push(`${previous}：${item}`);
+    }
+  }
+  const unique = Array.from(new Set(lines));
+  return unique.length > 0 ? unique.slice(0, 12).join('\n') : '（无）';
+}
 
 /**
  * 月度 AI 分析器
@@ -58,7 +105,7 @@ class MonthlyAnalyzer {
       }
 
       // 解析 AI 响应
-      const insights = this.parseInsights(result, monthlyData);
+      const insights = this.parseInsights(result, monthlyData, contextData);
 
       // 保存分析结果
       await this.saveInsights(monthlyData.month, insights);
@@ -85,6 +132,31 @@ class MonthlyAnalyzer {
    */
   prepareContextData(monthlyData) {
     const aggregation = monthlyData.aggregation || {};
+    const month = monthlyData.month || monthlyData.date || '';
+
+    let computed = null;
+    try {
+      computed = month ? computeMonthlyMetrics(month) : null;
+    } catch (error) {
+      logger.warn(`读取月度指标失败：${error.message}`);
+    }
+
+    const stats = monthlyData.stats?.totalProjects
+      ? monthlyData.stats
+      : (computed?.stats || monthlyData.stats || {});
+    const monthTop = monthlyData.monthTop || computed?.monthTop || [];
+    const facts = {
+      month,
+      caption: monthlyData.caption || computed?.caption,
+      stats,
+      prevMonthStats: monthlyData.prevMonthStats || computed?.prevMonthStats,
+      weekThemes: monthlyData.weekThemes || computed?.weekThemes,
+      monthTop,
+      dropList: monthlyData.dropList || computed?.dropList,
+      dropListNote: monthlyData.dropListNote || computed?.dropListNote,
+      top5Share: monthlyData.top5Share ?? computed?.top5Share,
+      newStarsTotal: monthlyData.newStarsTotal ?? computed?.newStarsTotal
+    };
 
     // 提取上/中/下旬项目
     const trendEvolution = aggregation.trendEvolution || [];
@@ -96,40 +168,52 @@ class MonthlyAnalyzer {
       keyProjects: period.keyProjects?.slice(0, 3) || []
     }));
 
-    // 准备 TOP 项目候选列表
-    const topProjectCandidates = [
-      ...aggregation.topGainers?.slice(0, 5).map(p => ({
-        repo: p.repo,
-        stars: p.stars,
-        appearanceCount: p.appearanceCount,
-        description: p.description
-      })) || [],
-      ...aggregation.recurringProjects?.slice(0, 5).map(p => ({
-        repo: p.repo,
-        appearanceCount: p.count,
-        description: p.description
-      })) || []
-    ];
+    // TOP 候选优先使用 monthTop（按本月新增星排序）
+    const candidateRepos = monthTop.length > 0
+      ? monthTop.map(item => ({
+          repo: item.fullName,
+          stars: item.lastStars,
+          monthStars: item.monthStars,
+          daysOnList: item.daysOnList,
+          description: item.project?.description || item.description
+        }))
+      : [
+          ...(aggregation.topGainers?.slice(0, 5).map(p => ({
+            repo: p.repo,
+            stars: p.stars,
+            appearanceCount: p.appearanceCount,
+            description: p.description
+          })) || []),
+          ...(aggregation.recurringProjects?.slice(0, 5).map(p => ({
+            repo: p.repo,
+            appearanceCount: p.count,
+            description: p.description
+          })) || [])
+        ];
 
     // 准备所有上榜项目列表（用于验证 AI 生成的项目）
     const allRepos = [
       ...new Set([
+        ...(monthTop.map(item => item.fullName)),
         ...(aggregation.topGainers?.map(p => p.repo) || []),
         ...(aggregation.recurringProjects?.map(p => p.repo) || [])
-      ])
+      ].filter(Boolean))
     ];
 
     return {
+      month,
       dailyCount: monthlyData.dailyDataList?.length || 0,
       weeklyCount: monthlyData.weeklyDataList?.length || 0,
-      totalProjects: aggregation.totalProjects || 0,
-      recurringCount: aggregation.recurringProjects?.length || 0,
-      newProjectsCount: aggregation.newProjects?.length || 0,
+      totalProjects: stats.totalProjects || aggregation.totalProjects || 0,
+      recurringCount: stats.recurringProjects ?? aggregation.recurringProjects?.length ?? 0,
+      newProjectsCount: stats.newProjects ?? aggregation.newProjects?.length ?? 0,
       typeDistribution: aggregation.typeDistribution || {},
       languageDistribution: aggregation.languageDistribution || {},
       periodProjects,
-      topProjectCandidates,
-      allRepos
+      topProjectCandidates: candidateRepos,
+      allRepos,
+      metrics: facts,
+      recentSuggestions: buildRecentSuggestions(month)
     };
   }
 
@@ -137,109 +221,44 @@ class MonthlyAnalyzer {
    * 构建 AI 提示词
    */
   buildPrompt(month, contextData) {
-    const systemPrompt = prompts.monthly?.systemPrompt ||
-      '你是一位经验丰富的技术趋势观察家，专注于从 GitHub Trending 数据中发现长期趋势和新兴领域。';
-
+    const systemPrompt = prompts.monthly?.systemPrompt || '';
     const userPrompt = prompts.monthly?.userPrompt || '';
+    const checkerConfig = loadConfig();
 
-    // 使用更详细的自定义提示词
-    const detailedPrompt = `你是一位经验丰富的技术趋势观察家，专注于从 GitHub Trending 数据中发现长期趋势和新兴领域。
-请分析以下月度 GitHub Trending 数据，生成一份深度分析报告。
+    const periodText = contextData.periodProjects.map(p =>
+      `- ${p.period} (${p.dates}): ${p.projectCount} 个项目，主导类型：${p.topType}；关键项目：${p.keyProjects.join(', ')}`
+    ).join('\n');
 
-【基本信息】
-月份：${month}
-数据周期：${contextData.dailyCount}天日报 + ${contextData.weeklyCount}周周报
-总项目数（去重）：${contextData.totalProjects}
+    const candidateText = contextData.topProjectCandidates.map(p => {
+      const parts = [p.repo];
+      if (p.monthStars !== undefined) parts.push(`本月新增 ${p.monthStars}`);
+      if (p.daysOnList !== undefined) parts.push(`上榜 ${p.daysOnList} 天`);
+      if (p.stars) parts.push(`累计 ${p.stars}`);
+      if (p.appearanceCount) parts.push(`出现 ${p.appearanceCount} 次`);
+      return `- ${parts.join('，')}`;
+    }).join('\n');
 
-【聚合统计数据】
-- 重复上榜项目：${contextData.recurringCount}个
-- 本月新星项目：${contextData.newProjectsCount}个
-- 领域分布：${JSON.stringify(contextData.typeDistribution)}
-- 语言分布：${JSON.stringify(contextData.languageDistribution)}
+    const repoText = contextData.allRepos.slice(0, 80).map(repo => `- ${repo}`).join('\n');
 
-【趋势演变数据】
-${contextData.periodProjects.map(p =>
-`- ${p.period} (${p.dates}): ${p.projectCount}个项目，主导类型：${p.topType}`
-).join('\n')}
+    let prompt = userPrompt;
+    prompt = prompt.replace('{month}', month);
+    prompt = prompt.replace('{dailyCount}', contextData.dailyCount);
+    prompt = prompt.replace('{weeklyCount}', contextData.weeklyCount);
+    prompt = prompt.replace('{totalProjects}', contextData.totalProjects);
+    prompt = prompt.replace('{metricsFacts}', JSON.stringify(contextData.metrics || {}, null, 2));
+    prompt = prompt.replace('{periodProjects}', periodText);
+    prompt = prompt.replace('{topProjectCandidates}', candidateText);
+    prompt = prompt.replace('{allRepos}', repoText);
+    prompt = prompt.replace('{recentSuggestions}', contextData.recentSuggestions || '（无）');
+    prompt = prompt.replace('{bannedWords}', (checkerConfig.bannedWords || []).join('\n'));
 
-【上/中/下旬关键项目】
-${contextData.periodProjects.map(p =>
-`${p.period}: ${p.keyProjects.join(', ')}`
-).join('\n')}
-
-【TOP 项目候选】（注意：longTermValue 必须从这里选择）
-${contextData.topProjectCandidates.map(p =>
-`- ${p.repo}: ${p.stars ? p.stars + '⭐' : ''}${p.appearanceCount ? ` (出现${p.appearanceCount}次)` : ''}`
-).join('\n')}
-
-【所有上榜项目列表】（trendEvolution 和 emergingFields 的项目必须从这里选择）
-${contextData.allRepos.slice(0, 50).map(repo => `- ${repo}`).join('\n')}
-
-重要约束：
-1. longTermValue 中的 repo 必须从【TOP 项目候选】列表中选择，不能创造新的项目
-2. trendEvolution 的 keyProjects 和 emergingFields 的 projects 必须从【所有上榜项目列表】中选择
-3. 不允许创造任何不在上述列表中的项目名称
-4. 如果候选项目不足以支撑分析，请基于现有项目进行深入分析，而不是编造新项目
-
-请按以下 JSON 格式输出：
-{
-  "monthlyTheme": {
-    "oneLiner": "一句话总结本月核心趋势（50 字以内）",
-    "detailed": "详细解读（500-800 字，有数据支撑）"
-  },
-  "trendEvolution": [
-    {
-      "period": "上旬",
-      "dates": "2026-03-01 ~ 2026-03-10",
-      "theme": "阶段主题",
-      "keyProjects": ["owner/repo1", "owner/repo2"],
-      "analysis": "阶段分析（200-300 字）"
-    },
-    { "period": "中旬", "dates": "...", "theme": "...", "keyProjects": [...], "analysis": "..." },
-    { "period": "下旬", "dates": "...", "theme": "...", "keyProjects": [...], "analysis": "..." }
-  ],
-  "longTermValue": [
-    {
-      "repo": "owner/repo",
-      "category": "技术创新 | 持续热门 | 企业价值",
-      "score": 95,
-      "reasons": ["入选理由 1", "入选理由 2"],
-      "value": "核心价值描述",
-      "sustainability": "高 | 中 | 低"
-    }
-  ],
-  "emergingFields": [
-    {
-      "field": "领域名称",
-      "description": "领域描述（50 字以内）",
-      "projects": ["owner/repo1", "owner/repo2"],
-      "trend": "上升 | 稳定 | 下降"
-    }
-  ],
-  "darkHorse": {
-    "repo": "owner/repo",
-    "reason": "入选理由"
-  },
-  "nextMonthForecast": "下月趋势预测（200-300 字）"
-}
-
-要求：
-1. monthlyTheme 的 oneLiner 要精炼概括本月最核心特点，detailed 要深入分析趋势背后的原因和数据支撑
-2. trendEvolution 要描述上/中/下旬的技术主题演变，每个阶段都要有关键项目和具体分析
-3. longTermValue 选出 3-5 个 TOP 项目，按综合评分排序，包含技术创新、持续热门、企业价值三类
-4. emergingFields 要描述 2-3 个新兴领域，包含领域特点和代表性项目
-5. darkHorse 选出本月最大黑马项目
-6. nextMonthForecast 要基于本月数据做出有理有据的预测
-7. 所有项目名必须使用完整的 'owner/repo' 格式
-8. 分析要有深度，避免泛泛而谈，要有具体数据支撑`;
-
-    return detailedPrompt;
+    return systemPrompt ? `${systemPrompt}\n\n${prompt}` : prompt;
   }
 
   /**
    * 解析 AI 响应
    */
-  parseInsights(llmResponse, monthlyData) {
+  parseInsights(llmResponse, monthlyData, contextData = {}) {
     try {
       if (!llmResponse || llmResponse.trim().length === 0) {
         throw new Error('LLM 返回为空');
@@ -313,10 +332,12 @@ ${contextData.allRepos.slice(0, 50).map(repo => `- ${repo}`).join('\n')}
       // 补充项目链接等元数据，并验证项目是否存在于实际数据中
       const trendingRepos = monthlyData.aggregation?.topGainers || [];
       const recurringRepos = monthlyData.aggregation?.recurringProjects || [];
+      const metricTop = contextData.metrics?.monthTop || monthlyData.monthTop || [];
       const allValidRepos = new Set([
         ...trendingRepos.map(p => p.repo),
-        ...recurringRepos.map(p => p.repo)
-      ]);
+        ...recurringRepos.map(p => p.repo),
+        ...metricTop.map(item => item.fullName)
+      ].filter(Boolean));
 
       logger.info('验证 AI 生成的项目是否存在于实际数据中...', {
         validReposCount: allValidRepos.size,
@@ -336,9 +357,14 @@ ${contextData.allRepos.slice(0, 50).map(repo => `- ${repo}`).join('\n')}
           .map(item => {
             const repo = trendingRepos.find(r => r.repo === item.repo) ||
                          recurringRepos.find(r => r.repo === item.repo);
+            const metric = metricTop.find(entry => entry.fullName === item.repo);
+            const rest = { ...item };
+            delete rest.score;
             return {
-              ...item,
-              stars: repo?.stars || repo?.totalStars || 0,
+              ...rest,
+              stars: metric?.lastStars || repo?.stars || repo?.totalStars || 0,
+              monthStars: metric?.monthStars,
+              daysOnList: metric?.daysOnList,
               language: repo?.language || '',
               description: repo?.description || ''
             };
