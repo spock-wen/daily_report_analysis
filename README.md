@@ -33,6 +33,89 @@
 
 ---
 
+## 内容重构 r2
+
+本节记录 `feat/report-content-r2` 分支的口径、字段和核查方式。规则依据 `BEHAVIOR_RULES_report_content.md`（含 PM 裁定 J1–J24）；日报/周报/月报的数字区各写一行口径说明（A4），文案不写「最佳名次」（J9）。
+
+### 页头数值字段清单（J12）
+
+生成器页头只允许出现下列数值字段。核查脚本按标签逐个比对；清单之外的页头数字一律 FAIL；任一卡片值为 `0`、`null`、空串或空数组时按「无信息卡」FAIL，所有卡片都查。
+
+| 层级 | 页头标签 | 字段 | 口径 |
+|---|---|---|---|
+| 日报 | 上榜项目 | `totalProjects` | 当期日报项目数 |
+| 日报 | AI 项目 | `aiProjects` | `isAI=true` 的项目数 |
+| 日报 | 平均 Stars | `avgStars` | 当期 brief `stats.avgStars` |
+| 日报 | 高热项目 | `hotProjects` | `todayStars > 100` 的项目数 |
+| 周报 | 上榜项目 | `totalProjects` | 周榜项目数 |
+| 周报 | 平均 Stars | `avgStars` | 周榜 brief `stats.avgStars` |
+| 周报 | AI 项目 | `aiPercent` | `round(AI 项目数 / 上榜项目数 × 100)`，页面带 `%` |
+| 周报 | 最大黑马 | `darkHorse` | 周榜中最大的 `todayStars` |
+| 月报 | 总项目数 | `totalProjects` | 当月日榜去重项目数（J17，2026-09 为 208），不使用 `aggregation.totalProjects`（214 不上页面） |
+| 月报 | 重复上榜 | `recurringProjects` | `daysOnList >= 2` 的项目数 |
+| 月报 | 月度新星 | `newProjects` | 当月首次进入日榜、且此前 30 天日榜未出现的项目数（J24） |
+| 月报 | AI 项目 | `aiProjects` | 当月日榜去重项目中的 AI 项目数 |
+
+### 新数字定义
+
+- `todayStars`：日报/周报 brief 的「期内新增星」。日报的排序、热度判断和所有「新增/今日/单日/当天」数字只用它；累计总星必须写成「累计 X 星」。周新增合计 = 周榜所有项目 `todayStars` 之和。
+- 环比：`(本期周新增合计 − 上周周新增合计) / 上周周新增合计 × 100`，保留 1 位小数。
+- 换血率：本周榜单中上周未出现的项目数 ÷ 本周榜单项目数 × 100，保留 1 位小数（J19：分母为本周项目数）。
+- `monthStars`：月新增星，一律由日榜回算（J15）：当月最后一次出现的 `stars` − 首次出现前一有数据日的 `stars`；前一日不在榜时用首次出现日的 `stars` − 当日 `todayStars`。A4 口径行注明「由日榜回算」。
+- `daysOnList`：上榜天数，只统计当月日榜日期，不与周榜期数混算（A5）。
+- `streakDays`：截至当天的连续上榜天数，最多回看 30 天；缺数据的日子跳过、不视为断开（J2/J16）。
+- 回归：此前 30 天日榜出现过、但前一天不在榜的项目（J10）。跨数据缺口时与前一个有数据的日子比较，文案写「较上期」而不是「较昨日」（J16）。
+- 新秀：当月首次进入日榜、且此前 30 天日榜未出现的项目（J24）。
+- `top5Share`：当月新增星 Top5 项目之和 ÷ 当月日榜回算的新增星合计 × 100，保留 1 位小数（J18）。
+- `prevWeekStats` / `prevMonthStats`：分别取上周 weekly brief / 上月 monthly brief；上月 stats 为 0 时用上月日榜现算（J4）。
+- `weekThemes[]`：当月各 ISO 周的周报主题，一周一条。
+- 周日期：ISO 周一至周日；W42 = 2026-10-12～2026-10-18，`weekEnd` 生成日不上页面（J1/J20）。
+- B3「前 3」：按本周日报出现天数降序；并列时按期内新增星降序，仍并列按 `fullName` 字母升序，只取前 3（J22）。以「出现在周报正文」为准，W42 的 ruflo 已在正文出现，不因不在 `topProjects` 而判漏（J21）。
+
+### AI 调用计数（J14）
+
+生成流程每期在日志固定打印一行：
+
+```
+AI_CALLS period=<期号> count=<n>
+```
+
+`n` 为当期洞察主分析的 LLM 调用次数：正常 1 次；核查 FAIL 时最多重写洞察 1 次，因此 `n ≤ 2`（周报深度趋势等附属分析不计入该行）。
+
+### 内容核查脚本（D1/D4）
+
+```bash
+# 常规核查：输出 FAIL 清单（JSON + Markdown），退出码 0=PASS / 1=FAIL
+node scripts/check-report.js <daily|weekly|monthly> <期次> [--data-dir D] [--insights FILE] [--brief FILE] [--out-dir D]
+
+# 研究员用例：期望 FAIL 被拦、期望 PASS 放行，任一不通过退出码 1
+node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/cases/cases.jsonl [--cases-root DIR] [--data-dir D]
+```
+
+- 退出码：`0` PASS；`1` FAIL（或有用例未通过）；`2` 参数错误。
+- 常规模式把 FAIL 清单写到 `<data-dir>/../check/check-<level>-<period>.{json,md}`，每条含文件、行号、字段、原句、规则 ID 和说明。
+- `--cases` 读取 jsonl（每行 `id, rule_id, expect, file, line, quote, expected_hit_fields, source`），用例文件路径相对 `--cases-root`（默认 `/home/box/shared/report-redesign`）；`line: null` 表示整份文档级检查。
+- 覆盖规则：A1、A2、A5、B3、B4、B5、B7、B8、C1、C2、C3、C4、C5、D2（NAME）。
+- 生成流程在写 HTML 前调用同一套核查；FAIL 时自动重写洞察 1 次，仍 FAIL 则不写 HTML、不推送，写出 FAIL 清单并以非 0 退出（D1/D3）。
+
+### 配置文件与开关
+
+| 路径/变量 | 说明 |
+|---|---|
+| `config/checker/banned_words.txt` | C3 禁词表，一行一个，`#` 注释 |
+| `config/checker/compare_words.txt` | B5 比较词表（J11 初始：`≥ ≤ 超过 跌破 高于 低于 领先 落后 反超 翻倍 增长 下滑`） |
+| `config/checker/fixed_phrases.txt` | C1 固定句（含 useCases/trends 模板句） |
+| `config/checker/c4_whitelist.txt` | C4 白名单（J23） |
+| `REPORT_CHECKER_CONFIG_DIR` | 覆盖上述配置目录 |
+| `REPORT_DATA_DIR` | 覆盖 data 目录（默认 `./data`） |
+| `REPORT_OUT_DIR` | 覆盖报告输出目录（默认 `./reports`） |
+| `REPORT_NO_PUSH=1` | 生成流程不调用飞书/WeLink 推送 |
+| `REPORT_NO_WIKI=1` | 生成流程不更新 Wiki |
+
+**C4 白名单「AI Agent」的理由**：C4 比较同一期与前 2 天 `oneLiner` 中 4 字以上的公共短语；「AI Agent」是报告的领域通用词，不是模板套话，若计入会把正常提及该领域的日报误判为复用。白名单只在比较前剔除，不改变 C3 禁词和 C1 固定句的判定；新增白名单条目必须在本节写明理由（J23）。
+
+---
+
 ## 快速开始
 
 ### 1. 安装依赖

@@ -96,9 +96,20 @@ function runCases(args) {
     return 2;
   }
 
-  const casesRoot = args.options['cases-root'] || '/home/box/shared/report-redesign';
+  const casesRoot = path.resolve(args.options['cases-root'] || '/home/box/shared/report-redesign');
   const dataDir = args.options['data-dir'] || path.join(__dirname, '..', 'data');
-  const lines = fs.readFileSync(path.resolve(casesPath), 'utf8')
+
+  let resolvedCasesPath = path.resolve(casesPath);
+  if (!fs.existsSync(resolvedCasesPath)) {
+    const fallback = path.resolve(casesRoot, casesPath);
+    if (fs.existsSync(fallback)) resolvedCasesPath = fallback;
+  }
+  if (!fs.existsSync(resolvedCasesPath)) {
+    console.error(`用例文件不存在：${resolvedCasesPath}`);
+    return 2;
+  }
+
+  const lines = fs.readFileSync(resolvedCasesPath, 'utf8')
     .split(/\r?\n/)
     .filter(line => line.trim());
 
