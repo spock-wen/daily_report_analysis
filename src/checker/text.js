@@ -135,10 +135,8 @@ const STAR_UNIT = {
 
 const STAR_CONTEXT_RE = /星|★|Stars|stars/;
 const AGGREGATE_MARKER_RE = /合计|上周/;
-const THRESHOLD_MARKER_RE = /门槛|基准|阈值/;
-const THRESHOLD_SUFFIX_RE = /^\s*星?\s*(?:以上|以下|以内)/;
-const THRESHOLD_SET_RE = /^\s*星?\s*的?\s*项目/;
-const COMPARATOR_MARKER_RE = /超过|高于|低于|跌破|≥|≤/;
+const THRESHOLD_MARKER_RE = /若|门槛|基准|阈值|目标|入榜线/;
+const THRESHOLD_SET_RE = /^\s*星?\s*(?:以上|以下|以内)?\s*的?\s*项目/;
 const CUMULATIVE_MARKER_RE = /总星数|累计星|累计|总计/;
 const TODAY_MARKER_RE = /当期|期内|今日|当天|单日|日增|新增|todayStars/i;
 
@@ -181,8 +179,8 @@ function parseStarNumbers(text, options = {}) {
  * 按 J25/J26/J27 判断分句内每个数字的口径与豁免：
  * - 合计/上周标记：整个分句视为汇总；
  * - 累计类词：只在该分句同时存在期内数时逐数字比较口径；
- * - 门槛/基准/阈值、以上/以下/以内、以及「…星的项目」门槛数：仅豁免对应数字；
- * - 比较词不整句跳过，只有分句无法归属项目时才豁免比较基准数字。
+ * - 门槛/基准/阈值/若/目标/入榜线，以及「…星的项目」门槛数：仅豁免对应数字；
+ * - 比较词不整句跳过，已发生事实的比较数字照常归属并核对。
  */
 function analyzeStarClause(clause, numbers, config) {
   const source = String(clause || '');
@@ -211,9 +209,7 @@ function analyzeStarClause(clause, numbers, config) {
       today: !cumulative || today,
       threshold: THRESHOLD_MARKER_RE.test(entry.before)
         || (index === positions.length - 1 && THRESHOLD_MARKER_RE.test(after))
-        || THRESHOLD_SUFFIX_RE.test(after)
         || THRESHOLD_SET_RE.test(after),
-      comparator: COMPARATOR_MARKER_RE.test(entry.before),
     };
   });
 
@@ -238,6 +234,27 @@ function matchesStarValue(parsed, expected) {
   return Math.abs(parsed.value - Number(expected)) <= numberTolerance(parsed);
 }
 
+function isTopicContext(text, index) {
+  const before = String(text || '').slice(0, index);
+  const boundary = Math.max(
+    before.lastIndexOf('。'),
+    before.lastIndexOf('！'),
+    before.lastIndexOf('？'),
+    before.lastIndexOf('\n'),
+    before.lastIndexOf('，'),
+    before.lastIndexOf(','),
+    before.lastIndexOf('；'),
+    before.lastIndexOf(';'),
+    before.lastIndexOf('、'),
+    before.lastIndexOf('：'),
+    before.lastIndexOf(':')
+  );
+  return /话题|topics?|覆盖|涵盖|涉及/i.test(before.slice(boundary + 1));
+}
+
+/**
+ * J28③：只认当期项目清单，仓库短名大小写精确匹配；话题列表里的词不算项目名。
+ */
 function findProjectMentions(text, projects) {
   const source = String(text || '');
   const hits = new Map();
@@ -249,8 +266,13 @@ function findProjectMentions(text, projects) {
     }
     const name = project.name || project.fullName.split('/')[1];
     if (!name || name.length < 3) continue;
-    const re = new RegExp(`(?<![A-Za-z0-9_-])${escapeRegExp(name)}(?![A-Za-z0-9_-])`);
-    if (re.test(source)) hits.set(project.fullName, project);
+    const re = new RegExp(`(?<![A-Za-z0-9_-])${escapeRegExp(name)}(?![A-Za-z0-9_-])`, 'g');
+    let match;
+    while ((match = re.exec(source)) !== null) {
+      if (isTopicContext(source, match.index)) continue;
+      hits.set(project.fullName, project);
+      break;
+    }
   }
   return Array.from(hits.values());
 }
@@ -266,10 +288,43 @@ function isCommonSlashPair(owner, repo, commonWords) {
   return commonWords.has(owner.toLowerCase()) && commonWords.has(repo.toLowerCase());
 }
 
+function editDistance(left, right) {
+  const a = String(left || '').toLowerCase();
+  const b = String(right || '').toLowerCase();
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  let previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= a.length; i += 1) {
+    const current = [i];
+    for (let j = 1; j <= b.length; j += 1) {
+      current[j] = Math.min(
+        previous[j] + 1,
+        current[j - 1] + 1,
+        previous[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+      );
+    }
+    previous = current;
+  }
+  return previous[b.length];
+}
+
+function isNearKnownFullName(raw, known) {
+  const names = known instanceof Set ? known : new Set(known || []);
+  if (names.size === 0) return false;
+  const target = String(raw).toLowerCase();
+  const limit = Math.max(2, Math.floor(target.length * 0.3));
+  for (const name of names) {
+    if (Math.abs(name.length - target.length) > limit) continue;
+    if (editDistance(target, name) <= limit) return true;
+  }
+  return false;
+}
+
 /**
  * 提取 owner/repo 形式的名字。
- * 只有命中当期 fullName（大小写不敏感）或形似仓库名且不属于常见词对时才返回；
- * 避免把 A/B、Windows/Linux、Code/Codex、Ghidra/Hopper 当成仓库名。
+ * 只返回命中当期 fullName（大小写不敏感）或与某个 fullName 编辑距离很近的疑似拼错；
+ * 其余斜杠词（A/B、Windows/Linux、CUDA/MLX 等）不当仓库名。
  */
 function extractRepoRefs(text, options = {}) {
   const results = [];
@@ -292,6 +347,7 @@ function extractRepoRefs(text, options = {}) {
     if (owner.length < 2 || repo.length < 2) continue;
     if (/^\d+$/.test(owner)) continue;
     if (isCommonSlashPair(owner, repo, commonWords)) continue;
+    if (known && !isNearKnownFullName(raw, known)) continue;
     results.push({ raw, owner, repo, known: false });
   }
   return results;

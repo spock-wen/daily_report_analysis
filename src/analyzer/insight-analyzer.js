@@ -8,6 +8,14 @@ const WikiManager = require('../wiki/wiki-manager');
 const history = require('../metrics/history');
 const { loadConfig } = require('../checker/config');
 
+const WRITING_RULES = {
+  oneLiner: '前 2 天（日报）/前 2 期（周/月报）oneLiner 已注入，必须换一种说法，不得复用 4 字以上短语。',
+  numbers: '一个分句只写一个项目的数字；每张卡片只写本卡项目的数字，不写其他项目的数字。',
+  cumulative: '累计数必须写「累计」字样（累计 X 星）。',
+  fullName: '仓库名必须逐字复制注入的 fullName 清单，不得手写、缩写或改写大小写。',
+  bannedWords: '禁词表已注入；月报引用 weekThemes 旧周主题时必须改写去禁词。'
+};
+
 function readJsonFile(filePath) {
   try {
     return JSON.parse(fs.readFileSync(filePath, 'utf8'));
@@ -402,7 +410,8 @@ class InsightAnalyzer {
         caption: pick('caption'),
         dailyDiff: pick('dailyDiff'),
         streakDays: pick('streakDays'),
-        projects: projectFacts
+        projects: projectFacts,
+        writingRules: WRITING_RULES
       };
     }
 
@@ -425,7 +434,8 @@ class InsightAnalyzer {
         returning: metrics.returning,
         out: metrics.out,
         projects: projectFacts,
-        aggregateRule: '汇总数字（如 weekNewStars、周榜新增星总数）写入文案时必须带「合计」字样，例：周榜合计新增 297628 星；不带「合计」会被核查按单项目归属判 FAIL。'
+        aggregateRule: '汇总数字（如 weekNewStars、周榜新增星总数）写入文案时必须带「合计」字样，例：周榜合计新增 297628 星；不带「合计」会被核查按单项目归属判 FAIL。',
+        writingRules: WRITING_RULES
       };
     }
 
@@ -479,7 +489,8 @@ class InsightAnalyzer {
         topProjectCandidates,
         allRepos,
         projects: projectFacts,
-        aggregateRule: '汇总数字（如 newStarsTotal、本月新增星合计）写入文案时必须带「合计」字样，例：本月合计新增 297628 星；不带「合计」会被核查按单项目归属判 FAIL。'
+        aggregateRule: '汇总数字（如 newStarsTotal、本月新增星合计）写入文案时必须带「合计」字样，例：本月合计新增 297628 星；不带「合计」会被核查按单项目归属判 FAIL。',
+        writingRules: WRITING_RULES
       };
     }
 
