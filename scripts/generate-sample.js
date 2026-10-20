@@ -18,6 +18,7 @@
 const fs = require('fs');
 const path = require('path');
 const history = require('../src/metrics/history');
+const { buildFacts } = require('../src/facts/build-facts');
 
 const ROOT_DIR = path.join(__dirname, '..');
 const LEVELS = ['daily', 'weekly', 'monthly'];
@@ -463,10 +464,12 @@ async function main() {
   const outBriefPath = path.join(outDataDir, 'briefs', level, briefFileName(level, period));
   const outInsightsPath = path.join(outDataDir, 'insights', level, insightFileName(period));
   const outReportPath = path.join(outReportsDir, reportDirName(level), reportFileName(level, period));
+  const outFactsPath = path.join(outDataDir, 'facts', `facts-${level}-${period}.json`);
   const checkBaseName = path.join(outDir, 'check', `check-${level}-${period}`);
   const conflicts = [
     outBriefPath,
     outInsightsPath,
+    outFactsPath,
     outReportPath,
     addFailMarker(outReportPath),
     `${checkBaseName}.json`,
@@ -515,6 +518,25 @@ async function main() {
     fs.writeFileSync(outBriefPath, `${JSON.stringify(brief, null, 2)}\n`, 'utf8');
   };
   writeBrief();
+
+  const facts = buildFacts({ level, period, brief, metrics: computed });
+  if (!facts) {
+    console.error(`无法生成 ${level} ${period} 的事实表`);
+    return 2;
+  }
+  ensureDir(path.dirname(outFactsPath));
+  try {
+    fs.writeFileSync(outFactsPath, `${JSON.stringify(facts, null, 2)}\n`, {
+      encoding: 'utf8',
+      flag: 'wx',
+    });
+  } catch (error) {
+    if (error.code === 'EEXIST') {
+      console.error(`错误：事实表已存在，拒绝覆盖：${outFactsPath}`);
+      return 2;
+    }
+    throw error;
+  }
 
   const InsightAnalyzer = require('../src/analyzer/insight-analyzer');
   const MonthlyAnalyzer = require('../src/analyzer/monthly-analyzer');
@@ -617,6 +639,7 @@ async function main() {
   console.log(`核查：${gate.pass ? 'PASS' : 'FAIL'}（${gate.findings.length} 条）`);
   console.log(`核查清单：${checkPaths.jsonPath}`);
   console.log(`核查清单：${checkPaths.mdPath}`);
+  console.log(`事实表：${outFactsPath}`);
   console.log(`HTML：${htmlPath || '未写（核查 FAIL）'}`);
 
   return gate.pass ? 0 : 1;

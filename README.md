@@ -117,6 +117,76 @@ node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/c
 
 ---
 
+## 内容重构 r3（数据绑定）
+
+本节记录 `feat/report-content-r3` 分支的事实表（B1）。生成器每期先产出 `facts.json`，AI 只写文字并用 `{{f<id>}}`、`{{p:owner/repo}}` 占位，渲染器填值；检查器只核占位与渲染记录（B2–B4）。
+
+### 输出位置与格式
+
+`generate-sample.js` 每期写出：
+
+```
+<out-dir>/data/facts/facts-<daily|weekly|monthly>-<期次>.json
+```
+
+文件为 JSON 对象：
+
+```json
+{
+  "level": "weekly",
+  "period": "2026-W42",
+  "projects": ["morluto/rea", "storytold/artcraft"],
+  "facts": [
+    {
+      "id": "f1",
+      "value": 10,
+      "project": null,
+      "kind": "total",
+      "source": "briefs/weekly/data-weekly-2026-W42.json#stats.totalProjects",
+      "label": "上榜项目数"
+    }
+  ]
+}
+```
+
+| 字段 | 说明 |
+|---|---|
+| `id` | 当期序号，格式 `f1`、`f2`……；AI 占位写 `{{f1}}` |
+| `value` | 数值；`avgStars` 等页面原有格式值保留字符串（如 `"75k"`） |
+| `project` | 单项目事实为 `owner/repo`；合计、门槛为 `null` |
+| `kind` | `single`（单项目）、`total`（合计/占比/计数）、`threshold`（门槛） |
+| `source` | `<数据文件>#<字段路径>`，数据文件相对 `data/`；通配用 `[*]` |
+| `label` | 简短中文说明，供 AI 识别事实含义 |
+| `projects` | 当期项目清单（`fullName[]`），供 `{{p:owner/repo}}` 校验；月报为当月日榜去重后的全部项目 |
+
+### 覆盖范围
+
+| 层级 | 单项目 `single` | 合计 `total` |
+|---|---|---|
+| 日报 | `todayStars`、`stars`、`forks`、`streakDays` | 上榜/AI/平均 Stars、高热项目数、当日新增星合计、`dailyDiff.counts` 的 new/dropped/kept/returned |
+| 周报 | `todayStars`、`stars`、`forks`、`dailyTop3Stats` 的 days/weekStars | 上榜/AI/平均 Stars、AI 占比、最大黑马、`weekNewStars`、`wow`（上周合计/变化量/环比）、`churnCount`/`churnRate`、`prevWeekStats`、`dailyCounts[]`、新面孔/连续/回归/出局数 |
+| 月报 | `monthStars`、`daysOnList`、`lastStars`（`monthTop` 前 10）；`dropList` 的排名与新增星 | 总项目数（日榜去重）、AI 项目数、平均 Stars、本月新增星合计、重复上榜数、新秀数、非新秀数、Top5 占比、`prevMonthStats` 五项 |
+
+月报的单项目事实覆盖页面与洞察候选 `monthTop`（前 10）；`projects` 清单仍包含当月日榜去重后的全部项目，避免 `{{p:}}` 误拦非 TOP 项目。
+
+### 门槛事实
+
+生成器随期给出若干 `kind="threshold"` 事实，供 B5/J11「下周看点」等文案引用，避免 AI 自造阈值：
+
+- 日报：100（高热项目）、10,000、100,000（今日新增）。
+- 周报：10,000、100,000、200,000（本周新增）。
+- 月报：10,000、100,000、200,000（本月新增）。
+
+门槛事实的 `source` 指向其适用字段（日报/周报 `projects[*].todayStars`，月报 `monthTop[*].monthStars`），`project` 为 `null`。
+
+### 写入规则
+
+- 事实表与 brief/insights/HTML/核查清单一样，已存在即报错退出（退出码 2），不覆盖。
+- `--out-dir`、`--data-dir` 仍为必填（B8）；事实表写入 `<out-dir>/data/facts/`，不读取也不修改源数据目录的 facts。
+- 事实表在洞察分析之前写出；核查 FAIL 时事实表仍保留，便于复盘。
+
+---
+
 ## 快速开始
 
 ### 1. 安装依赖
