@@ -89,19 +89,17 @@ function generateOneSentence(project) {
     ? project.topics.filter(Boolean).slice(0, 3)
     : [];
 
-  if (detail && !/[。.!?！？]$/.test(detail)) {
-    detail += '。';
-  }
+  const sentenceDetail = detail.replace(/[。.!?！？]+$/, '');
 
-  if (detail) {
+  if (sentenceDetail) {
     const reason = topics.length > 0
-      ? `上榜与 ${topics.join('、')} 方向相关。`
-      : '上榜原因未知。';
-    return `${fullName}：${detail}${reason}`;
+      ? `，因 ${topics.join('、')} 方向受到关注`
+      : '';
+    return `${fullName}：${sentenceDetail}${reason}。`;
   }
 
   if (topics.length > 0) {
-    return `${fullName}：围绕 ${topics.join('、')} 的开源项目；上榜与这些方向相关。`;
+    return `${fullName}：围绕 ${topics.join('、')} 的开源项目。`;
   }
 
   return `${fullName}：暂无项目描述，上榜原因未知。`;

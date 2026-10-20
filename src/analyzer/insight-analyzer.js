@@ -668,9 +668,12 @@ class InsightAnalyzer {
       const insights = JSON.parse(jsonContent);
 
       if (insights.project_insights) {
-        const trendingRepos = briefData.trending_repos || [];
+        const trendingRepos = briefData.projects || briefData.trending_repos || [];
         insights.project_insights = insights.project_insights.map(insight => {
-          const repo = trendingRepos.find(r => r.name === insight.project_name);
+          const repo = trendingRepos.find(r => {
+            const name = r.name || r.fullName || r.repo;
+            return name === insight.project_name || r.fullName === insight.project_name;
+          });
           return {
             ...insight,
             github_url: repo?.url || '',

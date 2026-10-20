@@ -204,7 +204,7 @@ class MonthlyAnalyzer {
       month,
       dailyCount: monthlyData.dailyDataList?.length || 0,
       weeklyCount: monthlyData.weeklyDataList?.length || 0,
-      totalProjects: stats.totalProjects || aggregation.totalProjects || 0,
+      totalProjects: stats.totalProjects ?? 0,
       recurringCount: stats.recurringProjects ?? aggregation.recurringProjects?.length ?? 0,
       newProjectsCount: stats.newProjects ?? aggregation.newProjects?.length ?? 0,
       typeDistribution: aggregation.typeDistribution || {},

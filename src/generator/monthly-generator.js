@@ -56,12 +56,12 @@ class MonthlyGenerator {
 <body>
   <div class="container monthly-report">
     ${this.renderHeader(month)}
-    ${this.renderOverview(data.stats || aggregation?.stats, aggregation, data.caption)}
+    ${this.renderOverview(data.stats, data.caption)}
     ${this.renderMonthlyMetricsSection(data)}
     ${this.renderTheme(aiInsights?.monthlyTheme)}
     ${this.renderTrendEvolution(aiInsights?.trendEvolution)}
     ${this.renderCharts(aggregation)}
-    ${this.renderWikiTracking(aggregation)}
+    ${this.renderWikiTracking(aggregation, this.buildDaysOnListMap(data))}
     ${this.renderMonthTop(data.monthTop)}
     ${this.renderLongTermValue(aiInsights?.longTermValue, data.monthTop)}
     ${this.renderEmergingFields(aiInsights?.emergingFields)}
@@ -89,27 +89,40 @@ class MonthlyGenerator {
   hasValue(value) {
     if (value === null || value === undefined) return false;
     if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === 'number') return Number.isFinite(value) && value !== 0;
     const text = String(value).trim();
-    return text !== '' && text !== '0' && text !== '0%' && text !== 'null' && text !== 'undefined';
+    return text !== '' && text !== '0' && text !== '0%' && text !== 'null' && text !== 'undefined' && text !== 'NaN';
+  }
+
+  buildDaysOnListMap(data = {}) {
+    const items = data.metrics?.top || data.monthTop || [];
+    const map = new Map();
+    for (const item of items) {
+      if (item && item.fullName && Number.isFinite(item.daysOnList)) {
+        map.set(item.fullName, item.daysOnList);
+      }
+    }
+    return map;
   }
 
   /**
    * 渲染月度概览
    */
-  renderOverview(stats = {}, aggregation, caption = '') {
-    const recurring = stats.recurringProjects ?? aggregation?.recurringProjects?.length;
-    const newProjects = stats.newProjects ?? aggregation?.newProjects?.length;
-    const aiProjects = stats.aiProjects
-      ?? Object.values(aggregation?.typeDistribution || {}).reduce((sum, value) => sum + value, 0);
+  renderOverview(stats = {}, caption = '') {
+    const recurring = stats.recurringProjects;
+    const newProjects = stats.newProjects;
+    const aiProjects = stats.aiProjects;
 
     const items = [
-      { value: stats.totalProjects ?? aggregation?.totalProjects, label: '总项目数', detail: '日榜去重' },
+      { value: stats.totalProjects, label: '总项目数', detail: '日榜去重' },
       { value: recurring, label: '重复上榜', detail: '上榜 ≥2 天' },
       { value: newProjects, label: '月度新星', detail: '30 天内首次进入日榜' },
       { value: aiProjects, label: 'AI 项目', detail: '日榜去重' }
     ].filter(item => this.hasValue(item.value));
 
-    if (items.length === 0) return '';
+    if (items.length === 0) {
+      return this.hasValue(caption) ? `<p class="metric-caption">${caption}</p>` : '';
+    }
 
     return `
       <section class="monthly-overview">
@@ -208,11 +221,15 @@ class MonthlyGenerator {
   renderTheme(monthlyTheme) {
     if (!monthlyTheme) return '';
 
+    const oneLiner = this.hasValue(monthlyTheme.oneLiner) ? monthlyTheme.oneLiner : '';
+    const detailed = this.hasValue(monthlyTheme.detailed) ? monthlyTheme.detailed : '';
+    if (!oneLiner && !detailed) return '';
+
     return `
       <section class="monthly-theme">
         <h2>月度主题</h2>
-        <div class="theme-one-liner">${monthlyTheme.oneLiner || '暂无数据'}</div>
-        <div class="theme-detailed">${monthlyTheme.detailed || '暂无详细分析'}</div>
+        ${oneLiner ? `<div class="theme-one-liner">${oneLiner}</div>` : ''}
+        ${detailed ? `<div class="theme-detailed">${detailed}</div>` : ''}
       </section>
     `;
   }
@@ -293,7 +310,7 @@ class MonthlyGenerator {
   /**
    * 渲染 Wiki 追踪模块
    */
-  renderWikiTracking(aggregation) {
+  renderWikiTracking(aggregation, daysOnList = new Map()) {
     if (!aggregation) return '';
 
     const projects = aggregation.recurringProjects || aggregation.topGainers || [];
@@ -341,7 +358,9 @@ class MonthlyGenerator {
                       <a href="../wiki/projects/${p.repo.replace('/', '_')}.md" class="wiki-project-link">
                         ${p.repo}
                       </a>
-                      <span class="wiki-appearances">上榜 ${p.count || p.appearanceCount || 1} 次</span>
+                      ${Number.isFinite(daysOnList.get(p.repo))
+                        ? `<span class="wiki-appearances">上榜 ${daysOnList.get(p.repo)} 次</span>`
+                        : ''}
                     </li>
                   `).join('')}
                 </ul>
@@ -379,7 +398,7 @@ class MonthlyGenerator {
                 <span class="repo-name">
                   <a href="https://github.com/${project.repo}" target="_blank">${project.repo}</a>
                 </span>
-                <span class="category">${project.category || '技术创新'}</span>
+                ${this.hasValue(project.category) ? `<span class="category">${project.category}</span>` : ''}
               </div>
             </div>
             ${this.hasValue(oneSentence) ? `<div class="description">${oneSentence}</div>` : ''}
@@ -437,7 +456,7 @@ class MonthlyGenerator {
    * 渲染月度黑马
    */
   renderDarkHorse(darkHorse) {
-    if (!darkHorse) return '';
+    if (!darkHorse || !this.hasValue(darkHorse.repo)) return '';
 
     return `
       <section class="dark-horse">
@@ -446,7 +465,7 @@ class MonthlyGenerator {
           <div class="repo">
             <a href="https://github.com/${darkHorse.repo}" target="_blank" style="color: white;">${darkHorse.repo}</a>
           </div>
-          <div class="reason">${darkHorse.reason || '暂无描述'}</div>
+          ${this.hasValue(darkHorse.reason) ? `<div class="reason">${darkHorse.reason}</div>` : ''}
         </div>
       </section>
     `;
