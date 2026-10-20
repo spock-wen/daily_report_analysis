@@ -155,7 +155,8 @@ class MonthlyAnalyzer {
       dropList: monthlyData.dropList || computed?.dropList,
       dropListNote: monthlyData.dropListNote || computed?.dropListNote,
       top5Share: monthlyData.top5Share ?? computed?.top5Share,
-      newStarsTotal: monthlyData.newStarsTotal ?? computed?.newStarsTotal
+      newStarsTotal: monthlyData.newStarsTotal ?? computed?.newStarsTotal,
+      aggregateRule: '汇总数字（如 newStarsTotal、本月新增星合计）写入文案时必须带「合计」字样，例：本月合计新增 297628 星；不带「合计」会被核查按单项目归属判 FAIL。'
     };
 
     // 提取上/中/下旬项目

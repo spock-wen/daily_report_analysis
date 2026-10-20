@@ -106,6 +106,7 @@ node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/c
 | `config/checker/compare_words.txt` | B5 比较词表（J11 初始：`≥ ≤ 超过 跌破 高于 低于 领先 落后 反超 翻倍 增长 下滑`） |
 | `config/checker/fixed_phrases.txt` | C1 固定句（含 useCases/trends 模板句） |
 | `config/checker/c4_whitelist.txt` | C4 白名单（J23） |
+| `config/checker/cumulative_words.txt` | J26 累计口径词表（`总星数 累计星 累计 总计`）；含这些词的数字不做单项目归属比较，与 J25 的合计/门槛/上周同义 |
 | `REPORT_CHECKER_CONFIG_DIR` | 覆盖上述配置目录 |
 | `REPORT_DATA_DIR` | 覆盖 data 目录（默认 `./data`） |
 | `REPORT_OUT_DIR` | 覆盖报告输出目录（默认 `./reports`） |

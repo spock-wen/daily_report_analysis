@@ -14,19 +14,52 @@ const { makeFinding } = require('./util');
 const STAR_UNIT = { 亿: 1e8, 万: 1e4, 千: 1e3, k: 1e3, K: 1e3, w: 1e4, W: 1e4 };
 const SKIP_RE = /合计|门槛|阈值|上周|全周|环比|换血率/;
 const THRESHOLD_RE = /跌破|超过|高于|低于|≥|≤/;
-const CUMULATIVE_RE = /累计/;
+const CARD_NAME_KEYS = ['project_name', 'projectName', 'fullName', 'repo', 'name'];
 
-function resolveProject(ctx, sentence, clause) {
+function isAggregateClause(clause, config) {
+  if (SKIP_RE.test(clause)) return true;
+  const words = (config && config.cumulativeWords) || [];
+  return words.some(word => word && clause.includes(word));
+}
+
+function matchProject(ctx, value) {
+  if (!value) return null;
+  const project = ctx.projectMap.get(value);
+  if (project) return project;
+  const byName = ctx.projects.filter(item => item.name === value || item.fullName === value);
+  return byName.length === 1 ? byName[0] : null;
+}
+
+function projectFromCard(ctx, doc, item) {
+  if (!doc || !doc.getNode || !item.container) return null;
+  const node = doc.getNode(item.container);
+  if (!node || node.type !== 'object') return null;
+  const found = new Set();
+  for (const key of CARD_NAME_KEYS) {
+    const child = node.children && node.children[key];
+    if (!child || child.type !== 'string') continue;
+    const project = matchProject(ctx, child.value);
+    if (project) found.add(project.fullName);
+  }
+  if (found.size === 1) return ctx.projectMap.get(Array.from(found)[0]) || null;
+  return null;
+}
+
+function resolveProject(ctx, doc, item, sentence, clause) {
   const inClause = findProjectMentions(clause, ctx.projects);
   if (inClause.length === 1) return { project: inClause[0], ambiguous: false };
   if (inClause.length > 1) return { project: null, ambiguous: true };
 
   const inSentence = findProjectMentions(sentence, ctx.projects);
   if (inSentence.length === 1) return { project: inSentence[0], ambiguous: false };
+  if (inSentence.length > 1) return { project: null, ambiguous: true };
+
+  const inCard = projectFromCard(ctx, doc, item);
+  if (inCard) return { project: inCard, ambiguous: false };
   return { project: null, ambiguous: true };
 }
 
-function checkInsights(ctx, doc) {
+function checkInsights(ctx, doc, config) {
   const findings = [];
 
   for (const item of doc.strings) {
@@ -35,36 +68,31 @@ function checkInsights(ctx, doc) {
       for (const clause of splitClauses(sentence)) {
         const numbers = parseStarNumbers(clause, { hasStarContext: hasStar });
         if (numbers.length === 0) continue;
-        if (SKIP_RE.test(clause)) continue;
+        if (isAggregateClause(clause, config)) continue;
         if (THRESHOLD_RE.test(clause)) continue;
 
-        const { project, ambiguous } = resolveProject(ctx, sentence, clause);
-        const cumulative = CUMULATIVE_RE.test(clause);
+        const { project, ambiguous } = resolveProject(ctx, doc, item, sentence, clause);
 
         if (!project) {
           findings.push(makeFinding('A2', doc, {
             field: item.path,
             line: item.line,
             quote: clause,
-            message: `数字${ambiguous ? '无法唯一' : '没有'}归属到项目（J25）`,
+            message: `数字${ambiguous ? '无法唯一' : '没有'}归属到项目（J25/J26）`,
           }));
           continue;
         }
 
-        const expected = cumulative ? project.stars : project.todayStars;
-        if (!Number.isFinite(expected)) continue;
+        if (!Number.isFinite(project.todayStars)) continue;
 
         for (const number of numbers) {
-          if (matchesStarValue(number, expected)) continue;
-          if (!cumulative && number.value < 10000) continue;
-          const message = cumulative
-            ? `「${number.raw}」不等于 ${project.fullName} 的累计 stars ${project.stars}`
-            : `「${number.raw}」与 ${project.fullName} 的本周新增 ${project.todayStars} 不符`;
+          if (matchesStarValue(number, project.todayStars)) continue;
+          if (number.value < 10000) continue;
           findings.push(makeFinding('A2', doc, {
             field: item.path,
             line: item.line,
             quote: clause,
-            message,
+            message: `「${number.raw}」与 ${project.fullName} 的本周新增 ${project.todayStars} 不符`,
           }));
         }
       }
@@ -97,9 +125,9 @@ function checkHtml(ctx, doc) {
   return findings;
 }
 
-function check(ctx, doc) {
+function check(ctx, doc, config) {
   if (doc.kind === 'html') return checkHtml(ctx, doc);
-  return checkInsights(ctx, doc);
+  return checkInsights(ctx, doc, config);
 }
 
 module.exports = {

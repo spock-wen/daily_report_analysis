@@ -424,7 +424,8 @@ class InsightAnalyzer {
         continuing: metrics.continuing,
         returning: metrics.returning,
         out: metrics.out,
-        projects: projectFacts
+        projects: projectFacts,
+        aggregateRule: '汇总数字（如 weekNewStars、周榜新增星总数）写入文案时必须带「合计」字样，例：周榜合计新增 297628 星；不带「合计」会被核查按单项目归属判 FAIL。'
       };
     }
 
@@ -469,7 +470,8 @@ class InsightAnalyzer {
         periodProjects,
         topProjectCandidates,
         allRepos,
-        projects: projectFacts
+        projects: projectFacts,
+        aggregateRule: '汇总数字（如 newStarsTotal、本月新增星合计）写入文案时必须带「合计」字样，例：本月合计新增 297628 星；不带「合计」会被核查按单项目归属判 FAIL。'
       };
     }
 

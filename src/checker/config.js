@@ -33,6 +33,7 @@ function loadConfig(options = {}) {
     dir: getConfigDir(),
     bannedWords: readLines('banned_words.txt'),
     compareWords: readLines('compare_words.txt'),
+    cumulativeWords: readLines('cumulative_words.txt'),
     fixedPhrases: readLines('fixed_phrases.txt'),
     c4Whitelist: readLines('c4_whitelist.txt'),
     commonSlashWords: readLines('common_slash_words.txt'),
