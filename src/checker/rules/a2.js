@@ -2,6 +2,7 @@
 
 const {
   splitClauses,
+  splitSentenceUnits,
   hasStarContext,
   parseStarNumbers,
   matchesStarValue,
@@ -15,13 +16,13 @@ const SKIP_RE = /合计|门槛|阈值|上周|全周|环比|换血率/;
 const THRESHOLD_RE = /跌破|超过|高于|低于|≥|≤/;
 const CUMULATIVE_RE = /累计/;
 
-function resolveProject(ctx, item, clause) {
+function resolveProject(ctx, sentence, clause) {
   const inClause = findProjectMentions(clause, ctx.projects);
   if (inClause.length === 1) return { project: inClause[0], ambiguous: false };
   if (inClause.length > 1) return { project: null, ambiguous: true };
 
-  const inString = findProjectMentions(item.value, ctx.projects);
-  if (inString.length === 1) return { project: inString[0], ambiguous: false };
+  const inSentence = findProjectMentions(sentence, ctx.projects);
+  if (inSentence.length === 1) return { project: inSentence[0], ambiguous: false };
   return { project: null, ambiguous: true };
 }
 
@@ -29,41 +30,43 @@ function checkInsights(ctx, doc) {
   const findings = [];
 
   for (const item of doc.strings) {
-    const hasStar = hasStarContext(item.value);
-    for (const clause of splitClauses(item.value)) {
-      const numbers = parseStarNumbers(clause, { hasStarContext: hasStar });
-      if (numbers.length === 0) continue;
-      if (SKIP_RE.test(clause)) continue;
-      if (THRESHOLD_RE.test(clause)) continue;
+    for (const sentence of splitSentenceUnits(item.value)) {
+      const hasStar = hasStarContext(sentence);
+      for (const clause of splitClauses(sentence)) {
+        const numbers = parseStarNumbers(clause, { hasStarContext: hasStar });
+        if (numbers.length === 0) continue;
+        if (SKIP_RE.test(clause)) continue;
+        if (THRESHOLD_RE.test(clause)) continue;
 
-      const { project, ambiguous } = resolveProject(ctx, item, clause);
-      const cumulative = CUMULATIVE_RE.test(clause);
+        const { project, ambiguous } = resolveProject(ctx, sentence, clause);
+        const cumulative = CUMULATIVE_RE.test(clause);
 
-      if (!project) {
-        findings.push(makeFinding('A2', doc, {
-          field: item.path,
-          line: item.line,
-          quote: clause,
-          message: `数字${ambiguous ? '无法唯一' : '没有'}归属到项目（J25）`,
-        }));
-        continue;
-      }
+        if (!project) {
+          findings.push(makeFinding('A2', doc, {
+            field: item.path,
+            line: item.line,
+            quote: clause,
+            message: `数字${ambiguous ? '无法唯一' : '没有'}归属到项目（J25）`,
+          }));
+          continue;
+        }
 
-      const expected = cumulative ? project.stars : project.todayStars;
-      if (!Number.isFinite(expected)) continue;
+        const expected = cumulative ? project.stars : project.todayStars;
+        if (!Number.isFinite(expected)) continue;
 
-      for (const number of numbers) {
-        if (matchesStarValue(number, expected)) continue;
-        if (!cumulative && number.value < 10000) continue;
-        const message = cumulative
-          ? `「${number.raw}」不等于 ${project.fullName} 的累计 stars ${project.stars}`
-          : `「${number.raw}」与 ${project.fullName} 的本周新增 ${project.todayStars} 不符`;
-        findings.push(makeFinding('A2', doc, {
-          field: item.path,
-          line: item.line,
-          quote: clause,
-          message,
-        }));
+        for (const number of numbers) {
+          if (matchesStarValue(number, expected)) continue;
+          if (!cumulative && number.value < 10000) continue;
+          const message = cumulative
+            ? `「${number.raw}」不等于 ${project.fullName} 的累计 stars ${project.stars}`
+            : `「${number.raw}」与 ${project.fullName} 的本周新增 ${project.todayStars} 不符`;
+          findings.push(makeFinding('A2', doc, {
+            field: item.path,
+            line: item.line,
+            quote: clause,
+            message,
+          }));
+        }
       }
     }
   }

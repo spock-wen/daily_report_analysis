@@ -236,7 +236,7 @@ function checkMonthlyCombinations(ctx, doc, item, findings) {
       }
     }
 
-    const tooLargeRe = /(\d+)\s*个(?:新项目|新秀|之前已上榜|非新秀)/g;
+    const tooLargeRe = /(\d+)\s*个(?:本月|当月)?\s*(?:新项目|新秀|之前已上榜|非新秀)/g;
     while ((match = tooLargeRe.exec(text)) !== null) {
       const value = Number(match[1]);
       if (value > total) push(match[0], `部分 ${value} 大于总项目 ${total}`);
@@ -251,8 +251,15 @@ function checkMonthlyCombinations(ctx, doc, item, findings) {
 
   if (Number.isFinite(prior)) {
     const priorRe = /(\d+)\s*个(?:项目)?\s*(?:本月|当月)?\s*之前已上榜/g;
+    const priorReverseRe = /(?:本月|当月)之前已上榜[^。；\n]{0,12}(\d+)\s*个/g;
     let match;
     while ((match = priorRe.exec(text)) !== null) {
+      const value = Number(match[1]);
+      if (value !== prior) {
+        push(match[0], `「本月之前已上榜」应为总项目 ${total} − 新秀 ${rookies} = ${prior}，实为 ${value}`);
+      }
+    }
+    while ((match = priorReverseRe.exec(text)) !== null) {
       const value = Number(match[1]);
       if (value !== prior) {
         push(match[0], `「本月之前已上榜」应为总项目 ${total} − 新秀 ${rookies} = ${prior}，实为 ${value}`);

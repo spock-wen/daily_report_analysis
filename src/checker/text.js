@@ -116,6 +116,13 @@ function splitClauses(text) {
     .filter(Boolean);
 }
 
+function splitSentenceUnits(text) {
+  return String(text || '')
+    .split(SENTENCE_BREAK)
+    .map(part => part.trim())
+    .filter(Boolean);
+}
+
 const STAR_UNIT = {
   亿: 1e8,
   万: 1e4,
@@ -484,6 +491,7 @@ module.exports = {
   decodeEntities,
   splitSentences,
   splitClauses,
+  splitSentenceUnits,
   hasStarContext,
   parseStarNumbers,
   matchesStarValue,
