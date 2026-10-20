@@ -122,6 +122,17 @@ function buildContext(options = {}) {
     for (const item of metrics.top) daysOnList.set(item.fullName, item.daysOnList);
   }
 
+  // 周报 D2 允许名单 = 周榜 fullName ∪ 当周日报 fullName（与 B3 一致）
+  const allowedFullNames = new Set(fullNames);
+  if (level === 'weekly' && period) {
+    for (const date of history.getISOWeekDates(period)) {
+      const dailyBrief = history.readDailyBrief(date);
+      for (const name of history.getProjectNames(dailyBrief)) {
+        allowedFullNames.add(name);
+      }
+    }
+  }
+
   return {
     level,
     period,
@@ -132,6 +143,7 @@ function buildContext(options = {}) {
     projects,
     projectMap,
     fullNames,
+    allowedFullNames,
     daysOnList,
     readDailyInsights,
     getPreviousDailyInsights(date, count = 1) {

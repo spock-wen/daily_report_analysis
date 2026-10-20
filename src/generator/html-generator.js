@@ -556,6 +556,7 @@ class HTMLGenerator {
 
     ${this.renderWeeklyStatsSection(stats, summary, projects, data.caption || data.brief?.caption)}
     ${this.renderWeeklyMetricsSection(data)}
+    ${this.renderWeeklyRosterSection(data)}
     ${this.renderWeeklyThemeSection(aiInsights, projects)}
     ${this.renderDeepTrendsSection(aiInsights, projects)}
     ${this.renderWeeklyInsightsSection(aiInsights, projects)}
@@ -730,6 +731,37 @@ class HTMLGenerator {
       <section class="weekly-metrics">
         <h2>本周与上周</h2>
         <p>${lines.join(' ')}</p>
+      </section>
+    `;
+  }
+
+  renderWeeklyRosterSection(data) {
+    const metrics = data.weekMetrics || {};
+    const lists = [
+      { title: '新面孔', items: metrics.new },
+      { title: '连续在榜', items: metrics.continuing },
+      { title: '回归', items: metrics.returning },
+      { title: '出局', items: metrics.out }
+    ];
+
+    const blocks = lists.map(list => {
+      const items = (list.items || []).filter(Boolean);
+      if (items.length === 0) return '';
+      return `
+        <div class="roster-list">
+          <h3>${list.title}（${items.length}）</h3>
+          <ul>
+            ${items.map(name => `<li><a href="https://github.com/${this.escapeHtml(name)}" target="_blank">${this.escapeHtml(name)}</a></li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }).filter(Boolean);
+
+    if (blocks.length === 0) return '';
+    return `
+      <section class="weekly-roster">
+        <h2>本周名单变化</h2>
+        ${blocks.join('')}
       </section>
     `;
   }

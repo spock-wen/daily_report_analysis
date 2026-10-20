@@ -41,7 +41,10 @@ async function runContentGate(options = {}) {
     findings: result.findings,
   });
 
-  logger.error('[ContentGate] 内容核查仍 FAIL，停止生成（不写 HTML、不推送）', {
+  const stopMessage = options.writeHtmlOnFail
+    ? '[ContentGate] 内容核查仍 FAIL，停止生成（不写正式 HTML、不推送；仅输出 .FAIL.html 供审阅）'
+    : '[ContentGate] 内容核查仍 FAIL，停止生成（不写 HTML、不推送）';
+  logger.error(stopMessage, {
     level,
     period,
     failCount: result.findings.length,

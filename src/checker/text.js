@@ -6,7 +6,7 @@
  */
 
 const SENTENCE_BREAK = /[。！？\n]/;
-const CLAUSE_BREAK = /[。！？\n，,；;：:]/;
+const CLAUSE_BREAK = /[。！？\n，,；;：:、]/;
 const MAX_SENTENCE_UNITS = 2000;
 
 function normalize(text) {
@@ -128,12 +128,20 @@ const STAR_UNIT = {
 
 const STAR_CONTEXT_RE = /星|★|Stars|stars/;
 
+function hasStarContext(text) {
+  return STAR_CONTEXT_RE.test(String(text || ''));
+}
+
 /**
  * 从含「星」语义的句子里提取数字（含 万/亿/千/k/w 单位）。
+ * options.hasStarContext 可由调用方传入整句的「星」语义，用于分句后单句不含「星」的情况。
  */
-function parseStarNumbers(text) {
+function parseStarNumbers(text, options = {}) {
   const source = String(text || '');
-  if (!STAR_CONTEXT_RE.test(source)) return [];
+  const starContext = options.hasStarContext === undefined
+    ? hasStarContext(source)
+    : Boolean(options.hasStarContext);
+  if (!starContext) return [];
   const results = [];
   const re = /([0-9][0-9,]*(?:\.[0-9]+)?)\s*(亿|万|千|[kKwW])?/g;
   let match;
@@ -187,16 +195,36 @@ function findLineInRaw(raw, needle, lineStarts, fromIndex = 0) {
   return lineAt(lineStarts || buildLineIndex(raw), index);
 }
 
-function extractRepoRefs(text) {
+function isCommonSlashPair(owner, repo, commonWords) {
+  if (!commonWords || commonWords.size === 0) return false;
+  return commonWords.has(owner.toLowerCase()) && commonWords.has(repo.toLowerCase());
+}
+
+/**
+ * 提取 owner/repo 形式的名字。
+ * 只有命中当期 fullName（大小写不敏感）或形似仓库名且不属于常见词对时才返回；
+ * 避免把 A/B、Windows/Linux、Code/Codex、Ghidra/Hopper 当成仓库名。
+ */
+function extractRepoRefs(text, options = {}) {
   const results = [];
+  const known = options.knownFullNames || null;
+  const commonWords = options.commonWords instanceof Set
+    ? options.commonWords
+    : new Set((options.commonWords || []).map(word => String(word).toLowerCase()));
   const re = /([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)/g;
   let match;
   while ((match = re.exec(String(text || ''))) !== null) {
     const owner = match[1];
-    const repo = match[2];
+    const repo = match[2].replace(/[.,;:!?]+$/, '');
+    const raw = `${owner}/${repo}`;
     if (owner.includes('.')) continue;
     if (!/[A-Za-z]/.test(repo)) continue;
-    results.push({ raw: match[0], owner, repo });
+    if (known && known.has(raw.toLowerCase())) {
+      results.push({ raw, owner, repo, known: true });
+      continue;
+    }
+    if (isCommonSlashPair(owner, repo, commonWords)) continue;
+    results.push({ raw, owner, repo, known: false });
   }
   return results;
 }
@@ -454,6 +482,7 @@ module.exports = {
   decodeEntities,
   splitSentences,
   splitClauses,
+  hasStarContext,
   parseStarNumbers,
   matchesStarValue,
   numberTolerance,

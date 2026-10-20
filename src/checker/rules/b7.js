@@ -164,7 +164,70 @@ function checkHtml(ctx, doc) {
     }
   }
 
+  if (ctx.level === 'monthly') {
+    checkMonthlyCombinations(ctx, doc, { value: doc.text, path: 'body', line: null }, findings);
+  }
+
   return findings;
+}
+
+function checkMonthlyCombinations(ctx, doc, item, findings) {
+  const metrics = ctx.metrics;
+  if (ctx.level !== 'monthly' || !metrics) return;
+
+  const text = String(item.value || '');
+  const total = metrics.stats?.totalProjects ?? ctx.brief?.stats?.totalProjects;
+  const rookies = metrics.rookiesCount ?? ctx.brief?.stats?.newProjects;
+  const prior = Number.isFinite(total) && Number.isFinite(rookies) ? total - rookies : null;
+  const prev = metrics.prevMonthStats || ctx.brief?.prevMonthStats || {};
+  const push = (quote, message) => {
+    findings.push(makeFinding('B7', doc, {
+      field: item.path,
+      line: item.line,
+      quote,
+      message,
+    }));
+  };
+
+  if (Number.isFinite(total)) {
+    const comboRe = /(\d+)\s*个(?:新项目|新秀)[^。；\n]{0,16}(?:之外|以外)[^。；\n]{0,8}(?:还有|另有)\s*(\d+)\s*个[^。；\n]{0,12}(?:之前已上榜|非新秀)/g;
+    let match;
+    while ((match = comboRe.exec(text)) !== null) {
+      const newCount = Number(match[1]);
+      const priorCount = Number(match[2]);
+      if (newCount + priorCount !== total) {
+        push(match[0], `新秀 ${newCount} + 非新秀 ${priorCount} = ${newCount + priorCount}，不等于总项目 ${total}`);
+      }
+    }
+
+    const tooLargeRe = /(\d+)\s*个(?:新项目|新秀|之前已上榜|非新秀)/g;
+    while ((match = tooLargeRe.exec(text)) !== null) {
+      const value = Number(match[1]);
+      if (value > total) push(match[0], `部分 ${value} 大于总项目 ${total}`);
+    }
+  }
+
+  if (Number.isFinite(prior)) {
+    const priorRe = /(\d+)\s*个[^。；\n]{0,12}(?:本月|当月)之前已上榜/g;
+    let match;
+    while ((match = priorRe.exec(text)) !== null) {
+      const value = Number(match[1]);
+      if (value !== prior) {
+        push(match[0], `「本月之前已上榜」应为总项目 ${total} − 新秀 ${rookies} = ${prior}，实为 ${value}`);
+      }
+    }
+  }
+
+  if (Number.isFinite(prev.projects) && Number.isFinite(prev.rookies)) {
+    const prevAllRe = /上(?:个)?月(?:的)?\s*(\d+)\s*个(?:项目)?(?:全部|都)(?:为|是)新秀/g;
+    let match;
+    while ((match = prevAllRe.exec(text)) !== null) {
+      const claimed = Number(match[1]);
+      if (claimed === prev.projects && prev.rookies !== prev.projects) {
+        push(match[0], `上月 ${claimed} 个项目并非全部为新秀：上月新秀为 ${prev.rookies}`);
+      }
+    }
+  }
 }
 
 function checkInsights(ctx, doc) {
@@ -202,6 +265,7 @@ function checkInsights(ctx, doc) {
           }));
         }
       }
+      checkMonthlyCombinations(ctx, doc, item, findings);
     }
   }
 

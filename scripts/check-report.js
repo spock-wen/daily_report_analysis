@@ -24,11 +24,15 @@ function parseArgs(argv) {
     }
     const key = arg.slice(2);
     const next = argv[i + 1];
-    if (next !== undefined && !next.startsWith('--')) {
-      result.options[key] = next;
-      i += 1;
+    const value = next !== undefined && !next.startsWith('--') ? next : true;
+    if (value !== true) i += 1;
+    const existing = result.options[key];
+    if (existing === undefined) {
+      result.options[key] = value;
+    } else if (Array.isArray(existing)) {
+      existing.push(value);
     } else {
-      result.options[key] = true;
+      result.options[key] = [existing, value];
     }
   }
   return result;
@@ -90,53 +94,57 @@ function runReport(args) {
 
 function runCases(args) {
   const { evaluateCase } = require('../src/checker');
-  const casesPath = args.options.cases;
-  if (!casesPath || casesPath === true) {
-    console.error('用法：node scripts/check-report.js --cases <jsonl> [--cases-root DIR] [--data-dir D]');
+  const rawCases = args.options.cases;
+  const casesPaths = (Array.isArray(rawCases) ? rawCases : [rawCases])
+    .filter(item => typeof item === 'string');
+  if (casesPaths.length === 0) {
+    console.error('用法：node scripts/check-report.js --cases <jsonl> [--cases <jsonl> ...] [--cases-root DIR] [--data-dir D]');
     return 2;
   }
 
   const casesRoot = path.resolve(args.options['cases-root'] || '/home/box/shared/report-redesign');
   const dataDir = args.options['data-dir'] || path.join(__dirname, '..', 'data');
 
-  let resolvedCasesPath = path.resolve(casesPath);
-  if (!fs.existsSync(resolvedCasesPath)) {
-    const fallback = path.resolve(casesRoot, casesPath);
-    if (fs.existsSync(fallback)) resolvedCasesPath = fallback;
-  }
-  if (!fs.existsSync(resolvedCasesPath)) {
-    console.error(`用例文件不存在：${resolvedCasesPath}`);
-    return 2;
-  }
-
-  const lines = fs.readFileSync(resolvedCasesPath, 'utf8')
-    .split(/\r?\n/)
-    .filter(line => line.trim());
-
   const results = [];
-  for (const line of lines) {
-    let item;
-    try {
-      item = JSON.parse(line);
-    } catch (error) {
-      console.error(`用例 JSON 解析失败：${error.message}`);
-      results.push({ ok: false, case: { id: '(parse error)' }, error: error.message });
-      continue;
+  for (const casesPath of casesPaths) {
+    let resolvedCasesPath = path.resolve(casesPath);
+    if (!fs.existsSync(resolvedCasesPath)) {
+      const fallback = path.resolve(casesRoot, casesPath);
+      if (fs.existsSync(fallback)) resolvedCasesPath = fallback;
     }
-    const evaluation = evaluateCase(item, { casesRoot, dataDir });
-    results.push(evaluation);
-    const status = evaluation.ok ? 'PASS' : 'FAIL';
-    const expectation = item.expect;
-    console.log(`${status} ${item.id} rule=${item.rule_id} expect=${expectation}${evaluation.error ? ` error=${evaluation.error}` : ''}`);
-    if (!evaluation.ok) {
-      if (evaluation.matched.length === 0) {
-        console.log(`   未命中期望的 ${item.rule_id} FAIL；实际 findings=${evaluation.findings.length}`);
-        for (const finding of evaluation.findings.slice(0, 5)) {
-          console.log(`   - [${finding.rule_id}] ${finding.file}:${finding.line} ${finding.field} | ${finding.message}`);
-        }
-      } else {
-        for (const finding of evaluation.matched.slice(0, 3)) {
-          console.log(`   - [${finding.rule_id}] ${finding.file}:${finding.line} ${finding.field} | ${finding.message}`);
+    if (!fs.existsSync(resolvedCasesPath)) {
+      console.error(`用例文件不存在：${resolvedCasesPath}`);
+      return 2;
+    }
+
+    const lines = fs.readFileSync(resolvedCasesPath, 'utf8')
+      .split(/\r?\n/)
+      .filter(line => line.trim());
+
+    for (const line of lines) {
+      let item;
+      try {
+        item = JSON.parse(line);
+      } catch (error) {
+        console.error(`用例 JSON 解析失败：${error.message}`);
+        results.push({ ok: false, case: { id: '(parse error)' }, error: error.message });
+        continue;
+      }
+      const evaluation = evaluateCase(item, { casesRoot, dataDir });
+      results.push(evaluation);
+      const status = evaluation.ok ? 'PASS' : 'FAIL';
+      const expectation = item.expect;
+      console.log(`${status} ${item.id} rule=${item.rule_id} expect=${expectation}${evaluation.error ? ` error=${evaluation.error}` : ''}`);
+      if (!evaluation.ok) {
+        if (evaluation.matched.length === 0) {
+          console.log(`   未命中期望的 ${item.rule_id} FAIL；实际 findings=${evaluation.findings.length}`);
+          for (const finding of evaluation.findings.slice(0, 5)) {
+            console.log(`   - [${finding.rule_id}] ${finding.file}:${finding.line} ${finding.field} | ${finding.message}`);
+          }
+        } else {
+          for (const finding of evaluation.matched.slice(0, 3)) {
+            console.log(`   - [${finding.rule_id}] ${finding.file}:${finding.line} ${finding.field} | ${finding.message}`);
+          }
         }
       }
     }

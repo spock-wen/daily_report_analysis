@@ -2,7 +2,7 @@
 
 const { makeFinding } = require('./util');
 
-const WATCH_PATH_RE = /^(?:recommendations\.[A-Za-z_]+\[[0-9]+\]|trends\.shortTerm\[[0-9]+\]|nextWeek\[[0-9]+\]|nextWeekPoints\[[0-9]+\])$/;
+const WATCH_PATH_RE = /^(?:trends\.shortTerm\[[0-9]+\]|nextWeek\[[0-9]+\]|nextWeekPoints\[[0-9]+\])$/;
 
 function check(ctx, doc, config) {
   const findings = [];

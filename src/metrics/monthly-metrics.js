@@ -208,12 +208,14 @@ function computeMonthlyMetrics(month) {
         projects: previous.stats.totalProjects,
         newStarsTotal: previous.stats.newStarsTotal,
         rookies: previous.rookiesCount,
+        priorProjects: previous.stats.totalProjects - previous.rookiesCount,
         top5Share: previous.top5Share,
       }
     : {
         projects: 0,
         newStarsTotal: 0,
         rookies: 0,
+        priorProjects: 0,
         top5Share: 0,
       };
 
@@ -249,6 +251,7 @@ function enrichMonthlyBrief(brief, options = {}) {
     ...metrics.stats,
     recurringProjects: metrics.top.filter(item => item.daysOnList >= 2).length,
     newProjects: metrics.rookiesCount,
+    priorProjects: metrics.stats.totalProjects - metrics.rookiesCount,
     top5Share: metrics.top5Share,
   };
   brief.prevMonthStats = metrics.prevMonthStats;

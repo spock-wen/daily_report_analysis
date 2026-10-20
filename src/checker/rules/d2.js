@@ -3,13 +3,17 @@
 const { extractRepoRefs } = require('../text');
 const { makeFinding } = require('./util');
 
-function check(ctx, doc) {
+function check(ctx, doc, config) {
   const findings = [];
-  const known = ctx.fullNames;
+  const known = new Set();
+  for (const name of ctx.allowedFullNames || ctx.fullNames || []) {
+    known.add(String(name).toLowerCase());
+  }
+  const commonWords = new Set((config.commonSlashWords || []).map(word => String(word).toLowerCase()));
 
   for (const item of doc.strings) {
-    for (const ref of extractRepoRefs(item.value)) {
-      if (known.has(ref.raw)) continue;
+    for (const ref of extractRepoRefs(item.value, { knownFullNames: known, commonWords })) {
+      if (ref.known) continue;
       findings.push(makeFinding('D2', doc, {
         field: item.path,
         line: item.line,

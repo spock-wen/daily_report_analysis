@@ -35,6 +35,7 @@ function loadConfig(options = {}) {
     compareWords: readLines('compare_words.txt'),
     fixedPhrases: readLines('fixed_phrases.txt'),
     c4Whitelist: readLines('c4_whitelist.txt'),
+    commonSlashWords: readLines('common_slash_words.txt'),
   };
   return cache;
 }

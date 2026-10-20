@@ -72,16 +72,16 @@ function isValidPeriod(level, period) {
 }
 
 function printUsage() {
-  console.error(`用法：node scripts/generate-sample.js <daily|weekly|monthly> <期次> [--out-dir D] [--data-dir D] [--write-html-on-fail]
+  console.error(`用法：node scripts/generate-sample.js <daily|weekly|monthly> <期次> --data-dir D --out-dir D [--write-html-on-fail]
 
 期次示例：
   daily   2026-10-12
   weekly  2026-W42
   monthly 2026-09
 
-选项：
-  --data-dir D          既有 brief/insights 的源数据目录（默认 ./data）
-  --out-dir D           输出根目录，写入其下 data/、reports/、check/（默认仓库根目录）
+必填选项：
+  --data-dir D          既有 brief/insights 的源数据目录（不得回退到 ./data）
+  --out-dir D           输出根目录，写入其下 data/、reports/、check/（不得是仓库根目录或位于源 data-dir 内）
   --write-html-on-fail  核查 FAIL 时仍写 HTML 供审阅，文件名带 .FAIL 标记`);
 }
 
@@ -102,6 +102,8 @@ function ensureDir(dirPath) {
 function copyFileIfNeeded(srcPath, destPath) {
   if (path.resolve(srcPath) === path.resolve(destPath)) return false;
   if (!fs.existsSync(srcPath)) return false;
+  // 不覆盖已有文件：先前生成的 r2 brief/insights 必须被后续期次沿用。
+  if (fs.existsSync(destPath)) return false;
   ensureDir(path.dirname(destPath));
   fs.copyFileSync(srcPath, destPath);
   return true;
@@ -154,7 +156,8 @@ function copySupportingData(sourceDataDir, outDataDir, level, period) {
 
   if (level === 'daily') {
     const from = history.addDays(period, -30);
-    const briefDates = listDailyDates(sourceBriefsDaily).filter(date => date >= from && date <= period);
+    // 当期 brief/insights 由本次运行生成；这里只拷历史，避免把当期文件当成「已存在」。
+    const briefDates = listDailyDates(sourceBriefsDaily).filter(date => date >= from && date < period);
     copyDailyBriefs(briefDates);
 
     const insightDates = listDailyInsightDates(sourceInsightsDaily).filter(date => date >= from && date < period);
@@ -179,7 +182,8 @@ function copySupportingData(sourceDataDir, outDataDir, level, period) {
       history.shiftISOWeek(period, -2),
     ].filter(Boolean);
 
-    for (const week of weeks.slice(0, 2)) {
+    // 当期周榜 brief 从源目录直接读，不拷入输出目录。
+    for (const week of weeks.slice(1, 2)) {
       copy(path.join('briefs', 'weekly', `data-weekly-${week}.json`));
     }
     for (const week of weeks.slice(1)) {
@@ -190,8 +194,9 @@ function copySupportingData(sourceDataDir, outDataDir, level, period) {
 
   const monthDates = history.getMonthDates(period);
   const prevMonth = history.getPrevMonth(period);
-  const prevMonthDates = history.getMonthDates(prevMonth);
-  const start = prevMonthDates[0] || monthDates[0];
+  const prevMonthDates = prevMonth ? history.getMonthDates(prevMonth) : [];
+  // 上月新秀需要回看上月第一天之前的 30 天（例如 2026-08 需要 7 月日榜）。
+  const start = history.addDays(prevMonthDates[0] || monthDates[0], -30);
   const end = monthDates[monthDates.length - 1];
 
   const briefDates = listDailyDates(sourceBriefsDaily).filter(date => date >= start && date <= end);
@@ -201,7 +206,6 @@ function copySupportingData(sourceDataDir, outDataDir, level, period) {
     copy(path.join('insights', 'weekly', `insights-${week}.json`));
   }
 
-  copy(path.join('briefs', 'monthly', `data-month-${period}.json`));
   if (prevMonth) {
     copy(path.join('briefs', 'monthly', `data-month-${prevMonth}.json`));
     const prevPrevMonth = history.getPrevMonth(prevMonth);
@@ -397,6 +401,21 @@ function addFailMarker(htmlPath) {
   return `${htmlPath.slice(0, -ext.length)}.FAIL${ext}`;
 }
 
+function isSameOrInside(childPath, parentPath) {
+  const relative = path.relative(parentPath, childPath);
+  return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
+}
+
+function reportDirName(level) {
+  return level;
+}
+
+function reportFileName(level, period) {
+  if (level === 'daily') return `github-ai-trending-${period}.html`;
+  if (level === 'weekly') return `github-weekly-${period}.html`;
+  return `github-monthly-${period}.html`;
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const [level, period] = args.positional;
@@ -411,15 +430,28 @@ async function main() {
     return 2;
   }
 
-  const sourceDataDir = path.resolve(
-    args.options['data-dir']
-      || process.env.REPORT_DATA_DIR
-      || path.join(ROOT_DIR, 'data')
-  );
-  const outDir = path.resolve(args.options['out-dir'] || ROOT_DIR);
+  const dataDirOption = args.options['data-dir'];
+  const outDirOption = args.options['out-dir'];
+  if (typeof dataDirOption !== 'string' || typeof outDirOption !== 'string') {
+    console.error('错误：--data-dir 与 --out-dir 均为必填，不使用仓库根目录或 data/ 作为默认值。');
+    printUsage();
+    return 2;
+  }
+
+  const sourceDataDir = path.resolve(dataDirOption);
+  const outDir = path.resolve(outDirOption);
   const outDataDir = path.join(outDir, 'data');
   const outReportsDir = path.join(outDir, 'reports');
   const writeHtmlOnFail = args.options['write-html-on-fail'] === true;
+
+  if (outDir === path.resolve(ROOT_DIR)) {
+    console.error(`错误：--out-dir 不得等于仓库根目录：${outDir}`);
+    return 2;
+  }
+  if (isSameOrInside(outDir, sourceDataDir) || isSameOrInside(outDataDir, sourceDataDir)) {
+    console.error(`错误：--out-dir 不得等于或位于源 data-dir 内（out-dir=${outDir}，data-dir=${sourceDataDir}）`);
+    return 2;
+  }
 
   const sourceBriefPath = path.join(sourceDataDir, 'briefs', level, briefFileName(level, period));
   if (!fs.existsSync(sourceBriefPath)) {
@@ -427,14 +459,21 @@ async function main() {
     return 2;
   }
 
+  const outBriefPath = path.join(outDataDir, 'briefs', level, briefFileName(level, period));
+  const outInsightsPath = path.join(outDataDir, 'insights', level, insightFileName(period));
+  const outReportPath = path.join(outReportsDir, reportDirName(level), reportFileName(level, period));
+  const conflicts = [outBriefPath, outInsightsPath, outReportPath, addFailMarker(outReportPath)]
+    .filter(filePath => fs.existsSync(filePath));
+  if (conflicts.length > 0) {
+    console.error('错误：以下输出文件已存在，拒绝覆盖：');
+    for (const filePath of conflicts) console.error(`  - ${filePath}`);
+    return 2;
+  }
+
   process.env.REPORT_DATA_DIR = outDataDir;
   process.env.REPORT_OUT_DIR = outReportsDir;
   process.env.REPORT_NO_PUSH = '1';
   process.env.REPORT_NO_WIKI = '1';
-
-  if (path.resolve(outDataDir) === path.resolve(sourceDataDir)) {
-    console.warn(`[generate-sample] 输出数据目录与源目录相同，将就地更新 ${level} ${period} 的 brief/insights`);
-  }
 
   copySupportingData(sourceDataDir, outDataDir, level, period);
   history.resetHistoryCache();
@@ -463,17 +502,11 @@ async function main() {
     return 2;
   }
 
-  const outBriefPath = path.join(outDataDir, 'briefs', level, briefFileName(level, period));
   const writeBrief = () => {
     ensureDir(path.dirname(outBriefPath));
     fs.writeFileSync(outBriefPath, `${JSON.stringify(brief, null, 2)}\n`, 'utf8');
   };
   writeBrief();
-
-  const outInsightsPath = path.join(outDataDir, 'insights', level, insightFileName(period));
-  if (path.resolve(outDataDir) !== path.resolve(sourceDataDir) && fs.existsSync(outInsightsPath)) {
-    fs.unlinkSync(outInsightsPath);
-  }
 
   const InsightAnalyzer = require('../src/analyzer/insight-analyzer');
   const MonthlyAnalyzer = require('../src/analyzer/monthly-analyzer');
@@ -536,6 +569,7 @@ async function main() {
     period,
     dataDir: outDataDir,
     logger: gateLogger,
+    writeHtmlOnFail,
     getAiCallCount: () => analyzer.getAiCallCount(),
     rewrite: async (findings) => {
       const rewritten = await runAnalysis({ feedback: findings });
