@@ -13,7 +13,7 @@ const logger = require('../src/utils/logger');
 
 // 解析命令行参数
 const args = process.argv.slice(2);
-const noPush = args.includes('--no-push');
+const noPush = args.includes('--no-push') || process.env.REPORT_NO_PUSH === '1';
 
 // 重试配置
 const MAX_RETRIES = 3;
@@ -23,7 +23,7 @@ async function runWeeklyWorkflow() {
   logger.info('============================================');
   logger.info('🚀 开始执行周报完整工作流');
   if (noPush) {
-    logger.info('📢 已禁用推送通知 (--no-push)');
+    logger.info('📢 已禁用推送通知 (--no-push / REPORT_NO_PUSH=1)');
   }
   logger.info('============================================');
 

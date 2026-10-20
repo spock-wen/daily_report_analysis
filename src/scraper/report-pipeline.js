@@ -12,12 +12,19 @@
 
 const logger = require('../utils/logger');
 const { writeJson } = require('../utils/fs');
+const { getEnvBool } = require('../utils/config');
 const fs = require('fs');
 const {
   getDailyBriefPath,
   getWeeklyBriefPath,
   getMonthlyBriefPath
 } = require('../utils/path');
+const {
+  enrichDailyBrief,
+  enrichWeeklyBrief,
+  enrichMonthlyBrief,
+  getISOWeekDates
+} = require('../metrics');
 
 // 导入依赖模块
 const InsightAnalyzer = require('../analyzer/insight-analyzer');
@@ -112,6 +119,11 @@ class ReportPipeline {
         logger.info('[ReportPipeline] 月报数据为聚合数据，跳过仓库增强');
       }
 
+      // 步骤 1.5: 计算期内指标
+      await this.executeStep('compute-metrics', async () => {
+        this.attachMetrics(data, type);
+      }, result);
+
       // 步骤 2: 调用 AI 分析生成洞察
       if (this.enableAI) {
         // 如果数据中已有 AI 洞察（如月报预生成），则跳过 AI 分析
@@ -138,12 +150,16 @@ class ReportPipeline {
 
       // 步骤 3.5: 更新 Wiki（日报、周报、月报）
       if (type === 'daily' || type === 'weekly' || type === 'monthly') {
-        await this.executeStep('update-wiki', async () => {
-          await this.updateProjectWikis(data, result.insights, type);
-        }, result);
+        if (getEnvBool('REPORT_NO_WIKI', false)) {
+          logger.info('[ReportPipeline] REPORT_NO_WIKI=1，跳过 Wiki 更新');
+        } else {
+          await this.executeStep('update-wiki', async () => {
+            await this.updateProjectWikis(data, result.insights, type);
+          }, result);
+        }
 
         // 步骤 3.6: Wiki 后处理（日报、周报、月报）
-        if (this.enableWikiPostProcessing) {
+        if (this.enableWikiPostProcessing && !getEnvBool('REPORT_NO_WIKI', false)) {
           await this.executeStep('wiki-post-processing', async () => {
             try {
               const projects = data.repositories || data.projects || [];
@@ -327,6 +343,27 @@ class ReportPipeline {
     };
   }
 
+  attachMetrics(data, type) {
+    if (type === 'daily') {
+      if (data.date) enrichDailyBrief(data, { date: data.date });
+      return;
+    }
+
+    if (type === 'weekly') {
+      const week = this.getWeeklyIdentifier(data);
+      const weekDates = getISOWeekDates(week);
+      data.weekStart = week;
+      data.weekEnd = weekDates[6] || data.weekEnd;
+      enrichWeeklyBrief(data, { week });
+      return;
+    }
+
+    if (type === 'monthly') {
+      const month = data.month || data.date;
+      if (month) enrichMonthlyBrief(data, { month });
+    }
+  }
+
   /**
    * 步骤 1: 保存原始数据 JSON
    * @param {Object} data - 原始数据
@@ -389,10 +426,30 @@ class ReportPipeline {
     // 周报特定字段
     if (type === 'weekly') {
       formatted.weekStart = identifier;
-      const weekEnd = this.calculateWeekEnd(identifier);
-      formatted.weekEnd = weekEnd;
+      const weekDates = getISOWeekDates(identifier);
+      formatted.weekEnd = weekDates[6] || this.calculateWeekEnd(identifier);
+      formatted.weekNewStars = data.weekNewStars;
+      formatted.prevWeekStats = data.prevWeekStats;
+      formatted.dailyCounts = data.dailyCounts;
+      formatted.weekMetrics = data.weekMetrics;
     }
-    
+
+    if (type === 'daily') {
+      formatted.dailyDiff = data.dailyDiff;
+      formatted.streakDays = data.streakDays;
+    }
+
+    if (type === 'monthly') {
+      if (data.stats) formatted.stats = data.stats;
+      formatted.prevMonthStats = data.prevMonthStats;
+      formatted.weekThemes = data.weekThemes;
+      formatted.monthTop = data.monthTop;
+      formatted.dropList = data.dropList;
+      if (data.dropListNote) formatted.dropListNote = data.dropListNote;
+    }
+
+    if (data.caption) formatted.caption = data.caption;
+
     // 生成 summary
     formatted.summary = this.generateSummary(formatted);
     

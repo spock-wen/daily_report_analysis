@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const logger = require('../../utils/logger');
+const { computeMonthlyMetrics } = require('../../metrics');
 
 /**
  * 月度数据聚合器
@@ -8,8 +9,9 @@ const logger = require('../../utils/logger');
  */
 class MonthlyAggregator {
   constructor() {
-    // 使用项目根目录的 data 文件夹
-    this.dataDir = path.join(__dirname, '../../../data');
+    this.dataDir = process.env.REPORT_DATA_DIR
+      ? path.resolve(process.env.REPORT_DATA_DIR)
+      : path.join(__dirname, '../../../data');
   }
 
   /**
@@ -33,13 +35,22 @@ class MonthlyAggregator {
 
     // 计算聚合统计
     const aggregation = await this.computeAggregation(allProjects, dailyDataList);
+    const metrics = computeMonthlyMetrics(month);
 
     const result = {
       month,
       generatedAt: new Date().toISOString(),
       dailyDataList,
       weeklyDataList,
-      aggregation
+      aggregation,
+      metrics,
+      stats: metrics.stats,
+      prevMonthStats: metrics.prevMonthStats,
+      weekThemes: metrics.weekThemes,
+      monthTop: metrics.monthTop,
+      dropList: metrics.dropList,
+      dropListNote: metrics.dropListNote,
+      caption: metrics.caption
     };
 
     logger.success('月度数据聚合完成', {

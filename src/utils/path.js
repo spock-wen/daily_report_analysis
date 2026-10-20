@@ -9,10 +9,14 @@ const path = require('path');
 const ROOT_DIR = path.join(__dirname, '../..');
 
 // 基础目录
-const DATA_DIR = path.join(ROOT_DIR, 'data');
+const DATA_DIR = process.env.REPORT_DATA_DIR
+  ? path.resolve(process.env.REPORT_DATA_DIR)
+  : path.join(ROOT_DIR, 'data');
 const BRIEFS_DIR = path.join(DATA_DIR, 'briefs');
 const INSIGHTS_DIR = path.join(DATA_DIR, 'insights');
-const REPORTS_DIR = path.join(ROOT_DIR, 'reports');
+const REPORTS_DIR = process.env.REPORT_OUT_DIR
+  ? path.resolve(process.env.REPORT_OUT_DIR)
+  : path.join(ROOT_DIR, 'reports');
 const CONFIG_DIR = path.join(ROOT_DIR, 'config');
 const SRC_DIR = path.join(ROOT_DIR, 'src');
 

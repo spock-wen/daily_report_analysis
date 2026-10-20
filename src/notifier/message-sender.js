@@ -16,6 +16,15 @@ const WELINK_ENABLED = getEnvBool('WELINK_ENABLED', false);
 
 const FEISHU_API_BASE = 'https://open.feishu.cn/open-apis';
 
+function isPushDisabled() {
+  const value = process.env.REPORT_NO_PUSH;
+  return value === '1' || value === 'true';
+}
+
+function skipPush() {
+  console.log('SKIP_PUSH');
+}
+
 // Token 缓存
 let cachedToken = null;
 let tokenExpireTime = 0;
@@ -30,6 +39,11 @@ class MessageSender {
    * @returns {Promise<Object>} 发送结果
    */
   async sendFeishu(options) {
+    if (isPushDisabled()) {
+      skipPush();
+      return { success: false, platform: 'feishu', skipped: true };
+    }
+
     if (!FEISHU_ENABLED) {
       logger.warn('飞书通知已禁用，跳过发送');
       return { success: false, platform: 'feishu', error: '飞书通知已禁用' };
@@ -156,6 +170,11 @@ class MessageSender {
    * @returns {Promise<Array>} 发送结果数组
    */
   async sendWeLink(options) {
+    if (isPushDisabled()) {
+      skipPush();
+      return { success: false, platform: 'welink', skipped: true };
+    }
+
     if (!WELINK_ENABLED) {
       logger.warn('WeLink 通知已禁用，跳过发送');
       return { success: false, platform: 'welink', error: 'WeLink 通知已禁用' };
@@ -223,6 +242,14 @@ class MessageSender {
    * @returns {Promise<Array>} 发送结果
    */
   async sendAll(options) {
+    if (isPushDisabled()) {
+      skipPush();
+      return [
+        { success: false, platform: 'feishu', skipped: true },
+        { success: false, platform: 'welink', skipped: true }
+      ];
+    }
+
     // 顺序执行，避免共享状态问题
     const [feishuResult, welinkResult] = await Promise.all([
       this.sendFeishu({ ...options }),
@@ -239,6 +266,11 @@ class MessageSender {
    * @returns {Promise<Object>} { feishu: Object, welink: Object, logs: string[] }
    */
   async sendWeeklyAll(weeklyData, insights, options = {}) {
+    if (isPushDisabled()) {
+      skipPush();
+      return { feishu: null, welink: null, logs: ['SKIP_PUSH'], skipped: true };
+    }
+
     const results = {
       feishu: null,
       welink: null,
@@ -307,6 +339,11 @@ class MessageSender {
    * @returns {Promise<Object>} { feishu: Object, welink: Object, logs: string[] }
    */
   async sendMonthlyAll(monthlyData, insights, options = {}) {
+    if (isPushDisabled()) {
+      skipPush();
+      return { feishu: null, welink: null, logs: ['SKIP_PUSH'], skipped: true };
+    }
+
     const results = {
       feishu: null,
       welink: null,

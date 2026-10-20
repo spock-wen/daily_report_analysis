@@ -11,13 +11,16 @@ const WikiManager = require('./wiki-manager');
 const WikiIndexGenerator = require('../generator/wiki-index-generator');
 const CrossReferenceAnalyzer = require('./cross-reference');
 const logger = require('../utils/logger');
+const { getEnvBool } = require('../utils/config');
 
 class WikiPostProcessor {
   constructor(options = {}) {
     this.wikiManager = new WikiManager(options);
     this.indexGenerator = new WikiIndexGenerator({
       baseDir: this.wikiManager.baseDir,
-      outputDir: options.outputDir || path.join(process.cwd(), 'reports')
+      outputDir: options.outputDir || (process.env.REPORT_OUT_DIR
+        ? path.resolve(process.env.REPORT_OUT_DIR)
+        : path.join(process.cwd(), 'reports'))
     });
     this.analyzer = new CrossReferenceAnalyzer();
     this.domainsDir = options.domainsDir || this.wikiManager.domainsDir;
@@ -32,6 +35,16 @@ class WikiPostProcessor {
    * @returns {Promise<Object>} 处理结果
    */
   async process(projects, type, monthlyData = null, generateTrendAnalysis = null) {
+    if (getEnvBool('REPORT_NO_WIKI', false)) {
+      logger.info('[WikiPostProcessor] REPORT_NO_WIKI=1，跳过 Wiki 后处理');
+      return {
+        success: true,
+        skipped: true,
+        projectsProcessed: 0,
+        type
+      };
+    }
+
     try {
       logger.info(`开始 Wiki 后处理 (${type})...`);
 
@@ -87,6 +100,7 @@ class WikiPostProcessor {
    * @returns {Promise<void>}
    */
   async _updateDomainWikiWithTrend(domain, projects, monthlyData, trendAnalysis) {
+    if (getEnvBool('REPORT_NO_WIKI', false)) return;
     const domainFilePath = path.join(this.domainsDir, `${domain}.md`);
 
     // 获取该领域所有项目（包括已有的和新加入的）
@@ -274,6 +288,7 @@ ${this._generateDomainTrend(domain, projects)}
    * @param {string} type - 报告类型
    */
   async _updateDomainWiki(domain, projects, type) {
+    if (getEnvBool('REPORT_NO_WIKI', false)) return;
     const domainFilePath = path.join(this.domainsDir, `${domain}.md`);
 
     // 获取该领域所有项目（包括已有的和新加入的）

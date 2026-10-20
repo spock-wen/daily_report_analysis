@@ -18,7 +18,7 @@ const MonthlyGenerator = require('../src/generator/monthly-generator');
 
 // 解析命令行参数
 const args = process.argv.slice(2);
-const noPush = args.includes('--no-push');
+const noPush = args.includes('--no-push') || process.env.REPORT_NO_PUSH === '1';
 
 // 自动推断月份：默认上个月，支持手动指定（跳过 --no-push）
 const monthArg = args.find(a => !a.startsWith('--'));
@@ -37,7 +37,7 @@ async function runMonthlyWorkflow(month) {
   logger.info('============================================');
   logger.info('🚀 开始执行月报完整工作流');
   if (noPush) {
-    logger.info('📢 已禁用推送通知 (--no-push)');
+    logger.info('📢 已禁用推送通知 (--no-push / REPORT_NO_PUSH=1)');
   }
   logger.info('============================================', { month });
 
