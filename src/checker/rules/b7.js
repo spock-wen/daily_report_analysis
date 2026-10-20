@@ -224,8 +224,8 @@ function checkMonthlyCombinations(ctx, doc, item, findings) {
         /(?:新项目|新秀)\s*(\d+)\s*个/g,
       ]);
       const priorCounts = collect([
-        /(\d+)\s*个(?:项目)?\s*(?:本月|当月)?\s*(?:之前已上榜|非新秀)/g,
-        /(?:之前已上榜|非新秀)[^。；\n]{0,12}(\d+)\s*个/g,
+        /(?<![\d,.])(\d+)\s*个(?:项目)?\s*(?:本月|当月)?\s*(?:之前已上榜|非新秀)/g,
+        /(?:之前已上榜|非新秀)[^。；\n]{0,12}(?<![\d,.])(\d+)\s*个/g,
       ]);
       if (newCounts.length > 0 && priorCounts.length > 0) {
         const newCount = newCounts[0].value;
@@ -250,8 +250,8 @@ function checkMonthlyCombinations(ctx, doc, item, findings) {
   }
 
   if (Number.isFinite(prior)) {
-    const priorRe = /(\d+)\s*个(?:项目)?\s*(?:本月|当月)?\s*之前已上榜/g;
-    const priorReverseRe = /(?:本月|当月)之前已上榜[^。；\n]{0,12}(\d+)\s*个/g;
+    const priorRe = /(?<![\d,.])(\d+)\s*个(?:项目)?\s*(?:本月|当月)?\s*之前已上榜/g;
+    const priorReverseRe = /(?:本月|当月)之前已上榜[^。；\n]{0,12}(?<![\d,.])(\d+)\s*个/g;
     let match;
     while ((match = priorRe.exec(text)) !== null) {
       const value = Number(match[1]);

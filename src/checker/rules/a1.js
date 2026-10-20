@@ -71,8 +71,9 @@ function check(ctx, doc, config) {
         if (analysis.aggregate || analysis.cumulativeOnly) continue;
 
         const { project, ambiguous } = resolveProject(ctx, doc, item, sentence, clause);
+        const hasMention = findProjectMentions(sentence, ctx.projects).length > 0;
         const active = analysis.items.filter(entry =>
-          !entry.threshold && !(entry.comparator && !project && !ambiguous));
+          !entry.threshold && !(entry.comparator && !project && !hasMention));
 
         if (!project) {
           if (active.length === 0) continue;

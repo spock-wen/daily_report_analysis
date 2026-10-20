@@ -134,8 +134,10 @@ const STAR_UNIT = {
 };
 
 const STAR_CONTEXT_RE = /星|★|Stars|stars/;
-const AGGREGATE_MARKER_RE = /合计|上周|全周|环比|换血率/;
+const AGGREGATE_MARKER_RE = /合计|上周/;
 const THRESHOLD_MARKER_RE = /门槛|基准|阈值/;
+const THRESHOLD_SUFFIX_RE = /^\s*星?\s*(?:以上|以下|以内)/;
+const THRESHOLD_SET_RE = /^\s*星?\s*的?\s*项目/;
 const COMPARATOR_MARKER_RE = /超过|高于|低于|跌破|≥|≤/;
 const CUMULATIVE_MARKER_RE = /总星数|累计星|累计|总计/;
 const TODAY_MARKER_RE = /当期|期内|今日|当天|单日|日增|新增|todayStars/i;
@@ -147,6 +149,7 @@ function hasStarContext(text) {
 /**
  * 从含「星」语义的句子里提取数字（含 万/亿/千/k/w 单位）。
  * options.hasStarContext 可由调用方传入整句的「星」语义，用于分句后单句不含「星」的情况。
+ * 紧跟「个」的数字是项目计数，不是星数，不参与星数归属。
  */
 function parseStarNumbers(text, options = {}) {
   const source = String(text || '');
@@ -158,6 +161,7 @@ function parseStarNumbers(text, options = {}) {
   const re = /([0-9][0-9,]*(?:\.[0-9]+)?)\s*(亿|万|千|[kKwW])?/g;
   let match;
   while ((match = re.exec(source)) !== null) {
+    if (/^\s*个/.test(source.slice(match.index + match[0].length))) continue;
     const rawNumber = match[1];
     const unit = match[2] || '';
     const value = Number(rawNumber.replace(/,/g, '')) * (STAR_UNIT[unit] || 1);
@@ -175,9 +179,9 @@ function parseStarNumbers(text, options = {}) {
 
 /**
  * 按 J25/J26/J27 判断分句内每个数字的口径与豁免：
- * - 合计/上周/全周/环比/换血率标记：整个分句视为汇总；
+ * - 合计/上周标记：整个分句视为汇总；
  * - 累计类词：只在该分句同时存在期内数时逐数字比较口径；
- * - 门槛/基准/阈值：仅豁免对应数字；
+ * - 门槛/基准/阈值、以上/以下/以内、以及「…星的项目」门槛数：仅豁免对应数字；
  * - 比较词不整句跳过，只有分句无法归属项目时才豁免比较基准数字。
  */
 function analyzeStarClause(clause, numbers, config) {
@@ -206,7 +210,9 @@ function analyzeStarClause(clause, numbers, config) {
       cumulative,
       today: !cumulative || today,
       threshold: THRESHOLD_MARKER_RE.test(entry.before)
-        || (index === positions.length - 1 && THRESHOLD_MARKER_RE.test(after)),
+        || (index === positions.length - 1 && THRESHOLD_MARKER_RE.test(after))
+        || THRESHOLD_SUFFIX_RE.test(after)
+        || THRESHOLD_SET_RE.test(after),
       comparator: COMPARATOR_MARKER_RE.test(entry.before),
     };
   });
