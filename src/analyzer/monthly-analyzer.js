@@ -144,11 +144,22 @@ class MonthlyAnalyzer {
     const stats = monthlyData.stats?.totalProjects
       ? monthlyData.stats
       : (computed?.stats || monthlyData.stats || {});
+    const priorProjects = stats.priorProjects
+      ?? (computed?.stats?.totalProjects !== undefined && computed?.rookiesCount !== undefined
+        ? computed.stats.totalProjects - computed.rookiesCount
+        : undefined);
+    const rookiesCount = monthlyData.rookiesCount
+      ?? computed?.rookiesCount
+      ?? (stats.totalProjects !== undefined && priorProjects !== undefined
+        ? stats.totalProjects - priorProjects
+        : undefined);
     const monthTop = monthlyData.monthTop || computed?.monthTop || [];
     const facts = {
       month,
       caption: monthlyData.caption || computed?.caption,
       stats,
+      rookiesCount,
+      priorProjects,
       prevMonthStats: monthlyData.prevMonthStats || computed?.prevMonthStats,
       weekThemes: monthlyData.weekThemes || computed?.weekThemes,
       monthTop,

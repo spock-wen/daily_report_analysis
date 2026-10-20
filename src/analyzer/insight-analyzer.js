@@ -452,6 +452,12 @@ class InsightAnalyzer {
           ...(aggregation.recurringProjects?.map(item => item.repo) || [])
         ].filter(Boolean))
       ];
+      const stats = pick('stats') || {};
+      const priorProjects = stats.priorProjects ?? stats.prior_projects;
+      const rookiesCount = pick('rookiesCount')
+        ?? (stats.totalProjects !== undefined && priorProjects !== undefined
+          ? stats.totalProjects - priorProjects
+          : undefined);
 
       return {
         level,
@@ -459,7 +465,9 @@ class InsightAnalyzer {
         dailyCount: source.dailyDataList?.length || 0,
         weeklyCount: source.weeklyDataList?.length || 0,
         caption: pick('caption'),
-        stats: pick('stats'),
+        stats,
+        rookiesCount,
+        priorProjects,
         prevMonthStats: pick('prevMonthStats'),
         weekThemes: pick('weekThemes'),
         monthTop,

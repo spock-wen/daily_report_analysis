@@ -133,6 +133,16 @@ function buildContext(options = {}) {
     }
   }
 
+  if (level === 'monthly' && period) {
+    const prevMonth = history.getPrevMonth(period);
+    if (prevMonth) {
+      const prevMetrics = getMonthlyMetrics(prevMonth);
+      for (const item of prevMetrics?.top || []) {
+        if (item.fullName) allowedFullNames.add(item.fullName);
+      }
+    }
+  }
+
   return {
     level,
     period,

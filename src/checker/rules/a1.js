@@ -5,20 +5,14 @@ const {
   splitSentenceUnits,
   hasStarContext,
   parseStarNumbers,
+  analyzeStarClause,
   matchesStarValue,
   findProjectMentions,
 } = require('../text');
 const { makeFinding } = require('./util');
 
-const TRIGGER_RE = /单日|今日|当天|新增|日增/;
-const SKIP_RE = /合计|门槛|阈值|上周|全周|环比|换血率|跌破|超过|高于|低于|≥|≤/;
+const TRIGGER_RE = /单日|今日|当天|新增|日增|当期|期内/;
 const CARD_NAME_KEYS = ['project_name', 'projectName', 'fullName', 'repo', 'name'];
-
-function isAggregateClause(clause, config) {
-  if (SKIP_RE.test(clause)) return true;
-  const words = (config && config.cumulativeWords) || [];
-  return words.some(word => word && clause.includes(word));
-}
 
 function matchProject(ctx, value) {
   if (!value) return null;
@@ -72,10 +66,16 @@ function check(ctx, doc, config) {
       for (const clause of splitClauses(sentence)) {
         const numbers = parseStarNumbers(clause, { hasStarContext: hasStar });
         if (numbers.length === 0) continue;
-        if (isAggregateClause(clause, config)) continue;
+
+        const analysis = analyzeStarClause(clause, numbers, config);
+        if (analysis.aggregate || analysis.cumulativeOnly) continue;
 
         const { project, ambiguous } = resolveProject(ctx, doc, item, sentence, clause);
+        const active = analysis.items.filter(entry =>
+          !entry.threshold && !(entry.comparator && !project && !ambiguous));
+
         if (!project) {
+          if (active.length === 0) continue;
           findings.push(makeFinding('A1', doc, {
             field: item.path,
             line: item.line,
@@ -85,13 +85,15 @@ function check(ctx, doc, config) {
           continue;
         }
 
-        for (const number of numbers) {
-          if (matchesStarValue(number, project.todayStars)) continue;
+        for (const entry of active) {
+          const expected = entry.cumulative ? project.stars : project.todayStars;
+          if (!Number.isFinite(expected)) continue;
+          if (matchesStarValue(entry.number, expected)) continue;
           findings.push(makeFinding('A1', doc, {
             field: item.path,
             line: item.line,
             quote: clause,
-            message: `「${number.raw}」不等于 ${project.fullName} 的 todayStars ${project.todayStars}`,
+            message: `「${entry.number.raw}」不等于 ${project.fullName} 的 ${entry.cumulative ? 'stars' : 'todayStars'} ${expected}`,
           }));
         }
       }

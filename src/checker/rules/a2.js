@@ -5,6 +5,7 @@ const {
   splitSentenceUnits,
   hasStarContext,
   parseStarNumbers,
+  analyzeStarClause,
   matchesStarValue,
   findProjectMentions,
   stripHtml,
@@ -12,15 +13,7 @@ const {
 const { makeFinding } = require('./util');
 
 const STAR_UNIT = { 亿: 1e8, 万: 1e4, 千: 1e3, k: 1e3, K: 1e3, w: 1e4, W: 1e4 };
-const SKIP_RE = /合计|门槛|阈值|上周|全周|环比|换血率/;
-const THRESHOLD_RE = /跌破|超过|高于|低于|≥|≤/;
 const CARD_NAME_KEYS = ['project_name', 'projectName', 'fullName', 'repo', 'name'];
-
-function isAggregateClause(clause, config) {
-  if (SKIP_RE.test(clause)) return true;
-  const words = (config && config.cumulativeWords) || [];
-  return words.some(word => word && clause.includes(word));
-}
 
 function matchProject(ctx, value) {
   if (!value) return null;
@@ -68,12 +61,16 @@ function checkInsights(ctx, doc, config) {
       for (const clause of splitClauses(sentence)) {
         const numbers = parseStarNumbers(clause, { hasStarContext: hasStar });
         if (numbers.length === 0) continue;
-        if (isAggregateClause(clause, config)) continue;
-        if (THRESHOLD_RE.test(clause)) continue;
+
+        const analysis = analyzeStarClause(clause, numbers, config);
+        if (analysis.aggregate || analysis.cumulativeOnly) continue;
 
         const { project, ambiguous } = resolveProject(ctx, doc, item, sentence, clause);
+        const active = analysis.items.filter(entry =>
+          !entry.threshold && !(entry.comparator && !project && !ambiguous));
 
         if (!project) {
+          if (active.length === 0) continue;
           findings.push(makeFinding('A2', doc, {
             field: item.path,
             line: item.line,
@@ -83,16 +80,16 @@ function checkInsights(ctx, doc, config) {
           continue;
         }
 
-        if (!Number.isFinite(project.todayStars)) continue;
-
-        for (const number of numbers) {
-          if (matchesStarValue(number, project.todayStars)) continue;
-          if (number.value < 10000) continue;
+        for (const entry of active) {
+          if (entry.number.value < 10000) continue;
+          const expected = entry.cumulative ? project.stars : project.todayStars;
+          if (!Number.isFinite(expected)) continue;
+          if (matchesStarValue(entry.number, expected)) continue;
           findings.push(makeFinding('A2', doc, {
             field: item.path,
             line: item.line,
             quote: clause,
-            message: `「${number.raw}」与 ${project.fullName} 的本周新增 ${project.todayStars} 不符`,
+            message: `「${entry.number.raw}」与 ${project.fullName} 的${entry.cumulative ? '累计' : '本周新增'} ${expected} 不符`,
           }));
         }
       }

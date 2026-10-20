@@ -134,6 +134,11 @@ const STAR_UNIT = {
 };
 
 const STAR_CONTEXT_RE = /星|★|Stars|stars/;
+const AGGREGATE_MARKER_RE = /合计|上周|全周|环比|换血率/;
+const THRESHOLD_MARKER_RE = /门槛|基准|阈值/;
+const COMPARATOR_MARKER_RE = /超过|高于|低于|跌破|≥|≤/;
+const CUMULATIVE_MARKER_RE = /总星数|累计星|累计|总计/;
+const TODAY_MARKER_RE = /当期|期内|今日|当天|单日|日增|新增|todayStars/i;
 
 function hasStarContext(text) {
   return STAR_CONTEXT_RE.test(String(text || ''));
@@ -166,6 +171,54 @@ function parseStarNumbers(text, options = {}) {
     });
   }
   return results;
+}
+
+/**
+ * 按 J25/J26/J27 判断分句内每个数字的口径与豁免：
+ * - 合计/上周/全周/环比/换血率标记：整个分句视为汇总；
+ * - 累计类词：只在该分句同时存在期内数时逐数字比较口径；
+ * - 门槛/基准/阈值：仅豁免对应数字；
+ * - 比较词不整句跳过，只有分句无法归属项目时才豁免比较基准数字。
+ */
+function analyzeStarClause(clause, numbers, config) {
+  const source = String(clause || '');
+  const cumulativeWords = ((config && config.cumulativeWords) || []).filter(Boolean);
+  const aggregateMarker = AGGREGATE_MARKER_RE.test(source);
+  const positions = [];
+  let cursor = 0;
+
+  for (const number of numbers || []) {
+    const found = source.indexOf(number.raw, cursor);
+    const start = found < 0 ? cursor : found;
+    const end = start + number.raw.length;
+    positions.push({ number, start, end, before: source.slice(cursor, start) });
+    cursor = end;
+  }
+
+  const items = positions.map((entry, index) => {
+    const nextStart = index + 1 < positions.length ? positions[index + 1].start : source.length;
+    const after = source.slice(entry.end, nextStart);
+    const cumulative = CUMULATIVE_MARKER_RE.test(entry.before)
+      || cumulativeWords.some(word => entry.before.includes(word));
+    const today = TODAY_MARKER_RE.test(entry.before);
+    return {
+      number: entry.number,
+      cumulative,
+      today: !cumulative || today,
+      threshold: THRESHOLD_MARKER_RE.test(entry.before)
+        || (index === positions.length - 1 && THRESHOLD_MARKER_RE.test(after)),
+      comparator: COMPARATOR_MARKER_RE.test(entry.before),
+    };
+  });
+
+  const hasCumulative = items.some(item => item.cumulative);
+  const hasToday = items.some(item => item.today && !item.cumulative);
+
+  return {
+    aggregate: aggregateMarker && !(hasCumulative && hasToday),
+    cumulativeOnly: hasCumulative && !hasToday,
+    items,
+  };
 }
 
 function numberTolerance(parsed) {
@@ -494,6 +547,7 @@ module.exports = {
   splitSentenceUnits,
   hasStarContext,
   parseStarNumbers,
+  analyzeStarClause,
   matchesStarValue,
   numberTolerance,
   findProjectMentions,
