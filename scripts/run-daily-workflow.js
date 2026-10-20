@@ -39,7 +39,8 @@ async function runDailyWorkflow() {
         enableAI: true,          // 启用 AI 分析
         enableHTML: true,        // 生成 HTML
         enableIndex: true,       // 更新首页
-        enableNotification: !noPush  // 根据参数决定是否发送通知
+        enableNotification: !noPush,  // 根据参数决定是否发送通知
+        contentCheck: true       // 写 HTML 前跑内容核查闸（D1/D3）
       });
 
       // 执行日报抓取和报告生成
@@ -54,6 +55,10 @@ async function runDailyWorkflow() {
           logger.success(`🔄 重试次数: ${attempt - 1}`);
         }
         logger.success('============================================');
+        return result;
+      } else if (result.errorCode === 'CONTENT_CHECK_FAILED') {
+        logger.error('❌ 内容核查未通过，已停止：不写 HTML、不推送（D1/D3）');
+        logger.error(`📋 FAIL 清单：${result.failPaths?.jsonPath || 'N/A'}`);
         return result;
       } else {
         logger.error(`❌ 第 ${attempt} 次尝试失败: ${result.error}`);

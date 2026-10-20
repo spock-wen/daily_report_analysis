@@ -1,0 +1,255 @@
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+const history = require('../metrics/history');
+const { loadConfig } = require('./config');
+const { buildContext, ensureDataDir, readBriefFromDisk, readInsightsFromDisk } = require('./context');
+const {
+  loadDocument,
+  createJsonDocument,
+  detectDocumentTarget,
+} = require('./document');
+const { dedupeFindings } = require('./rules/util');
+
+const RULES = [
+  require('./rules/a1'),
+  require('./rules/a2'),
+  require('./rules/a5'),
+  require('./rules/b3'),
+  require('./rules/b4'),
+  require('./rules/b5'),
+  require('./rules/b7'),
+  require('./rules/b8'),
+  require('./rules/c1'),
+  require('./rules/c2'),
+  require('./rules/c3'),
+  require('./rules/c4'),
+  require('./rules/c5'),
+  require('./rules/d2'),
+];
+
+function fileExists(filePath) {
+  try {
+    return fs.statSync(filePath).isFile();
+  } catch (error) {
+    return false;
+  }
+}
+
+function briefPathFor(level, period) {
+  const base = history.getBriefsDir();
+  if (level === 'daily') return path.join(base, 'daily', `data-${period}.json`);
+  if (level === 'weekly') return path.join(base, 'weekly', `data-weekly-${period}.json`);
+  if (level === 'monthly') return path.join(base, 'monthly', `data-month-${period}.json`);
+  return null;
+}
+
+function insightsPathFor(level, period) {
+  return path.join(history.getInsightsDir(), level, `insights-${period}.json`);
+}
+
+function sortFindings(findings) {
+  return findings.sort((left, right) => {
+    if ((left.file || '') !== (right.file || '')) return String(left.file || '').localeCompare(String(right.file || ''));
+    if ((left.line || 0) !== (right.line || 0)) return (left.line || 0) - (right.line || 0);
+    if (left.rule_id !== right.rule_id) return left.rule_id.localeCompare(right.rule_id);
+    return String(left.field || '').localeCompare(String(right.field || ''));
+  });
+}
+
+function runRules({ level, period, dataDir, brief, insights, documents }) {
+  const config = loadConfig();
+  const ctx = buildContext({ level, period, dataDir, brief, insights });
+  const findings = [];
+
+  for (const doc of documents) {
+    for (const rule of RULES) {
+      if (!rule.applies(ctx, doc)) continue;
+      const ruleFindings = rule.check(ctx, doc, config) || [];
+      findings.push(...ruleFindings);
+    }
+  }
+
+  return {
+    pass: findings.length === 0,
+    level,
+    period,
+    dataDir,
+    insights,
+    brief,
+    findings: sortFindings(dedupeFindings(findings)),
+  };
+}
+
+function checkReport(options = {}) {
+  const level = options.level;
+  const period = options.period;
+  if (!level || !period) throw new Error('checkReport 需要 level 与 period');
+  const dataDir = ensureDataDir(options.dataDir);
+
+  const briefPath = briefPathFor(level, period);
+  const insightsPath = insightsPathFor(level, period);
+
+  const brief = options.brief !== undefined ? options.brief : readBriefFromDisk(level, period);
+  const insights = options.insights !== undefined ? options.insights : readInsightsFromDisk(level, period);
+
+  const documents = [];
+  if (insights) {
+    documents.push(fileExists(insightsPath)
+      ? loadDocument(insightsPath, 'insights')
+      : createJsonDocument(null, insights, 'insights', { synthetic: true }));
+  }
+  if (brief) {
+    documents.push(fileExists(briefPath)
+      ? loadDocument(briefPath, 'brief')
+      : createJsonDocument(null, brief, 'brief', { synthetic: true }));
+  }
+
+  if (documents.length === 0) {
+    return {
+      pass: false,
+      level,
+      period,
+      dataDir,
+      insights,
+      brief,
+      findings: [{
+        rule_id: 'D1',
+        file: insightsPath,
+        field: null,
+        line: null,
+        quote: '',
+        message: '缺少该期 brief 与 insights，无法核查',
+      }],
+    };
+  }
+
+  return runRules({ level, period, dataDir, brief, insights, documents });
+}
+
+function checkDocument(options = {}) {
+  const filePath = path.resolve(options.filePath);
+  const dataDir = ensureDataDir(options.dataDir);
+  let target = options.target || detectDocumentTarget(filePath);
+  if (!target) throw new Error(`无法识别文档类型：${filePath}`);
+  if (target.date && !target.period) {
+    target = { ...target, period: history.getISOWeekId(target.date) };
+  }
+
+  const doc = loadDocument(filePath, target.role);
+  const brief = target.role === 'brief'
+    ? doc.json
+    : (options.brief !== undefined ? options.brief : readBriefFromDisk(target.level, target.period));
+  const insights = target.role === 'insights'
+    ? doc.json
+    : (options.insights !== undefined ? options.insights : readInsightsFromDisk(target.level, target.period));
+
+  return {
+    ...runRules({
+      level: target.level,
+      period: target.period,
+      dataDir,
+      brief,
+      insights,
+      documents: [doc],
+    }),
+    target,
+    doc,
+  };
+}
+
+function writeFailList(options = {}) {
+  const { level, period, findings } = options;
+  const dataDir = ensureDataDir(options.dataDir);
+  const outDir = options.outDir ? path.resolve(options.outDir) : path.resolve(dataDir, '..', 'check');
+  fs.mkdirSync(outDir, { recursive: true });
+
+  const baseName = `check-${level}-${period}`;
+  const jsonPath = path.join(outDir, `${baseName}.json`);
+  const mdPath = path.join(outDir, `${baseName}.md`);
+
+  const payload = {
+    level,
+    period,
+    generatedAt: new Date().toISOString(),
+    pass: false,
+    count: findings.length,
+    findings: findings.map(finding => ({
+      file: finding.file,
+      field: finding.field,
+      line: finding.line,
+      rule_id: finding.rule_id,
+      quote: finding.quote,
+      message: finding.message,
+    })),
+  };
+  fs.writeFileSync(jsonPath, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+
+  const lines = [];
+  lines.push(`# 内容核查 FAIL 清单：${level} ${period}`);
+  lines.push('');
+  lines.push(`- 生成时间：${payload.generatedAt}`);
+  lines.push(`- FAIL 条数：${findings.length}`);
+  lines.push('');
+  lines.push('| 规则 | 文件 | 行 | 字段 | 原句 | 说明 |');
+  lines.push('|---|---|---|---|---|---|');
+  for (const finding of payload.findings) {
+    const quote = String(finding.quote || '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
+    const message = String(finding.message || '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
+    lines.push(`| ${finding.rule_id} | ${finding.file || ''} | ${finding.line === null ? '' : finding.line} | ${finding.field || ''} | ${quote} | ${message} |`);
+  }
+  lines.push('');
+  fs.writeFileSync(mdPath, `${lines.join('\n')}\n`, 'utf8');
+
+  return { jsonPath, mdPath, outDir };
+}
+
+function ruleIdMatches(findingRuleId, expectedRuleId) {
+  if (!expectedRuleId) return true;
+  if (findingRuleId === expectedRuleId) return true;
+  if (expectedRuleId === 'NAME' && findingRuleId === 'D2') return true;
+  if (expectedRuleId === 'D2' && findingRuleId === 'D2') return true;
+  return false;
+}
+
+function locationMatches(finding, caseItem) {
+  if (caseItem.line === null || caseItem.line === undefined) return true;
+  if (finding.line === caseItem.line) return true;
+  const caseQuote = String(caseItem.quote || '').replace(/\s+/g, '');
+  const findingQuote = String(finding.quote || '').replace(/\s+/g, '');
+  if (!caseQuote || !findingQuote) return false;
+  return caseQuote.includes(findingQuote) || findingQuote.includes(caseQuote);
+}
+
+function evaluateCase(caseItem, options = {}) {
+  const root = path.resolve(options.casesRoot || '/home/box/shared/report-redesign');
+  const filePath = path.resolve(root, caseItem.file);
+  if (!fileExists(filePath)) {
+    return { case: caseItem, ok: false, error: `文件不存在：${filePath}`, matched: [], findings: [] };
+  }
+
+  let result;
+  try {
+    result = checkDocument({ filePath, dataDir: options.dataDir });
+  } catch (error) {
+    return { case: caseItem, ok: false, error: error.message, matched: [], findings: [] };
+  }
+
+  const matched = result.findings.filter(finding =>
+    ruleIdMatches(finding.rule_id, caseItem.rule_id) && locationMatches(finding, caseItem)
+  );
+
+  const ok = caseItem.expect === 'FAIL' ? matched.length > 0 : matched.length === 0;
+  return { case: caseItem, ok, matched, findings: result.findings, target: result.target };
+}
+
+module.exports = {
+  RULES,
+  checkReport,
+  checkDocument,
+  writeFailList,
+  evaluateCase,
+  ruleIdMatches,
+  locationMatches,
+};

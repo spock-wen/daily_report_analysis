@@ -80,7 +80,14 @@ async function runMonthlyWorkflow(month) {
         enableAI: true,          // 启用 AI 分析
         enableHTML: true,        // 生成 HTML
         enableIndex: true,       // 更新首页
-        enableNotification: !noPush  // 根据参数决定是否发送通知
+        enableNotification: !noPush,  // 根据参数决定是否发送通知
+        contentCheck: true,      // 写 HTML 前跑内容核查闸（D1/D3）
+        rewriteInsights: async (findings) => {
+          const rewritten = await analyzer.analyze(monthlyData, { feedback: findings });
+          monthlyData.aiInsights = rewritten;
+          return rewritten;
+        },
+        getAiCallCount: () => analyzer.getAiCallCount()
         // enableWikiPostProcessing defaults to true in ReportPipeline
       });
 
@@ -112,6 +119,10 @@ async function runMonthlyWorkflow(month) {
         console.log(`  报告文件：${path.basename(result.htmlPath)}`);
         console.log('='.repeat(60) + '\n');
 
+        return result;
+      } else if (result.errorCode === 'CONTENT_CHECK_FAILED') {
+        logger.error('❌ 内容核查未通过，已停止：不写 HTML、不推送（D1/D3）');
+        logger.error(`📋 FAIL 清单：${result.failPaths?.jsonPath || 'N/A'}`);
         return result;
       } else {
         logger.error(`❌ 第 ${attempt} 次尝试失败：${result.error}`);

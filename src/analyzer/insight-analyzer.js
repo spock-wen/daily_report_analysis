@@ -49,16 +49,32 @@ async function callLLMWithRetry(prompt, options = {}) {
 class InsightAnalyzer {
   constructor(options = {}) {
     this.wikiManager = new WikiManager(options);
+    this.aiCallCount = 0;
   }
 
-  async analyzeDaily(dailyData) {
+  getAiCallCount() {
+    return this.aiCallCount;
+  }
+
+  buildFeedbackPrompt(feedback) {
+    if (!Array.isArray(feedback) || feedback.length === 0) return '';
+    const items = feedback.slice(0, 40).map(item => {
+      const quote = item.quote ? `（原句：${item.quote}）` : '';
+      return `- [${item.rule_id}] ${item.field || ''} ${item.message}${quote}`;
+    });
+    return `\n\n## 上一版输出未通过内容核查，请逐条修正后重新输出完整 JSON（不要解释）\n${items.join('\n')}`;
+  }
+
+  async analyzeDaily(dailyData, options = {}) {
     try {
       logger.info('开始分析日报数据...', { date: dailyData.date });
 
       const contextData = await this.prepareContextData(dailyData.brief);
       const promptTemplate = prompts.daily.userPrompt;
-      const prompt = this.buildPrompt(promptTemplate, contextData);
+      let prompt = this.buildPrompt(promptTemplate, contextData);
+      prompt += this.buildFeedbackPrompt(options.feedback);
 
+      this.aiCallCount += 1;
       const result = await callLLMWithRetry(prompt, {
         temperature: 0.7,
         max_tokens: 8000
@@ -80,17 +96,19 @@ class InsightAnalyzer {
     }
   }
 
-  async analyzeWeekly(weeklyData) {
+  async analyzeWeekly(weeklyData, options = {}) {
     try {
       logger.info('开始分析周报数据...', { weekStart: weeklyData.weekStart });
 
       const contextData = await this.prepareContextData(weeklyData.brief);
       const promptTemplate = prompts.weekly.userPrompt;
-      const prompt = this.buildPrompt(promptTemplate, contextData);
+      let prompt = this.buildPrompt(promptTemplate, contextData);
+      prompt += this.buildFeedbackPrompt(options.feedback);
       logger.info('Prompt 构建完成，准备调用 LLM...', { promptLength: prompt.length });
 
       let result;
       try {
+        this.aiCallCount += 1;
         result = await callLLMWithRetry(prompt, {
           temperature: 0.7,
           max_tokens: 8000
@@ -116,14 +134,16 @@ class InsightAnalyzer {
     }
   }
 
-  async analyzeMonthly(monthlyData) {
+  async analyzeMonthly(monthlyData, options = {}) {
     try {
       logger.info('开始分析月报数据...', { month: monthlyData.month });
 
       const contextData = await this.prepareContextData(monthlyData.brief);
       const promptTemplate = prompts.monthly.userPrompt;
-      const prompt = this.buildPrompt(promptTemplate, contextData);
+      let prompt = this.buildPrompt(promptTemplate, contextData);
+      prompt += this.buildFeedbackPrompt(options.feedback);
 
+      this.aiCallCount += 1;
       const result = await callLLMWithRetry(prompt, {
         temperature: 0.7,
         max_tokens: 8000

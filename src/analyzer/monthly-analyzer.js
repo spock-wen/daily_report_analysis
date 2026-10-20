@@ -9,12 +9,29 @@ const prompts = require('../../config/prompts.json');
  * 负责对聚合后的月度数据进行深度 AI 分析
  */
 class MonthlyAnalyzer {
+  constructor(options = {}) {
+    this.aiCallCount = 0;
+  }
+
+  getAiCallCount() {
+    return this.aiCallCount;
+  }
+
+  buildFeedbackPrompt(feedback) {
+    if (!Array.isArray(feedback) || feedback.length === 0) return '';
+    const items = feedback.slice(0, 40).map(item => {
+      const quote = item.quote ? `（原句：${item.quote}）` : '';
+      return `- [${item.rule_id}] ${item.field || ''} ${item.message}${quote}`;
+    });
+    return `\n\n【上一版输出未通过内容核查，请逐条修正后重新输出完整 JSON（不要解释）】\n${items.join('\n')}`;
+  }
+
   /**
    * 分析月度数据
    * @param {Object} monthlyData - 聚合后的月度数据
    * @returns {Promise<Object>} AI 分析结果
    */
-  async analyze(monthlyData) {
+  async analyze(monthlyData, options = {}) {
     try {
       logger.info('开始分析月报数据...', { month: monthlyData.month });
 
@@ -22,12 +39,14 @@ class MonthlyAnalyzer {
       const contextData = this.prepareContextData(monthlyData);
 
       // 构建 AI 提示词
-      const prompt = this.buildPrompt(monthlyData.month, contextData);
+      let prompt = this.buildPrompt(monthlyData.month, contextData);
+      prompt += this.buildFeedbackPrompt(options.feedback);
       logger.info('Prompt 构建完成', { promptLength: prompt.length });
 
       // 调用 LLM
       let result;
       try {
+        this.aiCallCount += 1;
         result = await callLLM(prompt, {
           temperature: 0.7,
           max_tokens: 8000

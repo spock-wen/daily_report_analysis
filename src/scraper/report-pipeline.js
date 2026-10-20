@@ -17,7 +17,8 @@ const fs = require('fs');
 const {
   getDailyBriefPath,
   getWeeklyBriefPath,
-  getMonthlyBriefPath
+  getMonthlyBriefPath,
+  DATA_DIR
 } = require('../utils/path');
 const {
   enrichDailyBrief,
@@ -25,6 +26,7 @@ const {
   enrichMonthlyBrief,
   getISOWeekDates
 } = require('../metrics');
+const { runContentGate } = require('../checker/gate');
 
 // 导入依赖模块
 const InsightAnalyzer = require('../analyzer/insight-analyzer');
@@ -57,6 +59,9 @@ class ReportPipeline {
     this.enableIndex = options.enableIndex !== undefined ? options.enableIndex : true;
     this.enableNotification = options.enableNotification !== undefined ? options.enableNotification : true;
     this.enableWikiPostProcessing = options.enableWikiPostProcessing !== undefined ? options.enableWikiPostProcessing : true;
+    this.enableContentCheck = options.contentCheck !== undefined ? options.contentCheck : true;
+    this.rewriteInsightsHook = typeof options.rewriteInsights === 'function' ? options.rewriteInsights : null;
+    this.aiCallCountProvider = typeof options.getAiCallCount === 'function' ? options.getAiCallCount : null;
 
     // 初始化子模块
     this.analyzer = new InsightAnalyzer();
@@ -148,7 +153,48 @@ class ReportPipeline {
         await this.saveRawData(data, type);
       }, result);
 
-      // 步骤 3.5: 更新 Wiki（日报、周报、月报）
+      // 步骤 3.5: 内容核查闸（D1/D3）——写 HTML 之前
+      if (this.enableContentCheck) {
+        await this.executeStep('content-check', async () => {
+          const identifier = this.getReportIdentifier(data, type);
+          const gate = await runContentGate({
+            level: type,
+            period: identifier,
+            dataDir: DATA_DIR,
+            logger,
+            getAiCallCount: () => this.getAiCallCount(),
+            rewrite: async (findings) => {
+              let rewritten;
+              if (this.rewriteInsightsHook) {
+                rewritten = await this.rewriteInsightsHook(findings);
+              } else {
+                rewritten = await this.generateAIInsights(data, type, {
+                  feedback: findings,
+                  previousInsights: result.insights
+                });
+              }
+              if (rewritten) {
+                result.insights = rewritten;
+                data.aiInsights = rewritten;
+                await this.saveRawData(data, type);
+              }
+              return rewritten;
+            }
+          });
+
+          if (!gate.pass) {
+            const error = new Error(`内容核查未通过（${gate.findings.length} 条 FAIL），已停止生成`);
+            error.code = 'CONTENT_CHECK_FAILED';
+            error.findings = gate.findings;
+            error.failPaths = gate.paths;
+            throw error;
+          }
+        }, result);
+      } else {
+        logger.info('[ReportPipeline] 内容核查已禁用，跳过');
+      }
+
+      // 步骤 3.6: 更新 Wiki（日报、周报、月报）
       if (type === 'daily' || type === 'weekly' || type === 'monthly') {
         if (getEnvBool('REPORT_NO_WIKI', false)) {
           logger.info('[ReportPipeline] REPORT_NO_WIKI=1，跳过 Wiki 更新');
@@ -623,12 +669,30 @@ class ReportPipeline {
   }
 
   /**
+   * 计算当前期号（用于核查闸与日志）
+   */
+  getReportIdentifier(data, type) {
+    if (type === 'daily') return data.date || new Date().toISOString().split('T')[0];
+    if (type === 'weekly') return data.weekStart || this.getWeeklyIdentifier(data);
+    if (type === 'monthly') return data.month || data.date || new Date().toISOString().slice(0, 7);
+    return null;
+  }
+
+  getAiCallCount() {
+    const direct = this.analyzer && typeof this.analyzer.getAiCallCount === 'function'
+      ? this.analyzer.getAiCallCount()
+      : 0;
+    const external = this.aiCallCountProvider ? this.aiCallCountProvider() : 0;
+    return Math.max(direct, external);
+  }
+
+  /**
    * 步骤 2: 生成 AI 洞察
    * @param {Object} data - 原始数据
    * @param {string} type - 报告类型
    * @returns {Promise<Object>} AI 洞察结果
    */
-  async generateAIInsights(data, type) {
+  async generateAIInsights(data, type, options = {}) {
     logger.info('[ReportPipeline] 开始 AI 分析...');
 
     try {
@@ -650,39 +714,47 @@ class ReportPipeline {
       }
 
       if (type === 'daily') {
-        insights = await this.analyzer.analyzeDaily(analysisData);
+        insights = await this.analyzer.analyzeDaily(analysisData, options);
       } else if (type === 'weekly') {
         // 周报分析：同时进行周度分析和深度趋势分析
-        const weeklyInsights = await this.analyzer.analyzeWeekly(analysisData);
-        
-        // 加载上周的日报数据进行深度趋势分析
-        const weekStart = data.weekStart || this.getWeeklyIdentifier(data);
-        const dailyData = await this.loadWeeklyDailyData(weekStart);
-        
-        if (dailyData && dailyData.length > 0) {
-          logger.info(`[ReportPipeline] 加载了 ${dailyData.length} 天的日报数据，进行深度趋势分析...`);
-          
-          // 构建周范围
-          const weekRange = {
-            start: dailyData[0].date,
-            end: dailyData[dailyData.length - 1].date
-          };
-          
-          const deepTrends = await this.analyzer.analyzeDeepTrends(dailyData, weekRange);
-          
-          if (deepTrends) {
-            insights = {
-              ...weeklyInsights,
-              deepTrends
+        const weeklyInsights = await this.analyzer.analyzeWeekly(analysisData, options);
+
+        // 重写洞察时复用上一版 deepTrends，避免额外的 AI 调用（J14 最多 2 次）
+        if (options.feedback) {
+          const previousDeepTrends = options.previousInsights?.deepTrends || data.aiInsights?.deepTrends;
+          insights = previousDeepTrends
+            ? { ...weeklyInsights, deepTrends: previousDeepTrends }
+            : weeklyInsights;
+        } else {
+          // 加载上周的日报数据进行深度趋势分析
+          const weekStart = data.weekStart || this.getWeeklyIdentifier(data);
+          const dailyData = await this.loadWeeklyDailyData(weekStart);
+
+          if (dailyData && dailyData.length > 0) {
+            logger.info(`[ReportPipeline] 加载了 ${dailyData.length} 天的日报数据，进行深度趋势分析...`);
+
+            // 构建周范围
+            const weekRange = {
+              start: dailyData[0].date,
+              end: dailyData[dailyData.length - 1].date
             };
+
+            const deepTrends = await this.analyzer.analyzeDeepTrends(dailyData, weekRange);
+
+            if (deepTrends) {
+              insights = {
+                ...weeklyInsights,
+                deepTrends
+              };
+            } else {
+              insights = weeklyInsights;
+            }
           } else {
             insights = weeklyInsights;
           }
-        } else {
-          insights = weeklyInsights;
         }
       } else if (type === 'monthly') {
-        insights = await this.analyzer.analyzeMonthly(analysisData);
+        insights = await this.analyzer.analyzeMonthly(analysisData, options);
       } else {
         throw new Error(`不支持的报告类型：${type}`);
       }
