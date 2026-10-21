@@ -5,14 +5,14 @@
  * 历史期样例生成（S2/S5）
  *
  * 用法：
- *   node scripts/generate-sample.js <daily|weekly|monthly> <期次> [--out-dir D] [--data-dir D] [--write-html-on-fail]
+ *   node scripts/generate-sample.js <daily|weekly|monthly> <期次> [--out-dir D] [--data-dir D]
  *
  * 期次：2026-10-12 / 2026-W42 / 2026-09
  *
  * 只读取既有 brief，不抓取 GitHub；强制 REPORT_NO_PUSH=1、REPORT_NO_WIKI=1，
  * 不调用 notifier、wiki-sync、git push 或首页生成。
  *
- * 退出码：0 = PASS；1 = 核查 FAIL（未写 HTML）或执行失败；2 = 参数/数据错误。
+ * 退出码：0 = PASS；1 = 核查 FAIL（写 .FAIL.html 供审阅）或执行失败；2 = 参数/数据错误。
  */
 
 const fs = require('fs');
@@ -74,7 +74,7 @@ function isValidPeriod(level, period) {
 }
 
 function printUsage() {
-  console.error(`用法：node scripts/generate-sample.js <daily|weekly|monthly> <期次> --data-dir D --out-dir D [--write-html-on-fail]
+  console.error(`用法：node scripts/generate-sample.js <daily|weekly|monthly> <期次> --data-dir D --out-dir D
 
 期次示例：
   daily   2026-10-12
@@ -84,7 +84,8 @@ function printUsage() {
 必填选项：
   --data-dir D          既有 brief/insights 的源数据目录（不得回退到 ./data）
   --out-dir D           输出根目录，写入其下 data/、reports/、check/（不得是仓库根目录或位于源 data-dir 内）
-  --write-html-on-fail  核查 FAIL 时仍写 HTML 供审阅，文件名带 .FAIL 标记`);
+
+核查 FAIL 时仍写自包含 HTML 供审阅，文件名带 .FAIL 标记。`);
 }
 
 function briefFileName(level, period) {
@@ -425,6 +426,17 @@ function inlineSampleStyles(htmlPath) {
   if (inlined !== html) fs.writeFileSync(htmlPath, inlined, 'utf8');
 }
 
+async function writeSampleHtml(level, reportData, { fail = false } = {}) {
+  const generatedPath = await generateHtml(level, reportData);
+  let htmlPath = generatedPath;
+  if (fail) {
+    htmlPath = addFailMarker(generatedPath);
+    fs.renameSync(generatedPath, htmlPath);
+  }
+  inlineSampleStyles(htmlPath);
+  return htmlPath;
+}
+
 function isSameOrInside(childPath, parentPath) {
   const relative = path.relative(parentPath, childPath);
   return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
@@ -467,7 +479,8 @@ async function main() {
   const outDir = path.resolve(outDirOption);
   const outDataDir = path.join(outDir, 'data');
   const outReportsDir = path.join(outDir, 'reports');
-  const writeHtmlOnFail = args.options['write-html-on-fail'] === true;
+  // 核查 FAIL 时无需开关：始终写 .FAIL.html 供审阅。
+  const writeHtmlOnFail = true;
 
   if (outDir === path.resolve(ROOT_DIR)) {
     console.error(`错误：--out-dir 不得等于仓库根目录：${outDir}`);
@@ -666,7 +679,10 @@ async function main() {
     console.log(`核查清单：${checkPaths.jsonPath}`);
     console.log(`核查清单：${checkPaths.mdPath}`);
     console.log(`事实表：${outFactsPath}`);
-    console.log('HTML：未写（占位校验 FAIL）');
+    // 占位未解析处原样保留（rendered.insights 中仍是占位文本），不删句。
+    const reportData = buildReportData(level, period, brief, computed, rendered.insights);
+    const htmlPath = await writeSampleHtml(level, reportData, { fail: true });
+    console.log(`HTML：写出 .FAIL.html：${htmlPath}`);
     return 1;
   }
 
@@ -758,17 +774,7 @@ async function main() {
 
   const reportData = buildReportData(level, period, brief, computed, insights);
 
-  let htmlPath = null;
-  if (gate.pass) {
-    htmlPath = await generateHtml(level, reportData);
-    inlineSampleStyles(htmlPath);
-  } else if (writeHtmlOnFail) {
-    const generatedPath = await generateHtml(level, reportData);
-    const failPath = addFailMarker(generatedPath);
-    fs.renameSync(generatedPath, failPath);
-    htmlPath = failPath;
-    inlineSampleStyles(htmlPath);
-  }
+  const htmlPath = await writeSampleHtml(level, reportData, { fail: !gate.pass });
 
   console.log('');
   console.log(`期次：${level} ${period}`);
@@ -779,7 +785,7 @@ async function main() {
   console.log(`核查清单：${checkPaths.mdPath}`);
   console.log(`事实表：${outFactsPath}`);
   console.log(`渲染记录：${renderMapPath}`);
-  console.log(`HTML：${htmlPath || '未写（核查 FAIL）'}`);
+  console.log(gate.pass ? `HTML：${htmlPath}` : `HTML：写出 .FAIL.html：${htmlPath}`);
 
   return gate.pass ? 0 : 1;
 }

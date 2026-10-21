@@ -49,6 +49,7 @@ const SLOT_RULES = [
   { pattern: /本周新增/g, roles: ['week_stars', 'total_week'] },
   { pattern: /本月新增/g, roles: ['month_stars', 'total_month'] },
   { pattern: /累计/g, roles: ['stars'] },
+  { pattern: /Forks|Fork|fork|分支/g, roles: ['forks'] },
   { pattern: /合计/g, roles: ['total_today', 'total_week', 'total_month', 'prev_total_today', 'avg7_total_today', 'mom_total_today', 'prev_week_total', 'prev_month_total'] },
   // B16：参照数、份额变化、提速、换血率的语义槽。
   { pattern: /昨日|前一有数据日|上一有数据日/g, roles: PREV_SLOT_ROLES },
