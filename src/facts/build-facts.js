@@ -51,6 +51,24 @@ function round2(value) {
   return Math.round(value * 100) / 100;
 }
 
+// B16：方向词由生成器决定。|Δ|/参照 < 5% 记「持平」；负变化不得记「提速」。
+function directionValue(currentValue, referenceValue, kind = null) {
+  const currentNumber = toNumber(currentValue);
+  const referenceNumber = toNumber(referenceValue);
+  if (currentNumber === null || referenceNumber === null) return null;
+  if (kind === 'acceleration') {
+    const delta = currentNumber - referenceNumber;
+    const ratio = referenceNumber > 0 ? Math.abs(delta) / referenceNumber : null;
+    if (ratio !== null && ratio < 0.05) return '持平';
+    if (delta > 0) return '提速';
+    if (delta < 0) return '放缓';
+    return '持平';
+  }
+  if (currentNumber > referenceNumber) return '上升';
+  if (currentNumber < referenceNumber) return '下降';
+  return '持平';
+}
+
 function parseMetricNumber(value) {
   if (typeof value === 'number') return Number.isFinite(value) ? value : null;
   if (typeof value !== 'string') return null;
@@ -84,11 +102,10 @@ function previousDailyEntries(date, count) {
   const entries = [];
   let cursor = date;
   for (let index = 0; index < count; index += 1) {
-    const previous = history.getPreviousDailyDate(cursor);
-    if (!previous) break;
-    const brief = history.readDailyBrief(previous);
-    if (brief) entries.push({ date: previous, brief });
-    cursor = previous;
+    const entry = history.getPreviousDailyEntry(cursor);
+    if (!entry) break;
+    entries.push(entry);
+    cursor = entry.date;
   }
   return entries;
 }
@@ -148,15 +165,38 @@ function addDailyReferenceFacts({ brief, add, addNumber }) {
     { key: 'max_today', label: '最大单项目新增', field: 'projects[*].todayStars', pick: snapshot => snapshot.maxToday },
   ];
 
+  const addDirection = ({ metric, label, currentValue, referenceValue, source, kind = null }) => {
+    const value = directionValue(currentValue, referenceValue, kind);
+    if (!value) return;
+    add(value, {
+      kind: 'total',
+      field: metric.field,
+      label: `${label}方向（${value}）`,
+      role: 'direction',
+      source,
+      current: toNumber(currentValue),
+      reference: toNumber(referenceValue),
+      comparison: { metric: metric.key, kind: kind || 'reference' },
+    });
+  };
+
   if (prevEntries.length === 1) {
     const prev = dailySnapshot(prevEntries[0].brief);
     for (const metric of metrics) {
-      addNumber(metric.pick(prev), {
+      const referenceValue = metric.pick(prev);
+      addNumber(referenceValue, {
         kind: 'total',
         field: metric.field,
         label: `昨日${metric.label}`,
         role: `prev_${metric.key}`,
         source: `briefs/daily/data-${prevEntries[0].date}.json#${metric.field}`,
+      });
+      addDirection({
+        metric,
+        label: `今日${metric.label}较昨日`,
+        currentValue: metric.pick(current),
+        referenceValue,
+        source: `briefs/daily/data-${date}.json#${metric.field}; briefs/daily/data-${prevEntries[0].date}.json#${metric.field}`,
       });
     }
   }
@@ -165,12 +205,20 @@ function addDailyReferenceFacts({ brief, add, addNumber }) {
     for (const metric of metrics) {
       const values = avgEntries.map(entry => metric.pick(dailySnapshot(entry.brief)));
       if (values.some(value => value === null || value === undefined)) continue;
-      addNumber(round1(values.reduce((sum, value) => sum + value, 0) / values.length), {
+      const average = round1(values.reduce((sum, value) => sum + value, 0) / values.length);
+      addNumber(average, {
         kind: 'total',
         field: metric.field,
         label: `7 日均值：${metric.label}`,
         role: `avg7_${metric.key}`,
         source: `briefs/daily/data-${avgEntries[6].date}..${avgEntries[0].date}.json#${metric.field}`,
+      });
+      addDirection({
+        metric,
+        label: `今日${metric.label}较7日均值`,
+        currentValue: metric.pick(current),
+        referenceValue: average,
+        source: `briefs/daily/data-${date}.json#${metric.field}; briefs/daily/data-${avgEntries[6].date}..${avgEntries[0].date}.json#${metric.field}`,
       });
     }
   }
@@ -178,12 +226,20 @@ function addDailyReferenceFacts({ brief, add, addNumber }) {
   if (monthEntry) {
     const month = dailySnapshot(monthEntry.brief);
     for (const metric of metrics) {
-      addNumber(metric.pick(month), {
+      const referenceValue = metric.pick(month);
+      addNumber(referenceValue, {
         kind: 'total',
         field: metric.field,
         label: `上月同期${metric.label}`,
         role: `mom_${metric.key}`,
         source: `briefs/daily/data-${monthEntry.date}.json#${metric.field}`,
+      });
+      addDirection({
+        metric,
+        label: `今日${metric.label}较上月同期`,
+        currentValue: metric.pick(current),
+        referenceValue,
+        source: `briefs/daily/data-${date}.json#${metric.field}; briefs/daily/data-${monthEntry.date}.json#${metric.field}`,
       });
     }
   }
@@ -203,11 +259,19 @@ function addDailyReferenceFacts({ brief, add, addNumber }) {
           role: 'category_share',
           source: `briefs/daily/data-${date}.json#projects[*].analysis.type`,
         });
-        add(round1(category.share - previousShare), {
+        const shiftValue = round1(category.share - previousShare);
+        add(shiftValue, {
           kind: 'total',
           field: 'projects[*].analysis.type',
           label: `头部类目「${category.name}」份额较上一有数据日变化（百分点）`,
           role: 'category_shift',
+          source: `briefs/daily/data-${date}.json#projects[*].analysis.type; briefs/daily/data-${prevEntries[0].date}.json#projects[*].analysis.type`,
+        });
+        addDirection({
+          metric: { key: 'category_share', field: 'projects[*].analysis.type' },
+          label: `头部类目「${category.name}」份额较上一有数据日`,
+          currentValue: category.share,
+          referenceValue: previousShare,
           source: `briefs/daily/data-${date}.json#projects[*].analysis.type; briefs/daily/data-${prevEntries[0].date}.json#projects[*].analysis.type`,
         });
       }
@@ -224,11 +288,19 @@ function addDailyReferenceFacts({ brief, add, addNumber }) {
           role: 'language_share',
           source: `briefs/daily/data-${date}.json#projects[*].language`,
         });
-        add(round1(language.share - previousShare), {
+        const shiftValue = round1(language.share - previousShare);
+        add(shiftValue, {
           kind: 'total',
           field: 'projects[*].language',
           label: `头部语言「${language.name}」份额较上一有数据日变化（百分点）`,
           role: 'language_shift',
+          source: `briefs/daily/data-${date}.json#projects[*].language; briefs/daily/data-${prevEntries[0].date}.json#projects[*].language`,
+        });
+        addDirection({
+          metric: { key: 'language_share', field: 'projects[*].language' },
+          label: `头部语言「${language.name}」份额较上一有数据日`,
+          currentValue: language.share,
+          referenceValue: previousShare,
           source: `briefs/daily/data-${date}.json#projects[*].language; briefs/daily/data-${prevEntries[0].date}.json#projects[*].language`,
         });
       }
@@ -291,10 +363,25 @@ function addStreakAcceleration({ brief, add, addNumber }) {
       project: key,
       kind: 'single',
       field: `projects[${index}].todayStars`,
-      label: `${key} 今日新增较前一有数据日提速（星）`,
+      label: `${key} 今日新增较前一有数据日变化（星）`,
       role: 'acceleration',
       source: `briefs/daily/data-${brief.date}.json#projects[${index}].todayStars; briefs/daily/data-${prevEntry.date}.json#projects[*].todayStars`,
     });
+
+    const accelerationDirection = directionValue(today, previousToday, 'acceleration');
+    if (accelerationDirection) {
+      add(accelerationDirection, {
+        project: key,
+        kind: 'single',
+        field: `projects[${index}].todayStars`,
+        label: `${key} 今日新增较前一有数据日方向（${accelerationDirection}）`,
+        role: 'direction',
+        source: `briefs/daily/data-${brief.date}.json#projects[${index}].todayStars; briefs/daily/data-${prevEntry.date}.json#projects[*].todayStars`,
+        current: today,
+        reference: previousToday,
+        comparison: { metric: `acceleration:${key}`, kind: 'acceleration' },
+      });
+    }
 
     if (previousToday > 0) {
       add(round2(today / previousToday), {
@@ -650,9 +737,9 @@ function buildFacts({ level, period, brief, metrics }) {
   const file = BRIEF_PATHS[level](period);
   const facts = [];
 
-  const add = (value, { project = null, kind = 'single', field, label, role, source }) => {
+  const add = (value, { project = null, kind = 'single', field, label, role, source, current, reference, comparison }) => {
     if (value === undefined || value === null) return null;
-    facts.push({
+    const fact = {
       id: `f${facts.length + 1}`,
       value,
       project: project || null,
@@ -660,8 +747,12 @@ function buildFacts({ level, period, brief, metrics }) {
       source: source || `${file}#${field}`,
       label,
       role: role || null,
-    });
-    return facts[facts.length - 1].id;
+    };
+    if (current !== undefined) fact.current = current;
+    if (reference !== undefined) fact.reference = reference;
+    if (comparison !== undefined) fact.comparison = comparison;
+    facts.push(fact);
+    return fact.id;
   };
 
   const addNumber = (value, options) => {

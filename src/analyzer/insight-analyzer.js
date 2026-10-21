@@ -10,6 +10,7 @@ const { loadConfig } = require('../checker/config');
 const { computeMonthlyMetrics } = require('../metrics');
 const { buildFacts } = require('../facts/build-facts');
 const { projectNameFromPlaceholder } = require('../render/placeholder-renderer');
+const { translateDescription } = require('./project-analyzer');
 
 const WRITING_RULES = {
   oneLiner: '前 2 天（日报）/前 2 期（周/月报）oneLiner 已注入，必须换一种说法，不得复用 4 字以上短语。',
@@ -371,6 +372,7 @@ class InsightAnalyzer {
     });
 
     // 并发读取所有项目的 Wiki 历史
+    const hasChinese = text => /[\u4e00-\u9fa5]/.test(String(text || ''));
     const projectsWithHistory = await Promise.all(
       trendingRepos.map(async (repo) => {
         const fullName = repo.fullName || repo.name;
@@ -383,11 +385,23 @@ class InsightAnalyzer {
           logger.warn(`读取 Wiki 历史失败：${fullName} - ${error.message}`);
         }
 
+        const description = repo.description || repo.desc || '';
+        let descZh = repo.descZh || '';
+        if (!hasChinese(descZh)) {
+          const source = descZh || description;
+          if (source) {
+            descZh = await translateDescription(source);
+            if (!hasChinese(descZh)) {
+              logger.warn(`项目描述翻译失败，沿用原文：${fullName}`);
+            }
+          }
+        }
+
         return {
           name: fullName,
           fullName,
-          description: repo.description || repo.desc || '',
-          descZh: repo.descZh || '',
+          description,
+          descZh,
           stars: repo.stars || 0,
           todayStars: Number(repo.todayStars) || 0,
           forks: repo.forks || 0,

@@ -59,7 +59,19 @@ function missingRefs(refs, entries) {
   return missing;
 }
 
-function extractRefs(text) {
+function commonSlashSet(config) {
+  return new Set((config?.commonSlashWords || []).map(word => String(word).toLowerCase()));
+}
+
+// B5：斜杠两侧都在常见词表时跳过（如 Fork/Star、A/B），不在词表的仍核。
+function isCommonSlashPair(raw, commonWords) {
+  if (!commonWords || commonWords.size === 0) return false;
+  const parts = String(raw || '').split('/');
+  if (parts.length !== 2) return false;
+  return commonWords.has(parts[0].toLowerCase()) && commonWords.has(parts[1].toLowerCase());
+}
+
+function extractRefs(text, commonWords) {
   const refs = [];
   const source = String(text || '').replace(PROJECT_PLACEHOLDER_RE, match => ' '.repeat(match.length));
   let match;
@@ -67,6 +79,7 @@ function extractRefs(text) {
   while ((match = REPO_REF_RE.exec(source)) !== null) {
     const raw = match[1].replace(/[.,;:!?)]+$/, '');
     if (!/[A-Za-z]/.test(raw)) continue;
+    if (isCommonSlashPair(raw, commonWords)) continue;
     refs.push(raw);
   }
   return refs;
@@ -76,8 +89,9 @@ function collectPlaceholders(value) {
   return Array.from(new Set(String(value || '').match(PROJECT_PLACEHOLDER_RE) || []));
 }
 
-function checkInsights(ctx, doc) {
+function checkInsights(ctx, doc, config) {
   const findings = [];
+  const commonWords = commonSlashSet(config);
 
   for (const item of doc.strings) {
     for (const placeholder of collectPlaceholders(item.value)) {
@@ -89,7 +103,7 @@ function checkInsights(ctx, doc) {
       }));
     }
 
-    const refs = extractRefs(item.value);
+    const refs = extractRefs(item.value, commonWords);
     if (refs.length === 0) continue;
     const missing = missingRefs(refs, projectEntries(ctx, item.path));
     for (const ref of missing) {
@@ -105,9 +119,10 @@ function checkInsights(ctx, doc) {
   return findings;
 }
 
-function checkHtml(ctx, doc) {
+function checkHtml(ctx, doc, config) {
   const findings = [];
   const text = doc.text || '';
+  const commonWords = commonSlashSet(config);
 
   for (const placeholder of collectPlaceholders(text)) {
     findings.push(makeFinding('B5', doc, {
@@ -118,7 +133,7 @@ function checkHtml(ctx, doc) {
     }));
   }
 
-  const refs = extractRefs(text);
+  const refs = extractRefs(text, commonWords);
   const missing = missingRefs(refs, projectEntries(ctx, null));
   for (const ref of new Set(missing)) {
     findings.push(makeFinding('B5', doc, {
@@ -140,9 +155,9 @@ function check(ctx, doc, config) {
     findings.push(...checkLegacy(ctx, doc, config));
   }
   if (doc.kind === 'html') {
-    findings.push(...checkHtml(ctx, doc));
+    findings.push(...checkHtml(ctx, doc, config));
   } else {
-    findings.push(...checkInsights(ctx, doc));
+    findings.push(...checkInsights(ctx, doc, config));
   }
   return findings;
 }

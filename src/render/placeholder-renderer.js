@@ -80,7 +80,8 @@ function renderInsights({ insights, facts, projects, level, period }) {
         });
       }
       const allowedRoles = slotByOffset.get(match.offset);
-      if (fact.role && allowedRoles && !allowedRoles.includes(fact.role)) {
+      // B16：方向词事实（role=direction）跟随所在参照句，不参与语义槽归属。
+      if (fact.role && fact.role !== 'direction' && allowedRoles && !allowedRoles.includes(fact.role)) {
         errors.push({
           path: fieldPath,
           placeholder,

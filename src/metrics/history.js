@@ -160,6 +160,18 @@ function getPreviousDailyDate(date) {
   return previous;
 }
 
+function getPreviousDailyEntry(date) {
+  let cursor = date;
+  while (cursor) {
+    const previous = getPreviousDailyDate(cursor);
+    if (!previous) return null;
+    const brief = readDailyBrief(previous);
+    if (brief) return { date: previous, brief };
+    cursor = previous;
+  }
+  return null;
+}
+
 function getRecentDailyEntries(date, days = 30) {
   const from = addDays(date, -days);
   const entries = [];
@@ -229,6 +241,7 @@ module.exports = {
   readDailyBrief,
   listDailyDates,
   getPreviousDailyDate,
+  getPreviousDailyEntry,
   getRecentDailyEntries,
   getMonthDailyEntries,
   readWeeklyBrief,

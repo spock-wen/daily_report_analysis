@@ -81,7 +81,8 @@ function checkSlots(ctx, doc, facts) {
     const slotByOffset = findSlotAssignments(item.value, positions);
     for (const { entry, role, index } of located) {
       const allowedRoles = slotByOffset.get(index);
-      if (!allowedRoles || allowedRoles.includes(role)) continue;
+      // B16：方向词事实（role=direction）跟随所在参照句，不参与语义槽归属。
+      if (role === 'direction' || !allowedRoles || allowedRoles.includes(role)) continue;
       findings.push(makeFinding('B10', doc, {
         field: item.path,
         line: item.line,

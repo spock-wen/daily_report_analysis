@@ -166,7 +166,6 @@ class HTMLGenerator {
     ${this.renderDailyDiffSection(data)}
     ${this.renderDailyBenchmarkSections(aiInsights, sortedProjects)}
     ${this.renderProjectListSection(sortedProjects)}
-    ${this.renderAIInsightsSection(aiInsights, sortedProjects)}
   </div>
 
   <script>
@@ -279,21 +278,25 @@ class HTMLGenerator {
     const link = text => this.escapeAndLinkify(markdownToHtml(String(text || '')), projects);
     const blocks = [];
 
+    // 新段落复用模板现有洞察卡样式（.ai-insights），不新增视觉设计。
     if (this.hasValue(aiInsights.overview)) {
       blocks.push(`
-      <section class="daily-overview">
+      <section class="ai-insights">
         <h2>概览</h2>
         <p>${link(aiInsights.overview)}</p>
       </section>
       `);
     }
 
+    // 旧的「热点项目」并入核心趋势。
     const coreTrends = toList(aiInsights.coreTrends);
-    if (coreTrends.length > 0) {
+    const hot = toList(aiInsights.hot).filter(item => !coreTrends.includes(item));
+    const trendItems = [...coreTrends, ...hot];
+    if (trendItems.length > 0) {
       blocks.push(`
-      <section class="daily-core-trends">
+      <section class="ai-insights">
         <h2>核心趋势</h2>
-        <ul>${coreTrends.map(item => `<li>${link(item)}</li>`).join('')}</ul>
+        <ul>${trendItems.map(item => `<li>${link(item)}</li>`).join('')}</ul>
       </section>
       `);
     }
@@ -301,7 +304,7 @@ class HTMLGenerator {
     const streakBrief = toList(aiInsights.streakBrief);
     if (streakBrief.length > 0) {
       blocks.push(`
-      <section class="daily-streak-brief">
+      <section class="ai-insights">
         <h2>连续上榜简讯</h2>
         <ul>${streakBrief.map(item => `<li>${link(item)}</li>`).join('')}</ul>
       </section>
@@ -310,18 +313,29 @@ class HTMLGenerator {
 
     if (this.hasValue(aiInsights.churn)) {
       blocks.push(`
-      <section class="daily-churn">
+      <section class="ai-insights">
         <h2>换血情况</h2>
         <p>${link(aiInsights.churn)}</p>
       </section>
       `);
     }
 
-    if (this.hasValue(aiInsights.deepAnalysis)) {
+    // 旧的「AI 深度洞察」内容并入深度分析段。
+    const deepAnalysis = aiInsights.deepAnalysis || aiInsights.summary || aiInsights.oneLiner;
+    const recommendations = Array.isArray(aiInsights.recommendations)
+      ? aiInsights.recommendations.filter(Boolean)
+      : toList(aiInsights.action);
+    const hypeReason = aiInsights.hypeIndex?.reason;
+    const deepParts = [];
+    if (this.hasValue(deepAnalysis)) deepParts.push(deepAnalysis);
+    if (aiInsights.summary && aiInsights.summary !== deepAnalysis) deepParts.push(aiInsights.summary);
+    if (deepParts.length > 0 || recommendations.length > 0 || this.hasValue(hypeReason)) {
       blocks.push(`
-      <section class="daily-deep-analysis">
+      <section class="ai-insights">
         <h2>深度分析</h2>
-        <p>${link(aiInsights.deepAnalysis)}</p>
+        ${deepParts.map(part => `<p>${link(part)}</p>`).join('')}
+        ${this.hasValue(hypeReason) ? `<p class="metric-caption">${link(hypeReason)}</p>` : ''}
+        ${recommendations.length > 0 ? `<ul>${recommendations.map(item => `<li>${link(item)}</li>`).join('')}</ul>` : ''}
       </section>
       `);
     }

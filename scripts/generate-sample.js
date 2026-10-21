@@ -255,8 +255,11 @@ function applyOneSentences(brief, insights) {
     const name = project.fullName || project.repo || project.name;
     const sentence = sentences.get(name);
     if (!sentence) continue;
+    const finalSentence = hasChinese(sentence) || !hasChinese(project.descZh)
+      ? sentence
+      : `${name}：${project.descZh}`;
     project.analysis = project.analysis || {};
-    project.analysis.oneSentence = sentence;
+    project.analysis.oneSentence = finalSentence;
   }
 }
 
@@ -407,7 +410,9 @@ function addFailMarker(htmlPath) {
 // B13：样例 HTML 自包含——把 <link rel="stylesheet"> 指向的 public/css 文件内联进 <style>。
 function inlineStylesheets(html) {
   return String(html || '').replace(/<link\b[^>]*>/gi, tag => {
-    if (!/\brel\s*=\s*(?:"stylesheet"|'stylesheet'|stylesheet)\b/i.test(tag)) return tag;
+    const relMatch = /\brel\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(tag);
+    const rel = relMatch ? (relMatch[1] || relMatch[2] || relMatch[3] || '') : '';
+    if (!/\bstylesheet\b/i.test(rel)) return tag;
     const match = /\bhref\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))/i.exec(tag);
     const href = match ? (match[1] || match[2] || match[3]) : null;
     if (!href) return tag;
@@ -424,6 +429,37 @@ function inlineSampleStyles(htmlPath) {
   const html = fs.readFileSync(htmlPath, 'utf8');
   const inlined = inlineStylesheets(html);
   if (inlined !== html) fs.writeFileSync(htmlPath, inlined, 'utf8');
+}
+
+// B13：对最终写出的 HTML 文件运行自包含检查（PASS 与 .FAIL 两条路径都要核）。
+function checkFinalHtml(htmlPath) {
+  const { loadDocument } = require('../src/checker/document');
+  const b13 = require('../src/checker/rules/b13');
+  const doc = loadDocument(htmlPath, 'html');
+  return b13.check({}, doc) || [];
+}
+
+function hasChinese(text) {
+  return /[\u4e00-\u9fa5]/.test(String(text || ''));
+}
+
+// B16/项目卡：英文描述必须翻译成中文；翻译失败沿用原文并在日志标出。
+async function ensureChineseDescriptions(brief) {
+  const { translateDescription } = require('../src/analyzer/project-analyzer');
+  const logger = require('../src/utils/logger');
+  for (const project of brief.projects || []) {
+    if (hasChinese(project.descZh)) continue;
+    const description = project.descZh || project.description || project.desc || '';
+    if (!description) continue;
+    const translated = await translateDescription(description);
+    if (hasChinese(translated)) {
+      project.descZh = translated;
+    } else {
+      const fullName = project.fullName || project.repo || project.name || '(未知项目)';
+      logger.warn(`项目描述翻译失败，沿用原文：${fullName}`);
+      if (!project.descZh) project.descZh = translated || description;
+    }
+  }
 }
 
 async function writeSampleHtml(level, reportData, { fail = false } = {}) {
@@ -529,6 +565,7 @@ async function main() {
 
   const brief = JSON.parse(fs.readFileSync(sourceBriefPath, 'utf8'));
   scrubLegacyBrief(brief);
+  await ensureChineseDescriptions(brief);
 
   if (level === 'daily') {
     brief.date = period;
@@ -654,7 +691,7 @@ async function main() {
   }
 
   if (rendered.errors.length > 0) {
-    const findings = rendered.errors.map(error => ({
+    const placeholderFindings = rendered.errors.map(error => ({
       file: outInsightsPath,
       field: error.path,
       line: null,
@@ -662,6 +699,12 @@ async function main() {
       quote: error.quote || error.placeholder,
       message: error.message,
     }));
+
+    // 占位未解析处原样保留（rendered.insights 中仍是占位文本），不删句。
+    const reportData = buildReportData(level, period, brief, computed, rendered.insights);
+    const htmlPath = await writeSampleHtml(level, reportData, { fail: true });
+    const b13Findings = checkFinalHtml(htmlPath);
+    const findings = [...placeholderFindings, ...b13Findings];
     const checkPaths = writeCheckArtifacts({
       outDir,
       level,
@@ -679,9 +722,6 @@ async function main() {
     console.log(`核查清单：${checkPaths.jsonPath}`);
     console.log(`核查清单：${checkPaths.mdPath}`);
     console.log(`事实表：${outFactsPath}`);
-    // 占位未解析处原样保留（rendered.insights 中仍是占位文本），不删句。
-    const reportData = buildReportData(level, period, brief, computed, rendered.insights);
-    const htmlPath = await writeSampleHtml(level, reportData, { fail: true });
     console.log(`HTML：写出 .FAIL.html：${htmlPath}`);
     return 1;
   }
@@ -764,30 +804,40 @@ async function main() {
     return 1;
   }
 
+  const reportData = buildReportData(level, period, brief, computed, insights);
+
+  let htmlPath = await writeSampleHtml(level, reportData, { fail: !gate.pass });
+  const b13Findings = checkFinalHtml(htmlPath);
+  let pass = gate.pass && b13Findings.length === 0;
+  if (gate.pass && b13Findings.length > 0) {
+    const failPath = addFailMarker(htmlPath);
+    fs.renameSync(htmlPath, failPath);
+    for (const finding of b13Findings) {
+      if (finding.file === htmlPath) finding.file = failPath;
+    }
+    htmlPath = failPath;
+  }
+  const findings = [...gate.findings, ...b13Findings];
   const checkPaths = writeCheckArtifacts({
     outDir,
     level,
     period,
-    pass: gate.pass,
-    findings: gate.findings,
+    pass,
+    findings,
   });
-
-  const reportData = buildReportData(level, period, brief, computed, insights);
-
-  const htmlPath = await writeSampleHtml(level, reportData, { fail: !gate.pass });
 
   console.log('');
   console.log(`期次：${level} ${period}`);
   console.log(`源数据：${sourceDataDir}`);
   console.log(`输出：${outDir}`);
-  console.log(`核查：${gate.pass ? 'PASS' : 'FAIL'}（${gate.findings.length} 条）`);
+  console.log(`核查：${pass ? 'PASS' : 'FAIL'}（${findings.length} 条）`);
   console.log(`核查清单：${checkPaths.jsonPath}`);
   console.log(`核查清单：${checkPaths.mdPath}`);
   console.log(`事实表：${outFactsPath}`);
   console.log(`渲染记录：${renderMapPath}`);
-  console.log(gate.pass ? `HTML：${htmlPath}` : `HTML：写出 .FAIL.html：${htmlPath}`);
+  console.log(pass ? `HTML：${htmlPath}` : `HTML：写出 .FAIL.html：${htmlPath}`);
 
-  return gate.pass ? 0 : 1;
+  return pass ? 0 : 1;
 }
 
 main()

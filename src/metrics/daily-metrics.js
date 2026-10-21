@@ -11,8 +11,9 @@ function computeDailyMetrics(date, options = {}) {
   const currentNames = history.getProjectNames(brief);
   const currentSet = new Set(currentNames);
 
-  const prevDate = history.getPreviousDailyDate(date);
-  const prevBrief = prevDate ? history.readDailyBrief(prevDate) : null;
+  const prevEntry = history.getPreviousDailyEntry(date);
+  const prevDate = prevEntry ? prevEntry.date : null;
+  const prevBrief = prevEntry ? prevEntry.brief : null;
   const prevNames = history.getProjectNames(prevBrief);
   const prevSet = new Set(prevNames);
 

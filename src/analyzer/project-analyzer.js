@@ -202,12 +202,16 @@ class ProjectAnalyzer {
   async analyzeProject(project) {
     const description = project.description || project.desc || '';
     const descZh = await translateDescription(description);
+    if (description && !/[\u4e00-\u9fa5]/.test(String(descZh || ''))) {
+      const fullName = project.fullName || project.repo || project.name || '(未知项目)';
+      logger.warn(`项目描述翻译失败，沿用原文：${fullName}`);
+    }
 
     return {
       ...project,
       desc: description,
       descZh,
-      analysis: this.generateAnalysis(project)
+      analysis: this.generateAnalysis({ ...project, descZh })
     };
   }
 
