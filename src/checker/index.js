@@ -30,12 +30,12 @@ const RULES = [
   require('./rules/b7'),
   require('./rules/b8'),
   require('./rules/b10'),
-  require('./rules/b11'),
   require('./rules/b12'),
   require('./rules/b13'),
   require('./rules/b15'),
   require('./rules/b16'),
   require('./rules/b17'),
+  require('./rules/b18'),
   require('./rules/c1'),
   require('./rules/c2'),
   require('./rules/c3'),
@@ -233,6 +233,7 @@ function ruleIdMatches(findingRuleId, expectedRuleId) {
   if (findingRuleId === expectedRuleId) return true;
   if (expectedRuleId === 'NAME' && findingRuleId === 'D2') return true;
   if (expectedRuleId === 'D2' && findingRuleId === 'D2') return true;
+  if ((expectedRuleId === 'B11' || expectedRuleId === 'B16') && findingRuleId === 'B18') return true;
   return false;
 }
 

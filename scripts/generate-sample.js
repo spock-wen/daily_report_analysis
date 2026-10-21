@@ -675,10 +675,17 @@ async function main() {
   let insights = await runAnalysis();
   if (!insights || typeof insights !== 'object') insights = {};
 
+  const projectTags = {};
+  for (const project of brief?.projects || []) {
+    const name = project.fullName || project.repo || project.name;
+    if (name && project.tag) projectTags[name] = project.tag;
+  }
+
   const renderCurrent = () => renderInsights({
     insights,
     facts: facts.facts,
     projects: facts.projects,
+    projectTags,
     level,
     period,
   });

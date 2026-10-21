@@ -25,6 +25,29 @@ function readLines(fileName) {
     .filter(line => line && !line.startsWith('#'));
 }
 
+function readSections(fileName) {
+  const filePath = path.join(getConfigDir(), fileName);
+  let raw;
+  try {
+    raw = fs.readFileSync(filePath, 'utf8');
+  } catch (error) {
+    return [];
+  }
+  const entries = [];
+  let kind = 'direction';
+  for (const line of raw.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    if (trimmed.startsWith('#')) {
+      const match = /kind\s*=\s*([a-z_]+)/i.exec(trimmed);
+      if (match) kind = match[1].toLowerCase();
+      continue;
+    }
+    entries.push({ word: trimmed, kind });
+  }
+  return entries;
+}
+
 function readSpellingWords(fileName) {
   return readLines(fileName)
     .map(line => {
@@ -50,6 +73,8 @@ function loadConfig(options = {}) {
     c4Whitelist: readLines('c4_whitelist.txt'),
     commonSlashWords: readLines('common_slash_words.txt'),
     spellingWords: readSpellingWords('spelling_words.txt'),
+    directionStatusWords: readSections('direction_status_words.txt'),
+    metricNameExempt: readLines('metric_name_exempt.txt'),
   };
   return cache;
 }

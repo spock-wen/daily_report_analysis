@@ -95,7 +95,7 @@ node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/c
 - 退出码：`0` PASS；`1` FAIL（或有用例未通过）；`2` 参数错误。
 - 常规模式把 FAIL 清单写到 `<data-dir>/../check/check-<level>-<period>.{json,md}`，每条含文件、行号、字段、原句、规则 ID 和说明。
 - `--cases` 读取 jsonl（每行 `id, rule_id, expect, file, line, quote, expected_hit_fields, source`），用例文件路径相对 `--cases-root`（默认 `/home/box/shared/report-redesign`）；`line: null` 表示整份文档级检查。
-- 覆盖规则：A1、A2、A5、B3、B4、B5、B7、B8、B10、B11、B12、B13、B15、B16、C1、C2、C3、C4、C5、D2（NAME）。
+- 覆盖规则：A1、A2、A5、B3、B4、B5、B7、B8、B10、B12、B13、B15、B16、B18、C1、C2、C3、C4、C5、D2（NAME）。
 - 生成流程在写 HTML 前调用同一套核查；FAIL 时自动重写洞察 1 次，仍 FAIL 则不写 HTML、不推送，写出 FAIL 清单并以非 0 退出（D1/D3）。
 
 ### 配置文件与开关
@@ -120,7 +120,7 @@ node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/c
 
 ## 内容重构 r3（数据绑定）
 
-本节记录 `feat/report-content-r3` 分支的事实表（B1）。生成器每期先产出 `facts.json`，AI 只写文字并用 `{{f<id>:<role>}}`、`{{p:owner/repo}}` 占位，渲染器填值并校验 role（B10）；检查器核占位与渲染记录（B2–B5、B10、B11、B15）。
+本节记录 `feat/report-content-r3` 分支的事实表（B1）。生成器每期先产出 `facts.json`，AI 只写文字并用 `{{f<id>:<role>}}`、`{{p:owner/repo}}` 占位，渲染器填值并校验 role（B10）；检查器核占位与渲染记录（B2–B5、B10、B15、B18）。
 
 ### 输出位置与格式
 
@@ -191,7 +191,7 @@ node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/c
 - 占位编号不存在、缺少 role、role 与事实或语义槽不一致、或 `p:` 不在当期 `projects`：该期自动重试 AI 1 次（每期 AI 调用 ≤2，仍打印 `AI_CALLS` 行）；仍失败则该期 FAIL，写入核查清单，不静默删句、不写正式 HTML。
 - HTML 与 brief 中的 `oneSentence` 均使用渲染后的洞察。
 
-### 绑定核查（B4–B11、B15）
+### 绑定核查（B4–B18、B15）
 
 `--render-map` 指定的渲染记录（或 `<data-dir>/render/render_map-<level>-<period>.json`）、`--facts` 指定的事实表（或 `<data-dir>/facts/facts-<level>-<period>.json`）任一存在即进入 r3 模式。r3 模式下停用 A1、A2、D2 和原「周报重贴日报」B4 规则，改由绑定规则判定；C3 禁词、C4 白名单、B5 比较词表照旧。
 
@@ -201,11 +201,11 @@ node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/c
 | B5 | 成品中形如 `owner/repo` 的串必须来自 `{{p:owner/repo}}` 的渲染条目；无对应即 FAIL。短名不单独判定；残留 `{{p:...}}` 视为 p: 不在当期项目清单，FAIL。纯数字串可跳过；含「.」的串（如 `vercel/next.js`）不得跳过，必须按 `owner/repo` 核。 |
 | B6 | 与上一期同层报告（日报上一有数据日、周报上一 ISO 周、月报上月）某整句完全相同即 FAIL。 |
 | B10 | `render_map` 中每条事实渲染记录的 `role` 必须与事实表对应事实的 `role` 一致；渲染后文本中占位所在语义槽必须容纳该 role（`掉榜`→`dropped`、`新上榜`→`new`、`今日新增`→`today_stars`/`total_today`、`累计`→`stars`、`回归`→`returned` 等）。不一致即 FAIL；生成时由渲染器触发重试 1 次，仍不一致该期 FAIL。 |
-| B11 | 日报 AI 文字中的「新上榜/首日/回归/连续 N 天」必须与该项目卡片标签（`新`/`回归`/`连续 N 天`，来自 `dailyDiff` tag）一致，不一致即 FAIL。 |
+| B18 | 成品中的方向词与状态词必须来自 `render_map` 的 `{{d:<fid>}}`（role=direction）或 `{{s:owner/repo}}`（role=status）渲染条目；不在渲染记录中即 FAIL。`s:` 按项目卡片标签渲染为「新上榜/回归/连续 N 天」，N 由程序填。词表见 `config/checker/direction_status_words.txt`；指标名（`提速比`、`增速`、`变化率` 等）见 `config/checker/metric_name_exempt.txt`，其中方向字不判。旧 `{{f<id>:direction}}` 仍可渲染。 |
 | B12 | 日报 HTML 必须显示快照抓取时刻：`抓取时刻：YYYY-MM-DD HH:mm:ss（UTC+8）`；缺失即 FAIL。 |
 | B13 | HTML 中资源标签（`link`/`script`/`img`/`source`/`video`/`audio`/`iframe`/`embed`/`object`）的相对 `href`/`src` 必须存在于输出目录（相对 HTML 所在目录解析）；缺失即 FAIL。外部 URL、协议相对 `//`、`#`、根路径 `/` 不判。 |
 | B15 | 成品（insights/HTML/Markdown）命中 `config/checker/spelling_words.txt` 中的错误写法（如 `YANGI`）即 FAIL。 |
-| B16 | 命中「不是……而是……」句式即 FAIL。方向词必须来自 `render_map` 中 `role=direction` 的条目，且该条目的 direction 事实值须与 `current`/`reference` 比较一致；不在 `render_map` 的方向词视为 AI 自写方向词，FAIL。 |
+| B16 | 命中「不是……而是……」句式即 FAIL。方向词/状态词判据见 B18。 |
 
 B4 白名单格式（这些数字不要求 render_map 条目）：
 

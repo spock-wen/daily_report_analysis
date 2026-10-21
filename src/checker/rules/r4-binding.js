@@ -56,7 +56,14 @@ function missingNumbers(numbers, entries) {
   for (const entry of entries) {
     const text = normalizeNumberText(entry?.text);
     if (!text || !/[0-9]/.test(text)) continue;
-    counts.set(text, (counts.get(text) || 0) + 1);
+    if (/^[0-9.]+$/.test(text)) {
+      counts.set(text, (counts.get(text) || 0) + 1);
+      continue;
+    }
+    for (const number of extractNumbers(String(entry.text))) {
+      const value = normalizeNumberText(number);
+      counts.set(value, (counts.get(value) || 0) + 1);
+    }
   }
 
   const missing = [];

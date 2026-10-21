@@ -3,9 +3,14 @@
 const fs = require('fs');
 const path = require('path');
 const { findSlotAssignments } = require('../facts/roles');
+const { statusWordFromTag } = require('../facts/status');
 
 const FACT_PLACEHOLDER_RE = /\{\{f(\d+)(?::([a-z0-9_]+))?\}\}/g;
 const FACT_LEFTOVER_RE = /\{\{f[^{}]*\}\}/g;
+const DIRECTION_PLACEHOLDER_RE = /\{\{d:(f?\d+)\}\}/g;
+const DIRECTION_LEFTOVER_RE = /\{\{d[^{}]*\}\}/g;
+const STATUS_PLACEHOLDER_RE = /\{\{s:([^{}]+)\}\}/g;
+const STATUS_LEFTOVER_RE = /\{\{s[^{}]*\}\}/g;
 const PROJECT_PLACEHOLDER_RE = /\{\{p:([^{}]+)\}\}/g;
 
 function formatFactValue(value) {
@@ -22,7 +27,7 @@ function isProjectPlaceholder(value) {
   return typeof value === 'string' && /^\{\{p:[^{}]+\}\}$/.test(value.trim());
 }
 
-function renderInsights({ insights, facts, projects, level, period }) {
+function renderInsights({ insights, facts, projects, projectTags, level, period }) {
   const factMap = new Map();
   for (const fact of facts || []) {
     if (fact && fact.id !== undefined && fact.id !== null) {
@@ -36,6 +41,13 @@ function renderInsights({ insights, facts, projects, level, period }) {
       .filter(Boolean)
       .map(name => String(name).trim())
   );
+
+  const tagMap = new Map();
+  if (projectTags instanceof Map) {
+    for (const [name, tag] of projectTags) tagMap.set(String(name).trim(), tag);
+  } else if (projectTags && typeof projectTags === 'object') {
+    for (const [name, tag] of Object.entries(projectTags)) tagMap.set(String(name).trim(), tag);
+  }
 
   const entries = [];
   const errors = [];
@@ -111,7 +123,97 @@ function renderInsights({ insights, facts, projects, level, period }) {
       });
     }
 
-    return withFacts.replace(PROJECT_PLACEHOLDER_RE, (placeholder, rawName) => {
+    const invalidDirectionPlaceholders = new Set();
+    const withDirection = withFacts.replace(DIRECTION_PLACEHOLDER_RE, (placeholder, rawId) => {
+      const factId = rawId.startsWith('f') ? rawId : `f${rawId}`;
+      const fact = factMap.get(factId);
+      if (!fact) {
+        invalidDirectionPlaceholders.add(placeholder);
+        errors.push({
+          path: fieldPath,
+          placeholder,
+          quote: value,
+          message: `方向占位 ${placeholder} 对应的方向事实不存在`,
+        });
+        return placeholder;
+      }
+      if (fact.role !== 'direction') {
+        invalidDirectionPlaceholders.add(placeholder);
+        errors.push({
+          path: fieldPath,
+          placeholder,
+          quote: value,
+          message: `方向占位 ${placeholder} 指向的事实 ${fact.id} 不是 role=direction`,
+        });
+        return placeholder;
+      }
+      const text = formatFactValue(fact.value);
+      entries.push({
+        path: fieldPath,
+        placeholder,
+        factId: fact.id,
+        role: 'direction',
+        text,
+      });
+      return text;
+    });
+
+    for (const placeholder of new Set(withDirection.match(DIRECTION_LEFTOVER_RE) || [])) {
+      if (invalidDirectionPlaceholders.has(placeholder)) continue;
+      errors.push({
+        path: fieldPath,
+        placeholder,
+        quote: value,
+        message: `方向占位 ${placeholder} 格式无效`,
+      });
+    }
+
+    const invalidStatusPlaceholders = new Set();
+    const withStatus = withDirection.replace(STATUS_PLACEHOLDER_RE, (placeholder, rawName) => {
+      const name = rawName.trim();
+      if (!projectSet.has(name)) {
+        invalidStatusPlaceholders.add(placeholder);
+        errors.push({
+          path: fieldPath,
+          placeholder,
+          quote: value,
+          message: `状态占位 ${placeholder} 不在当期项目清单`,
+        });
+        return placeholder;
+      }
+      const text = statusWordFromTag(tagMap.get(name));
+      if (!text) {
+        invalidStatusPlaceholders.add(placeholder);
+        errors.push({
+          path: fieldPath,
+          placeholder,
+          quote: value,
+          message: `状态占位 ${placeholder} 无法渲染：该项目没有卡片标签`,
+        });
+        return placeholder;
+      }
+      entries.push({
+        path: fieldPath,
+        placeholder,
+        factId: null,
+        project: name,
+        role: 'status',
+        text,
+      });
+      return text;
+    });
+
+    for (const placeholder of new Set(withStatus.match(STATUS_LEFTOVER_RE) || [])) {
+      if (invalidStatusPlaceholders.has(placeholder)) continue;
+      errors.push({
+        path: fieldPath,
+        placeholder,
+        quote: value,
+        message: `状态占位 ${placeholder} 格式无效`,
+      });
+    }
+
+    return withStatus.replace(PROJECT_PLACEHOLDER_RE, (placeholder, rawName) => {
       const name = rawName.trim();
       if (!projectSet.has(name)) {
         errors.push({
@@ -187,5 +289,7 @@ module.exports = {
   isProjectPlaceholder,
   formatFactValue,
   FACT_PLACEHOLDER_RE,
+  DIRECTION_PLACEHOLDER_RE,
+  STATUS_PLACEHOLDER_RE,
   PROJECT_PLACEHOLDER_RE,
 };

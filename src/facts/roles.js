@@ -31,6 +31,31 @@ const REFERENCE_MOM_ROLES = [
   'mom_max_today',
 ];
 
+const COUNT_ROLES = [
+  'total_projects',
+  'ai_projects',
+  'hot_count',
+  'prev_total_projects',
+  'prev_ai_projects',
+  'prev_hot_count',
+  'avg7_total_projects',
+  'avg7_ai_projects',
+  'avg7_hot_count',
+  'mom_total_projects',
+  'mom_ai_projects',
+  'mom_hot_count',
+  'new',
+  'dropped',
+  'kept',
+  'returned',
+  'daily_count',
+  'recurring',
+  'prior',
+  'prev_new',
+  'prev_prior',
+  'churn_count',
+];
+
 // 「较昨日变化/提速」也属于昨日语义槽。
 const PREV_SLOT_ROLES = [
   ...REFERENCE_PREV_ROLES,
@@ -50,6 +75,7 @@ const SLOT_RULES = [
   { pattern: /本月新增/g, roles: ['month_stars', 'total_month'] },
   { pattern: /累计/g, roles: ['stars'] },
   { pattern: /Forks|Fork|fork|分支/g, roles: ['forks'] },
+  { pattern: /个项目|项目数/g, roles: COUNT_ROLES },
   { pattern: /合计/g, roles: ['total_today', 'total_week', 'total_month', 'prev_total_today', 'avg7_total_today', 'mom_total_today', 'prev_week_total', 'prev_month_total'] },
   // B16：参照数、份额变化、提速、换血率的语义槽。
   { pattern: /昨日|前一有数据日|上一有数据日/g, roles: PREV_SLOT_ROLES },
