@@ -294,9 +294,15 @@ function check(ctx, doc, config) {
   return findings;
 }
 
+function isR5Daily(ctx) {
+  return ctx.level === 'daily' && Boolean(ctx.insights)
+    && (ctx.insights.version === 'r5'
+      || (ctx.insights.slots && typeof ctx.insights.slots === 'object' && !Array.isArray(ctx.insights.slots)));
+}
+
 module.exports = {
   id: 'B18',
-  applies: (ctx, doc) => ['insights', 'html', 'md'].includes(doc.role),
+  applies: (ctx, doc) => !isR5Daily(ctx) && ['insights', 'html', 'md'].includes(doc.role),
   check,
   expectedDirection,
   wordDirection,

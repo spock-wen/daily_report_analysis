@@ -43,7 +43,21 @@ const RULES = [
   require('./rules/c5'),
   require('./rules/d2'),
   require('./rules/r4-binding'),
+  require('./rules/r5'),
 ];
+
+const R5_DISABLED_RULES = new Set([
+  'A1', 'A2', 'A5',
+  'B3', 'B4', 'B5', 'B6', 'B10', 'B18',
+  'C1', 'C2', 'C4',
+  'D2',
+]);
+
+function isR5Daily(ctx) {
+  return ctx.level === 'daily' && Boolean(ctx.insights)
+    && (ctx.insights.version === 'r5'
+      || (ctx.insights.slots && typeof ctx.insights.slots === 'object' && !Array.isArray(ctx.insights.slots)));
+}
 
 function fileExists(filePath) {
   try {
@@ -82,6 +96,7 @@ function runRules({ level, period, dataDir, brief, insights, documents, renderMa
   for (const doc of documents) {
     for (const rule of RULES) {
       if (!rule.applies(ctx, doc)) continue;
+      if (isR5Daily(ctx) && R5_DISABLED_RULES.has(rule.id)) continue;
       const ruleFindings = rule.check(ctx, doc, config) || [];
       findings.push(...ruleFindings);
     }

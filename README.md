@@ -254,6 +254,27 @@ node scripts/build-brief-from-snapshot.js \
 - 页面模板最小绑定：`overview`、`coreTrends`、`streakBrief`、`churn`、`deepAnalysis` 有内容才渲染。
 - 检查器 B16：命中「不是……而是……」句式即 FAIL；方向词按 `render_map` 的 `role=direction` 条目配对，不在 `render_map` 的方向词（含 AI 自写）即 FAIL，不再按最近数字配对。生成器由 `current`/`reference` 生成方向词，相等即「持平」。
 
+### r5 固定句式与槽位核查（日报）
+
+r5 的日报正文不再由 AI 写整句，而是由 `src/generator/daily-v3-text.js` 用固定句式生成；数字、方向词、仓库名和句式全部由程序填入，AI 只填非数字槽。
+
+- 正文范围：`trends[]` 3–5 句、`analysis` 2–4 句、`advice[]` ≤3 条、`churnNewText` 与 `churnDropText` 各 1 句。
+- 槽位清单：`buildSlotSpecs()` 输出 `{slotId, type, maxLength}`；提示词 `config/prompts.json` 的日报只要求 AI 返回 `{slotId: 文本}`。类型与上限：`reason` ≤30 字、`descShortZh` ≤14 字、`descZh` ≤60 字。
+- AI 未返回、超长、含数字或含方向/状态词的槽位，生成器用固定缺省短语并写日志，不进入正文。
+- 连续上榜天数直接取 `brief.streakDays` / facts 中已有的 `streak` 值，不按自然日回溯重算；缺快照日不中断。
+
+检查器规则 `R5` 只校验槽位，r5 日报不再运行旧的自由文本规则（A1/A2/A5、B3/B4/B5/B6/B10/B18、C1/C2/C4、D2）：
+
+| 判据 | 说明 |
+|---|---|
+| 槽位长度 | `reason` ≤30 字、`descShortZh` ≤14 字、`descZh` ≤60 字；超出即 FAIL。 |
+| 槽位数字 | 槽位文本出现任何阿拉伯数字即 FAIL；数字只能由程序从 facts 填入。 |
+| 槽位方向/状态词 | 命中 `config/checker/direction_status_words.txt` 即 FAIL；`config/checker/metric_name_exempt.txt` 的指标名豁免保留，不新增其它豁免。 |
+| 模板数字 | 正文每个数字必须能对上同字段路径的 `renderEntries`；每条渲染记录的事实编号必须存在，且记录文本的数字必须等于该事实的值。不一致即 FAIL。 |
+| 建议条数 | `advice` 最多 3 条；生成器只输出前 3 条，超出即 FAIL。 |
+
+用例：`refactor/cases/cases_r5.jsonl` 与 `refactor/cases/fixtures_r5/`，覆盖槽内含数字、槽超长、槽含「上升」、合规槽、模板数字与 facts 不符、建议多于 3 条只出 3 条。
+
 ---
 
 ## 快速开始

@@ -87,6 +87,13 @@ function collectSuggestions(insights) {
   return Array.from(new Set(lines));
 }
 
+function isSlotMap(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const keys = Object.keys(value);
+  return keys.length > 0
+    && keys.every(key => /^(?:trend|analysis|advice|churn|project)\./.test(key));
+}
+
 const AI_RETRY_CONFIG = {
   maxRetries: 3,
   baseDelay: 2000,
@@ -169,7 +176,14 @@ class InsightAnalyzer {
         max_tokens: 8000
       });
 
-      const insights = this.parseInsights(result, dailyData.brief);
+      const parsed = this.parseInsights(result, dailyData.brief);
+      const insights = isSlotMap(parsed)
+        ? require('../generator/daily-v3-text').buildDailyV3Text({
+            brief: dailyData.brief,
+            facts,
+            slots: parsed,
+          })
+        : parsed;
       await this.saveInsights('daily', dailyData.date, insights);
 
       logger.success('日报 AI 分析完成', {
@@ -716,6 +730,16 @@ class InsightAnalyzer {
     prompt = prompt.replace('{recentSuggestions}', contextData.recentSuggestions || '（无）');
     prompt = prompt.replace('{bannedWords}', (checkerConfig.bannedWords || []).join('\n'));
     prompt = prompt.replace('{compareWords}', (checkerConfig.compareWords || []).join('、'));
+
+    if (prompt.includes('{slots}')) {
+      const { buildSlotSpecs } = require('../generator/daily-v3-text');
+      prompt = prompt.replace('{slots}', () =>
+        JSON.stringify(buildSlotSpecs({ projects: contextData.projects }), null, 2));
+    }
+    if (prompt.includes('{directionWords}')) {
+      prompt = prompt.replace('{directionWords}', () =>
+        (checkerConfig.directionStatusWords || []).map(item => item.word).filter(Boolean).join('、'));
+    }
 
     prompt = prompt.replace('{{projects_count}}', contextData.projects.length);
     prompt = prompt.replace('{{projects_json}}', JSON.stringify(contextData.projects, null, 2));

@@ -612,20 +612,6 @@ function buildChurn({ todayProjects, previousBrief, currentUrlOf, returnedNames 
   };
 }
 
-function streakDaysFor(name, date) {
-  if (!date) return 1;
-  let days = 1;
-  let cursor = history.addDays(date, -1);
-  for (let index = 0; index < 30; index += 1) {
-    const brief = history.readDailyBrief(cursor);
-    if (!brief) break;
-    if (!namesOf(brief).has(name)) break;
-    days += 1;
-    cursor = history.addDays(cursor, -1);
-  }
-  return days;
-}
-
 function buildArchive({ date, weekLabel }) {
   const dailyFiles = listReportFiles(nodePath.join(paths.REPORTS_DIR, 'daily'));
   const weeklyFiles = listReportFiles(nodePath.join(paths.REPORTS_DIR, 'weekly'));
@@ -674,6 +660,11 @@ function buildViewModel(data) {
     .sort((left, right) => (toNumber(right.todayStars) || 0) - (toNumber(left.todayStars) || 0));
   const stats = data.stats || brief.stats || {};
   const insights = data.aiInsights || data.insights || {};
+  const streakDays = data.streakDays || brief.streakDays || {};
+  const streakOf = name => {
+    const value = toNumber(streakDays[name]);
+    return value !== null && value >= 1 ? value : 1;
+  };
   const scrapedAt = data.scrapedAt || brief.scrapedAt || brief.scraped_at
     || brief.generatedAt || brief.generated_at;
   const generatedAt = data.generatedAt || brief.generatedAt || brief.generated_at;
@@ -770,7 +761,7 @@ function buildViewModel(data) {
         fullName,
         anchor: anchorOf(fullName),
         url: project.url || `https://github.com/${fullName}`,
-        days: streakDaysFor(fullName, date),
+        days: streakOf(fullName),
         todayStars: formatCount(project.todayStars),
       };
     })
@@ -783,7 +774,7 @@ function buildViewModel(data) {
 
   const viewProjects = projects.map((project, index) => {
     const fullName = projectKey(project) || '—';
-    const days = streakDaysFor(fullName, date);
+    const days = streakOf(fullName);
     const returned = returnedNames.has(fullName) && !previousRankNames.has(fullName);
     const tag = project.tag
       || (days >= 2 ? `连续${days}天` : previousBrief ? (returned ? '回归' : '新') : '');

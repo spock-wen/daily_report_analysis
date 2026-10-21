@@ -34,7 +34,14 @@ function selfWrittenWords(sentence, regex, config) {
   return words;
 }
 
+function isR5Insights(insights) {
+  return Boolean(insights && typeof insights === 'object'
+    && (insights.version === 'r5'
+      || (insights.slots && typeof insights.slots === 'object' && !Array.isArray(insights.slots))));
+}
+
 function sanitizeInsights(insights, options = {}) {
+  if (isR5Insights(insights)) return { insights, deleted: [] };
   const config = options.config || loadConfig();
   const sections = wordSections(config);
   const regex = wordRegex(sections);
