@@ -294,6 +294,7 @@ function buildReportData(level, period, brief, metrics, insights) {
       dailyDiff: brief.dailyDiff,
       streakDays: brief.streakDays,
       caption: brief.caption,
+      isSample: true,
     };
   }
 
@@ -417,6 +418,17 @@ function addFailMarker(htmlPath) {
   return `${htmlPath.slice(0, -ext.length)}.FAIL${ext}`;
 }
 
+// B13 失败后改名得到的 .FAIL.html 也补上 FAIL 横条，保持与核查 FAIL 路径一致。
+function addFailBanner(htmlPath) {
+  const html = fs.readFileSync(htmlPath, 'utf8');
+  if (/class="fail-banner"/.test(html)) return;
+  const marked = html.replace(
+    /<body([^>]*)>/i,
+    '<body$1>\n<div class="fail-banner">内容核查未通过（FAIL）· 本页仅供审阅</div>'
+  );
+  fs.writeFileSync(htmlPath, marked, 'utf8');
+}
+
 // B13：样例 HTML 自包含——把 <link rel="stylesheet"> 指向的 public/css 文件内联进 <style>。
 function inlineStylesheets(html) {
   return String(html || '').replace(/<link\b[^>]*>/gi, tag => {
@@ -478,6 +490,8 @@ async function ensureChineseDescriptions(brief) {
 }
 
 async function writeSampleHtml(level, reportData, { fail = false } = {}) {
+  // .FAIL.html 与正常样例共用同一模板与样式，仅在页首追加 FAIL 横条。
+  reportData.isFail = fail;
   const generatedPath = await generateHtml(level, reportData);
   let htmlPath = generatedPath;
   if (fail) {
@@ -848,6 +862,7 @@ async function main() {
   if (gate.pass && b13Findings.length > 0) {
     const failPath = addFailMarker(htmlPath);
     fs.renameSync(htmlPath, failPath);
+    addFailBanner(failPath);
     for (const finding of b13Findings) {
       if (finding.file === htmlPath) finding.file = failPath;
     }

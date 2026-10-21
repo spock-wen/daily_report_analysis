@@ -3,6 +3,7 @@ const { getDailyReportPath, getWeeklyReportPath, getMonthlyReportPath } = requir
 const { renderTemplate, markdownToHtml } = require('../utils/template');
 const logger = require('../utils/logger');
 const MonthlyGenerator = require('./monthly-generator');
+const { renderDailyV2 } = require('./daily-v2-view-model');
 const WikiManager = require('../wiki/wiki-manager');
 const path = require('path');
 const fs = require('fs');
@@ -131,55 +132,7 @@ class HTMLGenerator {
   }
 
   renderDailyHTML(data) {
-    const { aiInsights, date } = data;
-    // 支持多种数据格式：根级别 projects/trending_repos 或 brief.trending_repos
-    const projects = data.projects || data.trending_repos || data.brief?.trending_repos || [];
-    const stats = data.stats || data.brief?.stats || {};
-    // B14：日报榜单按 todayStars 降序，与原站排序不同。
-    const sortedProjects = projects.slice().sort((left, right) => {
-      return (Number(right.todayStars) || 0) - (Number(left.todayStars) || 0);
-    });
-    const scrapedAt = data.scrapedAt || data.brief?.scrapedAt;
-    // 从多个可能的位置获取 period 字段
-    const period = data.period || data.brief?.period || '每日';
-    
-    // 根据 period 字段判断是日报还是周报
-    const reportType = period === '每周' ? '周报' : period === '每月' ? '月报' : '日报';
-
-    return `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GitHub AI Trending ${reportType} - ${date}</title>
-  <link rel="stylesheet" href="../../public/css/style.css">
-</head>
-<body>
-  <div class="container">
-    <header>
-      <h1>GitHub AI Trending ${reportType}</h1>
-      <div class="date">${date}</div>
-      ${scrapedAt ? `<div class="scraped-at">抓取时刻：${this.formatScrapedAt(scrapedAt)}（UTC+8）</div>` : ''}
-    </header>
-
-    ${this.renderStatsSection(stats, sortedProjects, data.caption || data.brief?.caption)}
-    ${this.renderDailyDiffSection(data)}
-    ${this.renderDailyBenchmarkSections(aiInsights, sortedProjects)}
-    ${this.renderProjectListSection(sortedProjects)}
-  </div>
-
-  <script>
-    function toggleDetails(projectId) {
-      const details = document.getElementById('details-' + projectId);
-      const btn = document.getElementById('btn-' + projectId);
-      if (details && btn) {
-        details.classList.toggle('active');
-        btn.textContent = details.classList.contains('active') ? '收起详情' : '查看详情';
-      }
-    }
-  </script>
-</body>
-</html>`;
+    return renderDailyV2(data);
   }
 
   hasValue(value) {
