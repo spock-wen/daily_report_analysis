@@ -25,6 +25,18 @@ function readLines(fileName) {
     .filter(line => line && !line.startsWith('#'));
 }
 
+function readSpellingWords(fileName) {
+  return readLines(fileName)
+    .map(line => {
+      const index = line.indexOf('=');
+      if (index <= 0) return null;
+      const wrong = line.slice(0, index).trim();
+      const right = line.slice(index + 1).trim();
+      return wrong && right ? { wrong, right } : null;
+    })
+    .filter(Boolean);
+}
+
 let cache = null;
 
 function loadConfig(options = {}) {
@@ -37,6 +49,7 @@ function loadConfig(options = {}) {
     fixedPhrases: readLines('fixed_phrases.txt'),
     c4Whitelist: readLines('c4_whitelist.txt'),
     commonSlashWords: readLines('common_slash_words.txt'),
+    spellingWords: readSpellingWords('spelling_words.txt'),
   };
   return cache;
 }

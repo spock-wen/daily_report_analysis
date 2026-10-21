@@ -95,7 +95,7 @@ node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/c
 - 退出码：`0` PASS；`1` FAIL（或有用例未通过）；`2` 参数错误。
 - 常规模式把 FAIL 清单写到 `<data-dir>/../check/check-<level>-<period>.{json,md}`，每条含文件、行号、字段、原句、规则 ID 和说明。
 - `--cases` 读取 jsonl（每行 `id, rule_id, expect, file, line, quote, expected_hit_fields, source`），用例文件路径相对 `--cases-root`（默认 `/home/box/shared/report-redesign`）；`line: null` 表示整份文档级检查。
-- 覆盖规则：A1、A2、A5、B3、B4、B5、B7、B8、C1、C2、C3、C4、C5、D2（NAME）。
+- 覆盖规则：A1、A2、A5、B3、B4、B5、B7、B8、B10、B11、B15、C1、C2、C3、C4、C5、D2（NAME）。
 - 生成流程在写 HTML 前调用同一套核查；FAIL 时自动重写洞察 1 次，仍 FAIL 则不写 HTML、不推送，写出 FAIL 清单并以非 0 退出（D1/D3）。
 
 ### 配置文件与开关
@@ -107,6 +107,7 @@ node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/c
 | `config/checker/fixed_phrases.txt` | C1 固定句（含 useCases/trends 模板句） |
 | `config/checker/c4_whitelist.txt` | C4 白名单（J23） |
 | `config/checker/cumulative_words.txt` | J26 累计口径词表（`总星数 累计星 累计 总计`）；含这些词的数字不做单项目归属比较，与 J25 的合计/门槛/上周同义 |
+| `config/checker/spelling_words.txt` | B15 拼写词表，格式 `错误写法=正确写法`（如 `YANGI=YAGNI`），一行一条，`#` 注释；匹配不区分大小写且要求两侧不是字母/数字 |
 | `REPORT_CHECKER_CONFIG_DIR` | 覆盖上述配置目录 |
 | `REPORT_DATA_DIR` | 覆盖 data 目录（默认 `./data`） |
 | `REPORT_OUT_DIR` | 覆盖报告输出目录（默认 `./reports`） |
@@ -119,7 +120,7 @@ node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/c
 
 ## 内容重构 r3（数据绑定）
 
-本节记录 `feat/report-content-r3` 分支的事实表（B1）。生成器每期先产出 `facts.json`，AI 只写文字并用 `{{f<id>}}`、`{{p:owner/repo}}` 占位，渲染器填值；检查器只核占位与渲染记录（B2–B4）。
+本节记录 `feat/report-content-r3` 分支的事实表（B1）。生成器每期先产出 `facts.json`，AI 只写文字并用 `{{f<id>:<role>}}`、`{{p:owner/repo}}` 占位，渲染器填值并校验 role（B10）；检查器核占位与渲染记录（B2–B5、B10、B11、B15）。
 
 ### 输出位置与格式
 
@@ -143,7 +144,8 @@ node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/c
       "project": null,
       "kind": "total",
       "source": "briefs/weekly/data-weekly-2026-W42.json#stats.totalProjects",
-      "label": "上榜项目数"
+      "label": "上榜项目数",
+      "role": "total_projects"
     }
   ]
 }
@@ -157,6 +159,7 @@ node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/c
 | `kind` | `single`（单项目）、`total`（合计/占比/计数）、`threshold`（门槛） |
 | `source` | `<数据文件>#<字段路径>`，数据文件相对 `data/`；通配用 `[*]` |
 | `label` | 简短中文说明，供 AI 识别事实含义 |
+| `role` | 用途（B10）：`new`、`dropped`、`kept`、`returned`、`total_today`、`today_stars`、`stars`、`streak`、`total_projects` 等；AI 占位写 `{{f1:<role>}}`，role 必须与事实的 `role` 一致 |
 | `projects` | 当期项目清单（`fullName[]`），供 `{{p:owner/repo}}` 校验；周报含 `dailyTop3Stats` 项目；月报为当月日榜去重后的全部项目 |
 
 ### 覆盖范围
@@ -181,21 +184,25 @@ node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/c
 
 ### AI 占位与渲染（B2/B3）
 
-- AI 只收到事实表（`id`、`label`、`value`、`project`、`kind`）与仓库清单（`fullName` + 描述，不含数值字段）；提示词要求所有数字写成 `{{f<id>}}`，所有仓库名写成 `{{p:owner/repo}}`，正文不得出现裸数字/裸仓库名（日期、期号、排名序号除外）。
-- 渲染器 `src/render/placeholder-renderer.js` 递归替换洞察 JSON 中所有字符串的占位：`{{f<id>}}` 按 facts 的 `value` 填入，`{{p:owner/repo}}` 原样输出。
-- 渲染成功后产出 `<out-dir>/data/render/render_map-<level>-<period>.json`，逐条记录字段路径 `path`、占位 `placeholder`、事实编号 `factId`（仓库占位为 `null`）与渲染文本 `text`；文件已存在即报错退出，不覆盖。
-- 占位编号不存在或 `p:` 不在当期 `projects`：该期自动重试 AI 1 次（每期 AI 调用 ≤2，仍打印 `AI_CALLS` 行）；仍失败则该期 FAIL，写入核查清单，不静默删句、不写正式 HTML。
+- AI 只收到事实表（`id`、`role`、`label`、`value`、`project`、`kind`）与仓库清单（`fullName` + 描述，不含数值字段）；提示词要求所有数字写成 `{{f<id>:<role>}}`（role 逐字复制事实的 `role`），所有仓库名写成 `{{p:owner/repo}}`，正文不得出现裸数字/裸仓库名（日期、期号、排名序号除外）。
+- 渲染器 `src/render/placeholder-renderer.js` 递归替换洞察 JSON 中所有字符串的占位：`{{f<id>:<role>}}` 按 facts 的 `value` 填入，`{{p:owner/repo}}` 原样输出。
+- 渲染器同时校验 B10：占位必须带 role；role 必须与事实的 `role` 一致；占位所在语义槽（`掉榜`→`dropped`、`新上榜`→`new`、`今日新增`→`today_stars`/`total_today`、`累计`→`stars`、`回归`→`returned` 等）必须与 role 一致。任一不符即记录错误，走下面的重试/FAIL 流程。
+- 渲染成功后产出 `<out-dir>/data/render/render_map-<level>-<period>.json`，逐条记录字段路径 `path`、占位 `placeholder`、事实编号 `factId`（仓库占位为 `null`）、`role` 与渲染文本 `text`；文件已存在即报错退出，不覆盖。
+- 占位编号不存在、缺少 role、role 与事实或语义槽不一致、或 `p:` 不在当期 `projects`：该期自动重试 AI 1 次（每期 AI 调用 ≤2，仍打印 `AI_CALLS` 行）；仍失败则该期 FAIL，写入核查清单，不静默删句、不写正式 HTML。
 - HTML 与 brief 中的 `oneSentence` 均使用渲染后的洞察。
 
-### 绑定核查（B4–B6）
+### 绑定核查（B4–B11、B15）
 
 `--render-map` 指定的渲染记录（或 `<data-dir>/render/render_map-<level>-<period>.json`）、`--facts` 指定的事实表（或 `<data-dir>/facts/facts-<level>-<period>.json`）任一存在即进入 r3 模式。r3 模式下停用 A1、A2、D2 和原「周报重贴日报」B4 规则，改由绑定规则判定；C3 禁词、C4 白名单、B5 比较词表照旧。
 
 | 规则 | 判据 |
 |---|---|
-| B4 | 渲染后 insights 文本与 HTML 正文中的每个数字，必须在 `render_map` 有同字段路径、同文本的条目；无对应即 FAIL。残留 `{{f<id>}}` 视为占位 id 不存在，FAIL。 |
-| B5 | 成品中形如 `owner/repo` 的串必须来自 `{{p:owner/repo}}` 的渲染条目；无对应即 FAIL。短名不单独判定；残留 `{{p:...}}` 视为 p: 不在当期项目清单，FAIL。 |
+| B4 | 渲染后 insights 文本与 HTML 正文中的每个数字，必须在 `render_map` 有同字段路径、同文本的条目；无对应即 FAIL。残留 `{{f<id>}}` / `{{f<id>:<role>}}` 视为占位 id 不存在，FAIL。 |
+| B5 | 成品中形如 `owner/repo` 的串必须来自 `{{p:owner/repo}}` 的渲染条目；无对应即 FAIL。短名不单独判定；残留 `{{p:...}}` 视为 p: 不在当期项目清单，FAIL。纯数字串可跳过；含「.」的串（如 `vercel/next.js`）不得跳过，必须按 `owner/repo` 核。 |
 | B6 | 与上一期同层报告（日报上一有数据日、周报上一 ISO 周、月报上月）某整句完全相同即 FAIL。 |
+| B10 | `render_map` 中每条事实渲染记录的 `role` 必须与事实表对应事实的 `role` 一致；渲染后文本中占位所在语义槽必须容纳该 role（`掉榜`→`dropped`、`新上榜`→`new`、`今日新增`→`today_stars`/`total_today`、`累计`→`stars`、`回归`→`returned` 等）。不一致即 FAIL；生成时由渲染器触发重试 1 次，仍不一致该期 FAIL。 |
+| B11 | 日报 AI 文字中的「新上榜/首日/回归/连续 N 天」必须与该项目卡片标签（`新`/`回归`/`连续 N 天`，来自 `dailyDiff` tag）一致，不一致即 FAIL。 |
+| B15 | 成品（insights/HTML/Markdown）命中 `config/checker/spelling_words.txt` 中的错误写法（如 `YANGI`）即 FAIL。 |
 
 B4 白名单格式（这些数字不要求 render_map 条目）：
 

@@ -67,8 +67,6 @@ function extractRefs(text) {
   while ((match = REPO_REF_RE.exec(source)) !== null) {
     const raw = match[1].replace(/[.,;:!?)]+$/, '');
     if (!/[A-Za-z]/.test(raw)) continue;
-    const owner = raw.split('/')[0];
-    if (owner.includes('.')) continue;
     refs.push(raw);
   }
   return refs;

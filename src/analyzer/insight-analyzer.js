@@ -571,22 +571,23 @@ class InsightAnalyzer {
     ]);
     const existingText = JSON.stringify(insights);
     const notes = Array.isArray(insights.dailyTop3Notes) ? insights.dailyTop3Notes.slice() : [];
-    const factIdByLabel = new Map();
+    const factByLabel = new Map();
     for (const fact of facts?.facts || []) {
-      if (fact.label) factIdByLabel.set(fact.label, fact.id);
+      if (fact.label) factByLabel.set(fact.label, fact);
     }
+    const factPlaceholder = fact => (fact.role ? `{{${fact.id}:${fact.role}}}` : `{{${fact.id}}}`);
 
     for (const item of metrics.dailyTop3Stats || []) {
       if (existingText.includes(item.fullName)) continue;
-      const daysFact = factIdByLabel.get(`${item.fullName} 本周日报上榜天数`);
-      const starsFact = factIdByLabel.get(`${item.fullName} 本周日报新增星`);
+      const daysFact = factByLabel.get(`${item.fullName} 本周日报上榜天数`);
+      const starsFact = factByLabel.get(`${item.fullName} 本周日报新增星`);
       if (!daysFact || !starsFact) continue;
       const inWeekly = currentWeekly.has(item.fullName);
       notes.push({
         repo: `{{p:${item.fullName}}}`,
         note: inWeekly
-          ? `本周日报上榜 {{${daysFact}}} 天，期内新增 {{${starsFact}}} 星，同时进入周榜。`
-          : `本周日报上榜 {{${daysFact}}} 天，期内新增 {{${starsFact}}} 星，但未进入周榜，原因未知。`
+          ? `本周日报上榜 ${factPlaceholder(daysFact)} 天，期内新增 ${factPlaceholder(starsFact)} 星，同时进入周榜。`
+          : `本周日报上榜 ${factPlaceholder(daysFact)} 天，期内新增 ${factPlaceholder(starsFact)} 星，但未进入周榜，原因未知。`
       });
     }
 
@@ -604,6 +605,7 @@ class InsightAnalyzer {
     const factList = Array.isArray(contextData.facts?.facts) ? contextData.facts.facts : [];
     const factsForPrompt = factList.map(item => ({
       id: item.id,
+      role: item.role,
       label: item.label,
       value: item.value,
       project: item.project ?? null,

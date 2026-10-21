@@ -273,6 +273,7 @@ class MonthlyAnalyzer {
 
     const factsForPrompt = (contextData.facts?.facts || []).map(item => ({
       id: item.id,
+      role: item.role,
       label: item.label,
       value: item.value,
       project: item.project ?? null,

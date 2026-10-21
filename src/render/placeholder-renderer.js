@@ -2,8 +2,10 @@
 
 const fs = require('fs');
 const path = require('path');
+const { findSlotAssignments } = require('../facts/roles');
 
-const FACT_PLACEHOLDER_RE = /\{\{f(\d+)\}\}/g;
+const FACT_PLACEHOLDER_RE = /\{\{f(\d+)(?::([a-z0-9_]+))?\}\}/g;
+const FACT_LEFTOVER_RE = /\{\{f[^{}]*\}\}/g;
 const PROJECT_PLACEHOLDER_RE = /\{\{p:([^{}]+)\}\}/g;
 
 function formatFactValue(value) {
@@ -40,8 +42,18 @@ function renderInsights({ insights, facts, projects, level, period }) {
 
   const renderString = (value, fieldPath) => {
     const invalidFactPlaceholders = new Set();
-    const withFacts = value.replace(FACT_PLACEHOLDER_RE, (placeholder, id) => {
-      const fact = factMap.get(`f${id}`);
+    const matches = [];
+    value.replace(FACT_PLACEHOLDER_RE, (placeholder, id, role, offset) => {
+      matches.push({ placeholder, id, role: role || null, offset });
+      return placeholder;
+    });
+    const slotByOffset = findSlotAssignments(value, matches.map(match => match.offset));
+    let cursor = 0;
+
+    const withFacts = value.replace(FACT_PLACEHOLDER_RE, placeholder => {
+      const match = matches[cursor];
+      cursor += 1;
+      const fact = factMap.get(`f${match.id}`);
       if (!fact) {
         invalidFactPlaceholders.add(placeholder);
         errors.push({
@@ -52,17 +64,42 @@ function renderInsights({ insights, facts, projects, level, period }) {
         });
         return placeholder;
       }
+      if (!match.role) {
+        errors.push({
+          path: fieldPath,
+          placeholder,
+          quote: value,
+          message: `事实占位 ${placeholder} 缺少 role（应写 {{f${match.id}:<role>}}）`,
+        });
+      } else if (fact.role && match.role !== fact.role) {
+        errors.push({
+          path: fieldPath,
+          placeholder,
+          quote: value,
+          message: `事实占位 ${placeholder} 的 role 与事实 ${fact.id} 的 role「${fact.role}」不一致`,
+        });
+      }
+      const allowedRoles = slotByOffset.get(match.offset);
+      if (fact.role && allowedRoles && !allowedRoles.includes(fact.role)) {
+        errors.push({
+          path: fieldPath,
+          placeholder,
+          quote: value,
+          message: `事实占位 ${placeholder} 所在语义槽与 role「${fact.role}」不一致`,
+        });
+      }
       const text = formatFactValue(fact.value);
       entries.push({
         path: fieldPath,
         placeholder,
         factId: fact.id,
+        role: match.role,
         text,
       });
       return text;
     });
 
-    const leftoverFacts = withFacts.match(/\{\{f[^{}]*\}\}/g) || [];
+    const leftoverFacts = withFacts.match(FACT_LEFTOVER_RE) || [];
     for (const placeholder of new Set(leftoverFacts)) {
       if (invalidFactPlaceholders.has(placeholder)) continue;
       errors.push({
@@ -88,6 +125,7 @@ function renderInsights({ insights, facts, projects, level, period }) {
         path: fieldPath,
         placeholder,
         factId: null,
+        role: null,
         text: name,
       });
       return name;
