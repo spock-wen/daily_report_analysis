@@ -458,6 +458,7 @@ class ReportPipeline {
     // 基础格式
     const formatted = {
       generatedAt: data.scrapedAt || now.toISOString(),
+      scrapedAt: data.scrapedAt || now.toISOString(),
       date: identifier,
       triggerType: type,
       period: type === 'daily' ? '每日' : type === 'weekly' ? '每周' : '每月',
