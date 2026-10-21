@@ -1,12 +1,13 @@
 'use strict';
 
 const { loadConfig } = require('../checker/config');
+const history = require('../metrics/history');
 
 const SLOT_TYPES = {
   reason: { maxLength: 30 },
   descShortZh: { maxLength: 14 },
   descZh: { maxLength: 60 },
-  oneSentence: { maxLength: 60 },
+  oneSentence: { maxLength: 40 },
 };
 
 const DEFAULT_PHRASES = {
@@ -32,7 +33,57 @@ function defaultProjectText(typeName, kind = 'descZh') {
   const name = String(typeName || '');
   const matched = PROJECT_DEFAULT_TEXTS.find(item => item.pattern.test(name));
   const entry = matched || PROJECT_DEFAULT_FALLBACK;
-  return kind === 'descShortZh' ? entry.short : entry.full;
+  if (kind === 'descShortZh') return entry.short;
+  if (kind === 'oneSentence') return `专注于${entry.short}的工程实践方案`;
+  return entry.full;
+}
+
+const ONE_SENTENCE_TEMPLATES = [
+  (t, l, c) => `面向${t}场景的${l ? l + ' ' : ''}${c ? c + ' ' : ''}实用工具集`,
+  (t, l, c) => `基于${l ? ' ' + l + ' ' : ''}构建的${c ? c + ' ' : ''}${t}开源解决方案`,
+  (t, l, c) => `专注于${t}实践的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}工程组件`,
+  (t, l, c) => `深耕${t}方向的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}应用框架`,
+  (t, l, c) => `服务于${t}工作流的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}效率套件`,
+  (t, l, c) => `聚焦${t}核心能力的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}开源项目`,
+  (t, l, c) => `为${t}开发者打造的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}实用组件`,
+  (t, l, c) => `围绕${t}技术栈构建的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}支持库`,
+  (t, l, c) => `探索${t}创新的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}开发脚手架`,
+  (t, l, c) => `适用于${t}需求的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}基础设施`,
+  (t, l, c) => `面向${t}落地的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}实用程序`,
+  (t, l, c) => `赋能${t}生态的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}轻量工具`,
+  (t, l, c) => `助力${t}流程构建的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}开源模块`,
+  (t, l, c) => `加速${t}实施的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}专业工具箱`,
+  (t, l, c) => `面向${t}领域打造的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}基础框架`,
+  (t, l, c) => `针对${t}痛点设计的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}实用方案`,
+  (t, l, c) => `支撑${t}高效运作的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}开源套件`,
+  (t, l, c) => `立足${t}前沿探索的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}工程框架`,
+  (t, l, c) => `优化${t}交付体验的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}开发套件`,
+  (t, l, c) => `面向${t}应用整合的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}支撑组件`,
+];
+
+function buildDefaultOneSentence(project, descZh, usedSentences = new Set(), config = null, regex = null) {
+  const typeName = project?.analysis?.typeName || project?.category || project?.analysis?.type || '';
+  const match = PROJECT_DEFAULT_TEXTS.find(item => item.pattern.test(String(typeName)));
+  const baseType = match ? match.short.replace(/工具$/, '') : (typeName || '开发工程');
+  const lang = String(project?.language || '').trim();
+  const commLevel = project?.analysis?.community?.level || project?.community || '';
+  let comm = '';
+  if (commLevel === '极高') comm = '高关注度';
+  else if (commLevel === '高') comm = '高热度';
+  else if (commLevel === '中') comm = '成长型';
+  else if (commLevel === '低') comm = '新兴';
+
+  for (let i = 0; i < ONE_SENTENCE_TEMPLATES.length; i++) {
+    const fn = ONE_SENTENCE_TEMPLATES[i];
+    const candidate = fn(baseType, lang, comm).replace(/\s+/g, ' ').trim();
+    if (candidate.length > 40) continue;
+    if (/\d/.test(candidate)) continue;
+    if (candidate === descZh) continue;
+    if (usedSentences.has(candidate)) continue;
+    if (regex && regex.test(stripMetricNames(candidate, config))) continue;
+    return candidate;
+  }
+  return `面向${baseType}领域的开源实用工具`;
 }
 
 // 槽位 JSON 允许扁平点号键，也允许嵌套对象；统一摊平成 slotId -> 文本。
@@ -150,6 +201,7 @@ function buildSlotSpecs(options = {}) {
   for (const name of projectNames(options)) {
     specs.push(slotSpecFor(`project.${name}.descShortZh`));
     specs.push(slotSpecFor(`project.${name}.descZh`));
+    specs.push(slotSpecFor(`project.${name}.oneSentence`));
   }
   return specs;
 }
@@ -275,14 +327,45 @@ function averagePhrase(index, write, average) {
   return `较近 ${write.num(windowFact)} 日均`;
 }
 
-function comparisonClause(index, write, { metric, unit = '', withAverage = true }) {
+function determinePrevDate(brief, options, index) {
+  if (options && options.prevDate) return options.prevDate;
+  if (brief && brief.dailyDiff && brief.dailyDiff.prevDate) return brief.dailyDiff.prevDate;
+  if (brief && brief.stats && brief.stats.prevDate) return brief.stats.prevDate;
+  if (index && Array.isArray(index.list)) {
+    const factWithSource = index.list.find(f => /briefs\/daily\/data-(\d{4}-\d{2}-\d{2})\.json/.test(String(f && f.source || '')));
+    if (factWithSource) {
+      const m = /briefs\/daily\/data-(\d{4}-\d{2}-\d{2})\.json/.exec(factWithSource.source);
+      if (m) return m[1];
+    }
+  }
+  const scrapedAt = brief && (brief.scrapedAt || brief.generatedAt);
+  if (scrapedAt && typeof history.getBaselineSnapshot === 'function') {
+    const baseline = history.getBaselineSnapshot(scrapedAt);
+    if (baseline && baseline.date) return baseline.date;
+  }
+  const date = (brief && brief.date) || (options && options.date);
+  if (date && typeof history.getPreviousDailyDate === 'function') {
+    return history.getPreviousDailyDate(date);
+  }
+  return null;
+}
+
+function isPrevYesterday(date, prevDate) {
+  if (!date || !prevDate) return true;
+  const d = new Date(date + 'T00:00:00Z');
+  const p = new Date(prevDate + 'T00:00:00Z');
+  const diffDays = Math.round((d.getTime() - p.getTime()) / (24 * 3600 * 1000));
+  return diffDays === 1;
+}
+
+function comparisonClause(index, write, { metric, unit = '', withAverage = true, prevLabel = '较昨日' }) {
   const parts = [];
   const dayDelta = index.role(`delta_day_${metric}`);
   if (dayDelta) {
-    parts.push(`较昨日 ${write.signed(dayDelta)}${unit}`);
+    parts.push(`${prevLabel} ${write.signed(dayDelta)}${unit}`);
   } else {
     const previous = index.role(`prev_${metric}`);
-    if (previous) parts.push(`较昨日 ${write.num(previous)}${unit}`);
+    if (previous) parts.push(`${prevLabel} ${write.num(previous)}${unit}`);
   }
 
   if (withAverage) {
@@ -313,6 +396,13 @@ function makeSentence(writer) {
       entries.push({ factId: fact.id, role: fact.role || null, text });
       return text;
     },
+    abs(fact) {
+      if (!fact) return '';
+      const value = Math.abs(Number(fact.value));
+      const text = Number.isFinite(value) ? String(value) : String(fact.value).replace(/^[+\-−]/, '');
+      entries.push({ factId: fact.id, role: fact.role || null, text });
+      return text;
+    },
     dir(fact) {
       return fact && hasValue(fact.value) ? String(fact.value) : '';
     },
@@ -329,7 +419,7 @@ function finalize(item, path, slotText) {
   };
 }
 
-function buildTrendCandidates(index) {
+function buildTrendCandidates(index, prevLabel = '较昨日') {
   const candidates = [];
 
   const total = index.total('total_projects');
@@ -337,7 +427,7 @@ function buildTrendCandidates(index) {
   if (total && ai) {
     candidates.push({
       ...makeSentence(w => `今日 ${w.num(total)} 个上榜项目中，AI 项目 ${w.num(ai)} 个`
-        + comparisonClause(index, w, { metric: 'total_projects', unit: ' 个' })),
+        + comparisonClause(index, w, { metric: 'ai_projects', unit: ' 个', prevLabel })),
       slotId: 'trend.composition.reason',
     });
   }
@@ -346,7 +436,7 @@ function buildTrendCandidates(index) {
   if (totalToday) {
     candidates.push({
       ...makeSentence(w => `当日新增星合计 ${w.num(totalToday)} 星`
-        + comparisonClause(index, w, { metric: 'total_today', unit: ' 星' })),
+        + comparisonClause(index, w, { metric: 'total_today', unit: ' 星', prevLabel })),
       slotId: 'trend.momentum.reason',
     });
   }
@@ -355,7 +445,7 @@ function buildTrendCandidates(index) {
   if (hotCount) {
     candidates.push({
       ...makeSentence(w => `高热项目 ${w.num(hotCount)} 个`
-        + comparisonClause(index, w, { metric: 'hot_count', unit: ' 个' })),
+        + comparisonClause(index, w, { metric: 'hot_count', unit: ' 个', prevLabel })),
       slotId: 'trend.hot.reason',
     });
   }
@@ -367,19 +457,26 @@ function buildTrendCandidates(index) {
   if (newCount && dropped && kept && retention) {
     candidates.push({
       ...makeSentence(w => {
-        let base = `新进 ${w.num(newCount)} 个、掉榜 ${w.num(dropped)} 个，连续在榜 ${w.num(kept)} 个，留存率 ${w.num(retention)}%`;
         const newDelta = index.role('delta_day_new');
         const droppedDelta = index.role('delta_day_dropped');
-        const newComparison = newDelta
-          ? `较昨日 ${w.signed(newDelta)} 个`
-          : (index.role('prev_new') ? `较昨日 ${w.num(index.role('prev_new'))} 个` : '');
-        const droppedComparison = droppedDelta
-          ? `较昨日 ${w.signed(droppedDelta)} 个`
-          : (index.role('prev_dropped') ? `较昨日 ${w.num(index.role('prev_dropped'))} 个` : '');
-        if (newComparison || droppedComparison) {
-          base += `，${[newComparison, droppedComparison].filter(Boolean).join('、')}`;
+        const newPrev = index.role('prev_new');
+        const droppedPrev = index.role('prev_dropped');
+
+        let newPart = `新进 ${w.num(newCount)} 个`;
+        if (newDelta) {
+          newPart += `（${prevLabel} ${w.signed(newDelta)}）`;
+        } else if (newPrev) {
+          newPart += `（${prevLabel} ${w.num(newPrev)}）`;
         }
-        return base;
+
+        let dropPart = `掉榜 ${w.num(dropped)} 个`;
+        if (droppedDelta) {
+          dropPart += `（${prevLabel} ${w.signed(droppedDelta)}）`;
+        } else if (droppedPrev) {
+          dropPart += `（${prevLabel} ${w.num(droppedPrev)}）`;
+        }
+
+        return `${newPart}、${dropPart}，连续在榜 ${w.num(kept)} 个，留存率 ${w.num(retention)}%`;
       }),
       slotId: 'trend.churn.reason',
     });
@@ -389,7 +486,7 @@ function buildTrendCandidates(index) {
   if (maxStreak) {
     candidates.push({
       ...makeSentence(w => `连续在榜最长 ${w.num(maxStreak)} 天`
-        + comparisonClause(index, w, { metric: 'max_streak', unit: ' 天' })),
+        + comparisonClause(index, w, { metric: 'max_streak', unit: ' 天', prevLabel })),
       slotId: 'trend.streak.reason',
     });
   }
@@ -405,7 +502,7 @@ function buildTrendCandidates(index) {
     candidates.push({
       ...makeSentence(w => {
         let base = `头部${categoryShare ? '类目' : '语言'}「${name}」份额 ${w.num(share)}%`;
-        if (shift) base += `，较上一有数据日 ${w.signed(shift)} 个百分点`;
+        if (shift) base += `，${prevLabel} ${w.signed(shift)} 个百分点`;
         return base;
       }),
       slotId: 'trend.distribution.reason',
@@ -415,7 +512,7 @@ function buildTrendCandidates(index) {
   return candidates;
 }
 
-function buildAnalysisCandidates(index) {
+function buildAnalysisCandidates(index, prevLabel = '较昨日') {
   const candidates = [];
 
   const total = index.total('total_projects');
@@ -426,17 +523,31 @@ function buildAnalysisCandidates(index) {
 
   const totalToday = index.total('total_today');
   if (totalToday) {
+    const dayDelta = index.role('delta_day_total_today');
+    const avgDelta = index.role('delta_avg_total_today');
     const previous = index.total('prev_total_today');
     const average = index.total('avg7_total_today');
-    const dayDirection = index.direction('total_today', '较昨日');
-    const avgDirection = index.direction('total_today', '较7日均值');
+    const prevTarget = prevLabel === '较昨日' ? '昨日' : '上期';
+
     candidates.push({
       ...makeSentence(w => {
         let base = `当日新增星合计 ${w.num(totalToday)} 星`;
-        if (previous) base += `，较上一有数据日 ${w.num(previous)} 星`;
-        if (dayDirection) base += `，${w.dir(dayDirection)}`;
-        if (average) base += `；较 7 日均值 ${w.num(average)} 星`;
-        if (avgDirection) base += `，${w.dir(avgDirection)}`;
+        if (dayDelta && avgDelta) {
+          const dVal = Number(dayDelta.value);
+          const aVal = Number(avgDelta.value);
+          const dWord = dVal >= 0 ? '多' : '少';
+          const aWord = aVal >= 0 ? '多' : '少';
+          const conj = (dVal >= 0) !== (aVal >= 0) ? '，但' : '，且';
+          base += `，比${prevTarget}${dWord} ${w.abs(dayDelta)} 星${conj}比 7 日均值${aWord} ${w.abs(avgDelta)} 星`;
+        } else if (dayDelta) {
+          const dVal = Number(dayDelta.value);
+          const dWord = dVal >= 0 ? '多' : '少';
+          base += `，比${prevTarget}${dWord} ${w.abs(dayDelta)} 星`;
+          if (average) base += `，7 日均值为 ${w.num(average)} 星`;
+        } else if (previous) {
+          base += `，较${prevTarget} ${w.num(previous)} 星`;
+          if (average) base += `，7 日均值 ${w.num(average)} 星`;
+        }
         return base;
       }),
       slotId: 'analysis.momentum.reason',
@@ -474,6 +585,7 @@ function buildProjectTexts(names, slots, config, regex, logger, projects = new M
   const texts = [];
   const usedDefaults = [];
   const accepted = {};
+  const usedOneSentences = new Set();
 
   for (const name of names) {
     const project = projects.get(name) || {};
@@ -504,12 +616,25 @@ function buildProjectTexts(names, slots, config, regex, logger, projects = new M
 
     const oneId = `project.${name}.oneSentence`;
     const oneSpec = slotSpecFor(oneId);
-    const oneCheck = checkSlotText(slots?.[oneId], oneSpec, config, regex);
-    const oneSentence = oneCheck.ok
-      ? stripRepoPrefix(oneCheck.text, name)
-      : defaultProjectText(typeName, 'oneSentence');
+    let oneCheck = checkSlotText(slots?.[oneId], oneSpec, config, regex);
+    let oneSentence = null;
+    if (oneCheck.ok) {
+      const stripped = stripRepoPrefix(oneCheck.text, name);
+      if (stripped.includes(name) || (name.includes('/') && stripped.includes(name.split('/')[1]))) {
+        oneCheck = { ok: false, reason: '含仓库名' };
+      } else if (stripped === descZh) {
+        oneCheck = { ok: false, reason: '与简介相同' };
+      } else if (usedOneSentences.has(stripped)) {
+        oneCheck = { ok: false, reason: '跨卡重复' };
+      } else {
+        oneSentence = stripped;
+        usedOneSentences.add(oneSentence);
+      }
+    }
     accepted[oneId] = oneCheck.ok;
-    if (!oneCheck.ok && hasValue(slots?.[oneId])) {
+    if (!oneCheck.ok) {
+      oneSentence = buildDefaultOneSentence(project, descZh, usedOneSentences, config, regex);
+      usedOneSentences.add(oneSentence);
       usedDefaults.push({ slotId: oneId, reason: oneCheck.reason, fallback: 'program.defaultOneSentence' });
       if (typeof logger.warn === 'function') logger.warn(`[daily-v3-text] 槽位${oneCheck.reason}，使用程序一句话缺省：${oneId}`);
     }
@@ -532,14 +657,19 @@ function buildDailyV3Text(options = {}) {
   const index = indexFacts(options.facts);
   const renderEntries = [];
 
-  const trends = buildTrendCandidates(index).slice(0, 5).map((candidate, position) => {
+  const date = brief.date || options.date;
+  const prevDate = determinePrevDate(brief, options, index);
+  const isYesterday = isPrevYesterday(date, prevDate);
+  const prevLabel = isYesterday ? '较昨日' : '较上期';
+
+  const trends = buildTrendCandidates(index, prevLabel).slice(0, 5).map((candidate, position) => {
     const slotText = resolved.text[candidate.slotId] || DEFAULT_PHRASES.reason;
     const sentence = finalize({ ...candidate, slotIds: [candidate.slotId] }, `trends[${position}].text`, slotText);
     renderEntries.push(...sentence.entries);
     return { text: sentence.text, slotIds: sentence.slotIds };
   });
 
-  const analysis = buildAnalysisCandidates(index).slice(0, 4).map(candidate => {
+  const analysis = buildAnalysisCandidates(index, prevLabel).slice(0, 4).map(candidate => {
     const slotText = resolved.text[candidate.slotId] || DEFAULT_PHRASES.reason;
     const sentence = finalize({ ...candidate, slotIds: [candidate.slotId] }, 'analysis', slotText);
     renderEntries.push(...sentence.entries);
@@ -561,7 +691,7 @@ function buildDailyV3Text(options = {}) {
   if (newCount) {
     const sentence = finalize({
       ...makeSentence(w => {
-        let base = `较上一有数据日新进 ${w.num(newCount)} 个项目`;
+        let base = `${prevLabel}新进 ${w.num(newCount)} 个项目`;
         if (returned) base += `，其中回归 ${w.num(returned)} 个`;
         return base;
       }),
@@ -573,7 +703,7 @@ function buildDailyV3Text(options = {}) {
   let churnDropText = '';
   if (dropped) {
     const sentence = finalize({
-      ...makeSentence(w => `较上一有数据日掉榜 ${w.num(dropped)} 个项目`),
+      ...makeSentence(w => `${prevLabel}掉榜 ${w.num(dropped)} 个项目`),
       slotIds: ['churn.drop.reason'],
     }, 'churnDropText', resolved.text['churn.drop.reason'] || DEFAULT_PHRASES.reason);
     renderEntries.push(...sentence.entries);
@@ -645,4 +775,7 @@ module.exports = {
   stripRepoPrefix,
   wordRegex,
   stripMetricNames,
+  buildDefaultOneSentence,
+  isPrevYesterday,
+  determinePrevDate,
 };

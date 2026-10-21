@@ -5,7 +5,7 @@ const nodePath = require('path');
 const mustache = require('mustache');
 const history = require('../metrics/history');
 const paths = require('../utils/path');
-const { DEFAULT_PHRASES, computeHypeIndex, defaultProjectText, stripRepoPrefix } = require('./daily-v3-text');
+const { DEFAULT_PHRASES, computeHypeIndex, defaultProjectText, stripRepoPrefix, buildDefaultOneSentence } = require('./daily-v3-text');
 
 const TEMPLATE_DIR = nodePath.join(__dirname, '..', '..', 'templates', 'daily-v3');
 const TEMPLATE_PATH = nodePath.join(TEMPLATE_DIR, 'daily.mustache');
@@ -419,12 +419,31 @@ function capitalize(text) {
   return value ? value.charAt(0).toUpperCase() + value.slice(1) : value;
 }
 
+function returnedCountFor(date, addedNames) {
+  if (!addedNames || !addedNames.length || !date) return 0;
+  const seen = new Set();
+  for (const entry of history.getRecentDailyEntries(date, 30)) {
+    for (const name of namesOf(entry.brief)) seen.add(name);
+  }
+  return addedNames.filter(name => seen.has(name)).length;
+}
+
 function retentionBetween(currentBrief, previousBrief) {
   if (!previousBrief) return null;
   const previousTotal = (previousBrief.projects || []).length;
   if (!previousTotal) return null;
   const diff = setDiff(currentBrief.projects || [], previousBrief);
   return round1(diff.kept.length / previousTotal * 100);
+}
+
+function newFaceBetween(currentBrief, previousBrief) {
+  if (!currentBrief || !previousBrief) return null;
+  const currentTotal = (currentBrief.projects || []).length;
+  if (!currentTotal) return null;
+  const diff = setDiff(currentBrief.projects || [], previousBrief);
+  const date = currentBrief.date || currentBrief.scrapedAt;
+  const returned = returnedCountFor(date, diff.added);
+  return round1(Math.max(0, diff.added.length - returned) / currentTotal * 100);
 }
 
 function buildCmp({
@@ -438,6 +457,7 @@ function buildCmp({
   currentRetention,
   currentNewFace,
   priorEntries,
+  baselineSnapshots = [],
 }) {
   const prevSnapshot = previousBrief ? snapshotOf(previousBrief) : null;
   const monthSnapshot = monthEntry ? snapshotOf(monthEntry.brief) : null;
@@ -536,18 +556,47 @@ function buildCmp({
     });
   }
 
-  const previousRetention = previousBrief && priorEntries[1]
-    ? retentionBetween(previousBrief, priorEntries[1].brief)
+  const allSnapshots = baselineSnapshots.length ? baselineSnapshots : priorEntries;
+  const retentionList = [];
+  const newFaceList = [];
+  for (let i = 0; i < allSnapshots.length - 1; i++) {
+    const r = retentionBetween(allSnapshots[i].brief, allSnapshots[i + 1].brief);
+    if (r !== null) retentionList.push(r);
+    const nf = newFaceBetween(allSnapshots[i].brief, allSnapshots[i + 1].brief);
+    if (nf !== null) newFaceList.push(nf);
+  }
+  const avgRetention = priorSnapshots.length >= 2 && retentionList.length > 0 ? average(retentionList) : null;
+  const avgNewFace = priorSnapshots.length >= 2 && newFaceList.length > 0 ? average(newFaceList) : null;
+
+  let monthRetention = null;
+  let monthNewFace = null;
+  if (monthEntry && monthEntry.brief) {
+    const monthScraped = monthEntry.brief.scrapedAt || monthEntry.brief.generatedAt;
+    const prevMonthEntry = monthScraped ? history.getBaselineSnapshot(monthScraped) : null;
+    const prevMonthBrief = prevMonthEntry?.brief
+      || (monthEntry.date ? history.readDailyBrief(history.getPreviousDailyDate(monthEntry.date)) : null);
+    if (prevMonthBrief) {
+      monthRetention = retentionBetween(monthEntry.brief, prevMonthBrief);
+      monthNewFace = newFaceBetween(monthEntry.brief, prevMonthBrief);
+    }
+  }
+
+  const prevRetention = previousBrief && allSnapshots[1]
+    ? retentionBetween(previousBrief, allSnapshots[1].brief)
     : null;
+  const prevNewFace = previousBrief && allSnapshots[1]
+    ? newFaceBetween(previousBrief, allSnapshots[1].brief)
+    : null;
+
   rows.push({
     label: '留存率',
     now: shareFormat(currentRetention),
-    refs: refsFor(currentRetention, previousRetention, null, null, shareFormat),
+    refs: refsFor(currentRetention, prevRetention, avgRetention, monthRetention, shareFormat),
   });
   rows.push({
     label: '新面孔率',
     now: shareFormat(currentNewFace),
-    refs: refsFor(currentNewFace, null, null, null, shareFormat),
+    refs: refsFor(currentNewFace, prevNewFace, avgNewFace, monthNewFace, shareFormat),
   });
 
   return {
@@ -765,7 +814,8 @@ function buildViewModel(data) {
   const generatedAt = data.generatedAt || brief.generatedAt || brief.generated_at;
 
   const currentSnapshot = snapshotOf({ projects, stats });
-  const priorEntries = scrapedAt ? history.getBaselineSnapshots(scrapedAt, 7) : [];
+  const baselineSnapshots = scrapedAt ? history.getBaselineSnapshots(scrapedAt, 8) : [];
+  const priorEntries = baselineSnapshots.slice(0, 7);
   const priorSnapshots = priorEntries.map(entry => snapshotOf(entry.brief));
   const series = [
     ...priorEntries.map((entry, index) => ({ date: entry.date, ...priorSnapshots[index] })),
@@ -845,6 +895,7 @@ function buildViewModel(data) {
     currentRetention: churn.retention,
     currentNewFace: churn.newFace,
     priorEntries,
+    baselineSnapshots,
   });
 
   const projectInsights = new Map();
@@ -871,12 +922,32 @@ function buildViewModel(data) {
       text: `${item.fullName} 连续 ${item.days} 天在榜，今日新增 ${item.todayStars} 星。`,
     }));
 
+  const usedOneSentences = new Set();
   const viewProjects = projects.map((project, index) => {
     const fullName = projectKey(project) || '—';
     const days = streakOf(fullName);
     const returned = returnedNames.has(fullName) && !previousRankNames.has(fullName);
     const tag = project.tag
       || (days >= 2 ? `连续${days}天` : previousBrief ? (returned ? '回归' : '新') : '');
+    const descZh = stripRepoPrefix(pickChinese(
+      slotDescZhOf(project),
+      project.analysis?.descZh
+    ) || defaultProjectText(project.analysis?.typeName, 'descZh'), fullName);
+
+    let oneSentenceCandidate = stripRepoPrefix(pickChinese(
+      slotOneSentenceOf(project),
+      projectInsights.get(fullName)
+    ), fullName);
+
+    if (!oneSentenceCandidate
+      || oneSentenceCandidate === descZh
+      || usedOneSentences.has(oneSentenceCandidate)
+      || oneSentenceCandidate.includes(fullName)
+      || (fullName.includes('/') && oneSentenceCandidate.includes(fullName.split('/')[1]))) {
+      oneSentenceCandidate = buildDefaultOneSentence(project, descZh, usedOneSentences);
+    }
+    usedOneSentences.add(oneSentenceCandidate);
+
     return {
       rank: index + 1,
       anchor: anchorOf(fullName),
@@ -884,16 +955,8 @@ function buildViewModel(data) {
       fullName,
       tag,
       tagNew: tag === '新' || tag === '回归',
-      oneSentence: stripRepoPrefix(pickChinese(
-        slotOneSentenceOf(project),
-        slotDescZhOf(project),
-        projectInsights.get(fullName),
-        project.analysis?.oneSentence
-      ) || defaultProjectText(project.analysis?.typeName, 'oneSentence'), fullName),
-      descZh: stripRepoPrefix(pickChinese(
-        slotDescZhOf(project),
-        project.analysis?.descZh
-      ) || defaultProjectText(project.analysis?.typeName, 'descZh'), fullName),
+      oneSentence: oneSentenceCandidate,
+      descZh,
       typeName: project.analysis?.typeName || '—',
       language: project.language || '—',
       community: project.analysis?.community?.level || '—',

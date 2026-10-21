@@ -10,6 +10,7 @@ const {
   stripMetricNames,
 } = require('../../generator/daily-v3-text');
 const { cardIntroText, hasChinese } = require('./b17');
+const history = require('../../metrics/history');
 
 function isR5Insights(value) {
   return Boolean(value && typeof value === 'object'
@@ -249,7 +250,7 @@ function checkNoPlaceholder(json, doc, findings) {
   }
 }
 
-const TREND_COMPARISON_RE = /(?:较昨日|较上一有数据日|较\s*7\s*日均|较近\s*\d+\s*日均)\s*[+\-−]?\d/;
+const TREND_COMPARISON_RE = /(?:较昨日|较上期|较上一有数据日|较\s*7\s*日均|较近\s*\d+\s*日均)\s*[+\-−]?\d/;
 
 function checkTrendNumbers(json, doc, findings) {
   const trends = Array.isArray(json.trends) ? json.trends : [];
@@ -282,7 +283,7 @@ function checkCardRepoName(json, doc, findings) {
     ? json.slots
     : {};
   for (const [slotId, value] of Object.entries(slots)) {
-    if (!slotId.startsWith('project.') || !/(?:descZh|descShortZh)$/.test(slotId)) continue;
+    if (!slotId.startsWith('project.') || !/(?:descZh|descShortZh|oneSentence)$/.test(slotId)) continue;
     const text = String(value === undefined || value === null ? '' : value).trim();
     if (!text) continue;
     const name = slotId.slice('project.'.length).replace(/\.desc(?:Short)?Zh$/, '');
@@ -437,6 +438,91 @@ function nullSafePath(value) {
   return value === undefined || value === null ? '' : String(value);
 }
 
+function checkCardDuplicate(json, doc, findings) {
+  const projects = Array.isArray(json.projects) ? json.projects : [];
+  const seenOneSentences = new Map();
+
+  for (const [index, project] of projects.entries()) {
+    const fullName = project?.fullName || project?.repo || null;
+    const oneSentence = String(
+      project?.oneSentence
+      || (fullName ? json.slots?.[`project.${fullName}.oneSentence`] : '')
+      || ''
+    ).trim();
+    const descZh = String(
+      project?.descZh
+      || (fullName ? json.slots?.[`project.${fullName}.descZh`] : '')
+      || ''
+    ).trim();
+
+    if (!oneSentence) continue;
+
+    if (descZh && oneSentence === descZh) {
+      findings.push(makeFinding('R5', doc, {
+        field: `projects[${index}].oneSentence`,
+        quote: oneSentence,
+        message: '项目卡一句话与本卡简介相同（FIELD_MAP 一句话须为项目描述）',
+      }));
+    }
+
+    if (seenOneSentences.has(oneSentence)) {
+      const prevIndex = seenOneSentences.get(oneSentence);
+      findings.push(makeFinding('R5', doc, {
+        field: `projects[${index}].oneSentence`,
+        quote: oneSentence,
+        message: `项目卡一句话跨卡重复（与第 ${prevIndex + 1} 张卡重复）`,
+      }));
+    } else {
+      seenOneSentences.set(oneSentence, index);
+    }
+  }
+}
+
+function getPrevDate(ctx, json) {
+  if (json?.prevDate) return json.prevDate;
+  if (ctx?.brief?.dailyDiff?.prevDate) return ctx.brief.dailyDiff.prevDate;
+  if (ctx?.brief?.stats?.prevDate) return ctx.brief.stats.prevDate;
+  for (const fact of factList(ctx)) {
+    const match = /briefs\/daily\/data-(\d{4}-\d{2}-\d{2})\.json/.exec(String(fact?.source || ''));
+    if (match) return match[1];
+  }
+  const date = json?.date || ctx?.period || ctx?.brief?.date;
+  const scrapedAt = ctx?.brief?.scrapedAt || ctx?.brief?.generatedAt;
+  if (scrapedAt && typeof history.getBaselineSnapshot === 'function') {
+    const baseline = history.getBaselineSnapshot(scrapedAt);
+    if (baseline?.date) return baseline.date;
+  }
+  if (date && typeof history.getPreviousDailyDate === 'function') {
+    return history.getPreviousDailyDate(date);
+  }
+  return null;
+}
+
+function isPrevYesterday(date, prevDate) {
+  if (!date || !prevDate) return true;
+  const d = new Date(date + 'T00:00:00Z');
+  const p = new Date(prevDate + 'T00:00:00Z');
+  const diffDays = Math.round((d.getTime() - p.getTime()) / (24 * 3600 * 1000));
+  return diffDays === 1;
+}
+
+function checkTrendLabelDate(json, ctx, doc, findings) {
+  const date = json?.date || ctx?.period || ctx?.brief?.date;
+  const prevDate = getPrevDate(ctx, json);
+  if (!prevDate || isPrevYesterday(date, prevDate)) return;
+
+  for (const field of textFields(json)) {
+    if (!field.text) continue;
+    if (field.text.includes('较昨日')) {
+      findings.push(makeFinding('R5', doc, {
+        field: field.path,
+        quote: field.text,
+        message: `前序快照（${prevDate}）非昨日，文案不得写「较昨日」（须用「较上期」）`,
+      }));
+    }
+  }
+}
+
 function check(ctx, doc, config) {
   if (!isR5Insights(doc.json)) return [];
   const findings = [];
@@ -449,6 +535,8 @@ function check(ctx, doc, config) {
   checkNoPlaceholder(doc.json, doc, findings);
   checkTrendNumbers(doc.json, doc, findings);
   checkCardRepoName(doc.json, doc, findings);
+  checkCardDuplicate(doc.json, doc, findings);
+  checkTrendLabelDate(doc.json, ctx, doc, findings);
 
   if (Array.isArray(doc.json.advice) && doc.json.advice.length > 3) {
     findings.push(makeFinding('R5', doc, {
