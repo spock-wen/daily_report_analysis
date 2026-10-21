@@ -6,7 +6,7 @@
  *
  * 用法：
  *   node scripts/build-brief-from-snapshot.js \
- *     --snapshot <trending-raw.json> --date YYYY-MM-DD --data-dir <D>
+ *     --snapshot <trending-raw.json> --data-dir <D>
  *
  * 约束：
  * - 只读取快照里的 stars/todayStars/forks 等数字，不调用 GitHub API，不重抓、不改数字；
@@ -23,7 +23,6 @@ const history = require('../src/metrics/history');
 const metrics = require('../src/metrics');
 const ProjectAnalyzer = require('../src/scraper/project-analyzer');
 
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 // 本地判断是否 AI 项目，不调用 GitHub API。
 const AI_TEXT_RE = /(?:^|[^a-z0-9])(ai|agent|llm|gpt|model|machine learning|deep learning|neural|transformer|rag|embedding|copilot|assistant|智能|大模型|机器学习)(?:[^a-z0-9]|$)/i;
 
@@ -53,17 +52,13 @@ function parseArgs(argv) {
 }
 
 function printUsage() {
-  console.error(`用法：node scripts/build-brief-from-snapshot.js --snapshot <trending-raw.json> --date YYYY-MM-DD --data-dir D
+  console.error(`用法：node scripts/build-brief-from-snapshot.js --snapshot <trending-raw.json> --data-dir D
 
 必填选项：
   --snapshot <file>   抓取快照（含 scrapedAt 与 repositories[]）
-  --date YYYY-MM-DD   日报日期
-  --data-dir D        数据目录；brief 写到 D/briefs/daily/data-<date>.json，已存在则拒绝覆盖`);
-}
+  --data-dir D        数据目录；brief 写到 D/briefs/daily/data-<抓取日>.json，已存在则拒绝覆盖
 
-function isValidDate(date) {
-  return DATE_RE.test(String(date || ''))
-    && history.formatDate(history.parseDate(date)) === date;
+日报期次按 scrapedAt 换算的 SGT 日期（UTC+8）自动命名。`);
 }
 
 function formatAvgStars(projects) {
@@ -169,11 +164,9 @@ function buildSummary(brief) {
 function main() {
   const args = parseArgs(process.argv.slice(2));
   const snapshotOption = args.options.snapshot;
-  const date = args.options.date;
   const dataDirOption = args.options['data-dir'];
 
   if (typeof snapshotOption !== 'string' || !snapshotOption.trim()
-    || typeof date !== 'string' || !isValidDate(date)
     || typeof dataDirOption !== 'string' || !dataDirOption.trim()) {
     printUsage();
     return 2;
@@ -181,12 +174,6 @@ function main() {
 
   const snapshotPath = path.resolve(snapshotOption);
   const dataDir = path.resolve(dataDirOption);
-  const targetPath = path.join(dataDir, 'briefs', 'daily', `data-${date}.json`);
-
-  if (fs.existsSync(targetPath)) {
-    console.error(`错误：目标 brief 已存在，拒绝覆盖：${targetPath}`);
-    return 2;
-  }
 
   let snapshot;
   try {
@@ -203,6 +190,19 @@ function main() {
   }
   if (!snapshot.scrapedAt || Number.isNaN(new Date(snapshot.scrapedAt).getTime())) {
     console.error(`错误：快照缺少有效的 scrapedAt：${snapshotPath}`);
+    return 2;
+  }
+
+  // J1：日报按抓取日（scrapedAt 换算 SGT 日期）命名；--date 不再决定期次。
+  const date = history.getScrapedDate(snapshot.scrapedAt);
+  if (!date) {
+    console.error(`错误：无法从 scrapedAt 换算抓取日：${snapshotPath}`);
+    return 2;
+  }
+  const targetPath = path.join(dataDir, 'briefs', 'daily', `data-${date}.json`);
+
+  if (fs.existsSync(targetPath)) {
+    console.error(`错误：目标 brief 已存在，拒绝覆盖：${targetPath}`);
     return 2;
   }
 

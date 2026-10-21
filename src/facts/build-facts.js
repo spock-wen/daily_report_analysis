@@ -27,6 +27,7 @@ const THRESHOLDS = {
 };
 
 function toNumber(value) {
+  if (value === null || value === undefined || value === '') return null;
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
 }
@@ -97,19 +98,6 @@ function dailySnapshot(brief) {
   };
 }
 
-// 前一有数据日：逐日回看，跳过没有 brief 的日期，最多取 count 个。
-function previousDailyEntries(date, count) {
-  const entries = [];
-  let cursor = date;
-  for (let index = 0; index < count; index += 1) {
-    const entry = history.getPreviousDailyEntry(cursor);
-    if (!entry) break;
-    entries.push(entry);
-    cursor = entry.date;
-  }
-  return entries;
-}
-
 function sameDayLastMonth(date) {
   const month = history.getPrevMonth(String(date).slice(0, 7));
   if (!month) return null;
@@ -152,9 +140,21 @@ function addDailyReferenceFacts({ brief, add, addNumber }) {
   const date = brief.date;
   if (!date) return;
 
-  const prevEntries = previousDailyEntries(date, 1);
-  const avgEntries = previousDailyEntries(date, 7);
-  const monthEntry = sameDayLastMonth(date);
+  // J1：基准 = 抓取日早于本期的最近一份快照；同一抓取日不比较，无基准时不产出参照值。
+  const scrapedAt = brief.scrapedAt || brief.generatedAt;
+  const baseline = history.getBaselineSnapshot(scrapedAt);
+  if (!baseline) return;
+  const prevEntries = [baseline];
+  const avgEntries = history.getBaselineSnapshots(scrapedAt, 7);
+  const currentScrapeDate = history.getScrapedDate(scrapedAt);
+  let monthEntry = sameDayLastMonth(date);
+  if (monthEntry) {
+    const monthScrapeDate = history.getScrapedDate(
+      monthEntry.brief.scrapedAt || monthEntry.brief.generatedAt
+    );
+    // J1：同一抓取日绝不作为参照。
+    if (!monthScrapeDate || monthScrapeDate >= currentScrapeDate) monthEntry = null;
+  }
   const current = dailySnapshot(brief);
   const metrics = [
     { key: 'total_projects', label: '上榜项目数', field: 'stats.totalProjects', pick: snapshot => snapshot.totalProjects },
@@ -339,7 +339,8 @@ function addDailyReferenceFacts({ brief, add, addNumber }) {
 
 function addStreakAcceleration({ brief, add, addNumber }) {
   if (!brief.date) return;
-  const prevEntry = previousDailyEntries(brief.date, 1)[0];
+  // J1：连续上榜提速同样以早于本期抓取日的最近快照为基准。
+  const prevEntry = history.getBaselineSnapshot(brief.scrapedAt || brief.generatedAt);
   if (!prevEntry) return;
 
   const prevByName = new Map();

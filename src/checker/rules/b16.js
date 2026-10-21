@@ -6,13 +6,12 @@ const { makeFinding } = require('./util');
 // B16：禁用「不是……而是……」句式。
 const NOT_BUT_RE = /不是[^。！？!?\n]{0,80}?而是/;
 
-// B16：方向词必须与对应数值比较一致。
+// B16：成品中的方向词必须来自 render_map 的 {{f<id>:direction}} 渲染条目。
 const DIRECTION_WORD_RE = /高于|低于|升温|上升|走高|上涨|增长|增加|提升|提速|放大|增强|降温|下降|走低|下滑|减少|回落|收缩|减弱|缩小|放缓|减速|持平|不变|企稳/g;
 const UP_WORDS = new Set(['升温', '上升', '走高', '上涨', '增长', '增加', '提升', '提速', '放大', '增强']);
 const DOWN_WORDS = new Set(['降温', '下降', '走低', '下滑', '减少', '回落', '收缩', '减弱', '缩小', '放缓', '减速']);
 const FLAT_WORDS = new Set(['持平', '不变', '企稳']);
 const RELATIONAL_WORDS = new Set(['高于', '低于']);
-const NUMBER_RE = /(\d[\d,]*(?:\.\d+)?)/g;
 
 function wordDirection(word) {
   if (UP_WORDS.has(word)) return 'up';
@@ -21,24 +20,45 @@ function wordDirection(word) {
   return null;
 }
 
+function isDirectionWord(word) {
+  return Boolean(wordDirection(word)) || RELATIONAL_WORDS.has(word);
+}
+
 function factsList(ctx) {
   if (Array.isArray(ctx.facts)) return ctx.facts;
   if (Array.isArray(ctx.facts?.facts)) return ctx.facts.facts;
   return [];
 }
 
-function directionComparisons(ctx) {
-  return factsList(ctx)
-    .filter(fact => fact && fact.role === 'direction')
-    .filter(fact => fact.current !== null && fact.current !== undefined
-      && fact.reference !== null && fact.reference !== undefined)
-    .map(fact => ({
-      current: Number(fact.current),
-      reference: Number(fact.reference),
-      kind: fact.comparison?.kind || null,
-      metric: fact.comparison?.metric || null,
-    }))
-    .filter(item => Number.isFinite(item.current) && Number.isFinite(item.reference));
+function directionFacts(ctx) {
+  return factsList(ctx).filter(fact => fact && fact.role === 'direction');
+}
+
+function renderEntries(ctx) {
+  return Array.isArray(ctx.renderMap?.entries) ? ctx.renderMap.entries : [];
+}
+
+function factMap(ctx) {
+  const map = new Map();
+  for (const fact of factsList(ctx)) {
+    if (fact && fact.id !== undefined && fact.id !== null) map.set(String(fact.id), fact);
+  }
+  return map;
+}
+
+// 只配对 role=direction 的渲染条目，或指向 direction 事实的条目（后者会被判 role 不一致）。
+function directionEntries(ctx) {
+  const facts = factMap(ctx);
+  const entries = [];
+  for (const entry of renderEntries(ctx)) {
+    if (!entry || typeof entry !== 'object') continue;
+    const fact = entry.factId !== undefined && entry.factId !== null
+      ? facts.get(String(entry.factId))
+      : null;
+    if (entry.role !== 'direction' && fact?.role !== 'direction') continue;
+    entries.push({ entry, fact });
+  }
+  return entries;
 }
 
 function expectedDirection(comparison) {
@@ -61,114 +81,117 @@ function directionLabel(direction) {
   return '持平';
 }
 
-function collectNumbers(text) {
-  const values = [];
-  let match;
-  NUMBER_RE.lastIndex = 0;
-  while ((match = NUMBER_RE.exec(String(text || ''))) !== null) {
-    const value = Number(match[1].replace(/,/g, ''));
-    if (Number.isFinite(value)) values.push({ value, index: match.index });
+function validateDirectionEntry(entry, fact, field, line, doc, findings) {
+  if (!fact) {
+    findings.push(makeFinding('B16', doc, {
+      field,
+      line,
+      quote: entry.placeholder || entry.text || '',
+      message: `方向渲染条目 ${entry.placeholder || ''} 找不到对应事实（${entry.factId || '无 id'}）`,
+    }));
+    return;
   }
-  return values;
-}
-
-function hasValue(numbers, expected) {
-  return numbers.some(item => Math.abs(item.value - expected) <= 0.01);
-}
-
-function matchesComparison(numbers, comparison) {
-  return hasValue(numbers, comparison.current) && hasValue(numbers, comparison.reference);
-}
-
-function nearestBefore(numbers, index) {
-  let found = null;
-  for (const item of numbers) {
-    if (item.index < index) found = item.value;
-    else break;
+  if (entry.role !== 'direction') {
+    findings.push(makeFinding('B16', doc, {
+      field,
+      line,
+      quote: entry.placeholder || entry.text || '',
+      message: `方向事实 ${fact.id} 必须用 {{f${fact.id}:direction}} 渲染，当前 role 为「${entry.role || ''}」`,
+    }));
+    return;
   }
-  return found;
-}
 
-function nearestAfter(numbers, index) {
-  for (const item of numbers) {
-    if (item.index > index) return item.value;
+  const current = Number(fact.current);
+  const reference = Number(fact.reference);
+  if (!Number.isFinite(current) || !Number.isFinite(reference)) {
+    findings.push(makeFinding('B16', doc, {
+      field,
+      line,
+      quote: entry.placeholder || entry.text || '',
+      message: `方向事实 ${fact.id} 缺少可校验的 current/reference`,
+    }));
+    return;
   }
-  return null;
+
+  const expected = expectedDirection({
+    current,
+    reference,
+    kind: fact.comparison?.kind || null,
+  });
+  const factWord = String(fact.value ?? '').trim();
+  const actual = wordDirection(factWord);
+  if (!actual || actual !== expected) {
+    findings.push(makeFinding('B16', doc, {
+      field,
+      line,
+      quote: entry.placeholder || entry.text || '',
+      message: `方向事实 ${fact.id} 的值「${factWord}」与数值比较不一致（今日 ${current} vs 参照 ${reference}，应为 ${directionLabel(expected)}）`,
+    }));
+    return;
+  }
+
+  if (String(entry.text ?? '').trim() !== factWord) {
+    findings.push(makeFinding('B16', doc, {
+      field,
+      line,
+      quote: entry.placeholder || entry.text || '',
+      message: `方向渲染文本「${entry.text || ''}」与事实 ${fact.id} 的值「${factWord}」不一致`,
+    }));
+  }
 }
 
-function nearestComparison(numbers, comparisons, index) {
-  let best = null;
-  let bestDistance = Infinity;
-  for (const comparison of comparisons) {
-    for (const item of numbers) {
-      if (!hasValue([item], comparison.current) && !hasValue([item], comparison.reference)) continue;
-      const distance = Math.abs(item.index - index);
-      if (distance < bestDistance) {
-        bestDistance = distance;
-        best = comparison;
+function checkDirectionInText(doc, text, field, line, entries, seen, findings) {
+  for (const item of entries) {
+    if (seen.has(item.entry)) continue;
+    seen.add(item.entry);
+    validateDirectionEntry(item.entry, item.fact, item.entry.path || field, line, doc, findings);
+  }
+
+  const remaining = new Map();
+  for (const item of entries) {
+    const word = String(item.entry.text ?? '').trim();
+    if (!word) continue;
+    remaining.set(word, (remaining.get(word) || 0) + 1);
+  }
+
+  for (const unit of splitSentenceUnits(text)) {
+    DIRECTION_WORD_RE.lastIndex = 0;
+    let match;
+    while ((match = DIRECTION_WORD_RE.exec(unit)) !== null) {
+      const word = match[0];
+      if (!isDirectionWord(word)) continue;
+      const count = remaining.get(word) || 0;
+      if (count > 0) {
+        remaining.set(word, count - 1);
+        continue;
       }
-    }
-  }
-  return best;
-}
-
-function inspectDirectionUnit(unit, comparisons, onMismatch) {
-  const numbers = collectNumbers(unit);
-  const matchedComparisons = comparisons.filter(comparison => matchesComparison(numbers, comparison));
-
-  DIRECTION_WORD_RE.lastIndex = 0;
-  let match;
-  while ((match = DIRECTION_WORD_RE.exec(unit)) !== null) {
-    const word = match[0];
-    if (RELATIONAL_WORDS.has(word)) {
-      const before = nearestBefore(numbers, match.index);
-      const after = nearestAfter(numbers, match.index);
-      if (before === null || after === null) continue;
-      const ok = word === '高于' ? before > after : before < after;
-      if (!ok) onMismatch(word, null, unit);
-      continue;
-    }
-
-    const actual = wordDirection(word);
-    if (!actual) continue;
-    // 方向词归属其最近的方向占位/对应比较；无法归属时判 FAIL。
-    const comparison = nearestComparison(numbers, matchedComparisons, match.index);
-    if (!comparison) {
-      onMismatch(word, null, unit);
-      continue;
-    }
-    const expected = expectedDirection(comparison);
-    if (actual !== expected) {
-      onMismatch(word, expected, unit, comparison);
+      findings.push(makeFinding('B16', doc, {
+        field,
+        line,
+        quote: unit,
+        message: `方向词「${word}」不是 render_map 中 {{f<id>:direction}} 的渲染结果（AI 自写方向词）`,
+      }));
     }
   }
 }
 
 function checkDirection(ctx, doc) {
-  const comparisons = directionComparisons(ctx);
-  if (comparisons.length === 0) return [];
+  const entries = directionEntries(ctx);
+  // 日报按 B16：有 render_map 时，任何不在 render_map 的方向词都视为 AI 自写；
+  // 其他层级仅在存在 direction 事实/条目时校验，避免把普通趋势词当方向断言。
+  const hasDirectionBasis = entries.length > 0 || directionFacts(ctx).length > 0;
+  if (!hasDirectionBasis && !(ctx.level === 'daily' && ctx.renderMap)) return [];
 
   const findings = [];
-  const inspect = (text, field, line) => {
-    for (const unit of splitSentenceUnits(text)) {
-      inspectDirectionUnit(unit, comparisons, (word, expected, quote, comparison) => {
-        const detail = comparison
-          ? `（今日 ${comparison.current} vs 参照 ${comparison.reference}，应为 ${directionLabel(expected)}）`
-          : '';
-        findings.push(makeFinding('B16', doc, {
-          field,
-          line,
-          quote,
-          message: `方向词「${word}」与数值比较不一致${detail}`,
-        }));
-      });
-    }
-  };
+  const seen = new Set();
 
   if (doc.kind === 'json') {
-    for (const item of doc.strings) inspect(item.value, item.path, item.line);
+    for (const item of doc.strings) {
+      const fieldEntries = entries.filter(itemEntry => itemEntry.entry.path === item.path);
+      checkDirectionInText(doc, item.value, item.path, item.line, fieldEntries, seen, findings);
+    }
   } else {
-    inspect(doc.text, 'document', null);
+    checkDirectionInText(doc, doc.text, 'document', null, entries, seen, findings);
   }
 
   return findings;
@@ -203,6 +226,6 @@ module.exports = {
   applies: (ctx, doc) => ['insights', 'html', 'md'].includes(doc.role),
   check,
   NOT_BUT_RE,
-  directionComparisons,
   expectedDirection,
+  isDirectionWord,
 };

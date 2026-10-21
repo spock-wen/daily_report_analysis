@@ -22,6 +22,19 @@ function digitsOf(text) {
   return new Set(String(text || '').match(/[0-9]+/g) || []);
 }
 
+// C5：取前两期有 insights 的日报（跳过缺失日期）。
+function previousInsights(ctx, date, count) {
+  const results = [];
+  let cursor = date;
+  for (let i = 0; i < 30 && results.length < count; i += 1) {
+    const previous = ctx.getPreviousDailyInsights(cursor, 1)[0];
+    if (!previous) break;
+    cursor = previous.date;
+    if (previous.insights) results.push(previous);
+  }
+  return results;
+}
+
 function consecutiveCount(ctx, date, project) {
   let count = 0;
   let cursor = date;
@@ -58,12 +71,15 @@ function check(ctx, doc) {
       const count = consecutiveCount(ctx, ctx.period, project);
       if (count < 3) continue;
 
-      const previous = ctx.getPreviousDailyInsights(ctx.period, 1)[0];
-      if (!previous || !previous.insights) continue;
-      const previousItems = itemsForProject(actionItems(previous.insights), project, ctx.projects);
+      // C5：同一对象连续第 3 次推荐时，新数字必须是前两期都没出现过。
+      const previousPeriods = previousInsights(ctx, ctx.period, 2);
+      if (previousPeriods.length === 0) continue;
       const previousDigits = new Set();
-      for (const previousItem of previousItems) {
-        for (const digit of digitsOf(previousItem.text)) previousDigits.add(digit);
+      for (const previous of previousPeriods) {
+        const previousItems = itemsForProject(actionItems(previous.insights), project, ctx.projects);
+        for (const previousItem of previousItems) {
+          for (const digit of digitsOf(previousItem.text)) previousDigits.add(digit);
+        }
       }
 
       const currentItems = itemsForProject(items, project, ctx.projects);
@@ -80,7 +96,7 @@ function check(ctx, doc) {
         field: item.path,
         line: node ? node.line : null,
         quote: item.text,
-        message: `连续第 ${count} 次推荐，未给出一期未出现的新数字（J14）`,
+        message: `连续第 ${count} 次推荐，未给出前两期未出现的新数字（J14）`,
       }));
     }
   }

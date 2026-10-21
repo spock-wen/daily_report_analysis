@@ -434,6 +434,7 @@ class InsightAnalyzer {
       metrics,
       recentOneLiners: this.buildRecentOneLiners(level, identifier),
       recentSuggestions: this.buildRecentSuggestions(level, identifier),
+      baseline: level === 'daily' ? this.buildBaselineNote(brief) : null,
       generatedAt: brief.generatedAt || brief.generated_at || new Date().toISOString()
     };
 
@@ -562,8 +563,39 @@ class InsightAnalyzer {
     return lines.length > 0 ? lines.join('\n') : '（无）';
   }
 
+  // J1：基准按抓取日判定；没有更早抓取日快照时明确写「无基准」。
+  buildBaselineNote(brief) {
+    const baseline = history.getBaselineSnapshot(brief?.scrapedAt || brief?.generatedAt);
+    if (!baseline) {
+      return '无基准（没有早于本期抓取日的快照，不得写昨日/7 日均值/上月同期对比）';
+    }
+    return `基准快照 ${baseline.date}（抓取日 ${baseline.snapshotDate}）`;
+  }
+
   buildRecentSuggestions(level, identifier) {
     if (!level || !identifier) return '（无）';
+
+    // C5：日报按「期次 + 建议文本 + 建议对象」注入近 2 期 action，供模型判断是否连续第 3 次推荐同一对象。
+    if (level === 'daily') {
+      const blocks = [];
+      for (const previous of previousIdentifiers(level, identifier)) {
+        const insights = readInsights(level, previous);
+        const actions = Array.isArray(insights?.action)
+          ? insights.action.filter(item => typeof item === 'string' && item.trim())
+          : [];
+        if (actions.length === 0) continue;
+        const names = history.getProjectNames(history.readDailyBrief(previous));
+        blocks.push({
+          period: previous,
+          actions: actions.map(text => ({
+            text,
+            objects: names.filter(name => text.includes(name) || text.includes(name.split('/')[1] || '')),
+          })),
+        });
+      }
+      return blocks.length > 0 ? JSON.stringify(blocks, null, 2) : '（无）';
+    }
+
     const suggestions = [];
     for (const previous of previousIdentifiers(level, identifier)) {
       const insights = readInsights(level, previous);
@@ -614,6 +646,7 @@ class InsightAnalyzer {
     let prompt = template;
 
     prompt = prompt.replace('{date}', contextData.identifier || contextData.generatedAt || new Date().toISOString());
+    prompt = prompt.replace('{baseline}', contextData.baseline || '（无）');
     prompt = prompt.replace('{projectCount}', contextData.projects.length);
 
     const factList = Array.isArray(contextData.facts?.facts) ? contextData.facts.facts : [];

@@ -24,7 +24,8 @@ const {
   enrichDailyBrief,
   enrichWeeklyBrief,
   enrichMonthlyBrief,
-  getISOWeekDates
+  getISOWeekDates,
+  getScrapedDate
 } = require('../metrics');
 const { runContentGate } = require('../checker/gate');
 
@@ -391,6 +392,10 @@ class ReportPipeline {
 
   attachMetrics(data, type) {
     if (type === 'daily') {
+      // J1：期次与基准都按 scrapedAt 换算的 SGT 抓取日，不沿用抓取前的数据日期。
+      data.date = getScrapedDate(data.scrapedAt)
+        || getScrapedDate(data.generatedAt)
+        || data.date;
       if (data.date) enrichDailyBrief(data, { date: data.date });
       return;
     }
@@ -423,7 +428,11 @@ class ReportPipeline {
     
     // 根据类型计算标识符
     if (type === 'daily') {
-      identifier = data.date || new Date().toISOString().split('T')[0];
+      // J1：日报按抓取日（scrapedAt 换算 SGT 日期）命名。
+      identifier = getScrapedDate(data.scrapedAt)
+        || getScrapedDate(data.generatedAt)
+        || data.date
+        || new Date().toISOString().split('T')[0];
       filePath = getDailyBriefPath(identifier);
     } else if (type === 'weekly') {
       // 周报使用 ISO 周数格式：2026-W11
@@ -673,7 +682,9 @@ class ReportPipeline {
    * 计算当前期号（用于核查闸与日志）
    */
   getReportIdentifier(data, type) {
-    if (type === 'daily') return data.date || new Date().toISOString().split('T')[0];
+    if (type === 'daily') {
+      return getScrapedDate(data.scrapedAt) || getScrapedDate(data.generatedAt) || data.date;
+    }
     if (type === 'weekly') return data.weekStart || this.getWeeklyIdentifier(data);
     if (type === 'monthly') return data.month || data.date || new Date().toISOString().slice(0, 7);
     return null;
@@ -703,9 +714,14 @@ class ReportPipeline {
       const analysisData = {
         ...data,
         brief: {
+          date: data.date,
           projects: data.projects || data.repositories || [],
           stats: data.stats || {},
-          generatedAt: data.generatedAt || new Date().toISOString()
+          dailyDiff: data.dailyDiff,
+          streakDays: data.streakDays,
+          caption: data.caption,
+          scrapedAt: data.scrapedAt || null,
+          generatedAt: data.generatedAt || data.scrapedAt || new Date().toISOString()
         }
       };
 

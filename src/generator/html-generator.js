@@ -242,6 +242,15 @@ class HTMLGenerator {
     const diff = data.dailyDiff || data.brief?.dailyDiff;
     if (!diff) return '';
 
+    if (diff.label === '无基准') {
+      return `
+      <section class="daily-diff">
+        <h2>较上期变化</h2>
+        <p>较上期：无基准。</p>
+      </section>
+    `;
+    }
+
     const counts = diff.counts || {};
     const parts = [];
     if (counts.new > 0) parts.push(`新上榜 ${counts.new} 个`);

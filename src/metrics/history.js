@@ -4,6 +4,7 @@ const path = require('path');
 const ROOT_DIR = path.join(__dirname, '../..');
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const SGT_OFFSET_MS = 8 * 60 * 60 * 1000;
 
 function getDataDir() {
   return process.env.REPORT_DATA_DIR
@@ -25,6 +26,65 @@ function parseDate(dateStr) {
 
 function formatDate(date) {
   return date.toISOString().slice(0, 10);
+}
+
+// J1：抓取日按 SGT（UTC+8）换算；日报期次与基准均以抓取日为准，不看文件名。
+function getScrapedDate(value) {
+  if (value === undefined || value === null || value === '') return null;
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return formatDate(new Date(date.getTime() + SGT_OFFSET_MS));
+}
+
+function getSnapshotTime(brief) {
+  const raw = brief?.scrapedAt || brief?.generatedAt;
+  if (!raw) return null;
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function listSnapshotEntries() {
+  const entries = [];
+  for (const date of listDailyDates()) {
+    const brief = readDailyBrief(date);
+    const snapshotTime = getSnapshotTime(brief);
+    if (!brief || !snapshotTime) continue;
+    entries.push({
+      date,
+      brief,
+      scrapedAt: brief.scrapedAt || null,
+      snapshotTime,
+      snapshotDate: getScrapedDate(snapshotTime),
+    });
+  }
+  return entries;
+}
+
+// J1：基准 = 抓取日早于本期抓取日的最近一份快照；同一抓取日绝不作为基准。
+function getBaselineSnapshots(scrapedAt, count = 1) {
+  const currentDate = getScrapedDate(scrapedAt);
+  if (!currentDate) return [];
+  const sorted = listSnapshotEntries()
+    .filter(entry => entry.snapshotDate && entry.snapshotDate < currentDate)
+    .sort((left, right) => {
+      const diff = right.snapshotTime.getTime() - left.snapshotTime.getTime();
+      return diff !== 0 ? diff : right.date.localeCompare(left.date);
+    });
+
+  // 同一抓取日只保留最新一份，避免同一日多份快照被当成多个「前一有数据日」。
+  const entries = [];
+  const seenDates = new Set();
+  for (const entry of sorted) {
+    if (seenDates.has(entry.snapshotDate)) continue;
+    seenDates.add(entry.snapshotDate);
+    entries.push(entry);
+    if (entries.length >= count) break;
+  }
+  return entries;
+}
+
+function getBaselineSnapshot(scrapedAt) {
+  return getBaselineSnapshots(scrapedAt, 1)[0] || null;
 }
 
 function addDays(dateStr, days) {
@@ -229,6 +289,9 @@ module.exports = {
   getInsightsDir,
   parseDate,
   formatDate,
+  getScrapedDate,
+  getBaselineSnapshot,
+  getBaselineSnapshots,
   addDays,
   getISOWeekId,
   getISOWeekStart,

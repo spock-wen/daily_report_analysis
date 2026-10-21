@@ -1,6 +1,6 @@
 const history = require('./history');
 
-const DAILY_CAPTION = '口径：新增＝GitHub Trending 当期 stars this period（todayStars）；「较上期」指与上一个有数据日报相比，缺数据日跳过；连续上榜天数按日报日期计，最多回看 30 天，缺数据日不中断；回归＝上一期未上榜但近 30 天日榜出现过。';
+const DAILY_CAPTION = '口径：新增＝GitHub Trending 当期 stars this period（todayStars）；「较上期」指与抓取日早于本期的最近一份快照相比，同一抓取日不比较，无更早快照时写「无基准」；连续上榜天数按抓取日计，最多回看 30 天，缺数据日不中断；回归＝基准快照未上榜但近 30 天日榜出现过。';
 
 function computeDailyMetrics(date, options = {}) {
   if (!history.DATE_RE.test(String(date || ''))) return null;
@@ -11,13 +11,16 @@ function computeDailyMetrics(date, options = {}) {
   const currentNames = history.getProjectNames(brief);
   const currentSet = new Set(currentNames);
 
-  const prevEntry = history.getPreviousDailyEntry(date);
-  const prevDate = prevEntry ? prevEntry.date : null;
-  const prevBrief = prevEntry ? prevEntry.brief : null;
+  // J1：基准按 brief 内 scrapedAt（缺则 generatedAt）的 SGT 抓取日判定，不按文件名。
+  const snapshot = options.scrapedAt || brief.scrapedAt || brief.generatedAt;
+  const baseline = history.getBaselineSnapshot(snapshot);
+  const prevDate = baseline ? baseline.date : null;
+  const prevBrief = baseline ? baseline.brief : null;
   const prevNames = history.getProjectNames(prevBrief);
   const prevSet = new Set(prevNames);
+  const hasBaseline = Boolean(baseline);
 
-  const recentEntries = history.getRecentDailyEntries(date, 30);
+  const recentEntries = history.getBaselineSnapshots(snapshot, 30);
   const recentSets = recentEntries.map(entry => ({
     date: entry.date,
     names: new Set(history.getProjectNames(entry.brief)),
@@ -55,6 +58,8 @@ function computeDailyMetrics(date, options = {}) {
       continue;
     }
 
+    if (!hasBaseline) continue;
+
     newProjects.push(name);
     if (recentSet.has(name)) {
       returned.push(name);
@@ -64,23 +69,30 @@ function computeDailyMetrics(date, options = {}) {
     }
   }
 
-  const dropped = prevNames.filter(name => !currentSet.has(name));
+  const dropped = hasBaseline ? prevNames.filter(name => !currentSet.has(name)) : [];
 
   return {
     date,
     dailyDiff: {
       prevDate,
-      label: '较上期',
+      label: hasBaseline ? '较上期' : '无基准',
       new: newProjects,
       dropped,
       kept,
       returned,
-      counts: {
-        new: newProjects.length,
-        dropped: dropped.length,
-        kept: kept.length,
-        returned: returned.length,
-      },
+      counts: hasBaseline
+        ? {
+            new: newProjects.length,
+            dropped: dropped.length,
+            kept: kept.length,
+            returned: returned.length,
+          }
+        : {
+            new: null,
+            dropped: null,
+            kept: null,
+            returned: null,
+          },
     },
     streakDays,
     tags,

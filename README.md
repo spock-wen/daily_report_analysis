@@ -205,7 +205,7 @@ node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/c
 | B12 | 日报 HTML 必须显示快照抓取时刻：`抓取时刻：YYYY-MM-DD HH:mm:ss（UTC+8）`；缺失即 FAIL。 |
 | B13 | HTML 中资源标签（`link`/`script`/`img`/`source`/`video`/`audio`/`iframe`/`embed`/`object`）的相对 `href`/`src` 必须存在于输出目录（相对 HTML 所在目录解析）；缺失即 FAIL。外部 URL、协议相对 `//`、`#`、根路径 `/` 不判。 |
 | B15 | 成品（insights/HTML/Markdown）命中 `config/checker/spelling_words.txt` 中的错误写法（如 `YANGI`）即 FAIL。 |
-| B16 | 命中「不是……而是……」句式即 FAIL。 |
+| B16 | 命中「不是……而是……」句式即 FAIL。方向词必须来自 `render_map` 中 `role=direction` 的条目，且该条目的 direction 事实值须与 `current`/`reference` 比较一致；不在 `render_map` 的方向词视为 AI 自写方向词，FAIL。 |
 
 B4 白名单格式（这些数字不要求 render_map 条目）：
 
@@ -230,10 +230,10 @@ B4 白名单格式（这些数字不要求 render_map 条目）：
 
 ```bash
 node scripts/build-brief-from-snapshot.js \
-  --snapshot <trending-raw.json> --date YYYY-MM-DD --data-dir D
+  --snapshot <trending-raw.json> --data-dir D
 ```
 
-- `--snapshot`、`--date`、`--data-dir` 均必填；目标 `D/briefs/daily/data-<date>.json` 已存在即报错退出（退出码 2），不覆盖。
+- `--snapshot`、`--data-dir` 必填；日报期次按 `scrapedAt` 换算的 SGT 日期（UTC+8）自动命名，目标 `D/briefs/daily/data-<抓取日>.json` 已存在即报错退出（退出码 2），不覆盖。
 - 只读取快照 `repositories[]` 的 `stars`、`todayStars`、`forks` 等数字，不调用 GitHub API、不重抓、不改数字；描述翻译/分析可复用历史 brief。
 - brief 记录 `scrapedAt`（快照抓取时刻）；日报页显示 `抓取时刻：YYYY-MM-DD HH:mm:ss（UTC+8）`。
 
@@ -248,10 +248,11 @@ node scripts/build-brief-from-snapshot.js \
 
 **B16 内容标杆**
 
-- 日报 facts.json 增加参照事实：昨日（前一有数据日）、7 日均值（前 7 个有数据日）、上月同期（前一月同日）；类目/语言头部份额变化；连续上榜项目的 `streak`、`acceleration`、`acceleration_ratio`；换血的 `dropped`、`new`、`retention_rate`、`new_face_rate`。缺历史即不产出对应事实。
+- J1 基准：日报期次按 `scrapedAt` 换算的 SGT 抓取日命名；基准 = 抓取日早于本期的最近一份快照（按 brief 内 `scrapedAt`，缺则 `generatedAt` 判定），同一抓取日不比较。无基准时不产出昨日/7 日均值/上月同期等参照事实，页面与提示词写「无基准」。
+- 日报 facts.json 增加参照事实：昨日、7 日均值（前 7 个抓取日）、上月同期（前一月同日）；类目/语言头部份额变化；连续上榜项目的 `streak`、`acceleration`、`acceleration_ratio`；换血的 `dropped`、`new`、`retention_rate`、`new_face_rate`。缺基准即不产出对应事实。
 - 提示词要求：概览带参照；核心趋势 3–4 条讲「今天什么变了」；连续上榜简讯带天数与提速；换血段；深度分析给可用判断；项目卡 `oneSentence` 不占洞察篇幅；禁用「不是……而是……」。
 - 页面模板最小绑定：`overview`、`coreTrends`、`streakBrief`、`churn`、`deepAnalysis` 有内容才渲染。
-- 检查器 B16：命中「不是……而是……」句式即 FAIL。
+- 检查器 B16：命中「不是……而是……」句式即 FAIL；方向词按 `render_map` 的 `role=direction` 条目配对，不在 `render_map` 的方向词（含 AI 自写）即 FAIL，不再按最近数字配对。生成器由 `current`/`reference` 生成方向词，相等即「持平」。
 
 ---
 
