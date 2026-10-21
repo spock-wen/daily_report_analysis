@@ -426,8 +426,7 @@ class HTMLGenerator {
             ` : ''}
           </div>
         </div>
-        <div class="project-description">${project.descZh || project.desc || project.description || '暂无描述'}</div>
-        ${oneSentence ? `<div class="project-one-sentence">${this.escapeAndLinkify(oneSentence, [project])}</div>` : ''}
+        <div class="project-description">${this.escapeAndLinkify(oneSentence || project.descZh || project.desc || project.description || '暂无描述', [project])}</div>
       </div>
     `;
   }

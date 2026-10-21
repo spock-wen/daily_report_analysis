@@ -57,6 +57,8 @@ const SLOT_RULES = [
   { pattern: /上月同期|上月同日|前一月同日/g, roles: REFERENCE_MOM_ROLES },
   { pattern: /类目[^，,、；;。\n]{0,20}份额|语言[^，,、；;。\n]{0,20}份额|份额变化/g, roles: ['category_share', 'category_shift', 'language_share', 'language_shift'] },
   { pattern: /提速|加速/g, roles: ['acceleration', 'acceleration_ratio'] },
+  // 「变化」专指提速/变化量，份额变化仍由上面的份额槽负责。
+  { pattern: /(?<!份额)变化/g, roles: ['acceleration'] },
   { pattern: /留存率/g, roles: ['retention_rate'] },
   { pattern: /新面孔率/g, roles: ['new_face_rate'] },
 ];

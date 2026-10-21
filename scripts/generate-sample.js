@@ -19,6 +19,7 @@ const fs = require('fs');
 const path = require('path');
 const history = require('../src/metrics/history');
 const { buildFacts } = require('../src/facts/build-facts');
+const { dedupeFindings } = require('../src/checker/rules/util');
 
 const ROOT_DIR = path.join(__dirname, '..');
 const PUBLIC_CSS_DIR = path.join(ROOT_DIR, 'public', 'css');
@@ -261,6 +262,15 @@ function applyOneSentences(brief, insights) {
     project.analysis = project.analysis || {};
     project.analysis.oneSentence = finalSentence;
   }
+
+  // B17：oneSentence 为空时用 descZh（无则 description）生成，避免卡片回退成英文。
+  const { generateOneSentence } = require('../src/analyzer/project-analyzer');
+  for (const project of brief.projects || []) {
+    project.analysis = project.analysis || {};
+    if (!String(project.analysis.oneSentence || '').trim()) {
+      project.analysis.oneSentence = generateOneSentence(project);
+    }
+  }
 }
 
 function buildReportData(level, period, brief, metrics, insights) {
@@ -432,11 +442,16 @@ function inlineSampleStyles(htmlPath) {
 }
 
 // B13：对最终写出的 HTML 文件运行自包含检查（PASS 与 .FAIL 两条路径都要核）。
-function checkFinalHtml(htmlPath) {
+function checkFinalHtml(htmlPath, level) {
   const { loadDocument } = require('../src/checker/document');
   const b13 = require('../src/checker/rules/b13');
   const doc = loadDocument(htmlPath, 'html');
-  return b13.check({}, doc) || [];
+  const findings = b13.check({}, doc) || [];
+  if (level === 'daily') {
+    const b17 = require('../src/checker/rules/b17');
+    findings.push(...(b17.check({ level }, doc) || []));
+  }
+  return findings;
 }
 
 function hasChinese(text) {
@@ -682,6 +697,22 @@ async function main() {
     writeBrief();
   };
 
+  const { runContentGate } = require('../src/checker/gate');
+  const logger = require('../src/utils/logger');
+  const gateLogger = {
+    info(message, meta) {
+      if (typeof message === 'string' && message.startsWith('AI_CALLS ')) {
+        console.log(message);
+        return;
+      }
+      logger.info(message, meta);
+    },
+    warn: logger.warn.bind(logger),
+    error: logger.error.bind(logger),
+    debug: logger.debug.bind(logger),
+    success: logger.success.bind(logger),
+  };
+
   let rendered = renderCurrent();
   if (rendered.errors.length > 0 && analyzer.getAiCallCount() < 2) {
     console.error(`[render] 占位校验失败 ${rendered.errors.length} 条，重试 AI 1 次...`);
@@ -701,10 +732,25 @@ async function main() {
     }));
 
     // 占位未解析处原样保留（rendered.insights 中仍是占位文本），不删句。
+    persistRendered(rendered);
+
+    // B3：占位校验失败不提前退出，继续运行后续全部内容核查规则；
+    // 占位 FAIL 与规则 FAIL 合并成一份清单，AI 调用次数保持不变（≤2）。
+    const gate = await runContentGate({
+      level,
+      period,
+      dataDir: outDataDir,
+      logger: gateLogger,
+      writeHtmlOnFail,
+      getRenderMap: () => rendered,
+      facts,
+      getAiCallCount: () => analyzer.getAiCallCount(),
+    });
+
     const reportData = buildReportData(level, period, brief, computed, rendered.insights);
     const htmlPath = await writeSampleHtml(level, reportData, { fail: true });
-    const b13Findings = checkFinalHtml(htmlPath);
-    const findings = [...placeholderFindings, ...b13Findings];
+    const b13Findings = checkFinalHtml(htmlPath, level);
+    const findings = dedupeFindings([...placeholderFindings, ...gate.findings, ...b13Findings]);
     const checkPaths = writeCheckArtifacts({
       outDir,
       level,
@@ -713,12 +759,11 @@ async function main() {
       findings,
     });
 
-    console.log(`AI_CALLS period=${period} count=${analyzer.getAiCallCount()}`);
     console.log('');
     console.log(`期次：${level} ${period}`);
     console.log(`源数据：${sourceDataDir}`);
     console.log(`输出：${outDir}`);
-    console.log(`核查：FAIL（${findings.length} 条，占位校验失败）`);
+    console.log(`核查：FAIL（${findings.length} 条，含占位校验失败）`);
     console.log(`核查清单：${checkPaths.jsonPath}`);
     console.log(`核查清单：${checkPaths.mdPath}`);
     console.log(`事实表：${outFactsPath}`);
@@ -728,22 +773,6 @@ async function main() {
 
   persistRendered(rendered);
   let lastRendered = rendered;
-
-  const { runContentGate } = require('../src/checker/gate');
-  const logger = require('../src/utils/logger');
-  const gateLogger = {
-    info(message, meta) {
-      if (typeof message === 'string' && message.startsWith('AI_CALLS ')) {
-        console.log(message);
-        return;
-      }
-      logger.info(message, meta);
-    },
-    warn: logger.warn.bind(logger),
-    error: logger.error.bind(logger),
-    debug: logger.debug.bind(logger),
-    success: logger.success.bind(logger),
-  };
 
   let placeholderFailures = [];
   let gate = await runContentGate({
@@ -807,7 +836,7 @@ async function main() {
   const reportData = buildReportData(level, period, brief, computed, insights);
 
   let htmlPath = await writeSampleHtml(level, reportData, { fail: !gate.pass });
-  const b13Findings = checkFinalHtml(htmlPath);
+  const b13Findings = checkFinalHtml(htmlPath, level);
   let pass = gate.pass && b13Findings.length === 0;
   if (gate.pass && b13Findings.length > 0) {
     const failPath = addFailMarker(htmlPath);

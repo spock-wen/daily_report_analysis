@@ -35,6 +35,7 @@ const RULES = [
   require('./rules/b13'),
   require('./rules/b15'),
   require('./rules/b16'),
+  require('./rules/b17'),
   require('./rules/c1'),
   require('./rules/c2'),
   require('./rules/c3'),
