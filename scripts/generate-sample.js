@@ -690,6 +690,57 @@ async function main() {
   let insights = await runAnalysis();
   if (!insights || typeof insights !== 'object') insights = {};
 
+  const { isR5Insights } = require('../src/checker/rules/r5');
+
+  if (level === 'daily' && isR5Insights(insights)) {
+    const r5Insights = insights;
+    ensureDir(path.dirname(outInsightsPath));
+    fs.writeFileSync(outInsightsPath, `${JSON.stringify(r5Insights, null, 2)}\n`, 'utf8');
+
+    if (!Array.isArray(r5Insights.renderEntries)) {
+      console.error('错误：r5 insights 缺少 renderEntries，无法执行 r5 检查');
+      return 1;
+    }
+
+    const { loadDocument } = require('../src/checker/document');
+    const { buildContext } = require('../src/checker/context');
+    const { loadConfig } = require('../src/checker/config');
+    const r5 = require('../src/checker/rules/r5');
+    const doc = loadDocument(outInsightsPath, 'insights');
+    const ctx = buildContext({
+      level,
+      period,
+      dataDir: outDataDir,
+      brief,
+      insights: r5Insights,
+      facts,
+    });
+    const r5Findings = r5.check(ctx, doc, loadConfig());
+    const pass = r5Findings.length === 0;
+
+    const reportData = buildReportData(level, period, brief, computed, r5Insights);
+    const htmlPath = await writeSampleHtml(level, reportData, { fail: !pass });
+    const checkPaths = writeCheckArtifacts({
+      outDir,
+      level,
+      period,
+      pass,
+      findings: r5Findings,
+    });
+
+    console.log('');
+    console.log(`期次：${level} ${period}`);
+    console.log(`源数据：${sourceDataDir}`);
+    console.log(`输出：${outDir}`);
+    console.log(`R5 检查：${r5Findings.length} 条`);
+    console.log(`槽位缺省：${(r5Insights.usedDefaults || []).length} 条`);
+    console.log(`核查清单：${checkPaths.jsonPath}`);
+    console.log(`核查清单：${checkPaths.mdPath}`);
+    console.log(`事实表：${outFactsPath}`);
+    console.log(pass ? `HTML：${htmlPath}` : `HTML：写出 .FAIL.html：${htmlPath}`);
+    return pass ? 0 : 1;
+  }
+
   const projectTags = {};
   for (const project of brief?.projects || []) {
     const name = project.fullName || project.repo || project.name;

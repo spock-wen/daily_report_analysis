@@ -5,6 +5,7 @@ const nodePath = require('path');
 const mustache = require('mustache');
 const history = require('../metrics/history');
 const paths = require('../utils/path');
+const { DEFAULT_PHRASES } = require('./daily-v3-text');
 
 const TEMPLATE_DIR = nodePath.join(__dirname, '..', '..', 'templates', 'daily-v3');
 const TEMPLATE_PATH = nodePath.join(TEMPLATE_DIR, 'daily.mustache');
@@ -231,7 +232,7 @@ function buildSparkNote({ seriesDates, priorDates, baseLabel, priorCount }) {
   return parts.join('');
 }
 
-function buildBars(projects) {
+function buildBars(projects, descShortOf) {
   const sorted = projects
     .slice()
     .sort((left, right) => (toNumber(right.todayStars) || 0) - (toNumber(left.todayStars) || 0));
@@ -241,7 +242,8 @@ function buildBars(projects) {
     const value = toNumber(project.todayStars) || 0;
     return {
       name: projectShortName(project),
-      desc: '',
+      desc: (typeof descShortOf === 'function' ? descShortOf(project) : '')
+        || DEFAULT_PHRASES.descShortZh,
       pct: max > 0 ? (value / max * 100).toFixed(1) : '0.0',
       color: index === 0 ? COLORS.accent : COLORS.primary,
       value: formatCount(value),
@@ -660,6 +662,13 @@ function buildViewModel(data) {
     .sort((left, right) => (toNumber(right.todayStars) || 0) - (toNumber(left.todayStars) || 0));
   const stats = data.stats || brief.stats || {};
   const insights = data.aiInsights || data.insights || {};
+  const insightProjects = new Map();
+  for (const item of Array.isArray(insights.projects) ? insights.projects : []) {
+    const name = item?.fullName || item?.repo || item?.project_name;
+    if (name) insightProjects.set(name, item);
+  }
+  const slotDescShortOf = project => insightProjects.get(projectKey(project))?.descShortZh;
+  const slotDescZhOf = project => insightProjects.get(projectKey(project))?.descZh;
   const streakDays = data.streakDays || brief.streakDays || {};
   const streakOf = name => {
     const value = toNumber(streakDays[name]);
@@ -698,7 +707,7 @@ function buildViewModel(data) {
     }
   }
 
-  const { bars, note: barsNote } = buildBars(projects);
+  const { bars, note: barsNote } = buildBars(projects, slotDescShortOf);
 
   const language = distributionRows({
     todayProjects: projects,
@@ -791,7 +800,11 @@ function buildViewModel(data) {
         || project.descZh
         || project.desc
         || '暂无描述',
-      descZh: project.descZh || project.desc || project.description || '—',
+      descZh: slotDescZhOf(project)
+        || project.descZh
+        || project.desc
+        || project.description
+        || DEFAULT_PHRASES.descZh,
       typeName: project.analysis?.typeName || '—',
       language: project.language || '—',
       community: project.analysis?.community?.level || '—',
@@ -820,6 +833,18 @@ function buildViewModel(data) {
 
   const scrapedAtLocal = formatLocal(scrapedAt);
   const generatedAtLocal = formatLocal(generatedAt);
+
+  const trends = (Array.isArray(insights.trends) ? insights.trends : []).map(item => ({
+    text: typeof item === 'string' ? item : String(item?.text || ''),
+  }));
+  const analysisText = typeof insights.analysis === 'string'
+    ? insights.analysis
+    : String(insights.analysis?.text || '');
+  const advice = (Array.isArray(insights.advice) ? insights.advice : [])
+    .slice(0, 3)
+    .map(item => ({ text: typeof item === 'string' ? item : String(item?.text || '') }));
+  const churnNewText = typeof insights.churnNewText === 'string' ? insights.churnNewText : '';
+  const churnDropText = typeof insights.churnDropText === 'string' ? insights.churnDropText : '';
 
   return {
     css: fs.readFileSync(CSS_PATH, 'utf8'),
@@ -850,7 +875,7 @@ function buildViewModel(data) {
     metrics,
     sparkNote,
     cmp,
-    trends: [],
+    trends,
     barsNote,
     bars,
     langNote,
@@ -864,10 +889,10 @@ function buildViewModel(data) {
     slope: rank?.slope || null,
     rankRows,
     churn,
-    churnNew: '',
-    churnDrop: '',
-    analysis: '',
-    advice: [],
+    churnNew: churnNewText,
+    churnDrop: churnDropText,
+    analysis: analysisText,
+    advice,
     total: projects.length,
     projects: viewProjects,
     related,
