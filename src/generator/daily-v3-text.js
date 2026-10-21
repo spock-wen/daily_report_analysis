@@ -11,9 +11,68 @@ const SLOT_TYPES = {
 const DEFAULT_PHRASES = {
   reason: '可结合项目描述理解',
   heroReason: '结合当日榜单与项目描述理解',
-  descShortZh: '项目简介待补充',
+  descShortZh: '暂无中文简介',
   descZh: '暂无中文说明',
 };
+
+// 槽位 JSON 允许扁平点号键，也允许嵌套对象；统一摊平成 slotId -> 文本。
+function flattenSlots(value, prefix = '', result = {}) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return result;
+  for (const [key, item] of Object.entries(value)) {
+    const slotId = prefix ? `${prefix}.${key}` : key;
+    if (item && typeof item === 'object' && !Array.isArray(item)) {
+      flattenSlots(item, slotId, result);
+    } else if (typeof item === 'string') {
+      result[slotId] = item;
+    }
+  }
+  return result;
+}
+
+function truncateText(value, maxLength) {
+  const text = String(value === undefined || value === null ? '' : value).trim();
+  return [...text].slice(0, maxLength).join('').replace(/[，。、；：,.;:\s]+$/, '');
+}
+
+function stripRepoPrefix(text, fullName) {
+  if (!fullName) return String(text || '').trim();
+  const escaped = escapeRegExp(fullName);
+  return String(text || '')
+    .replace(new RegExp(`^\\s*${escaped}\\s*[：:，,\\-—]?\\s*`), '')
+    .trim();
+}
+
+// 热度口径：高热＝今日新增 > 100 星；再叠加当日新增合计相对 7 日均值的倍数。
+function computeHypeIndex(input = {}) {
+  const totalProjects = Number(input.totalProjects) || 0;
+  const hotCount = Number(input.hotCount) || 0;
+  const totalToday = Number(input.totalToday) || 0;
+  const average = input.avgTotalToday === null || input.avgTotalToday === undefined
+    ? null
+    : Number(input.avgTotalToday);
+  const hasAverage = Number.isFinite(average) && average > 0;
+  const hotRatio = totalProjects > 0 ? hotCount / totalProjects : 0;
+
+  let score = 1;
+  if (hotRatio >= 0.5) score += 1;
+  if (hotRatio >= 0.9) score += 1;
+  if (hasAverage) {
+    const ratio = totalToday / average;
+    if (ratio >= 1.2) score += 1;
+    if (ratio >= 2) score += 1;
+  } else if (totalToday > 0) {
+    score += 1;
+  }
+  score = Math.min(5, Math.max(1, score));
+
+  const parts = [`高热项目 ${hotCount} 个，占全部 ${totalProjects} 个`];
+  if (hasAverage) {
+    parts.push(`当日新增合计为 7 日均值的 ${Math.round(totalToday / average * 10) / 10} 倍`);
+  } else {
+    parts.push(`当日新增合计 ${totalToday} 星`);
+  }
+  return { score, reason: `${parts.join('；')}。` };
+}
 
 const GLOBAL_SLOT_IDS = [
   'hero.reason',
@@ -328,27 +387,42 @@ const ADVICE_BASES = [
   '结合换血名单复核新进与掉榜项目',
 ];
 
-function buildProjectTexts(names, slots, config, regex, logger) {
+function briefDescriptionMap(brief) {
+  const map = new Map();
+  for (const project of brief?.projects || []) {
+    const name = projectKey(project);
+    const descZh = String(project.descZh || '').trim();
+    if (name && descZh) map.set(name, descZh);
+  }
+  return map;
+}
+
+function buildProjectTexts(names, slots, config, regex, logger, descriptions = new Map()) {
   const texts = [];
   const usedDefaults = [];
 
   for (const name of names) {
+    const briefDescZh = stripRepoPrefix(descriptions.get(name) || '', name);
     const descId = `project.${name}.descZh`;
     const descSpec = slotSpecFor(descId);
     const descCheck = checkSlotText(slots?.[descId], descSpec, config, regex);
-    const descZh = descCheck.ok ? descCheck.text : DEFAULT_PHRASES.descZh;
+    const descZh = descCheck.ok
+      ? stripRepoPrefix(descCheck.text, name)
+      : (truncateText(briefDescZh, SLOT_TYPES.descZh.maxLength) || DEFAULT_PHRASES.descZh);
     if (!descCheck.ok) {
-      usedDefaults.push({ slotId: descId, reason: descCheck.reason });
-      if (typeof logger.warn === 'function') logger.warn(`[daily-v3-text] 槽位${descCheck.reason}，使用缺省短语：${descId}`);
+      usedDefaults.push({ slotId: descId, reason: descCheck.reason, fallback: 'brief.descZh' });
+      if (typeof logger.warn === 'function') logger.warn(`[daily-v3-text] 槽位${descCheck.reason}，使用项目描述缺省：${descId}`);
     }
 
     const shortId = `project.${name}.descShortZh`;
     const shortSpec = slotSpecFor(shortId);
     const shortCheck = checkSlotText(slots?.[shortId], shortSpec, config, regex);
-    const descShortZh = shortCheck.ok ? shortCheck.text : DEFAULT_PHRASES.descShortZh;
+    const descShortZh = shortCheck.ok
+      ? stripRepoPrefix(shortCheck.text, name)
+      : (truncateText(briefDescZh, SLOT_TYPES.descShortZh.maxLength) || DEFAULT_PHRASES.descShortZh);
     if (!shortCheck.ok) {
-      usedDefaults.push({ slotId: shortId, reason: shortCheck.reason });
-      if (typeof logger.warn === 'function') logger.warn(`[daily-v3-text] 槽位${shortCheck.reason}，使用缺省短语：${shortId}`);
+      usedDefaults.push({ slotId: shortId, reason: shortCheck.reason, fallback: 'brief.descZh 截断' });
+      if (typeof logger.warn === 'function') logger.warn(`[daily-v3-text] 槽位${shortCheck.reason}，使用项目描述截断缺省：${shortId}`);
     }
 
     texts.push({ fullName: name, descShortZh, descZh });
@@ -362,8 +436,9 @@ function buildDailyV3Text(options = {}) {
   const config = options.config || loadConfig();
   const logger = options.logger || require('../utils/logger');
   const regex = wordRegex(config);
+  const slots = flattenSlots(options.slots);
   const specs = buildSlotSpecs({ brief });
-  const resolved = resolveSlots(options.slots, specs, { config, logger, regex });
+  const resolved = resolveSlots(slots, specs, { config, logger, regex });
 
   const index = indexFacts(options.facts);
   const renderEntries = [];
@@ -418,16 +493,32 @@ function buildDailyV3Text(options = {}) {
 
   const projectTexts = buildProjectTexts(
     projectNames({ brief }),
-    options.slots,
+    slots,
     config,
     regex,
-    logger
+    logger,
+    briefDescriptionMap(brief)
   );
+
+  const hotCount = index.total('hot_count');
+  const totalProjects = index.total('total_projects');
+  const totalToday = index.total('total_today');
+  const avgTotalToday = index.total('avg7_total_today');
+  const hypeIndex = computeHypeIndex({
+    totalProjects: totalProjects?.value ?? (brief.projects || []).length,
+    hotCount: hotCount?.value,
+    totalToday: totalToday?.value,
+    avgTotalToday: avgTotalToday?.value,
+  });
 
   const projectSlots = {};
   for (const item of projectTexts.projects) {
-    projectSlots[`project.${item.fullName}.descShortZh`] = item.descShortZh;
-    projectSlots[`project.${item.fullName}.descZh`] = item.descZh;
+    if (hasValue(slots[`project.${item.fullName}.descShortZh`])) {
+      projectSlots[`project.${item.fullName}.descShortZh`] = item.descShortZh;
+    }
+    if (hasValue(slots[`project.${item.fullName}.descZh`])) {
+      projectSlots[`project.${item.fullName}.descZh`] = item.descZh;
+    }
   }
 
   return {
@@ -440,6 +531,7 @@ function buildDailyV3Text(options = {}) {
     advice,
     churnNewText,
     churnDropText,
+    hypeIndex,
     projects: projectTexts.projects,
     renderEntries,
   };
@@ -456,6 +548,10 @@ module.exports = {
   checkSlotText,
   resolveSlots,
   buildDailyV3Text,
+  computeHypeIndex,
+  flattenSlots,
+  truncateText,
+  stripRepoPrefix,
   wordRegex,
   stripMetricNames,
 };

@@ -87,11 +87,14 @@ function collectSuggestions(insights) {
   return Array.from(new Set(lines));
 }
 
+const SLOT_KEY_RE = /^(?:hero|trend|analysis|advice|churn|project)\./;
+
 function isSlotMap(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
-  const keys = Object.keys(value);
-  return keys.length > 0
-    && keys.every(key => /^(?:trend|analysis|advice|churn|project)\./.test(key));
+  const { flattenSlots } = require('../generator/daily-v3-text');
+  const slots = flattenSlots(value);
+  const keys = Object.keys(slots);
+  return keys.length > 0 && keys.every(key => SLOT_KEY_RE.test(key));
 }
 
 const AI_RETRY_CONFIG = {
@@ -177,11 +180,14 @@ class InsightAnalyzer {
       });
 
       const parsed = this.parseInsights(result, dailyData.brief);
-      const insights = isSlotMap(parsed)
-        ? require('../generator/daily-v3-text').buildDailyV3Text({
+      const { buildDailyV3Text, flattenSlots } = require('../generator/daily-v3-text');
+      const slotMap = flattenSlots(parsed);
+      const slotIds = Object.keys(slotMap).filter(key => SLOT_KEY_RE.test(key));
+      const insights = isSlotMap(parsed) || slotIds.length >= 3
+        ? buildDailyV3Text({
             brief: dailyData.brief,
             facts,
-            slots: parsed,
+            slots: slotMap,
           })
         : parsed;
       await this.saveInsights('daily', dailyData.date, insights);

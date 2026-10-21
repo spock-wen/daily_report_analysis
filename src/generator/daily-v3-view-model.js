@@ -5,7 +5,7 @@ const nodePath = require('path');
 const mustache = require('mustache');
 const history = require('../metrics/history');
 const paths = require('../utils/path');
-const { DEFAULT_PHRASES } = require('./daily-v3-text');
+const { DEFAULT_PHRASES, computeHypeIndex, truncateText, stripRepoPrefix } = require('./daily-v3-text');
 
 const TEMPLATE_DIR = nodePath.join(__dirname, '..', '..', 'templates', 'daily-v3');
 const TEMPLATE_PATH = nodePath.join(TEMPLATE_DIR, 'daily.mustache');
@@ -793,7 +793,12 @@ function buildViewModel(data) {
     }
   }
 
-  const { bars, note: barsNote } = buildBars(projects, slotDescShortOf);
+  const { bars, note: barsNote } = buildBars(projects, project => {
+    const slotText = slotDescShortOf(project);
+    if (slotText) return slotText;
+    const descZh = stripRepoPrefix(project.descZh || '', projectKey(project));
+    return descZh ? truncateText(descZh, 14) : DEFAULT_PHRASES.descShortZh;
+  });
 
   const language = distributionRows({
     todayProjects: projects,
@@ -880,19 +885,19 @@ function buildViewModel(data) {
       fullName,
       tag,
       tagNew: tag === '新' || tag === '回归',
-      oneSentence: pickChinese(
+      oneSentence: stripRepoPrefix(pickChinese(
+        slotDescZhOf(project),
         slotOneSentenceOf(project),
         projectInsights.get(fullName),
         project.analysis?.oneSentence,
         project.oneSentence,
-        slotDescZhOf(project),
         project.descZh
-      ) || '暂无描述',
-      descZh: pickChinese(
+      ) || '暂无描述', fullName),
+      descZh: stripRepoPrefix(pickChinese(
         slotDescZhOf(project),
         project.analysis?.descZh,
         project.descZh
-      ) || DEFAULT_PHRASES.descZh,
+      ) || DEFAULT_PHRASES.descZh, fullName),
       typeName: project.analysis?.typeName || '—',
       language: project.language || '—',
       community: project.analysis?.community?.level || '—',
@@ -934,6 +939,15 @@ function buildViewModel(data) {
   const churnNewText = typeof insights.churnNewText === 'string' ? insights.churnNewText : '';
   const churnDropText = typeof insights.churnDropText === 'string' ? insights.churnDropText : '';
 
+  const hypeIndex = insights.hypeIndex && Number(insights.hypeIndex.score) > 0
+    ? insights.hypeIndex
+    : computeHypeIndex({
+        totalProjects: currentSnapshot.totalProjects,
+        hotCount: currentSnapshot.hotCount,
+        totalToday: currentSnapshot.totalToday,
+        avgTotalToday: average(priorSnapshots.map(item => item.totalToday)),
+      });
+
   return {
     css: fs.readFileSync(CSS_PATH, 'utf8'),
     isSample: data.isSample === true,
@@ -955,10 +969,10 @@ function buildViewModel(data) {
     hero,
     verdict: {
       oneLiner: insights.oneLiner || '',
-      hypeScore: insights.hypeIndex?.score ?? 0,
-      hypeDots: '●'.repeat(Number(insights.hypeIndex?.score) || 0)
-        + '○'.repeat(Math.max(0, 5 - (Number(insights.hypeIndex?.score) || 0))),
-      hypeReason: insights.hypeIndex?.reason || '',
+      hypeScore: hypeIndex.score,
+      hypeDots: '●'.repeat(Number(hypeIndex.score) || 0)
+        + '○'.repeat(Math.max(0, 5 - (Number(hypeIndex.score) || 0))),
+      hypeReason: hypeIndex.reason || '',
     },
     baseLabel,
     metrics,

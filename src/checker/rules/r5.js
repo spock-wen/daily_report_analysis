@@ -73,6 +73,225 @@ function checkCardIntro(json, doc, findings) {
   }
 }
 
+function textOf(value) {
+  if (typeof value === 'string') return value.trim();
+  if (value && typeof value.text === 'string') return value.text.trim();
+  return '';
+}
+
+function checkFieldMapBlocks(json, doc, findings) {
+  const trends = Array.isArray(json.trends) ? json.trends : [];
+  if (trends.length < 3) {
+    findings.push(makeFinding('R5', doc, {
+      field: 'trends',
+      quote: '',
+      message: `核心趋势为空或不足 3 条（FIELD_MAP 要求 3–5 条），当前 ${trends.length} 条`,
+    }));
+  }
+  if (trends.length > 5) {
+    findings.push(makeFinding('R5', doc, {
+      field: 'trends',
+      quote: '',
+      message: `核心趋势超过 5 条（FIELD_MAP 要求 3–5 条），当前 ${trends.length} 条`,
+    }));
+  }
+  for (const [index, item] of trends.entries()) {
+    if (!textOf(item)) {
+      findings.push(makeFinding('R5', doc, {
+        field: `trends[${index}].text`,
+        quote: '',
+        message: '核心趋势条目为空（FIELD_MAP 核心趋势必填）',
+      }));
+    }
+  }
+
+  const analysis = textOf(json.analysis);
+  if (!analysis) {
+    findings.push(makeFinding('R5', doc, {
+      field: 'analysis',
+      quote: '',
+      message: '深度分析为空（FIELD_MAP 深度分析 2–4 句必填）',
+    }));
+  } else {
+    const sentences = analysis.split(/[。！？]/).filter(item => item.trim()).length;
+    if (sentences < 2 || sentences > 4) {
+      findings.push(makeFinding('R5', doc, {
+        field: 'analysis',
+        quote: analysis,
+        message: `深度分析须 2–4 句（FIELD_MAP），当前 ${sentences} 句`,
+      }));
+    }
+  }
+
+  const advice = Array.isArray(json.advice) ? json.advice : [];
+  if (advice.length === 0) {
+    findings.push(makeFinding('R5', doc, {
+      field: 'advice',
+      quote: '',
+      message: '建议为空（FIELD_MAP 建议 ≤3 且必填）',
+    }));
+  }
+  for (const [index, item] of advice.entries()) {
+    if (!textOf(item)) {
+      findings.push(makeFinding('R5', doc, {
+        field: `advice[${index}].text`,
+        quote: '',
+        message: '建议条目为空（FIELD_MAP 建议必填）',
+      }));
+    }
+  }
+
+  if (!textOf(json.churnNewText)) {
+    findings.push(makeFinding('R5', doc, {
+      field: 'churnNewText',
+      quote: '',
+      message: '新上榜解释为空（FIELD_MAP 上榜句必填）',
+    }));
+  }
+  if (!textOf(json.churnDropText)) {
+    findings.push(makeFinding('R5', doc, {
+      field: 'churnDropText',
+      quote: '',
+      message: '掉榜解释为空（FIELD_MAP 掉榜句必填）',
+    }));
+  }
+
+  const projects = Array.isArray(json.projects) ? json.projects : [];
+  for (const [index, project] of projects.slice(0, 8).entries()) {
+    const descShort = textOf(project?.descShortZh);
+    if (!descShort) {
+      findings.push(makeFinding('R5', doc, {
+        field: `projects[${index}].descShortZh`,
+        quote: '',
+        message: 'Top8 中文短描述为空（FIELD_MAP Top8 描述必填）',
+      }));
+    }
+  }
+
+  const slots = json.slots && typeof json.slots === 'object' && !Array.isArray(json.slots)
+    ? json.slots
+    : {};
+  const heroText = Object.prototype.hasOwnProperty.call(json, 'hero')
+    ? textOf(json.hero?.lead ?? json.hero)
+    : textOf(slots['hero.reason']);
+  if (!heroText) {
+    findings.push(makeFinding('R5', doc, {
+      field: 'hero.lead',
+      quote: '',
+      message: '结论块为空（FIELD_MAP 结论必填）',
+    }));
+  }
+
+  const hype = json.hypeIndex;
+  if (!hype || typeof hype !== 'object') {
+    findings.push(makeFinding('R5', doc, {
+      field: 'hypeIndex',
+      quote: '',
+      message: '热度块为空（FIELD_MAP 热度必填）',
+    }));
+  } else {
+    const score = Number(hype.score);
+    if (!Number.isFinite(score)) {
+      findings.push(makeFinding('R5', doc, {
+        field: 'hypeIndex.score',
+        quote: String(hype.score ?? ''),
+        message: '热度分数不是数值（FIELD_MAP 热度必填 0–5 整数）',
+      }));
+    } else if (score <= 0) {
+      findings.push(makeFinding('R5', doc, {
+        field: 'hypeIndex.score',
+        quote: String(hype.score),
+        message: '热度显示 0/5（页面不得出现 0/5）',
+      }));
+    } else if (score > 5) {
+      findings.push(makeFinding('R5', doc, {
+        field: 'hypeIndex.score',
+        quote: String(hype.score),
+        message: '热度分数超出 5 分上限',
+      }));
+    }
+  }
+}
+
+function checkNoPlaceholder(json, doc, findings) {
+  const candidates = [];
+  const push = (field, value) => {
+    const text = textOf(value);
+    if (text) candidates.push({ field, text });
+  };
+
+  for (const [index, item] of (Array.isArray(json.trends) ? json.trends : []).entries()) {
+    push(`trends[${index}].text`, item);
+  }
+  push('analysis', json.analysis);
+  for (const [index, item] of (Array.isArray(json.advice) ? json.advice : []).entries()) {
+    push(`advice[${index}].text`, item);
+  }
+  push('churnNewText', json.churnNewText);
+  push('churnDropText', json.churnDropText);
+  push('hero.lead', json.hero?.lead);
+  push('hypeIndex.reason', json.hypeIndex?.reason);
+  for (const [index, project] of (Array.isArray(json.projects) ? json.projects : []).entries()) {
+    push(`projects[${index}].descShortZh`, project?.descShortZh);
+    push(`projects[${index}].descZh`, project?.descZh);
+  }
+  if (json.slots && typeof json.slots === 'object' && !Array.isArray(json.slots)) {
+    for (const [slotId, value] of Object.entries(json.slots)) push(`slots.${slotId}`, value);
+  }
+
+  for (const candidate of candidates) {
+    if (!candidate.text.includes('待补充')) continue;
+    findings.push(makeFinding('R5', doc, {
+      field: candidate.field,
+      quote: candidate.text,
+      message: '页面显示「待补充」（不得作为可见文案）',
+    }));
+  }
+}
+
+function checkTrendNumbers(json, doc, findings) {
+  const trends = Array.isArray(json.trends) ? json.trends : [];
+  for (const [index, item] of trends.entries()) {
+    const text = textOf(item);
+    if (!text || /\d/.test(text)) continue;
+    findings.push(makeFinding('R5', doc, {
+      field: `trends[${index}].text`,
+      quote: text,
+      message: '核心趋势条目缺少比较数字',
+    }));
+  }
+}
+
+function checkCardRepoName(json, doc, findings) {
+  for (const [index, project] of (Array.isArray(json.projects) ? json.projects : []).entries()) {
+    const fullName = project?.fullName || project?.repo || null;
+    if (!fullName) continue;
+    const intro = cardIntroText(project);
+    if (!intro || !intro.includes(fullName)) continue;
+    findings.push(makeFinding('R5', doc, {
+      field: `projects[${index}].descZh`,
+      quote: intro,
+      message: `卡片一句话包含本项目仓库全名「${fullName}」（须为 AI 自然中文）`,
+    }));
+  }
+
+  const slots = json.slots && typeof json.slots === 'object' && !Array.isArray(json.slots)
+    ? json.slots
+    : {};
+  for (const [slotId, value] of Object.entries(slots)) {
+    if (!slotId.startsWith('project.') || !/(?:descZh|descShortZh)$/.test(slotId)) continue;
+    const text = String(value === undefined || value === null ? '' : value).trim();
+    if (!text) continue;
+    const name = slotId.slice('project.'.length).replace(/\.desc(?:Short)?Zh$/, '');
+    if (!name || !text.includes(name)) continue;
+    findings.push(makeFinding('R5', doc, {
+      field: `slots.${slotId}`,
+      quote: text,
+      message: `卡片一句话包含本项目仓库全名「${name}」（须为 AI 自然中文）`,
+    }));
+  }
+}
+
 function isKFormat(value) {
   return /^\d+(?:\.\d)?k$/.test(String(value === undefined || value === null ? '' : value).trim());
 }
@@ -223,6 +442,10 @@ function check(ctx, doc, config) {
   checkHero(doc.json, doc, findings);
   checkCardIntro(doc.json, doc, findings);
   checkAvgStars(doc.json, doc, findings);
+  checkFieldMapBlocks(doc.json, doc, findings);
+  checkNoPlaceholder(doc.json, doc, findings);
+  checkTrendNumbers(doc.json, doc, findings);
+  checkCardRepoName(doc.json, doc, findings);
 
   if (Array.isArray(doc.json.advice) && doc.json.advice.length > 3) {
     findings.push(makeFinding('R5', doc, {

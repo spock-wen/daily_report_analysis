@@ -2,10 +2,10 @@
 
 const { makeFinding } = require('./util');
 
-// B17：日报项目卡简介必须含中文（卡片显示优先 oneSentence → descZh → description）。
+// B17：只查渲染后的项目卡文本（HTML 中显示的一句话与简介），不扫 brief 的英文源字段。
 const CHINESE_RE = /[\u4e00-\u9fa5]/;
-const CARD_INTRO_CLASSES = new Set(['project-description', 'project-one-sentence']);
-const DIV_RE = /<div\b([^>]*)>([\s\S]*?)<\/div>/g;
+const CARD_INTRO_CLASSES = new Set(['project-description', 'project-one-sentence', 'one', 'desc']);
+const TAG_RE = /<(\/?)([a-z0-9]+)\b([^>]*)>/gi;
 const CLASS_RE = /class\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i;
 
 function hasChinese(text) {
@@ -16,10 +16,10 @@ function cardIntroText(project) {
   if (!project || typeof project !== 'object') return '';
   const analysis = project.analysis && typeof project.analysis === 'object' ? project.analysis : {};
   return String(
-    analysis.oneSentence
+    project.descZh
+    || analysis.descZh
     || project.oneSentence
-    || project.descZh
-    || project.desc
+    || analysis.oneSentence
     || project.description
     || ''
   ).trim();
@@ -37,30 +37,38 @@ function stripTags(html) {
     .trim();
 }
 
-function checkBrief(ctx, doc, findings) {
-  const projects = Array.isArray(doc.json?.projects) ? doc.json.projects : [];
-  projects.forEach((project, index) => {
-    const intro = cardIntroText(project);
-    if (!intro || hasChinese(intro)) return;
-    findings.push(makeFinding('B17', doc, {
-      field: `projects[${index}].analysis.oneSentence`,
-      line: typeof doc.findLine === 'function' ? doc.findLine(intro) : null,
-      quote: intro,
-      message: '日报项目卡简介不含中文字符，须先翻译英文描述（B17）',
-    }));
-  });
+function classNameOf(attrs) {
+  const match = CLASS_RE.exec(attrs || '');
+  return match ? (match[1] || match[2] || match[3] || '') : '';
+}
+
+function cardBlocks(html) {
+  const blocks = [];
+  TAG_RE.lastIndex = 0;
+  let open = null;
+  let match;
+  while ((match = TAG_RE.exec(String(html || ''))) !== null) {
+    const closing = match[1] === '/';
+    const tag = String(match[2] || '').toLowerCase();
+    if (open) {
+      if (tag === open.tag) open.depth += closing ? -1 : 1;
+      if (open.depth === 0) {
+        blocks.push(String(html).slice(open.start, match.index));
+        open = null;
+      }
+      continue;
+    }
+    if (closing) continue;
+    const classes = classNameOf(match[3]).split(/\s+/).filter(Boolean);
+    if (!classes.some(name => CARD_INTRO_CLASSES.has(name))) continue;
+    open = { tag, depth: 1, start: TAG_RE.lastIndex };
+  }
+  return blocks;
 }
 
 function checkHtml(ctx, doc, findings) {
-  DIV_RE.lastIndex = 0;
-  let match;
-  while ((match = DIV_RE.exec(String(doc.raw || ''))) !== null) {
-    const classMatch = CLASS_RE.exec(match[1] || '');
-    const className = classMatch ? (classMatch[1] || classMatch[2] || classMatch[3] || '') : '';
-    const classes = className.split(/\s+/).filter(Boolean);
-    if (!classes.some(name => CARD_INTRO_CLASSES.has(name))) continue;
-
-    const intro = stripTags(match[2]);
+  for (const block of cardBlocks(doc.raw)) {
+    const intro = stripTags(block);
     if (!intro || hasChinese(intro)) continue;
     findings.push(makeFinding('B17', doc, {
       field: 'document',
@@ -74,14 +82,13 @@ function checkHtml(ctx, doc, findings) {
 function check(ctx, doc) {
   if (ctx.level !== 'daily') return [];
   const findings = [];
-  if (doc.role === 'brief') checkBrief(ctx, doc, findings);
-  else if (doc.role === 'html') checkHtml(ctx, doc, findings);
+  if (doc.role === 'html') checkHtml(ctx, doc, findings);
   return findings;
 }
 
 module.exports = {
   id: 'B17',
-  applies: (ctx, doc) => ctx.level === 'daily' && (doc.role === 'brief' || doc.role === 'html'),
+  applies: (ctx, doc) => ctx.level === 'daily' && doc.role === 'html',
   check,
   hasChinese,
   cardIntroText,

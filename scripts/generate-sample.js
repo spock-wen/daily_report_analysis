@@ -716,16 +716,27 @@ async function main() {
       facts,
     });
     const r5Findings = r5.check(ctx, doc, loadConfig());
-    const pass = r5Findings.length === 0;
 
     const reportData = buildReportData(level, period, brief, computed, r5Insights);
-    const htmlPath = await writeSampleHtml(level, reportData, { fail: !pass });
+    const generatedHtmlPath = await writeSampleHtml(level, reportData, { fail: false });
+    const htmlFindings = checkFinalHtml(generatedHtmlPath, level);
+    const findings = dedupeFindings([...r5Findings, ...htmlFindings]);
+    const pass = findings.length === 0;
+    let htmlPath = generatedHtmlPath;
+    if (!pass) {
+      htmlPath = addFailMarker(generatedHtmlPath);
+      fs.renameSync(generatedHtmlPath, htmlPath);
+      addFailBanner(htmlPath);
+      for (const finding of htmlFindings) {
+        if (finding.file === generatedHtmlPath) finding.file = htmlPath;
+      }
+    }
     const checkPaths = writeCheckArtifacts({
       outDir,
       level,
       period,
       pass,
-      findings: r5Findings,
+      findings,
     });
 
     console.log('');
@@ -733,6 +744,7 @@ async function main() {
     console.log(`源数据：${sourceDataDir}`);
     console.log(`输出：${outDir}`);
     console.log(`R5 检查：${r5Findings.length} 条`);
+    console.log(`成品 HTML 检查：${htmlFindings.length} 条`);
     console.log(`槽位缺省：${(r5Insights.usedDefaults || []).length} 条`);
     console.log(`核查清单：${checkPaths.jsonPath}`);
     console.log(`核查清单：${checkPaths.mdPath}`);
