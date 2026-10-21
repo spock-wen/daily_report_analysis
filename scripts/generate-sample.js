@@ -519,8 +519,6 @@ async function main() {
 
   if (level === 'daily') {
     brief.date = period;
-    // B12：历史 brief 未单独记录 scrapedAt 时，沿用当年生成时写入的 generatedAt（抓取时刻）。
-    if (!brief.scrapedAt && brief.generatedAt) brief.scrapedAt = brief.generatedAt;
     // B14：日报榜单按 todayStars 降序。
     brief.projects = (brief.projects || []).slice().sort((left, right) => {
       return (Number(right.todayStars) || 0) - (Number(left.todayStars) || 0);
