@@ -6,6 +6,7 @@ const SLOT_TYPES = {
   reason: { maxLength: 30 },
   descShortZh: { maxLength: 14 },
   descZh: { maxLength: 60 },
+  oneSentence: { maxLength: 60 },
 };
 
 const DEFAULT_PHRASES = {
@@ -14,6 +15,25 @@ const DEFAULT_PHRASES = {
   descShortZh: '暂无中文简介',
   descZh: '暂无中文说明',
 };
+
+const PROJECT_DEFAULT_TEXTS = [
+  { pattern: /agent|代理/i, full: '面向编码代理的开发工具', short: '面向编码代理的工具' },
+  { pattern: /求职|招聘|job/i, full: '面向求职流程的效率工具', short: '求职流程效率工具' },
+  { pattern: /安全|审计|security/i, full: '面向代码安全的审计工具', short: '代码安全审计工具' },
+  { pattern: /知识图谱|图谱|graph/i, full: '面向代码与文档的知识图谱工具', short: '代码知识图谱工具' },
+  { pattern: /推理|模型|llm|大模型|inference/i, full: '面向大模型的推理与服务工具', short: '大模型推理工具' },
+  { pattern: /界面|图形|ui|comfy/i, full: '面向模型工作流的图形界面', short: '模型工作流界面' },
+  { pattern: /数据|金融|行情/i, full: '面向数据分析的基础模型', short: '数据分析基础模型' },
+  { pattern: /插件|plugin/i, full: '面向知识工作的插件合集', short: '知识工作插件合集' },
+];
+const PROJECT_DEFAULT_FALLBACK = { full: '面向开发者的开源工具', short: '面向开发者的工具' };
+
+function defaultProjectText(typeName, kind = 'descZh') {
+  const name = String(typeName || '');
+  const matched = PROJECT_DEFAULT_TEXTS.find(item => item.pattern.test(name));
+  const entry = matched || PROJECT_DEFAULT_FALLBACK;
+  return kind === 'descShortZh' ? entry.short : entry.full;
+}
 
 // 槽位 JSON 允许扁平点号键，也允许嵌套对象；统一摊平成 slotId -> 文本。
 function flattenSlots(value, prefix = '', result = {}) {
@@ -232,7 +252,49 @@ function indexFacts(facts) {
       }
       return best;
     },
+    role(role) {
+      return find(fact => fact.role === role);
+    },
+    average(metric) {
+      for (const fact of list) {
+        const match = /^avg(\d+)_(.+)$/.exec(String(fact.role || ''));
+        if (match && match[2] === metric) {
+          return { fact, window: Number(match[1]) };
+        }
+      }
+      return null;
+    },
   };
+}
+
+function averagePhrase(index, write, average) {
+  if (!average) return null;
+  if (!Number.isFinite(average.window) || average.window >= 7) return '较 7 日均';
+  const windowFact = index.role('avg_window');
+  if (!windowFact || Number(windowFact.value) !== average.window) return null;
+  return `较近 ${write.num(windowFact)} 日均`;
+}
+
+function comparisonClause(index, write, { metric, unit = '', withAverage = true }) {
+  const parts = [];
+  const dayDelta = index.role(`delta_day_${metric}`);
+  if (dayDelta) {
+    parts.push(`较昨日 ${write.signed(dayDelta)}${unit}`);
+  } else {
+    const previous = index.role(`prev_${metric}`);
+    if (previous) parts.push(`较昨日 ${write.num(previous)}${unit}`);
+  }
+
+  if (withAverage) {
+    const average = index.average(metric);
+    if (average) {
+      const phrase = averagePhrase(index, write, average);
+      const reference = index.role(`delta_avg_${metric}`) || average.fact;
+      if (phrase && reference) parts.push(`${phrase} ${write.signed(reference)}${unit}`);
+    }
+  }
+
+  return parts.length ? `，${parts.join('、')}` : '';
 }
 
 function makeSentence(writer) {
@@ -241,6 +303,13 @@ function makeSentence(writer) {
     num(fact) {
       if (!fact) return '';
       const text = String(fact.value);
+      entries.push({ factId: fact.id, role: fact.role || null, text });
+      return text;
+    },
+    signed(fact) {
+      if (!fact) return '';
+      const value = Number(fact.value);
+      const text = Number.isFinite(value) && value > 0 ? `+${fact.value}` : String(fact.value);
       entries.push({ factId: fact.id, role: fact.role || null, text });
       return text;
     },
@@ -266,20 +335,18 @@ function buildTrendCandidates(index) {
   const total = index.total('total_projects');
   const ai = index.total('ai_projects');
   if (total && ai) {
-    candidates.push({ ...makeSentence(w => `今日 ${w.num(total)} 个上榜项目中，AI 项目 ${w.num(ai)} 个`), slotId: 'trend.composition.reason' });
+    candidates.push({
+      ...makeSentence(w => `今日 ${w.num(total)} 个上榜项目中，AI 项目 ${w.num(ai)} 个`
+        + comparisonClause(index, w, { metric: 'total_projects', unit: ' 个' })),
+      slotId: 'trend.composition.reason',
+    });
   }
 
   const totalToday = index.total('total_today');
   if (totalToday) {
-    const previous = index.total('prev_total_today');
-    const direction = index.direction('total_today', '较昨日');
     candidates.push({
-      ...makeSentence(w => {
-        let base = `当日新增星合计 ${w.num(totalToday)} 星`;
-        if (previous) base += `，较上一有数据日 ${w.num(previous)} 星`;
-        if (direction) base += `，${w.dir(direction)}`;
-        return base;
-      }),
+      ...makeSentence(w => `当日新增星合计 ${w.num(totalToday)} 星`
+        + comparisonClause(index, w, { metric: 'total_today', unit: ' 星' })),
       slotId: 'trend.momentum.reason',
     });
   }
@@ -287,7 +354,8 @@ function buildTrendCandidates(index) {
   const hotCount = index.total('hot_count');
   if (hotCount) {
     candidates.push({
-      ...makeSentence(w => `高热项目 ${w.num(hotCount)} 个`),
+      ...makeSentence(w => `高热项目 ${w.num(hotCount)} 个`
+        + comparisonClause(index, w, { metric: 'hot_count', unit: ' 个' })),
       slotId: 'trend.hot.reason',
     });
   }
@@ -298,15 +366,30 @@ function buildTrendCandidates(index) {
   const retention = index.total('retention_rate');
   if (newCount && dropped && kept && retention) {
     candidates.push({
-      ...makeSentence(w => `较上一有数据日，新进 ${w.num(newCount)} 个、掉榜 ${w.num(dropped)} 个，连续在榜 ${w.num(kept)} 个，留存率 ${w.num(retention)}%`),
+      ...makeSentence(w => {
+        let base = `新进 ${w.num(newCount)} 个、掉榜 ${w.num(dropped)} 个，连续在榜 ${w.num(kept)} 个，留存率 ${w.num(retention)}%`;
+        const newDelta = index.role('delta_day_new');
+        const droppedDelta = index.role('delta_day_dropped');
+        const newComparison = newDelta
+          ? `较昨日 ${w.signed(newDelta)} 个`
+          : (index.role('prev_new') ? `较昨日 ${w.num(index.role('prev_new'))} 个` : '');
+        const droppedComparison = droppedDelta
+          ? `较昨日 ${w.signed(droppedDelta)} 个`
+          : (index.role('prev_dropped') ? `较昨日 ${w.num(index.role('prev_dropped'))} 个` : '');
+        if (newComparison || droppedComparison) {
+          base += `，${[newComparison, droppedComparison].filter(Boolean).join('、')}`;
+        }
+        return base;
+      }),
       slotId: 'trend.churn.reason',
     });
   }
 
-  const maxStreak = index.maxStreak();
+  const maxStreak = index.total('max_streak') || index.maxStreak();
   if (maxStreak) {
     candidates.push({
-      ...makeSentence(w => `连续在榜最长 ${w.num(maxStreak)} 天`),
+      ...makeSentence(w => `连续在榜最长 ${w.num(maxStreak)} 天`
+        + comparisonClause(index, w, { metric: 'max_streak', unit: ' 天' })),
       slotId: 'trend.streak.reason',
     });
   }
@@ -316,13 +399,13 @@ function buildTrendCandidates(index) {
   const share = categoryShare || languageShare;
   if (share) {
     const metric = categoryShare ? 'category_share' : 'language_share';
-    const direction = index.direction(metric, '较上一有数据日');
+    const shift = index.total(`${metric === 'category_share' ? 'category' : 'language'}_shift`);
     const nameMatch = /「(.+?)」/.exec(String(share.label || ''));
     const name = nameMatch ? nameMatch[1] : '头部';
     candidates.push({
       ...makeSentence(w => {
         let base = `头部${categoryShare ? '类目' : '语言'}「${name}」份额 ${w.num(share)}%`;
-        if (direction) base += `，较上一有数据日${w.dir(direction)}`;
+        if (shift) base += `，较上一有数据日 ${w.signed(shift)} 个百分点`;
         return base;
       }),
       slotId: 'trend.distribution.reason',
@@ -387,31 +470,24 @@ const ADVICE_BASES = [
   '结合换血名单复核新进与掉榜项目',
 ];
 
-function briefDescriptionMap(brief) {
-  const map = new Map();
-  for (const project of brief?.projects || []) {
-    const name = projectKey(project);
-    const descZh = String(project.descZh || '').trim();
-    if (name && descZh) map.set(name, descZh);
-  }
-  return map;
-}
-
-function buildProjectTexts(names, slots, config, regex, logger, descriptions = new Map()) {
+function buildProjectTexts(names, slots, config, regex, logger, projects = new Map()) {
   const texts = [];
   const usedDefaults = [];
+  const accepted = {};
 
   for (const name of names) {
-    const briefDescZh = stripRepoPrefix(descriptions.get(name) || '', name);
+    const project = projects.get(name) || {};
+    const typeName = project.analysis?.typeName || project.category || project.analysis?.type || '';
     const descId = `project.${name}.descZh`;
     const descSpec = slotSpecFor(descId);
     const descCheck = checkSlotText(slots?.[descId], descSpec, config, regex);
     const descZh = descCheck.ok
       ? stripRepoPrefix(descCheck.text, name)
-      : (truncateText(briefDescZh, SLOT_TYPES.descZh.maxLength) || DEFAULT_PHRASES.descZh);
+      : defaultProjectText(typeName, 'descZh');
+    accepted[descId] = descCheck.ok;
     if (!descCheck.ok) {
-      usedDefaults.push({ slotId: descId, reason: descCheck.reason, fallback: 'brief.descZh' });
-      if (typeof logger.warn === 'function') logger.warn(`[daily-v3-text] 槽位${descCheck.reason}，使用项目描述缺省：${descId}`);
+      usedDefaults.push({ slotId: descId, reason: descCheck.reason, fallback: 'program.defaultZh' });
+      if (typeof logger.warn === 'function') logger.warn(`[daily-v3-text] 槽位${descCheck.reason}，使用程序中文缺省：${descId}`);
     }
 
     const shortId = `project.${name}.descShortZh`;
@@ -419,16 +495,29 @@ function buildProjectTexts(names, slots, config, regex, logger, descriptions = n
     const shortCheck = checkSlotText(slots?.[shortId], shortSpec, config, regex);
     const descShortZh = shortCheck.ok
       ? stripRepoPrefix(shortCheck.text, name)
-      : (truncateText(briefDescZh, SLOT_TYPES.descShortZh.maxLength) || DEFAULT_PHRASES.descShortZh);
+      : defaultProjectText(typeName, 'descShortZh');
+    accepted[shortId] = shortCheck.ok;
     if (!shortCheck.ok) {
-      usedDefaults.push({ slotId: shortId, reason: shortCheck.reason, fallback: 'brief.descZh 截断' });
-      if (typeof logger.warn === 'function') logger.warn(`[daily-v3-text] 槽位${shortCheck.reason}，使用项目描述截断缺省：${shortId}`);
+      usedDefaults.push({ slotId: shortId, reason: shortCheck.reason, fallback: 'program.defaultShortZh' });
+      if (typeof logger.warn === 'function') logger.warn(`[daily-v3-text] 槽位${shortCheck.reason}，使用程序中文短缺省：${shortId}`);
     }
 
-    texts.push({ fullName: name, descShortZh, descZh });
+    const oneId = `project.${name}.oneSentence`;
+    const oneSpec = slotSpecFor(oneId);
+    const oneCheck = checkSlotText(slots?.[oneId], oneSpec, config, regex);
+    const oneSentence = oneCheck.ok
+      ? stripRepoPrefix(oneCheck.text, name)
+      : defaultProjectText(typeName, 'oneSentence');
+    accepted[oneId] = oneCheck.ok;
+    if (!oneCheck.ok && hasValue(slots?.[oneId])) {
+      usedDefaults.push({ slotId: oneId, reason: oneCheck.reason, fallback: 'program.defaultOneSentence' });
+      if (typeof logger.warn === 'function') logger.warn(`[daily-v3-text] 槽位${oneCheck.reason}，使用程序一句话缺省：${oneId}`);
+    }
+
+    texts.push({ fullName: name, descShortZh, descZh, oneSentence });
   }
 
-  return { projects: texts, usedDefaults };
+  return { projects: texts, usedDefaults, accepted };
 }
 
 function buildDailyV3Text(options = {}) {
@@ -491,13 +580,14 @@ function buildDailyV3Text(options = {}) {
     churnDropText = sentence.text;
   }
 
+  const projectMap = new Map((brief.projects || []).map(project => [projectKey(project), project]));
   const projectTexts = buildProjectTexts(
     projectNames({ brief }),
     slots,
     config,
     regex,
     logger,
-    briefDescriptionMap(brief)
+    projectMap
   );
 
   const hotCount = index.total('hot_count');
@@ -513,12 +603,12 @@ function buildDailyV3Text(options = {}) {
 
   const projectSlots = {};
   for (const item of projectTexts.projects) {
-    if (hasValue(slots[`project.${item.fullName}.descShortZh`])) {
-      projectSlots[`project.${item.fullName}.descShortZh`] = item.descShortZh;
-    }
-    if (hasValue(slots[`project.${item.fullName}.descZh`])) {
-      projectSlots[`project.${item.fullName}.descZh`] = item.descZh;
-    }
+    const shortId = `project.${item.fullName}.descShortZh`;
+    const descId = `project.${item.fullName}.descZh`;
+    const oneId = `project.${item.fullName}.oneSentence`;
+    if (projectTexts.accepted[shortId]) projectSlots[shortId] = item.descShortZh;
+    if (projectTexts.accepted[descId]) projectSlots[descId] = item.descZh;
+    if (projectTexts.accepted[oneId]) projectSlots[oneId] = item.oneSentence;
   }
 
   return {
@@ -549,6 +639,7 @@ module.exports = {
   resolveSlots,
   buildDailyV3Text,
   computeHypeIndex,
+  defaultProjectText,
   flattenSlots,
   truncateText,
   stripRepoPrefix,

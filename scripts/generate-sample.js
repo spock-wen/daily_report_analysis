@@ -743,7 +743,7 @@ async function main() {
     console.log(`期次：${level} ${period}`);
     console.log(`源数据：${sourceDataDir}`);
     console.log(`输出：${outDir}`);
-    console.log(`R5 检查：${r5Findings.length} 条`);
+    console.log(`R5 检查：${findings.length} 条`);
     console.log(`成品 HTML 检查：${htmlFindings.length} 条`);
     console.log(`槽位缺省：${(r5Insights.usedDefaults || []).length} 条`);
     console.log(`核查清单：${checkPaths.jsonPath}`);

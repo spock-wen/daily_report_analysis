@@ -249,15 +249,18 @@ function checkNoPlaceholder(json, doc, findings) {
   }
 }
 
+const TREND_COMPARISON_RE = /(?:较昨日|较上一有数据日|较\s*7\s*日均|较近\s*\d+\s*日均)\s*[+\-−]?\d/;
+
 function checkTrendNumbers(json, doc, findings) {
   const trends = Array.isArray(json.trends) ? json.trends : [];
   for (const [index, item] of trends.entries()) {
     const text = textOf(item);
-    if (!text || /\d/.test(text)) continue;
+    if (!text) continue;
+    if (TREND_COMPARISON_RE.test(text)) continue;
     findings.push(makeFinding('R5', doc, {
       field: `trends[${index}].text`,
       quote: text,
-      message: '核心趋势条目缺少比较数字',
+      message: '核心趋势条目缺少「较昨日/较上一有数据日/较 7 日均/较近 N 日均」比较表达及其数字',
     }));
   }
 }

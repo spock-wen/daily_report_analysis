@@ -5,7 +5,7 @@ const nodePath = require('path');
 const mustache = require('mustache');
 const history = require('../metrics/history');
 const paths = require('../utils/path');
-const { DEFAULT_PHRASES, computeHypeIndex, truncateText, stripRepoPrefix } = require('./daily-v3-text');
+const { DEFAULT_PHRASES, computeHypeIndex, defaultProjectText, stripRepoPrefix } = require('./daily-v3-text');
 
 const TEMPLATE_DIR = nodePath.join(__dirname, '..', '..', 'templates', 'daily-v3');
 const TEMPLATE_PATH = nodePath.join(TEMPLATE_DIR, 'daily.mustache');
@@ -796,8 +796,7 @@ function buildViewModel(data) {
   const { bars, note: barsNote } = buildBars(projects, project => {
     const slotText = slotDescShortOf(project);
     if (slotText) return slotText;
-    const descZh = stripRepoPrefix(project.descZh || '', projectKey(project));
-    return descZh ? truncateText(descZh, 14) : DEFAULT_PHRASES.descShortZh;
+    return defaultProjectText(project.analysis?.typeName, 'descShortZh');
   });
 
   const language = distributionRows({
@@ -886,18 +885,15 @@ function buildViewModel(data) {
       tag,
       tagNew: tag === '新' || tag === '回归',
       oneSentence: stripRepoPrefix(pickChinese(
-        slotDescZhOf(project),
         slotOneSentenceOf(project),
+        slotDescZhOf(project),
         projectInsights.get(fullName),
-        project.analysis?.oneSentence,
-        project.oneSentence,
-        project.descZh
-      ) || '暂无描述', fullName),
+        project.analysis?.oneSentence
+      ) || defaultProjectText(project.analysis?.typeName, 'oneSentence'), fullName),
       descZh: stripRepoPrefix(pickChinese(
         slotDescZhOf(project),
-        project.analysis?.descZh,
-        project.descZh
-      ) || DEFAULT_PHRASES.descZh, fullName),
+        project.analysis?.descZh
+      ) || defaultProjectText(project.analysis?.typeName, 'descZh'), fullName),
       typeName: project.analysis?.typeName || '—',
       language: project.language || '—',
       community: project.analysis?.community?.level || '—',

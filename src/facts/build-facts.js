@@ -85,6 +85,52 @@ function parseMetricNumber(value) {
   return number;
 }
 
+function maxStreakOf(brief) {
+  let best = null;
+  for (const value of Object.values(brief?.streakDays || {})) {
+    const days = toNumber(value);
+    if (days === null || days < 1) continue;
+    if (best === null || days > best) best = days;
+  }
+  return best;
+}
+
+// 历史 brief 可能没有 streakDays；按同一快照口径回算当天的最长连续在榜天数。
+function maxStreakForBrief(brief) {
+  const direct = maxStreakOf(brief);
+  if (direct !== null) return direct;
+  const snapshot = brief?.scrapedAt || brief?.generatedAt;
+  const recent = history.getBaselineSnapshots(snapshot, 30);
+  if (!recent.length) return null;
+  const sets = recent.map(entry => new Set(history.getProjectNames(entry.brief)));
+  let best = null;
+  for (const name of history.getProjectNames(brief)) {
+    let streak = 1;
+    for (const set of sets) {
+      if (!set.has(name)) break;
+      streak += 1;
+    }
+    if (best === null || streak > best) best = streak;
+  }
+  return best;
+}
+
+// 历史 brief 可能没有 dailyDiff；按相邻快照回算新进/掉榜/连续数。
+function countsForBrief(brief) {
+  if (brief?.dailyDiff?.counts) return brief.dailyDiff.counts;
+  const snapshot = brief?.scrapedAt || brief?.generatedAt;
+  const baseline = history.getBaselineSnapshot(snapshot);
+  if (!baseline) return null;
+  const current = new Set(history.getProjectNames(brief));
+  const previous = new Set(history.getProjectNames(baseline.brief));
+  return {
+    new: [...current].filter(name => !previous.has(name)).length,
+    dropped: [...previous].filter(name => !current.has(name)).length,
+    kept: [...current].filter(name => previous.has(name)).length,
+    returned: 0,
+  };
+}
+
 function dailySnapshot(brief) {
   const projects = brief?.projects || [];
   const stats = brief?.stats || {};
@@ -198,10 +244,30 @@ function addDailyReferenceFacts({ brief, add, addNumber }) {
         referenceValue,
         source: `briefs/daily/data-${date}.json#${metric.field}; briefs/daily/data-${prevEntries[0].date}.json#${metric.field}`,
       });
+      const currentValue = toNumber(metric.pick(current));
+      const previousValue = toNumber(referenceValue);
+      if (currentValue !== null && previousValue !== null) {
+        add(round1(currentValue - previousValue), {
+          kind: 'total',
+          field: metric.field,
+          label: `今日${metric.label}较昨日变化`,
+          role: `delta_day_${metric.key}`,
+          source: `briefs/daily/data-${date}.json#${metric.field}; briefs/daily/data-${prevEntries[0].date}.json#${metric.field}`,
+          comparison: { metric: metric.key, kind: 'day' },
+        });
+      }
     }
   }
 
-  if (avgEntries.length === 7) {
+  if (avgEntries.length >= 2) {
+    const window = avgEntries.length;
+    addNumber(window, {
+      kind: 'total',
+      label: `近 ${window} 日均值窗口份数`,
+      role: 'avg_window',
+      comparison: { kind: 'average', window },
+    });
+    const source = `briefs/daily/data-${avgEntries[avgEntries.length - 1].date}..${avgEntries[0].date}.json#`;
     for (const metric of metrics) {
       const values = avgEntries.map(entry => metric.pick(dailySnapshot(entry.brief)));
       if (values.some(value => value === null || value === undefined)) continue;
@@ -209,17 +275,31 @@ function addDailyReferenceFacts({ brief, add, addNumber }) {
       addNumber(average, {
         kind: 'total',
         field: metric.field,
-        label: `7 日均值：${metric.label}`,
-        role: `avg7_${metric.key}`,
-        source: `briefs/daily/data-${avgEntries[6].date}..${avgEntries[0].date}.json#${metric.field}`,
+        label: `近 ${window} 日均值：${metric.label}`,
+        role: `avg${window}_${metric.key}`,
+        source: `${source}${metric.field}`,
+        comparison: { metric: metric.key, kind: 'average', window },
       });
       addDirection({
         metric,
-        label: `今日${metric.label}较7日均值`,
+        label: window >= 7
+          ? `今日${metric.label}较7日均值`
+          : `今日${metric.label}较近${window}日均值`,
         currentValue: metric.pick(current),
         referenceValue: average,
-        source: `briefs/daily/data-${date}.json#${metric.field}; briefs/daily/data-${avgEntries[6].date}..${avgEntries[0].date}.json#${metric.field}`,
+        source: `briefs/daily/data-${date}.json#${metric.field}; ${source}${metric.field}`,
       });
+      const currentValue = toNumber(metric.pick(current));
+      if (currentValue !== null && average !== null) {
+        add(round1(currentValue - average), {
+          kind: 'total',
+          field: metric.field,
+          label: `今日${metric.label}较近${window}日均值变化`,
+          role: `delta_avg_${metric.key}`,
+          source: `briefs/daily/data-${date}.json#${metric.field}; ${source}${metric.field}`,
+          comparison: { metric: metric.key, kind: 'average', window },
+        });
+      }
     }
   }
 
@@ -240,6 +320,78 @@ function addDailyReferenceFacts({ brief, add, addNumber }) {
         currentValue: metric.pick(current),
         referenceValue,
         source: `briefs/daily/data-${date}.json#${metric.field}; briefs/daily/data-${monthEntry.date}.json#${metric.field}`,
+      });
+    }
+  }
+
+  const currentMaxStreak = maxStreakForBrief(brief);
+  const previousMaxStreak = maxStreakForBrief(prevEntries[0].brief);
+  addNumber(currentMaxStreak, {
+    kind: 'total',
+    field: 'streakDays',
+    label: '连续在榜最长天数',
+    role: 'max_streak',
+  });
+  addNumber(previousMaxStreak, {
+    kind: 'total',
+    field: 'streakDays',
+    label: '昨日连续在榜最长天数',
+    role: 'prev_max_streak',
+  });
+  if (currentMaxStreak !== null && previousMaxStreak !== null) {
+    add(round1(currentMaxStreak - previousMaxStreak), {
+      kind: 'total',
+      field: 'streakDays',
+      label: '连续在榜最长天数较昨日变化',
+      role: 'delta_day_max_streak',
+      source: `briefs/daily/data-${date}.json#streakDays; briefs/daily/data-${prevEntries[0].date}.json#streakDays`,
+      comparison: { metric: 'max_streak', kind: 'day' },
+    });
+  }
+  if (avgEntries.length >= 2) {
+    const streakValues = avgEntries.map(entry => maxStreakForBrief(entry.brief)).filter(value => value !== null);
+    if (streakValues.length === avgEntries.length) {
+      const averageStreak = round1(streakValues.reduce((sum, value) => sum + value, 0) / streakValues.length);
+      addNumber(averageStreak, {
+        kind: 'total',
+        field: 'streakDays',
+        label: `近 ${avgEntries.length} 日均值：连续在榜最长天数`,
+        role: `avg${avgEntries.length}_max_streak`,
+        comparison: { metric: 'max_streak', kind: 'average', window: avgEntries.length },
+      });
+      if (currentMaxStreak !== null) {
+        add(round1(currentMaxStreak - averageStreak), {
+          kind: 'total',
+          field: 'streakDays',
+          label: '连续在榜最长天数较近均值变化',
+          role: 'delta_avg_max_streak',
+          source: `briefs/daily/data-${date}.json#streakDays`,
+          comparison: { metric: 'max_streak', kind: 'average', window: avgEntries.length },
+        });
+      }
+    }
+  }
+
+  const currentCounts = brief.dailyDiff?.counts;
+  const previousCounts = countsForBrief(prevEntries[0].brief);
+  for (const key of ['new', 'dropped', 'kept']) {
+    const currentValue = toNumber(currentCounts?.[key]);
+    const previousValue = toNumber(previousCounts?.[key]);
+    addNumber(previousValue, {
+      kind: 'total',
+      field: `dailyDiff.counts.${key}`,
+      label: `昨日${key === 'new' ? '新进' : key === 'dropped' ? '掉榜' : '连续在榜'}数`,
+      role: `prev_${key}`,
+      source: `briefs/daily/data-${prevEntries[0].date}.json#dailyDiff.counts.${key}`,
+    });
+    if (currentValue !== null && previousValue !== null) {
+      add(round1(currentValue - previousValue), {
+        kind: 'total',
+        field: `dailyDiff.counts.${key}`,
+        label: `${key === 'new' ? '新进' : key === 'dropped' ? '掉榜' : '连续在榜'}数较昨日变化`,
+        role: `delta_day_${key}`,
+        source: `briefs/daily/data-${date}.json#dailyDiff.counts.${key}; briefs/daily/data-${prevEntries[0].date}.json#dailyDiff.counts.${key}`,
+        comparison: { metric: key, kind: 'day' },
       });
     }
   }
