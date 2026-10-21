@@ -104,6 +104,6 @@ function check(ctx, doc, config) {
 
 module.exports = {
   id: 'A1',
-  applies: (ctx, doc) => ctx.level === 'daily' && doc.role === 'insights',
+  applies: (ctx, doc) => !ctx.r3 && ctx.level === 'daily' && doc.role === 'insights',
   check,
 };

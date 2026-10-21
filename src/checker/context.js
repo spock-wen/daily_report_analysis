@@ -30,6 +30,44 @@ function readJson(filePath) {
   }
 }
 
+function defaultRenderMapPath(dataDir, level, period) {
+  return path.join(dataDir, 'render', `render_map-${level}-${period}.json`);
+}
+
+function defaultFactsPath(dataDir, level, period) {
+  return path.join(dataDir, 'facts', `facts-${level}-${period}.json`);
+}
+
+function normalizeRenderMap(value) {
+  if (!value) return null;
+  if (Array.isArray(value)) return { entries: value };
+  if (typeof value === 'object' && Array.isArray(value.entries)) return value;
+  return null;
+}
+
+function resolveRenderMap(options, dataDir, level, period) {
+  if (options.renderMap !== undefined && options.renderMap !== null) {
+    const normalized = normalizeRenderMap(options.renderMap);
+    if (normalized) return normalized;
+  }
+  const explicit = options.renderMapPath;
+  const filePath = explicit ? path.resolve(explicit) : defaultRenderMapPath(dataDir, level, period);
+  const data = readJson(filePath);
+  if (data) return normalizeRenderMap(data) || { entries: [] };
+  if (explicit) throw new Error(`渲染记录不存在或无法解析：${filePath}`);
+  return null;
+}
+
+function resolveFacts(options, dataDir, level, period) {
+  if (options.facts !== undefined && options.facts !== null) return options.facts;
+  const explicit = options.factsPath;
+  const filePath = explicit ? path.resolve(explicit) : defaultFactsPath(dataDir, level, period);
+  const data = readJson(filePath);
+  if (data) return data;
+  if (explicit) throw new Error(`事实表不存在或无法解析：${filePath}`);
+  return null;
+}
+
 function readBriefFromDisk(level, period) {
   const base = history.getBriefsDir();
   if (level === 'daily') return readJson(path.join(base, 'daily', `data-${period}.json`));
@@ -101,6 +139,12 @@ function buildContext(options = {}) {
   const dataDir = ensureDataDir(options.dataDir);
   const brief = options.brief !== undefined ? options.brief : readBriefFromDisk(level, period);
   const insights = options.insights !== undefined ? options.insights : readInsightsFromDisk(level, period);
+  const rawRenderMap = options.renderMap !== undefined
+    ? options.renderMap
+    : resolveRenderMap(options, dataDir, level, period);
+  const renderMap = rawRenderMap ? (normalizeRenderMap(rawRenderMap) || { entries: [] }) : null;
+  const facts = options.facts !== undefined ? options.facts : resolveFacts(options, dataDir, level, period);
+  const r3 = Boolean(options.r3 || renderMap || facts);
 
   const metrics = level === 'weekly'
     ? getWeeklyMetrics(period, brief)
@@ -155,6 +199,9 @@ function buildContext(options = {}) {
     fullNames,
     allowedFullNames,
     daysOnList,
+    r3,
+    renderMap,
+    facts,
     readDailyInsights,
     getPreviousDailyInsights(date, count = 1) {
       const results = [];
@@ -189,5 +236,8 @@ module.exports = {
   readInsightsFromDisk,
   readDailyInsights,
   buildContext,
+  resolveRenderMap,
+  resolveFacts,
+  normalizeRenderMap,
   resetCaches,
 };

@@ -86,7 +86,7 @@ AI_CALLS period=<期号> count=<n>
 
 ```bash
 # 常规核查：输出 FAIL 清单（JSON + Markdown），退出码 0=PASS / 1=FAIL
-node scripts/check-report.js <daily|weekly|monthly> <期次> [--data-dir D] [--insights FILE] [--brief FILE] [--out-dir D]
+node scripts/check-report.js <daily|weekly|monthly> <期次> [--data-dir D] [--insights FILE] [--brief FILE] [--out-dir D] [--render-map FILE] [--facts FILE]
 
 # 研究员用例：期望 FAIL 被拦、期望 PASS 放行，任一不通过退出码 1
 node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/cases/cases.jsonl [--cases-root DIR] [--data-dir D]
@@ -186,6 +186,24 @@ node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/c
 - 渲染成功后产出 `<out-dir>/data/render/render_map-<level>-<period>.json`，逐条记录字段路径 `path`、占位 `placeholder`、事实编号 `factId`（仓库占位为 `null`）与渲染文本 `text`；文件已存在即报错退出，不覆盖。
 - 占位编号不存在或 `p:` 不在当期 `projects`：该期自动重试 AI 1 次（每期 AI 调用 ≤2，仍打印 `AI_CALLS` 行）；仍失败则该期 FAIL，写入核查清单，不静默删句、不写正式 HTML。
 - HTML 与 brief 中的 `oneSentence` 均使用渲染后的洞察。
+
+### 绑定核查（B4–B6）
+
+`--render-map` 指定的渲染记录（或 `<data-dir>/render/render_map-<level>-<period>.json`）、`--facts` 指定的事实表（或 `<data-dir>/facts/facts-<level>-<period>.json`）任一存在即进入 r3 模式。r3 模式下停用 A1、A2、D2 和原「周报重贴日报」B4 规则，改由绑定规则判定；C3 禁词、C4 白名单、B5 比较词表照旧。
+
+| 规则 | 判据 |
+|---|---|
+| B4 | 渲染后 insights 文本与 HTML 正文中的每个数字，必须在 `render_map` 有同字段路径、同文本的条目；无对应即 FAIL。残留 `{{f<id>}}` 视为占位 id 不存在，FAIL。 |
+| B5 | 成品中形如 `owner/repo` 的串必须来自 `{{p:owner/repo}}` 的渲染条目；无对应即 FAIL。短名不单独判定；残留 `{{p:...}}` 视为 p: 不在当期项目清单，FAIL。 |
+| B6 | 与上一期同层报告（日报上一有数据日、周报上一 ISO 周、月报上月）某整句完全相同即 FAIL。 |
+
+B4 白名单格式（这些数字不要求 render_map 条目）：
+
+- 日期：`YYYY-MM-DD`、`YYYY年M月D日`、`M月D日`
+- 期号：`YYYY-Www`（如 `2026-W42`）、`YYYY-MM`（如 `2026-09`）
+- 排名序号：`第N`、`TopN`（大小写不敏感）、`#N`、`1.` 形式的列表序号
+
+用例 jsonl 可增加两个字段：`render_map`、`facts`，值为相对 `--cases-root` 的文件路径（也可直接写对象）；另可用 `data_dir` 指定该用例的数据目录。示例见 `refactor/cases/cases_r3.jsonl`。
 
 ### 写入规则
 

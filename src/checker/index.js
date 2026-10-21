@@ -4,7 +4,14 @@ const fs = require('fs');
 const path = require('path');
 const history = require('../metrics/history');
 const { loadConfig } = require('./config');
-const { buildContext, ensureDataDir, readBriefFromDisk, readInsightsFromDisk } = require('./context');
+const {
+  buildContext,
+  ensureDataDir,
+  readBriefFromDisk,
+  readInsightsFromDisk,
+  resolveRenderMap,
+  resolveFacts,
+} = require('./context');
 const {
   loadDocument,
   createJsonDocument,
@@ -19,6 +26,7 @@ const RULES = [
   require('./rules/b3'),
   require('./rules/b4'),
   require('./rules/b5'),
+  require('./rules/b6'),
   require('./rules/b7'),
   require('./rules/b8'),
   require('./rules/c1'),
@@ -27,6 +35,7 @@ const RULES = [
   require('./rules/c4'),
   require('./rules/c5'),
   require('./rules/d2'),
+  require('./rules/r4-binding'),
 ];
 
 function fileExists(filePath) {
@@ -58,9 +67,9 @@ function sortFindings(findings) {
   });
 }
 
-function runRules({ level, period, dataDir, brief, insights, documents }) {
+function runRules({ level, period, dataDir, brief, insights, documents, renderMap, facts, r3 }) {
   const config = loadConfig();
-  const ctx = buildContext({ level, period, dataDir, brief, insights });
+  const ctx = buildContext({ level, period, dataDir, brief, insights, renderMap, facts, r3 });
   const findings = [];
 
   for (const doc of documents) {
@@ -93,6 +102,8 @@ function checkReport(options = {}) {
 
   const brief = options.brief !== undefined ? options.brief : readBriefFromDisk(level, period);
   const insights = options.insights !== undefined ? options.insights : readInsightsFromDisk(level, period);
+  const renderMap = resolveRenderMap(options, dataDir, level, period);
+  const facts = resolveFacts(options, dataDir, level, period);
 
   const documents = [];
   if (insights) {
@@ -125,7 +136,7 @@ function checkReport(options = {}) {
     };
   }
 
-  return runRules({ level, period, dataDir, brief, insights, documents });
+  return runRules({ level, period, dataDir, brief, insights, documents, renderMap, facts, r3: options.r3 });
 }
 
 function checkDocument(options = {}) {
@@ -144,6 +155,8 @@ function checkDocument(options = {}) {
   const insights = target.role === 'insights'
     ? doc.json
     : (options.insights !== undefined ? options.insights : readInsightsFromDisk(target.level, target.period));
+  const renderMap = resolveRenderMap(options, dataDir, target.level, target.period);
+  const facts = resolveFacts(options, dataDir, target.level, target.period);
 
   return {
     ...runRules({
@@ -153,6 +166,9 @@ function checkDocument(options = {}) {
       brief,
       insights,
       documents: [doc],
+      renderMap,
+      facts,
+      r3: options.r3,
     }),
     target,
     doc,
@@ -222,6 +238,14 @@ function locationMatches(finding, caseItem) {
   return caseQuote.includes(findingQuote) || findingQuote.includes(caseQuote);
 }
 
+function readCaseJson(value, root) {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value !== 'string') return value;
+  const filePath = path.resolve(root, value);
+  if (!fileExists(filePath)) throw new Error(`用例引用文件不存在：${filePath}`);
+  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+}
+
 function evaluateCase(caseItem, options = {}) {
   const root = path.resolve(options.casesRoot || '/home/box/shared/report-redesign');
   const filePath = path.resolve(root, caseItem.file);
@@ -231,7 +255,16 @@ function evaluateCase(caseItem, options = {}) {
 
   let result;
   try {
-    result = checkDocument({ filePath, dataDir: options.dataDir });
+    const dataDir = caseItem.data_dir
+      ? path.resolve(root, caseItem.data_dir)
+      : options.dataDir;
+    result = checkDocument({
+      filePath,
+      dataDir,
+      renderMap: readCaseJson(caseItem.render_map, root),
+      facts: readCaseJson(caseItem.facts, root),
+      r3: caseItem.r3,
+    });
   } catch (error) {
     return { case: caseItem, ok: false, error: error.message, matched: [], findings: [] };
   }

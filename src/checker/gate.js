@@ -8,10 +8,22 @@ const { checkReport, writeFailList } = require('./index');
  * 2. 仍 FAIL：写 FAIL 清单并返回 pass=false（调用方不得写 HTML/推送）；
  * 3. 每期打印一行 AI_CALLS period=<期号> count=<n>。
  */
+function checkOptions(options) {
+  const result = { level: options.level, period: options.period, dataDir: options.dataDir };
+  if (typeof options.getRenderMap === 'function') result.renderMap = options.getRenderMap();
+  else if (options.renderMap !== undefined) result.renderMap = options.renderMap;
+  if (typeof options.getFacts === 'function') result.facts = options.getFacts();
+  else if (options.facts !== undefined) result.facts = options.facts;
+  if (options.renderMapPath) result.renderMapPath = options.renderMapPath;
+  if (options.factsPath) result.factsPath = options.factsPath;
+  if (options.r3) result.r3 = true;
+  return result;
+}
+
 async function runContentGate(options = {}) {
   const { level, period, dataDir, rewrite, getAiCallCount, logger } = options;
 
-  let result = checkReport({ level, period, dataDir });
+  let result = checkReport(checkOptions(options));
   let rewrites = 0;
 
   if (!result.pass && typeof rewrite === 'function') {
@@ -22,7 +34,7 @@ async function runContentGate(options = {}) {
       logger.error(`[ContentGate] 重写洞察失败：${error.message}`);
     }
     rewrites = 1;
-    result = checkReport({ level, period, dataDir });
+    result = checkReport(checkOptions(options));
   }
 
   const calls = typeof getAiCallCount === 'function'

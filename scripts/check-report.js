@@ -6,6 +6,7 @@
  *
  * 用法：
  *   node scripts/check-report.js <daily|weekly|monthly> <期次> [--data-dir D] [--insights FILE] [--brief FILE] [--out-dir D]
+ *                                [--render-map FILE] [--facts FILE]
  *   node scripts/check-report.js --cases <jsonl> [--cases-root DIR] [--data-dir D]
  *
  * 退出码：0 = PASS，1 = FAIL（或有用例未通过）。
@@ -59,7 +60,7 @@ function runReport(args) {
   const { checkReport, writeFailList } = require('../src/checker');
   const [level, period] = args.positional;
   if (!level || !period) {
-    console.error('用法：node scripts/check-report.js <daily|weekly|monthly> <期次> [--data-dir D] [--insights FILE] [--brief FILE]');
+    console.error('用法：node scripts/check-report.js <daily|weekly|monthly> <期次> [--data-dir D] [--insights FILE] [--brief FILE] [--render-map FILE] [--facts FILE]');
     return 2;
   }
 
@@ -67,6 +68,9 @@ function runReport(args) {
   if (args.options['data-dir']) options.dataDir = args.options['data-dir'];
   if (args.options.insights) options.insights = readJson(args.options.insights);
   if (args.options.brief) options.brief = readJson(args.options.brief);
+  if (args.options['render-map']) options.renderMapPath = path.resolve(args.options['render-map']);
+  if (args.options.facts) options.factsPath = path.resolve(args.options.facts);
+  if (args.options.r3 === true) options.r3 = true;
 
   const result = checkReport(options);
 

@@ -667,6 +667,8 @@ async function main() {
     dataDir: outDataDir,
     logger: gateLogger,
     writeHtmlOnFail,
+    getRenderMap: () => lastRendered,
+    facts,
     getAiCallCount: () => analyzer.getAiCallCount(),
     rewrite: analyzer.getAiCallCount() < 2
       ? async (findings) => {

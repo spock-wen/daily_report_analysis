@@ -29,6 +29,6 @@ function check(ctx, doc, config) {
 module.exports = {
   id: 'D2',
   alias: 'NAME',
-  applies: (ctx, doc) => doc.role === 'insights',
+  applies: (ctx, doc) => !ctx.r3 && doc.role === 'insights',
   check,
 };

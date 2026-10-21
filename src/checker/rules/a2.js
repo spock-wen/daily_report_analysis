@@ -128,6 +128,6 @@ function check(ctx, doc, config) {
 
 module.exports = {
   id: 'A2',
-  applies: (ctx, doc) => ctx.level === 'weekly' && (doc.role === 'insights' || doc.role === 'html'),
+  applies: (ctx, doc) => !ctx.r3 && ctx.level === 'weekly' && (doc.role === 'insights' || doc.role === 'html'),
   check,
 };
