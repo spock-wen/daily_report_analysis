@@ -10,11 +10,13 @@ const SLOT_TYPES = {
 
 const DEFAULT_PHRASES = {
   reason: '可结合项目描述理解',
+  heroReason: '结合当日榜单与项目描述理解',
   descShortZh: '项目简介待补充',
   descZh: '暂无中文说明',
 };
 
 const GLOBAL_SLOT_IDS = [
+  'hero.reason',
   'trend.composition.reason',
   'trend.momentum.reason',
   'trend.hot.reason',

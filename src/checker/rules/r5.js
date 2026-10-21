@@ -9,6 +9,7 @@ const {
   wordRegex,
   stripMetricNames,
 } = require('../../generator/daily-v3-text');
+const { cardIntroText, hasChinese } = require('./b17');
 
 function isR5Insights(value) {
   return Boolean(value && typeof value === 'object'
@@ -41,6 +42,60 @@ function factList(ctx) {
   if (Array.isArray(ctx.facts)) return ctx.facts;
   if (Array.isArray(ctx.facts?.facts)) return ctx.facts.facts;
   return [];
+}
+
+function checkHero(json, doc, findings) {
+  if (!Object.prototype.hasOwnProperty.call(json, 'hero')) return;
+  const hero = json.hero && typeof json.hero === 'object' ? json.hero : {};
+  const lead = fieldText(
+    hero.lead !== undefined ? hero.lead
+      : (hero.oneLiner !== undefined ? hero.oneLiner
+        : (typeof json.hero === 'string' ? json.hero : ''))
+  ).trim();
+  if (lead) return;
+  findings.push(makeFinding('R5', doc, {
+    field: 'hero.lead',
+    quote: '',
+    message: 'hero 结论句为空（FIELD_MAP 结论块必填）',
+  }));
+}
+
+function checkCardIntro(json, doc, findings) {
+  const projects = Array.isArray(json.projects) ? json.projects : [];
+  for (const [index, project] of projects.entries()) {
+    const intro = cardIntroText(project);
+    if (!intro || hasChinese(intro)) continue;
+    findings.push(makeFinding('R5', doc, {
+      field: `projects[${index}].descZh`,
+      quote: intro,
+      message: '日报项目卡简介不含中文字符（B17）',
+    }));
+  }
+}
+
+function isKFormat(value) {
+  return /^\d+(?:\.\d)?k$/.test(String(value === undefined || value === null ? '' : value).trim());
+}
+
+function isAvgStarsMetric(item) {
+  if (!item || typeof item !== 'object') return false;
+  if (item.key === 'avgStars') return true;
+  const label = String(item.label || '');
+  return label.includes('平均') && /(Stars|星)/.test(label);
+}
+
+function checkAvgStars(json, doc, findings) {
+  const metrics = Array.isArray(json.metrics) ? json.metrics : [];
+  for (const [index, item] of metrics.entries()) {
+    if (!isAvgStarsMetric(item)) continue;
+    if (item.value === undefined || item.value === null || String(item.value).trim() === '') continue;
+    if (isKFormat(item.value)) continue;
+    findings.push(makeFinding('R5', doc, {
+      field: `metrics[${index}].value`,
+      quote: String(item.value),
+      message: '平均 Stars 显示值须为 k 格式（如 103k、103.4k）',
+    }));
+  }
 }
 
 function renderEntries(json) {
@@ -165,6 +220,9 @@ function check(ctx, doc, config) {
   const findings = [];
   checkSlots(doc.json, doc, config || {}, findings);
   checkNumbers(doc.json, ctx, doc, findings);
+  checkHero(doc.json, doc, findings);
+  checkCardIntro(doc.json, doc, findings);
+  checkAvgStars(doc.json, doc, findings);
 
   if (Array.isArray(doc.json.advice) && doc.json.advice.length > 3) {
     findings.push(makeFinding('R5', doc, {

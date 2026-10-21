@@ -71,9 +71,15 @@ function formatCount(value) {
   return Math.round(number).toLocaleString('en-US');
 }
 
+function formatK(value) {
+  const thousands = value / 1000;
+  if (Number.isInteger(thousands)) return `${thousands}k`;
+  return `${round1(thousands).toFixed(1)}k`;
+}
+
 function formatMetric(key, value) {
   if (value === null || value === undefined || !Number.isFinite(value)) return '—';
-  if (key === 'avg') return `${Math.round(value / 1000)}k`;
+  if (key === 'avg' || key === 'avgStars') return formatK(value);
   if (Number.isInteger(value) || Math.abs(value) >= 100) return Math.round(value).toLocaleString('en-US');
   return String(round1(value));
 }
@@ -98,6 +104,77 @@ function average(values) {
   const usable = values.filter(value => value !== null && value !== undefined && Number.isFinite(value));
   if (!usable.length) return null;
   return usable.reduce((sum, value) => sum + value, 0) / usable.length;
+}
+
+const CHINESE_RE = /[\u4e00-\u9fa5]/;
+
+function hasChinese(value) {
+  return CHINESE_RE.test(String(value === undefined || value === null ? '' : value));
+}
+
+function pickChinese(...values) {
+  for (const value of values) {
+    const text = typeof value === 'string' ? value.trim() : '';
+    if (text && hasChinese(text)) return text;
+  }
+  return null;
+}
+
+function factList(value) {
+  if (Array.isArray(value)) return value;
+  if (Array.isArray(value?.facts)) return value.facts;
+  return [];
+}
+
+function heroReasonOf(insights) {
+  const text = pickChinese(insights?.slots?.['hero.reason']);
+  return text && !/\d/.test(text) ? text : DEFAULT_PHRASES.heroReason;
+}
+
+function buildHero({ projects, stats, streakDays, facts, reason }) {
+  const entries = [];
+  const factOf = (role, project = null) => factList(facts)
+    .find(fact => fact && fact.role === role && (fact.project || null) === project) || null;
+  const record = (text, fact) => {
+    const entry = { path: 'hero.lead', text: String(text) };
+    if (fact && fact.id !== undefined && fact.id !== null) {
+      entry.factId = fact.id;
+      entry.role = fact.role || null;
+    }
+    entries.push(entry);
+    return text;
+  };
+
+  const totalProjects = toNumber(stats.totalProjects) ?? projects.length;
+  const totalToday = projects.reduce((sum, project) => sum + (toNumber(project.todayStars) || 0), 0);
+  const top = projects[0] || null;
+  const topName = projectKey(top) || '';
+  const topToday = toNumber(top?.todayStars) || 0;
+  const topStreak = toNumber(streakDays?.[topName]);
+  const topDays = topStreak !== null && topStreak >= 1 ? topStreak : 1;
+
+  let lead;
+  if (projects.length) {
+    lead = `今日 ${record(formatCount(totalProjects), factOf('total_projects'))} 个项目上榜，`
+      + `新增星合计 ${record(formatCount(totalToday), factOf('total_today'))} 星；`
+      + `${topName} 以 ${record(formatCount(topToday), factOf('today_stars', topName))} 星居首，`
+      + `已连续在榜 ${record(topDays, factOf('streak', topName))} 天。`;
+  } else {
+    lead = '今日暂无上榜项目。';
+  }
+
+  return {
+    hero: {
+      lead,
+      reason,
+      totalProjects: formatCount(totalProjects),
+      totalToday: formatCount(totalToday),
+      topProject: topName || '—',
+      topTodayStars: formatCount(topToday),
+      streakDays: topDays,
+    },
+    entries,
+  };
 }
 
 function snapshotOf(brief) {
@@ -667,6 +744,7 @@ function buildViewModel(data) {
     const name = item?.fullName || item?.repo || item?.project_name;
     if (name) insightProjects.set(name, item);
   }
+  const slotOneSentenceOf = project => insightProjects.get(projectKey(project))?.oneSentence;
   const slotDescShortOf = project => insightProjects.get(projectKey(project))?.descShortZh;
   const slotDescZhOf = project => insightProjects.get(projectKey(project))?.descZh;
   const streakDays = data.streakDays || brief.streakDays || {};
@@ -674,6 +752,14 @@ function buildViewModel(data) {
     const value = toNumber(streakDays[name]);
     return value !== null && value >= 1 ? value : 1;
   };
+  const facts = data.facts || brief.facts || insights.facts || [];
+  const { hero, entries: heroEntries } = buildHero({
+    projects,
+    stats,
+    streakDays,
+    facts,
+    reason: heroReasonOf(insights),
+  });
   const scrapedAt = data.scrapedAt || brief.scrapedAt || brief.scraped_at
     || brief.generatedAt || brief.generated_at;
   const generatedAt = data.generatedAt || brief.generatedAt || brief.generated_at;
@@ -794,17 +880,19 @@ function buildViewModel(data) {
       fullName,
       tag,
       tagNew: tag === '新' || tag === '回归',
-      oneSentence: projectInsights.get(fullName)
-        || project.analysis?.oneSentence
-        || project.oneSentence
-        || project.descZh
-        || project.desc
-        || '暂无描述',
-      descZh: slotDescZhOf(project)
-        || project.descZh
-        || project.desc
-        || project.description
-        || DEFAULT_PHRASES.descZh,
+      oneSentence: pickChinese(
+        slotOneSentenceOf(project),
+        projectInsights.get(fullName),
+        project.analysis?.oneSentence,
+        project.oneSentence,
+        slotDescZhOf(project),
+        project.descZh
+      ) || '暂无描述',
+      descZh: pickChinese(
+        slotDescZhOf(project),
+        project.analysis?.descZh,
+        project.descZh
+      ) || DEFAULT_PHRASES.descZh,
       typeName: project.analysis?.typeName || '—',
       language: project.language || '—',
       community: project.analysis?.community?.level || '—',
@@ -864,6 +952,7 @@ function buildViewModel(data) {
     scrapedAtLocal,
     generatedAtLocal,
     archive: buildArchive({ date, weekLabel }),
+    hero,
     verdict: {
       oneLiner: insights.oneLiner || '',
       hypeScore: insights.hypeIndex?.score ?? 0,
@@ -896,6 +985,11 @@ function buildViewModel(data) {
     total: projects.length,
     projects: viewProjects,
     related,
+    renderEntries: [
+      ...(Array.isArray(insights.renderEntries) ? insights.renderEntries : []),
+      ...(Array.isArray(insights.render_entries) ? insights.render_entries : []),
+      ...heroEntries,
+    ],
     footer: `数据来源：GitHub Trending（每日）· ${projects.length} 个仓库 · 抓取 ${scrapedAtLocal}（UTC+8） · 生成 ${generatedAtLocal}（UTC+8）`,
   };
 }
