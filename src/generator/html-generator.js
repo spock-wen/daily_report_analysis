@@ -3,7 +3,7 @@ const { getDailyReportPath, getWeeklyReportPath, getMonthlyReportPath } = requir
 const { renderTemplate, markdownToHtml } = require('../utils/template');
 const logger = require('../utils/logger');
 const MonthlyGenerator = require('./monthly-generator');
-const { renderDailyV2 } = require('./daily-v2-view-model');
+const { renderDailyV3 } = require('./daily-v3-view-model');
 const WikiManager = require('../wiki/wiki-manager');
 const path = require('path');
 const fs = require('fs');
@@ -132,7 +132,7 @@ class HTMLGenerator {
   }
 
   renderDailyHTML(data) {
-    return renderDailyV2(data);
+    return renderDailyV3(data);
   }
 
   hasValue(value) {

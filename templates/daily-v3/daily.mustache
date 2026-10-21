@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{title}}</title>
+<style>{{{css}}}</style>
+</head>
+<body>
+{{#isFail}}<div class="fail-banner">内容核查未通过（FAIL）· 本页仅供审阅</div>{{/isFail}}
+<header class="topnav">
+<a class="brand" href="{{nav.home}}">GitHub AI Trending 洞察</a>
+<nav class="navlinks" aria-label="主导航"><a href="{{nav.home}}">首页</a><a href="{{nav.daily}}" aria-current="page">日报</a><a href="{{nav.weekly}}">周报</a><a href="{{nav.monthly}}">月报</a><a href="{{nav.wiki}}">Wiki</a></nav>
+<a class="menu" href="#archive" aria-label="打开菜单">☰ 菜单</a>
+</header>
+<div class="shell">
+<aside class="side" id="archive" aria-label="报告存档">
+<h2>报告存档</h2>
+<ul>{{#archive}}<li class="{{cls}}"><a href="{{href}}"{{#cur}} class="cur" aria-current="page"{{/cur}}>{{label}}</a></li>{{/archive}}</ul>
+<h2>Wiki</h2>
+<ul><li><a href="{{nav.wiki}}">领域索引</a></li></ul>
+</aside>
+<main>
+<nav class="crumb" aria-label="面包屑"><a href="{{nav.home}}">首页</a><span class="sep" aria-hidden="true">›</span><a href="{{week.href}}">{{week.label}}</a><span class="sep" aria-hidden="true">›</span><span>{{dateShort}} 日报</span></nav>
+<nav class="mtoc" aria-label="本页目录"><a href="#verdict">结论</a><a href="#metrics-sec">指标</a><a href="#cmp">和昨天比</a><a href="#trends">核心趋势</a><a href="#charts-sec">分布</a><a href="#streak">连续上榜</a><a href="#rank-churn">排名换血</a><a href="#deep">深度分析</a><a href="#list">榜单</a><a href="#rel">相关报告</a></nav>
+<h1>日报 · {{date}}</h1>
+<p class="meta">{{week.label}} · 数据抓取 {{scrapedAtLocal}} · 生成 {{generatedAtLocal}}</p>
+
+<!-- 1 结论 hero -->
+<section class="sec" id="verdict">
+<div class="hero">
+<p class="lead">{{verdict.oneLiner}}</p>
+<div class="hype"><span class="pill hype-pill">热度 {{verdict.hypeScore}}/5 <span class="dots" aria-hidden="true">{{verdict.hypeDots}}</span></span><span>{{verdict.hypeReason}}</span></div>
+</div>
+</section>
+
+<!-- 2 指标卡 (走势图①) -->
+<section class="sec" id="metrics-sec">
+<div class="grid">
+{{#metrics}}
+<div class="card m"><div class="ml">{{label}}</div><div class="mrow"><div class="mv">{{value}}</div>{{#spark}}<svg class="spark" viewBox="0 0 {{w}} {{h}}" width="{{w}}" height="{{h}}" role="img"><polyline points="{{points}}" fill="none" stroke="{{color}}" stroke-width="2.5" stroke-linejoin="round"/><circle cx="{{lx}}" cy="{{ly}}" r="3.5" fill="{{dot}}"/></svg>{{/spark}}</div><div class="mc">较昨日 <span class="{{dYCls}}">{{dYArrow}}{{dYText}}</span> · {{baseLabel}} <span class="{{dACls}}">{{dAArrow}}{{dAText}}</span></div></div>
+{{/metrics}}
+</div>
+<p class="read">{{sparkNote}}</p>
+</section>
+
+<!-- 3 和昨天比参照表 -->
+<section class="sec" id="cmp">
+<h2>和昨天比 <small>上期＝{{cmp.prevDateLabel}}</small></h2>
+<div class="card cmp">
+<div class="cmp-row head"><span>指标</span><span>今日</span><span>上期 {{cmp.prevDateShort}}</span><span>7 日均值</span><span>上月同期 {{cmp.lastMonthDateShort}}</span></div>
+{{#cmp.rows}}
+<div class="cmp-row">
+<span class="cmp-k">{{label}}</span><span class="cmp-now">{{now}}</span>
+<div class="cmp-refs">
+{{#refs}}{{#missing}}<span class="ref missing"><span class="lab">{{lab}}</span>{{#missingText}}{{.}}{{/missingText}}{{^missingText}}暂无{{/missingText}}</span>{{/missing}}{{^missing}}<span class="ref"><span class="lab">{{lab}}</span>{{value}}<span class="dir {{dirCls}}">{{dirText}}</span></span>{{/missing}}{{/refs}}
+</div>
+</div>
+{{/cmp.rows}}
+<p class="note">{{cmp.caption}}</p>
+</div>
+</section>
+
+<!-- 4 核心趋势 (文) -->
+<section class="sec card text" id="trends">
+<h2>核心趋势</h2>
+<ul class="trend-list">
+{{#trends}}<li>{{text}}</li>
+{{/trends}}</ul>
+</section>
+
+<!-- 5 新增星 | 语言+类型 (图②③) -->
+<div class="two" id="charts-sec">
+<section class="card bars">
+<h2>新增星 Top 8</h2>
+<p class="read">{{barsNote}}</p>
+<div class="barlist">
+{{#bars}}<div class="bar"><div class="bmeta"><div class="bn">{{name}}</div><div class="bd">{{desc}}</div></div><div class="bt"><div class="bf" style="width:{{pct}}%;background:{{color}}"></div></div><div class="bv">+{{value}}</div></div>
+{{/bars}}</div>
+</section>
+<section class="card langs">
+<h2>语言分布</h2>
+<p class="read">{{langNote}}</p>
+{{#langRows}}<div class="srow"><div class="sl">{{label}}</div><div class="stk">{{#segs}}<div class="seg" style="flex:{{n}};background:{{color}};color:{{textColor}}"><span>{{n}}</span></div>{{/segs}}</div></div>
+{{/langRows}}<div class="legend">{{#langLegend}}<span class="lg"><i style="background:{{color}}"></i>{{name}}</span>{{/langLegend}}</div>
+<h3 class="subhead">类型分布</h3>
+{{#typeRows}}<div class="srow"><div class="sl">{{label}}</div><div class="stk">{{#segs}}<div class="seg" style="flex:{{n}};background:{{color}};color:{{textColor}}"><span>{{n}}</span></div>{{/segs}}</div></div>
+{{/typeRows}}<div class="legend">{{#typeLegend}}<span class="lg"><i style="background:{{color}}"></i>{{name}}</span>{{/typeLegend}}</div>
+</section>
+</div>
+
+<!-- 6 连续上榜 -->
+<section class="sec" id="streak">
+<h2>连续上榜 <small>≥2 天，共 {{streakCount}} 个</small></h2>
+<div class="card"><ul class="streak">{{#streak}}<li><span class="days">{{days}}<small>天</small></span><div class="who"><a href="#{{anchor}}">{{fullName}}</a><p>{{text}}</p></div><span class="today">今日 +{{todayStars}}</span></li>{{/streak}}</ul></div>
+</section>
+
+<!-- 7 排名升降 (图④) + 换血 -->
+<section class="sec card rank" id="rank-churn">
+<h2>排名升降</h2>
+<p class="read">{{rankNote}}</p>
+<div class="rk2">
+{{#slope}}<svg class="slope" viewBox="0 0 {{w}} {{h}}" role="img"><text x="40" y="14" font-size="12" fill="{{sub}}" text-anchor="middle">昨日</text><text x="260" y="14" font-size="12" fill="{{sub}}" text-anchor="middle">今日</text>{{#lines}}<line x1="{{x1}}" y1="{{y1}}" x2="{{x2}}" y2="{{y2}}" stroke="{{color}}" stroke-width="2.5"{{#dash}} stroke-dasharray="4 3"{{/dash}}/>{{/lines}}{{#startDots}}<circle cx="{{cx}}" cy="{{cy}}" r="4" fill="{{color}}"/>{{/startDots}}{{#endDots}}<circle cx="{{cx}}" cy="{{cy}}" r="4" fill="{{color}}"/><text x="272" y="{{ty}}" font-size="12" fill="{{ink}}">{{rank}}</text>{{/endDots}}</svg>{{/slope}}
+<div>
+{{#rankRows}}<div class="rr"><div class="rn">{{r}}</div><div class="rp">{{name}}</div><div class="ro">{{prev}}</div><div class="rkt {{cls}}">{{text}}</div></div>
+{{/rankRows}}</div>
+</div>
+<div class="churn-section">
+<h3 class="subhead">换血情况 <small>较上期 {{cmp.prevDateShort}}</small></h3>
+<div class="churn-nums">{{#churn.nums}}<div class="cn"><b>{{value}}</b><span>{{label}}</span></div>{{/churn.nums}}</div>
+<div class="churn-lists">
+<div><h4>新进 {{churn.newCount}}（其中回归 {{churn.returnedCount}}）</h4><ul>{{#churn.new}}<li><a href="#{{anchor}}">{{fullName}}</a></li>{{/churn.new}}</ul></div>
+<div><h4>连续在榜 {{churn.keptCount}}</h4><ul>{{#churn.kept}}<li><a href="#{{anchor}}">{{fullName}}</a></li>{{/churn.kept}}</ul></div>
+<div><h4>掉榜 {{churn.droppedCount}}</h4><ul>{{#churn.dropped}}<li class="out">{{fullName}}</li>{{/churn.dropped}}</ul></div>
+</div>
+</div>
+<div class="text churnbox"><p class="churn">{{churnNew}}</p>
+<p class="churn">{{churnDrop}}</p></div>
+</section>
+
+<!-- 8 深度分析 + 建议 ≤3 -->
+<section class="sec card text quote" id="deep">
+<h2>深度分析</h2>
+<div class="prose"><p>{{analysis}}</p></div>
+<h3 class="subhead" style="margin-top:20px">建议</h3>
+<ol class="advice-list">
+{{#advice}}<li>{{text}}</li>
+{{/advice}}</ol>
+</section>
+
+<!-- 9 项目榜单 13 条完整 -->
+<section class="sec" id="list">
+<h2>项目榜单 <small>按今日新增排序，共 {{total}} 个</small></h2>
+<div class="plist">
+{{#projects}}
+<article class="card proj" id="{{anchor}}">
+<span class="rank">{{rank}}</span>
+<div>
+<div class="name"><h3><a href="{{url}}">{{fullName}}</a></h3><span class="pill{{#tagNew}} new{{/tagNew}}">{{tag}}</span></div>
+<p class="one">{{oneSentence}}</p>
+<p class="desc">{{descZh}}</p>
+<div class="tags"><span class="pill">{{typeName}}</span><span class="pill">{{language}}</span><span class="pill">社区 {{community}}</span></div>
+</div>
+<div class="pnums"><div class="hot"><b>+{{todayStars}}</b><span>今日新增</span></div><div><b>{{starsFmt}}</b><span>累计 Stars</span></div><div><b>{{forksFmt}}</b><span>Fork</span></div><div><b>{{streakText}}</b><span>连续上榜</span></div></div>
+</article>
+{{/projects}}
+</div>
+</section>
+
+<!-- 10 相关报告 -->
+<section class="sec" id="rel">
+<h2>相关报告</h2>
+<div class="rel">{{#related}}<a href="{{href}}"><span>{{title}}</span><small>{{sub}}</small></a>{{/related}}</div>
+</section>
+
+<footer>{{footer}}</footer>
+</main>
+<nav class="toc" aria-label="本页目录">
+<h2>本页目录</h2>
+<ul>
+<li><a href="#verdict">今日结论</a></li>
+<li><a href="#metrics-sec">指标走势</a></li>
+<li><a href="#cmp">和昨天比</a></li>
+<li><a href="#trends">核心趋势</a></li>
+<li><a href="#charts-sec">分布与榜单</a></li>
+<li><a href="#streak">连续上榜</a></li>
+<li><a href="#rank-churn">排名与换血</a></li>
+<li><a href="#deep">深度分析</a></li>
+<li><a href="#list">项目榜单</a></li>
+<li><a href="#rel">相关报告</a></li>
+</ul>
+</nav>
+</div>
+</body>
+</html>

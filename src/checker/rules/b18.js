@@ -65,7 +65,7 @@ function isCountEnumeration(text, index, word) {
   if (COUNT_UNIT_AFTER_RE.test(after)) return true;
   const before = source.slice(0, index);
   if (COUNT_ENUM_BEFORE_RE.test(before)) return true;
-  return /(?:共计|合计|其中|分别|共)\s*$/.test(before) && COUNT_UNIT_AFTER_RE.test(after);
+  return false;
 }
 
 function factsList(ctx) {
