@@ -157,7 +157,7 @@ node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/c
 | `kind` | `single`（单项目）、`total`（合计/占比/计数）、`threshold`（门槛） |
 | `source` | `<数据文件>#<字段路径>`，数据文件相对 `data/`；通配用 `[*]` |
 | `label` | 简短中文说明，供 AI 识别事实含义 |
-| `projects` | 当期项目清单（`fullName[]`），供 `{{p:owner/repo}}` 校验；月报为当月日榜去重后的全部项目 |
+| `projects` | 当期项目清单（`fullName[]`），供 `{{p:owner/repo}}` 校验；周报含 `dailyTop3Stats` 项目；月报为当月日榜去重后的全部项目 |
 
 ### 覆盖范围
 
@@ -165,9 +165,9 @@ node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/c
 |---|---|---|
 | 日报 | `todayStars`、`stars`、`forks`、`streakDays` | 上榜/AI/平均 Stars、高热项目数、当日新增星合计、`dailyDiff.counts` 的 new/dropped/kept/returned |
 | 周报 | `todayStars`、`stars`、`forks`、`dailyTop3Stats` 的 days/weekStars | 上榜/AI/平均 Stars、AI 占比、最大黑马、`weekNewStars`、`wow`（上周合计/变化量/环比）、`churnCount`/`churnRate`、`prevWeekStats`、`dailyCounts[]`、新面孔/连续/回归/出局数 |
-| 月报 | `monthStars`、`daysOnList`、`lastStars`（`monthTop` 前 10）；`dropList` 的排名与新增星 | 总项目数（日榜去重）、AI 项目数、平均 Stars、本月新增星合计、重复上榜数、新秀数、非新秀数、Top5 占比、`prevMonthStats` 五项 |
+| 月报 | `monthStars`、`daysOnList`、`lastStars`（当月日榜去重后的全部项目）；`dropList` 的排名与新增星 | 总项目数（日榜去重）、AI 项目数、平均 Stars、本月新增星合计、重复上榜数、新秀数、非新秀数、Top5 占比、`prevMonthStats` 五项 |
 
-月报的单项目事实覆盖页面与洞察候选 `monthTop`（前 10）；`projects` 清单仍包含当月日榜去重后的全部项目，避免 `{{p:}}` 误拦非 TOP 项目。
+月报的单项目事实覆盖当月日榜去重后的全部项目（不再只限 `monthTop` 前 10）；`projects` 清单同样包含全部去重项目，避免 `{{p:}}` 误拦非 TOP 项目。
 
 ### 门槛事实
 
@@ -179,9 +179,17 @@ node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/c
 
 门槛事实的 `source` 指向其适用字段（日报/周报 `projects[*].todayStars`，月报 `monthTop[*].monthStars`），`project` 为 `null`。
 
+### AI 占位与渲染（B2/B3）
+
+- AI 只收到事实表（`id`、`label`、`value`、`project`、`kind`）与仓库清单（`fullName` + 描述，不含数值字段）；提示词要求所有数字写成 `{{f<id>}}`，所有仓库名写成 `{{p:owner/repo}}`，正文不得出现裸数字/裸仓库名（日期、期号、排名序号除外）。
+- 渲染器 `src/render/placeholder-renderer.js` 递归替换洞察 JSON 中所有字符串的占位：`{{f<id>}}` 按 facts 的 `value` 填入，`{{p:owner/repo}}` 原样输出。
+- 渲染成功后产出 `<out-dir>/data/render/render_map-<level>-<period>.json`，逐条记录字段路径 `path`、占位 `placeholder`、事实编号 `factId`（仓库占位为 `null`）与渲染文本 `text`；文件已存在即报错退出，不覆盖。
+- 占位编号不存在或 `p:` 不在当期 `projects`：该期自动重试 AI 1 次（每期 AI 调用 ≤2，仍打印 `AI_CALLS` 行）；仍失败则该期 FAIL，写入核查清单，不静默删句、不写正式 HTML。
+- HTML 与 brief 中的 `oneSentence` 均使用渲染后的洞察。
+
 ### 写入规则
 
-- 事实表与 brief/insights/HTML/核查清单一样，已存在即报错退出（退出码 2），不覆盖。
+- 事实表、渲染记录与 brief/insights/HTML/核查清单一样，已存在即报错退出（退出码 2），不覆盖。
 - `--out-dir`、`--data-dir` 仍为必填（B8）；事实表写入 `<out-dir>/data/facts/`，不读取也不修改源数据目录的 facts。
 - 事实表在洞察分析之前写出；核查 FAIL 时事实表仍保留，便于复盘。
 

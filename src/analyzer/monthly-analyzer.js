@@ -6,6 +6,8 @@ const prompts = require('../../config/prompts.json');
 const history = require('../metrics/history');
 const { computeMonthlyMetrics } = require('../metrics');
 const { loadConfig } = require('../checker/config');
+const { buildFacts } = require('../facts/build-facts');
+const { projectNameFromPlaceholder, isProjectPlaceholder } = require('../render/placeholder-renderer');
 
 function collectSuggestions(insights) {
   const lines = [];
@@ -82,8 +84,23 @@ class MonthlyAnalyzer {
     try {
       logger.info('开始分析月报数据...', { month: monthlyData.month });
 
+      let computed = null;
+      try {
+        computed = monthlyData.month ? computeMonthlyMetrics(monthlyData.month) : null;
+      } catch (error) {
+        logger.warn(`读取月度指标失败：${error.message}`);
+      }
+
+      const facts = monthlyData.facts || options.facts
+        || buildFacts({
+          level: 'monthly',
+          period: monthlyData.month,
+          brief: monthlyData,
+          metrics: computed,
+        });
+
       // 构建分析上下文
-      const contextData = this.prepareContextData(monthlyData);
+      const contextData = this.prepareContextData(monthlyData, { computed, facts });
 
       // 构建 AI 提示词
       let prompt = this.buildPrompt(monthlyData.month, contextData);
@@ -130,15 +147,17 @@ class MonthlyAnalyzer {
   /**
    * 准备分析上下文数据
    */
-  prepareContextData(monthlyData) {
+  prepareContextData(monthlyData, options = {}) {
     const aggregation = monthlyData.aggregation || {};
     const month = monthlyData.month || monthlyData.date || '';
 
-    let computed = null;
-    try {
-      computed = month ? computeMonthlyMetrics(month) : null;
-    } catch (error) {
-      logger.warn(`读取月度指标失败：${error.message}`);
+    let computed = options.computed || null;
+    if (!computed) {
+      try {
+        computed = month ? computeMonthlyMetrics(month) : null;
+      } catch (error) {
+        logger.warn(`读取月度指标失败：${error.message}`);
+      }
     }
 
     const stats = monthlyData.stats?.totalProjects
@@ -163,6 +182,7 @@ class MonthlyAnalyzer {
       prevMonthStats: monthlyData.prevMonthStats || computed?.prevMonthStats,
       weekThemes: monthlyData.weekThemes || computed?.weekThemes,
       monthTop,
+      top: computed?.top,
       dropList: monthlyData.dropList || computed?.dropList,
       dropListNote: monthlyData.dropListNote || computed?.dropListNote,
       top5Share: monthlyData.top5Share ?? computed?.top5Share,
@@ -203,14 +223,26 @@ class MonthlyAnalyzer {
           })) || [])
         ];
 
+    const promptFacts = options.facts || monthlyData.facts || null;
     // 准备所有上榜项目列表（用于验证 AI 生成的项目）
-    const allRepos = [
-      ...new Set([
-        ...(monthTop.map(item => item.fullName)),
-        ...(aggregation.topGainers?.map(p => p.repo) || []),
-        ...(aggregation.recurringProjects?.map(p => p.repo) || [])
-      ].filter(Boolean))
-    ];
+    const allRepos = Array.isArray(promptFacts?.projects) && promptFacts.projects.length > 0
+      ? promptFacts.projects
+      : [
+          ...new Set([
+            ...(monthTop.map(item => item.fullName)),
+            ...(aggregation.topGainers?.map(p => p.repo) || []),
+            ...(aggregation.recurringProjects?.map(p => p.repo) || [])
+          ].filter(Boolean))
+        ];
+
+    const candidateByName = new Map(candidateRepos.map(item => [item.repo, item]));
+    const projectNames = Array.isArray(promptFacts?.projects) && promptFacts.projects.length > 0
+      ? promptFacts.projects
+      : allRepos;
+    const projects = projectNames.map(name => ({
+      fullName: name,
+      description: candidateByName.get(name)?.description || '',
+    }));
 
     return {
       month,
@@ -224,6 +256,8 @@ class MonthlyAnalyzer {
       periodProjects,
       topProjectCandidates: candidateRepos,
       allRepos,
+      projects,
+      facts: promptFacts,
       metrics: facts,
       recentSuggestions: buildRecentSuggestions(month)
     };
@@ -237,26 +271,35 @@ class MonthlyAnalyzer {
     const userPrompt = prompts.monthly?.userPrompt || '';
     const checkerConfig = loadConfig();
 
+    const factsForPrompt = (contextData.facts?.facts || []).map(item => ({
+      id: item.id,
+      label: item.label,
+      value: item.value,
+      project: item.project ?? null,
+      kind: item.kind
+    }));
+    const projectsForPrompt = (contextData.projects || []).map(project => ({
+      fullName: project.fullName,
+      description: project.description || ''
+    }));
+
     const periodText = contextData.periodProjects.map(p =>
-      `- ${p.period} (${p.dates}): ${p.projectCount} 个项目，主导类型：${p.topType}；关键项目：${p.keyProjects.join(', ')}`
+      `- ${p.period} (${p.dates}): 主导类型：${p.topType || '未知'}；关键项目：${(p.keyProjects || []).map(repo => `{{p:${repo}}}`).join('、')}`
     ).join('\n');
 
-    const candidateText = contextData.topProjectCandidates.map(p => {
-      const parts = [p.repo];
-      if (p.monthStars !== undefined) parts.push(`本月新增 ${p.monthStars}`);
-      if (p.daysOnList !== undefined) parts.push(`上榜 ${p.daysOnList} 天`);
-      if (p.stars) parts.push(`累计 ${p.stars}`);
-      if (p.appearanceCount) parts.push(`出现 ${p.appearanceCount} 次`);
-      return `- ${parts.join('，')}`;
-    }).join('\n');
+    const candidateText = contextData.topProjectCandidates
+      .map(item => `- {{p:${item.repo}}}`)
+      .join('\n');
 
-    const repoText = contextData.allRepos.slice(0, 80).map(repo => `- ${repo}`).join('\n');
+    const repoText = contextData.allRepos.slice(0, 80).map(repo => `- {{p:${repo}}}`).join('\n');
 
     let prompt = userPrompt;
     prompt = prompt.replace('{month}', month);
     prompt = prompt.replace('{dailyCount}', contextData.dailyCount);
     prompt = prompt.replace('{weeklyCount}', contextData.weeklyCount);
     prompt = prompt.replace('{totalProjects}', contextData.totalProjects);
+    prompt = prompt.replace('{facts}', () => JSON.stringify(factsForPrompt, null, 2));
+    prompt = prompt.replace('{projects}', () => JSON.stringify(projectsForPrompt, null, 2));
     prompt = prompt.replace('{metricsFacts}', JSON.stringify(contextData.metrics || {}, null, 2));
     prompt = prompt.replace('{periodProjects}', periodText);
     prompt = prompt.replace('{topProjectCandidates}', candidateText);
@@ -344,11 +387,12 @@ class MonthlyAnalyzer {
       // 补充项目链接等元数据，并验证项目是否存在于实际数据中
       const trendingRepos = monthlyData.aggregation?.topGainers || [];
       const recurringRepos = monthlyData.aggregation?.recurringProjects || [];
-      const metricTop = contextData.metrics?.monthTop || monthlyData.monthTop || [];
+      const metricTop = contextData.metrics?.top || contextData.metrics?.monthTop || monthlyData.monthTop || [];
       const allValidRepos = new Set([
         ...trendingRepos.map(p => p.repo),
         ...recurringRepos.map(p => p.repo),
-        ...metricTop.map(item => item.fullName)
+        ...metricTop.map(item => item.fullName),
+        ...(contextData.facts?.projects || [])
       ].filter(Boolean));
 
       logger.info('验证 AI 生成的项目是否存在于实际数据中...', {
@@ -360,6 +404,7 @@ class MonthlyAnalyzer {
       if (insights.longTermValue) {
         insights.longTermValue = insights.longTermValue
           .filter(item => {
+            if (isProjectPlaceholder(item.repo)) return true;
             if (!allValidRepos.has(item.repo)) {
               logger.warn(`过滤掉不存在的项目：${item.repo}`);
               return false;
@@ -367,9 +412,10 @@ class MonthlyAnalyzer {
             return true;
           })
           .map(item => {
-            const repo = trendingRepos.find(r => r.repo === item.repo) ||
-                         recurringRepos.find(r => r.repo === item.repo);
-            const metric = metricTop.find(entry => entry.fullName === item.repo);
+            const repoName = projectNameFromPlaceholder(item.repo);
+            const repo = trendingRepos.find(r => r.repo === repoName) ||
+                         recurringRepos.find(r => r.repo === repoName);
+            const metric = metricTop.find(entry => entry.fullName === repoName);
             const rest = { ...item };
             delete rest.score;
             return {
@@ -388,6 +434,7 @@ class MonthlyAnalyzer {
         insights.trendEvolution = insights.trendEvolution.map(period => ({
           ...period,
           keyProjects: (period.keyProjects || []).filter(repo => {
+            if (isProjectPlaceholder(repo)) return true;
             if (!allValidRepos.has(repo)) {
               logger.warn(`过滤掉 trendEvolution 中不存在的项目：${repo}`);
               return false;
@@ -402,6 +449,7 @@ class MonthlyAnalyzer {
         insights.emergingFields = insights.emergingFields.map(field => ({
           ...field,
           projects: (field.projects || []).filter(repo => {
+            if (isProjectPlaceholder(repo)) return true;
             if (!allValidRepos.has(repo)) {
               logger.warn(`过滤掉 emergingFields 中不存在的项目：${repo}`);
               return false;
@@ -412,21 +460,24 @@ class MonthlyAnalyzer {
       }
 
       // 验证并过滤 darkHorse
-      if (insights.darkHorse && !allValidRepos.has(insights.darkHorse.repo)) {
+      if (insights.darkHorse
+        && !isProjectPlaceholder(insights.darkHorse.repo)
+        && !allValidRepos.has(insights.darkHorse.repo)) {
         logger.warn(`过滤掉 darkHorse 不存在的项目：${insights.darkHorse.repo}`);
         // 选择星数最高的项目作为 darkHorse
         const topRepo = trendingRepos[0];
         if (topRepo) {
           insights.darkHorse = {
-            repo: topRepo.repo,
+            repo: `{{p:${topRepo.repo}}}`,
             reason: '本月星数增长最快的项目'
           };
         } else {
           insights.darkHorse = null;
         }
       } else if (insights.darkHorse) {
-        const darkHorseRepo = trendingRepos.find(r => r.repo === insights.darkHorse.repo) ||
-                              recurringRepos.find(r => r.repo === insights.darkHorse.repo);
+        const repoName = projectNameFromPlaceholder(insights.darkHorse.repo);
+        const darkHorseRepo = trendingRepos.find(r => r.repo === repoName) ||
+                              recurringRepos.find(r => r.repo === repoName);
         insights.darkHorse = {
           ...insights.darkHorse,
           stars: darkHorseRepo?.stars || darkHorseRepo?.totalStars || 0,

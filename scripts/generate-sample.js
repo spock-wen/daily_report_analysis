@@ -331,7 +331,7 @@ function buildReportData(level, period, brief, metrics, insights) {
       ...brief,
       generated_at: brief.generatedAt,
     },
-    monthTop: brief.monthTop,
+    monthTop: metrics?.top || brief.monthTop,
     prevMonthStats: brief.prevMonthStats,
     weekThemes: brief.weekThemes,
     dropList: brief.dropList,
@@ -465,11 +465,13 @@ async function main() {
   const outInsightsPath = path.join(outDataDir, 'insights', level, insightFileName(period));
   const outReportPath = path.join(outReportsDir, reportDirName(level), reportFileName(level, period));
   const outFactsPath = path.join(outDataDir, 'facts', `facts-${level}-${period}.json`);
+  const renderMapPath = path.join(outDataDir, 'render', `render_map-${level}-${period}.json`);
   const checkBaseName = path.join(outDir, 'check', `check-${level}-${period}`);
   const conflicts = [
     outBriefPath,
     outInsightsPath,
     outFactsPath,
+    renderMapPath,
     outReportPath,
     addFailMarker(outReportPath),
     `${checkBaseName}.json`,
@@ -540,12 +542,13 @@ async function main() {
 
   const InsightAnalyzer = require('../src/analyzer/insight-analyzer');
   const MonthlyAnalyzer = require('../src/analyzer/monthly-analyzer');
+  const { renderInsights, writeRenderMap } = require('../src/render/placeholder-renderer');
 
   let analyzer;
   let analysisData;
   if (level === 'daily') {
     analyzer = new InsightAnalyzer();
-    analysisData = { date: period, brief };
+    analysisData = { date: period, brief, facts };
   } else if (level === 'weekly') {
     analyzer = new InsightAnalyzer();
     analysisData = {
@@ -556,6 +559,7 @@ async function main() {
       weekNewStars: brief.weekNewStars,
       prevWeekStats: brief.prevWeekStats,
       dailyCounts: brief.dailyCounts,
+      facts,
     };
   } else {
     analyzer = new MonthlyAnalyzer();
@@ -564,6 +568,7 @@ async function main() {
       month: period,
       dailyDataList: computed.dailyDates.map(date => ({ date })),
       weeklyDataList: computed.weekThemes.map(item => ({ week: item.week })),
+      facts,
     };
   }
 
@@ -575,8 +580,69 @@ async function main() {
 
   let insights = await runAnalysis();
   if (!insights || typeof insights !== 'object') insights = {};
-  applyOneSentences(brief, insights);
-  writeBrief();
+
+  const renderCurrent = () => renderInsights({
+    insights,
+    facts: facts.facts,
+    projects: facts.projects,
+    level,
+    period,
+  });
+
+  const renderFeedback = errors => errors.map(error => ({
+    rule_id: 'B3',
+    field: error.path,
+    quote: error.quote || error.placeholder,
+    message: error.message,
+  }));
+
+  const persistRendered = (rendered) => {
+    insights = rendered.insights;
+    fs.writeFileSync(outInsightsPath, `${JSON.stringify(insights, null, 2)}\n`, 'utf8');
+    applyOneSentences(brief, insights);
+    writeBrief();
+  };
+
+  let rendered = renderCurrent();
+  if (rendered.errors.length > 0 && analyzer.getAiCallCount() < 2) {
+    console.error(`[render] 占位校验失败 ${rendered.errors.length} 条，重试 AI 1 次...`);
+    const rewritten = await runAnalysis({ feedback: renderFeedback(rendered.errors) });
+    if (rewritten && typeof rewritten === 'object') insights = rewritten;
+    rendered = renderCurrent();
+  }
+
+  if (rendered.errors.length > 0) {
+    const findings = rendered.errors.map(error => ({
+      file: outInsightsPath,
+      field: error.path,
+      line: null,
+      rule_id: 'B3',
+      quote: error.quote || error.placeholder,
+      message: error.message,
+    }));
+    const checkPaths = writeCheckArtifacts({
+      outDir,
+      level,
+      period,
+      pass: false,
+      findings,
+    });
+
+    console.log(`AI_CALLS period=${period} count=${analyzer.getAiCallCount()}`);
+    console.log('');
+    console.log(`期次：${level} ${period}`);
+    console.log(`源数据：${sourceDataDir}`);
+    console.log(`输出：${outDir}`);
+    console.log(`核查：FAIL（${findings.length} 条，占位校验失败）`);
+    console.log(`核查清单：${checkPaths.jsonPath}`);
+    console.log(`核查清单：${checkPaths.mdPath}`);
+    console.log(`事实表：${outFactsPath}`);
+    console.log('HTML：未写（占位校验 FAIL）');
+    return 1;
+  }
+
+  persistRendered(rendered);
+  let lastRendered = rendered;
 
   const { runContentGate } = require('../src/checker/gate');
   const logger = require('../src/utils/logger');
@@ -594,23 +660,62 @@ async function main() {
     success: logger.success.bind(logger),
   };
 
-  const gate = await runContentGate({
+  let placeholderFailures = [];
+  let gate = await runContentGate({
     level,
     period,
     dataDir: outDataDir,
     logger: gateLogger,
     writeHtmlOnFail,
     getAiCallCount: () => analyzer.getAiCallCount(),
-    rewrite: async (findings) => {
-      const rewritten = await runAnalysis({ feedback: findings });
-      if (rewritten && typeof rewritten === 'object') {
-        insights = rewritten;
-      }
-      applyOneSentences(brief, insights);
-      writeBrief();
-      return insights;
-    },
+    rewrite: analyzer.getAiCallCount() < 2
+      ? async (findings) => {
+          const rewritten = await runAnalysis({ feedback: findings });
+          if (rewritten && typeof rewritten === 'object') {
+            insights = rewritten;
+          }
+          const next = renderCurrent();
+          if (next.errors.length > 0) {
+            placeholderFailures = next.errors;
+            persistRendered(lastRendered);
+            const detail = next.errors
+              .map(error => `${error.path} ${error.placeholder} ${error.message}`)
+              .join('；');
+            throw new Error(`重写后占位校验失败：${detail}`);
+          }
+          persistRendered(next);
+          lastRendered = next;
+          return insights;
+        }
+      : undefined,
   });
+
+  if (placeholderFailures.length > 0) {
+    gate = {
+      ...gate,
+      pass: false,
+      findings: placeholderFailures.map(error => ({
+        file: outInsightsPath,
+        field: error.path,
+        line: null,
+        rule_id: 'B3',
+        quote: error.quote || error.placeholder,
+        message: error.message,
+      })),
+    };
+  }
+
+  try {
+    writeRenderMap({
+      level,
+      period,
+      entries: lastRendered.entries,
+      renderMapPath,
+    });
+  } catch (error) {
+    console.error(`错误：${error.message}`);
+    return 1;
+  }
 
   const checkPaths = writeCheckArtifacts({
     outDir,
@@ -640,6 +745,7 @@ async function main() {
   console.log(`核查清单：${checkPaths.jsonPath}`);
   console.log(`核查清单：${checkPaths.mdPath}`);
   console.log(`事实表：${outFactsPath}`);
+  console.log(`渲染记录：${renderMapPath}`);
   console.log(`HTML：${htmlPath || '未写（核查 FAIL）'}`);
 
   return gate.pass ? 0 : 1;

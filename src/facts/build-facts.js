@@ -217,12 +217,17 @@ function buildWeeklyFacts({ brief, metrics, add, addNumber }) {
     });
   }
 
-  return history.getProjectNames(brief);
+  const dailyTop3Names = (weekMetrics.dailyTop3Stats || [])
+    .map(item => item.fullName)
+    .filter(Boolean);
+  return Array.from(new Set([...history.getProjectNames(brief), ...dailyTop3Names]));
 }
 
 function buildMonthlyFacts({ brief, metrics, add, addNumber }) {
   const stats = brief.stats || {};
   const monthTop = brief.monthTop || metrics?.monthTop || [];
+  const allItems = Array.isArray(metrics?.top) && metrics.top.length > 0 ? metrics.top : monthTop;
+  const itemField = Array.isArray(metrics?.top) && metrics.top.length > 0 ? 'top' : 'monthTop';
   const prevMonthStats = brief.prevMonthStats || metrics?.prevMonthStats || {};
 
   addNumber(stats.totalProjects, {
@@ -278,27 +283,28 @@ function buildMonthlyFacts({ brief, metrics, add, addNumber }) {
     label: '上月 Top5 头部集中度（%）',
   });
 
-  monthTop.forEach((item, index) => {
+  allItems.forEach((item, index) => {
     const fullName = item.fullName;
     if (!fullName) return;
     addNumber(item.monthStars, {
       project: fullName,
-      field: `monthTop[${index}].monthStars`,
+      field: `${itemField}[${index}].monthStars`,
       label: `${fullName} 本月新增星`,
     });
     addNumber(item.daysOnList, {
       project: fullName,
-      field: `monthTop[${index}].daysOnList`,
+      field: `${itemField}[${index}].daysOnList`,
       label: `${fullName} 上榜天数`,
     });
     addNumber(item.lastStars, {
       project: fullName,
-      field: `monthTop[${index}].lastStars`,
+      field: `${itemField}[${index}].lastStars`,
       label: `${fullName} 累计 Stars`,
     });
   });
 
-  (brief.dropList || []).forEach((item, index) => {
+  const dropList = brief.dropList || metrics?.dropList || [];
+  dropList.forEach((item, index) => {
     const fullName = item.fullName;
     if (!fullName) return;
     addNumber(item.prevRank, {
@@ -331,10 +337,7 @@ function buildMonthlyFacts({ brief, metrics, add, addNumber }) {
     });
   }
 
-  if (metrics?.top) {
-    return Array.from(new Set(metrics.top.map(item => item.fullName).filter(Boolean)));
-  }
-  return Array.from(new Set(monthTop.map(item => item.fullName).filter(Boolean)));
+  return Array.from(new Set(allItems.map(item => item.fullName).filter(Boolean)));
 }
 
 function buildFacts({ level, period, brief, metrics }) {

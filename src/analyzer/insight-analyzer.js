@@ -7,6 +7,9 @@ const prompts = require('../../config/prompts.json');
 const WikiManager = require('../wiki/wiki-manager');
 const history = require('../metrics/history');
 const { loadConfig } = require('../checker/config');
+const { computeMonthlyMetrics } = require('../metrics');
+const { buildFacts } = require('../facts/build-facts');
+const { projectNameFromPlaceholder } = require('../render/placeholder-renderer');
 
 const WRITING_RULES = {
   oneLiner: '前 2 天（日报）/前 2 期（周/月报）oneLiner 已注入，必须换一种说法，不得复用 4 字以上短语。',
@@ -147,10 +150,13 @@ class InsightAnalyzer {
     try {
       logger.info('开始分析日报数据...', { date: dailyData.date });
 
+      const facts = dailyData.facts || options.facts
+        || buildFacts({ level: 'daily', period: dailyData.date, brief: dailyData.brief });
       const contextData = await this.prepareContextData(dailyData.brief, {
         level: 'daily',
         identifier: dailyData.date,
-        rawData: dailyData
+        rawData: dailyData,
+        facts
       });
       const promptTemplate = prompts.daily.userPrompt;
       let prompt = this.buildPrompt(promptTemplate, contextData);
@@ -182,10 +188,18 @@ class InsightAnalyzer {
     try {
       logger.info('开始分析周报数据...', { weekStart: weeklyData.weekStart });
 
+      const facts = weeklyData.facts || options.facts
+        || buildFacts({
+          level: 'weekly',
+          period: weeklyData.weekStart || weeklyData.date,
+          brief: weeklyData.brief,
+          metrics: weeklyData.weekMetrics,
+        });
       const contextData = await this.prepareContextData(weeklyData.brief, {
         level: 'weekly',
         identifier: weeklyData.weekStart || weeklyData.date,
-        rawData: weeklyData
+        rawData: weeklyData,
+        facts
       });
       const promptTemplate = prompts.weekly.userPrompt;
       let prompt = this.buildPrompt(promptTemplate, contextData);
@@ -206,7 +220,7 @@ class InsightAnalyzer {
       }
 
       const insights = this.parseInsights(result, weeklyData.brief);
-      this.applyWeeklyFactFallbacks(insights, contextData.metrics);
+      this.applyWeeklyFactFallbacks(insights, contextData.metrics, contextData.facts);
       await this.saveInsights('weekly', weeklyData.weekStart, insights);
 
       logger.success('周报 AI 分析完成', {
@@ -225,10 +239,27 @@ class InsightAnalyzer {
     try {
       logger.info('开始分析月报数据...', { month: monthlyData.month });
 
+      const month = monthlyData.month || monthlyData.date;
+      let computed = monthlyData.metrics || null;
+      if (!computed && month) {
+        try {
+          computed = computeMonthlyMetrics(month);
+        } catch (error) {
+          logger.warn(`读取月度指标失败：${error.message}`);
+        }
+      }
+      const facts = monthlyData.facts || options.facts
+        || buildFacts({
+          level: 'monthly',
+          period: month,
+          brief: monthlyData.brief || monthlyData,
+          metrics: computed || monthlyData
+        });
       const contextData = await this.prepareContextData(monthlyData.brief, {
         level: 'monthly',
         identifier: monthlyData.month || monthlyData.date,
-        rawData: monthlyData
+        rawData: monthlyData,
+        facts
       });
       const promptTemplate = prompts.monthly.userPrompt;
       let prompt = this.buildPrompt(promptTemplate, contextData);
@@ -374,12 +405,19 @@ class InsightAnalyzer {
     const identifier = options.identifier || brief.date || brief.weekStart || brief.month || '';
     const rawData = options.rawData || brief;
 
+    const facts = options.facts || rawData.facts || null;
+    const metrics = this.buildMetricsFacts(brief, rawData, level, identifier);
+    if (level === 'monthly' && Array.isArray(facts?.projects) && facts.projects.length > 0) {
+      metrics.allRepos = facts.projects;
+    }
+
     const result = {
       level,
       identifier,
       projects: projectsWithHistory,
       stats,
-      metrics: this.buildMetricsFacts(brief, rawData, level, identifier),
+      facts,
+      metrics,
       recentOneLiners: this.buildRecentOneLiners(level, identifier),
       recentSuggestions: this.buildRecentSuggestions(level, identifier),
       generatedAt: brief.generatedAt || brief.generated_at || new Date().toISOString()
@@ -523,7 +561,7 @@ class InsightAnalyzer {
     return unique.length > 0 ? unique.slice(0, 12).join('\n') : '（无）';
   }
 
-  applyWeeklyFactFallbacks(insights, metrics) {
+  applyWeeklyFactFallbacks(insights, metrics, facts) {
     if (!insights || !metrics) return;
 
     const currentWeekly = new Set([
@@ -533,17 +571,22 @@ class InsightAnalyzer {
     ]);
     const existingText = JSON.stringify(insights);
     const notes = Array.isArray(insights.dailyTop3Notes) ? insights.dailyTop3Notes.slice() : [];
+    const factIdByLabel = new Map();
+    for (const fact of facts?.facts || []) {
+      if (fact.label) factIdByLabel.set(fact.label, fact.id);
+    }
 
     for (const item of metrics.dailyTop3Stats || []) {
       if (existingText.includes(item.fullName)) continue;
+      const daysFact = factIdByLabel.get(`${item.fullName} 本周日报上榜天数`);
+      const starsFact = factIdByLabel.get(`${item.fullName} 本周日报新增星`);
+      if (!daysFact || !starsFact) continue;
       const inWeekly = currentWeekly.has(item.fullName);
       notes.push({
-        repo: item.fullName,
-        days: item.days,
-        weekStars: item.weekStars,
+        repo: `{{p:${item.fullName}}}`,
         note: inWeekly
-          ? `本周日报上榜 ${item.days} 天，期内新增 ${item.weekStars} 星，同时进入周榜。`
-          : `本周日报上榜 ${item.days} 天，期内新增 ${item.weekStars} 星，但未进入周榜，原因未知。`
+          ? `本周日报上榜 {{${daysFact}}} 天，期内新增 {{${starsFact}}} 星，同时进入周榜。`
+          : `本周日报上榜 {{${daysFact}}} 天，期内新增 {{${starsFact}}} 星，但未进入周榜，原因未知。`
       });
     }
 
@@ -558,20 +601,38 @@ class InsightAnalyzer {
     prompt = prompt.replace('{date}', contextData.identifier || contextData.generatedAt || new Date().toISOString());
     prompt = prompt.replace('{projectCount}', contextData.projects.length);
 
-    const projectsForPrompt = contextData.projects.map(p => ({
-      name: p.name,
-      fullName: p.fullName || p.name,
-      description: p.description || '',
-      descZh: p.descZh || '',
-      stars: p.stars || 0,
-      todayStars: p.todayStars || 0,
-      language: p.language || '',
-      topics: p.topics || [],
-      url: p.url || '',
-      isAI: p.isAI || false
+    const factList = Array.isArray(contextData.facts?.facts) ? contextData.facts.facts : [];
+    const factsForPrompt = factList.map(item => ({
+      id: item.id,
+      label: item.label,
+      value: item.value,
+      project: item.project ?? null,
+      kind: item.kind
     }));
+    prompt = prompt.replace('{facts}', () => JSON.stringify(factsForPrompt, null, 2));
 
-    prompt = prompt.replace('{projects}', JSON.stringify(projectsForPrompt, null, 2));
+    const projectByName = new Map(contextData.projects.map(p => [p.fullName || p.name, p]));
+    const candidateByName = new Map(
+      (contextData.metrics?.topProjectCandidates || []).map(item => [item.repo, item])
+    );
+    const factProjectNames = Array.isArray(contextData.facts?.projects) ? contextData.facts.projects : [];
+    const projectsForPrompt = (factProjectNames.length > 0 ? factProjectNames : contextData.projects.map(p => p.fullName || p.name))
+      .filter(Boolean)
+      .map(name => {
+        const project = projectByName.get(name) || {};
+        const candidate = candidateByName.get(name) || {};
+        return {
+          fullName: name,
+          description: project.description || candidate.description || '',
+          descZh: project.descZh || '',
+          language: project.language || '',
+          topics: project.topics || [],
+          url: project.url || '',
+          isAI: project.isAI || false
+        };
+      });
+
+    prompt = prompt.replace('{projects}', () => JSON.stringify(projectsForPrompt, null, 2));
 
     // 新增：生成 Wiki 历史上下文
     const wikiHistoryContext = this.buildWikiHistoryContext(contextData.projects);
@@ -585,7 +646,7 @@ class InsightAnalyzer {
     prompt = prompt.replace('{totalProjects}', totalProjects);
     prompt = prompt.replace('{aiProjects}', aiProjects);
     prompt = prompt.replace('{aiPercentage}', aiPercentage);
-    prompt = prompt.replace('{topProjects}', JSON.stringify(contextData.projects.slice(0, 5), null, 2));
+    prompt = prompt.replace('{topProjects}', JSON.stringify(projectsForPrompt.slice(0, 5), null, 2));
     prompt = prompt.replace('{week}', contextData.identifier || '');
     prompt = prompt.replace('{month}', contextData.identifier || '');
 
@@ -593,16 +654,12 @@ class InsightAnalyzer {
     prompt = prompt.replace('{dailyCount}', metrics.dailyCount || 0);
     prompt = prompt.replace('{weeklyCount}', metrics.weeklyCount || 0);
     prompt = prompt.replace('{periodProjects}', (metrics.periodProjects || []).map(period =>
-      `- ${period.period} (${period.dates}): ${period.projectCount} 个项目，主导类型：${period.topType}；关键项目：${(period.keyProjects || []).join(', ')}`
+      `- ${period.period} (${period.dates}): 主导类型：${period.topType || '未知'}；关键项目：${(period.keyProjects || []).map(repo => `{{p:${repo}}}`).join('、')}`
     ).join('\n'));
-    prompt = prompt.replace('{topProjectCandidates}', (metrics.topProjectCandidates || []).map(item => {
-      const parts = [item.repo];
-      if (item.monthStars !== undefined) parts.push(`本月新增 ${item.monthStars}`);
-      if (item.daysOnList !== undefined) parts.push(`上榜 ${item.daysOnList} 天`);
-      if (item.stars) parts.push(`累计 ${item.stars}`);
-      return `- ${parts.join('，')}`;
-    }).join('\n'));
-    prompt = prompt.replace('{allRepos}', (metrics.allRepos || []).slice(0, 80).map(repo => `- ${repo}`).join('\n'));
+    prompt = prompt.replace('{topProjectCandidates}', (metrics.topProjectCandidates || [])
+      .map(item => `- {{p:${item.repo}}}`)
+      .join('\n'));
+    prompt = prompt.replace('{allRepos}', (metrics.allRepos || []).slice(0, 80).map(repo => `- {{p:${repo}}}`).join('\n'));
 
     const checkerConfig = loadConfig();
     prompt = prompt.replace('{metricsFacts}', JSON.stringify(contextData.metrics || {}, null, 2));
@@ -691,9 +748,10 @@ class InsightAnalyzer {
       if (insights.project_insights) {
         const trendingRepos = briefData.projects || briefData.trending_repos || [];
         insights.project_insights = insights.project_insights.map(insight => {
+          const projectName = projectNameFromPlaceholder(insight.project_name);
           const repo = trendingRepos.find(r => {
             const name = r.name || r.fullName || r.repo;
-            return name === insight.project_name || r.fullName === insight.project_name;
+            return name === projectName || r.fullName === projectName;
           });
           return {
             ...insight,
