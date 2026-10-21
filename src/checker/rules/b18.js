@@ -55,6 +55,19 @@ function stripExempt(text, exemptWords) {
   return result;
 }
 
+const COUNT_UNIT_AFTER_RE = /^\s*(?:\d+|\{\{f\d+(?::[a-z0-9_]+)?\}\})\s*个/;
+const COUNT_ENUM_BEFORE_RE = /(?:\d+\s*个)\s*[、,，/和及与]\s*$/;
+
+// B18 豁免类目计数：「回归 4 个」「新进 6 个」「掉榜 5 个」。
+function isCountEnumeration(text, index, word) {
+  const source = String(text || '');
+  const after = source.slice(index + String(word || '').length);
+  if (COUNT_UNIT_AFTER_RE.test(after)) return true;
+  const before = source.slice(0, index);
+  if (COUNT_ENUM_BEFORE_RE.test(before)) return true;
+  return /(?:共计|合计|其中|分别|共)\s*$/.test(before) && COUNT_UNIT_AFTER_RE.test(after);
+}
+
 function factsList(ctx) {
   if (Array.isArray(ctx.facts)) return ctx.facts;
   if (Array.isArray(ctx.facts?.facts)) return ctx.facts.facts;
@@ -217,6 +230,7 @@ function scanText(doc, text, field, line, allowed, sections, regex, config, find
       if (kind === 'direction' && !allowed.checkDirection) continue;
       if (kind === 'status' && !allowed.checkStatus) continue;
       const counts = kind === 'status' ? allowed.status : allowed.direction;
+      if (isCountEnumeration(cleaned, match.index, word)) continue;
       const count = counts.get(word) || 0;
       if (count > 0) {
         counts.set(word, count - 1);
@@ -286,4 +300,9 @@ module.exports = {
   check,
   expectedDirection,
   wordDirection,
+  wordSections,
+  wordRegex,
+  classifyWord,
+  stripExempt,
+  isCountEnumeration,
 };

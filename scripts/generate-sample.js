@@ -651,6 +651,7 @@ async function main() {
   const InsightAnalyzer = require('../src/analyzer/insight-analyzer');
   const MonthlyAnalyzer = require('../src/analyzer/monthly-analyzer');
   const { renderInsights, writeRenderMap } = require('../src/render/placeholder-renderer');
+  const { sanitizeInsights, writeDeletedSentences } = require('../src/render/sanitize-insights');
 
   let analyzer;
   let analysisData;
@@ -695,14 +696,30 @@ async function main() {
     if (name && project.tag) projectTags[name] = project.tag;
   }
 
-  const renderCurrent = () => renderInsights({
-    insights,
-    facts: facts.facts,
-    projects: facts.projects,
-    projectTags,
-    level,
-    period,
-  });
+  const deletedSentences = [];
+  const deletedLogPath = () => path.join(outDir, 'check', `deleted-sentences-${level}-${period}.json`);
+
+  const renderCurrent = () => {
+    const sanitized = sanitizeInsights(insights);
+    insights = sanitized.insights;
+    for (const item of sanitized.deleted) {
+      if (!deletedSentences.some(existing =>
+        existing.path === item.path
+        && existing.sentence === item.sentence
+        && existing.word === item.word)) {
+        deletedSentences.push(item);
+      }
+    }
+    writeDeletedSentences({ outDir, level, period, deleted: deletedSentences });
+    return renderInsights({
+      insights,
+      facts: facts.facts,
+      projects: facts.projects,
+      projectTags,
+      level,
+      period,
+    });
+  };
 
   const renderFeedback = errors => errors.map(error => ({
     rule_id: 'B3',
@@ -785,6 +802,8 @@ async function main() {
     console.log(`源数据：${sourceDataDir}`);
     console.log(`输出：${outDir}`);
     console.log(`核查：FAIL（${findings.length} 条，含占位校验失败）`);
+    console.log(`自写方向/状态句删除：${deletedSentences.length} 条`);
+    if (deletedSentences.length > 0) console.log(`删除记录：${deletedLogPath()}`);
     console.log(`核查清单：${checkPaths.jsonPath}`);
     console.log(`核查清单：${checkPaths.mdPath}`);
     console.log(`事实表：${outFactsPath}`);
@@ -882,6 +901,8 @@ async function main() {
   console.log(`源数据：${sourceDataDir}`);
   console.log(`输出：${outDir}`);
   console.log(`核查：${pass ? 'PASS' : 'FAIL'}（${findings.length} 条）`);
+  console.log(`自写方向/状态句删除：${deletedSentences.length} 条`);
+  if (deletedSentences.length > 0) console.log(`删除记录：${deletedLogPath()}`);
   console.log(`核查清单：${checkPaths.jsonPath}`);
   console.log(`核查清单：${checkPaths.mdPath}`);
   console.log(`事实表：${outFactsPath}`);

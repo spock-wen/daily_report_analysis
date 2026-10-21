@@ -371,9 +371,9 @@ function buildViewModel(data) {
     month: `上月同期 ${dateShort(monthDate)}`,
   };
 
-  const makeRef = (label, value, format) => {
+  const makeRef = (label, value, format, missingText = null) => {
     const number = toNumber(value);
-    if (number === null) return { lab: label, missing: true };
+    if (number === null) return { lab: label, missing: true, missingText };
     const dirText = directionValue(currentValueForRow, number);
     return {
       lab: label,
@@ -385,6 +385,7 @@ function buildViewModel(data) {
 
   // currentValueForRow is set per row before building its refs.
   let currentValueForRow = null;
+  const avgMissingText = avgEntries.length < 7 ? '不足 7 天' : null;
   const makeRow = (label, now, currentValue, prevValue, avgValue, monthValue, format) => {
     currentValueForRow = currentValue;
     return {
@@ -392,7 +393,7 @@ function buildViewModel(data) {
       now,
       refs: [
         makeRef(labelOf.prev, prevValue, format),
-        makeRef(labelOf.avg, avgValue, format),
+        makeRef(labelOf.avg, avgValue, format, avgMissingText),
         makeRef(labelOf.month, monthValue, format),
       ],
     };
@@ -437,7 +438,7 @@ function buildViewModel(data) {
     prevDateShort: prevShort || '—',
     lastMonthDateShort: dateShort(monthDate) || '—',
     rows,
-    caption: '7 日均值取最近 7 个有数据日；高热＝今日新增超过 100 星；「—」表示当前数据没有该参照值。',
+    caption: '7 日均值取最近 7 个有数据日，前序不足 7 天时显示「不足 7 天」；高热＝今日新增超过 100 星；「—」表示当前数据没有该参照值。',
   };
 
   const statItems = [

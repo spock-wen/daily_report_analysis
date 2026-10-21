@@ -254,6 +254,34 @@ function readCaseJson(value, root) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
+function evaluateDeletedLog(caseItem, root, result) {
+  if (!caseItem.deleted_log) return { ok: true };
+  const logPath = path.resolve(root, caseItem.deleted_log);
+  if (!fileExists(logPath)) {
+    return { ok: false, error: `删除日志不存在：${logPath}` };
+  }
+  const payload = JSON.parse(fs.readFileSync(logPath, 'utf8'));
+  const entries = Array.isArray(payload) ? payload : (payload.deleted || []);
+  if (entries.length === 0) {
+    return { ok: false, error: '删除日志没有记录' };
+  }
+  for (const entry of entries) {
+    if (!entry || typeof entry.path !== 'string' || typeof entry.sentence !== 'string' || typeof entry.word !== 'string') {
+      return { ok: false, error: '删除日志条目缺少 path/sentence/word' };
+    }
+  }
+  if (caseItem.deleted_word && !entries.some(entry => entry.word === caseItem.deleted_word)) {
+    return { ok: false, error: `删除日志没有记录「${caseItem.deleted_word}」` };
+  }
+  const product = JSON.stringify(result.doc?.json ?? result.insights ?? '');
+  for (const entry of entries) {
+    if (entry.sentence && product.includes(entry.sentence)) {
+      return { ok: false, error: `成品仍包含已删除句：${entry.sentence}` };
+    }
+  }
+  return { ok: true };
+}
+
 function evaluateCase(caseItem, options = {}) {
   const root = path.resolve(options.casesRoot || '/home/box/shared/report-redesign');
   const filePath = path.resolve(root, caseItem.file);
@@ -281,8 +309,16 @@ function evaluateCase(caseItem, options = {}) {
     ruleIdMatches(finding.rule_id, caseItem.rule_id) && locationMatches(finding, caseItem)
   );
 
-  const ok = caseItem.expect === 'FAIL' ? matched.length > 0 : matched.length === 0;
-  return { case: caseItem, ok, matched, findings: result.findings, target: result.target };
+  const ruleOk = caseItem.expect === 'FAIL' ? matched.length > 0 : matched.length === 0;
+  const deletion = evaluateDeletedLog(caseItem, root, result);
+  return {
+    case: caseItem,
+    ok: ruleOk && deletion.ok,
+    error: deletion.ok ? undefined : deletion.error,
+    matched,
+    findings: result.findings,
+    target: result.target,
+  };
 }
 
 module.exports = {
