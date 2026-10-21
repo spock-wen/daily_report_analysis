@@ -21,6 +21,7 @@ const history = require('../src/metrics/history');
 const { buildFacts } = require('../src/facts/build-facts');
 
 const ROOT_DIR = path.join(__dirname, '..');
+const PUBLIC_CSS_DIR = path.join(ROOT_DIR, 'public', 'css');
 const LEVELS = ['daily', 'weekly', 'monthly'];
 const PERIOD_RES = {
   daily: /^\d{4}-\d{2}-\d{2}$/,
@@ -402,6 +403,28 @@ function addFailMarker(htmlPath) {
   return `${htmlPath.slice(0, -ext.length)}.FAIL${ext}`;
 }
 
+// B13：样例 HTML 自包含——把 <link rel="stylesheet"> 指向的 public/css 文件内联进 <style>。
+function inlineStylesheets(html) {
+  return String(html || '').replace(/<link\b[^>]*>/gi, tag => {
+    if (!/\brel\s*=\s*(?:"stylesheet"|'stylesheet'|stylesheet)\b/i.test(tag)) return tag;
+    const match = /\bhref\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))/i.exec(tag);
+    const href = match ? (match[1] || match[2] || match[3]) : null;
+    if (!href) return tag;
+    if (/^(?:[a-z][a-z0-9+.-]*:|\/\/|\/|#)/i.test(href)) return tag;
+    const clean = href.split('#')[0].split('?')[0];
+    const cssPath = path.join(PUBLIC_CSS_DIR, path.basename(clean));
+    if (!fs.existsSync(cssPath)) return tag;
+    return `<style>\n${fs.readFileSync(cssPath, 'utf8')}\n</style>`;
+  });
+}
+
+function inlineSampleStyles(htmlPath) {
+  if (!htmlPath || !fs.existsSync(htmlPath)) return;
+  const html = fs.readFileSync(htmlPath, 'utf8');
+  const inlined = inlineStylesheets(html);
+  if (inlined !== html) fs.writeFileSync(htmlPath, inlined, 'utf8');
+}
+
 function isSameOrInside(childPath, parentPath) {
   const relative = path.relative(parentPath, childPath);
   return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
@@ -732,11 +755,13 @@ async function main() {
   let htmlPath = null;
   if (gate.pass) {
     htmlPath = await generateHtml(level, reportData);
+    inlineSampleStyles(htmlPath);
   } else if (writeHtmlOnFail) {
     const generatedPath = await generateHtml(level, reportData);
     const failPath = addFailMarker(generatedPath);
     fs.renameSync(generatedPath, failPath);
     htmlPath = failPath;
+    inlineSampleStyles(htmlPath);
   }
 
   console.log('');

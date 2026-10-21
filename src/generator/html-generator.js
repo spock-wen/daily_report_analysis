@@ -135,6 +135,11 @@ class HTMLGenerator {
     // 支持多种数据格式：根级别 projects/trending_repos 或 brief.trending_repos
     const projects = data.projects || data.trending_repos || data.brief?.trending_repos || [];
     const stats = data.stats || data.brief?.stats || {};
+    // B14：日报榜单按 todayStars 降序，与原站排序不同。
+    const sortedProjects = projects.slice().sort((left, right) => {
+      return (Number(right.todayStars) || 0) - (Number(left.todayStars) || 0);
+    });
+    const scrapedAt = data.scrapedAt || data.brief?.scrapedAt;
     // 从多个可能的位置获取 period 字段
     const period = data.period || data.brief?.period || '每日';
     
@@ -154,12 +159,14 @@ class HTMLGenerator {
     <header>
       <h1>GitHub AI Trending ${reportType}</h1>
       <div class="date">${date}</div>
+      ${scrapedAt ? `<div class="scraped-at">抓取时刻：${this.formatScrapedAt(scrapedAt)}（UTC+8）</div>` : ''}
     </header>
 
-    ${this.renderStatsSection(stats, projects, data.caption || data.brief?.caption)}
+    ${this.renderStatsSection(stats, sortedProjects, data.caption || data.brief?.caption)}
     ${this.renderDailyDiffSection(data)}
-    ${this.renderProjectListSection(projects)}
-    ${this.renderAIInsightsSection(aiInsights, projects)}
+    ${this.renderDailyBenchmarkSections(aiInsights, sortedProjects)}
+    ${this.renderProjectListSection(sortedProjects)}
+    ${this.renderAIInsightsSection(aiInsights, sortedProjects)}
   </div>
 
   <script>
@@ -251,6 +258,75 @@ class HTMLGenerator {
         <p>较上期${previous}：${parts.join('，')}。</p>
       </section>
     `;
+  }
+
+  formatScrapedAt(value) {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return String(value);
+    const utc8 = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+    const pad = number => String(number).padStart(2, '0');
+    return `${utc8.getUTCFullYear()}-${pad(utc8.getUTCMonth() + 1)}-${pad(utc8.getUTCDate())}`
+      + ` ${pad(utc8.getUTCHours())}:${pad(utc8.getUTCMinutes())}:${pad(utc8.getUTCSeconds())}`;
+  }
+
+  renderDailyBenchmarkSections(aiInsights, projects = []) {
+    if (!aiInsights) return '';
+    const toList = value => {
+      if (Array.isArray(value)) return value.filter(Boolean);
+      return this.hasValue(value) ? [value] : [];
+    };
+    const link = text => this.escapeAndLinkify(markdownToHtml(String(text || '')), projects);
+    const blocks = [];
+
+    if (this.hasValue(aiInsights.overview)) {
+      blocks.push(`
+      <section class="daily-overview">
+        <h2>概览</h2>
+        <p>${link(aiInsights.overview)}</p>
+      </section>
+      `);
+    }
+
+    const coreTrends = toList(aiInsights.coreTrends);
+    if (coreTrends.length > 0) {
+      blocks.push(`
+      <section class="daily-core-trends">
+        <h2>核心趋势</h2>
+        <ul>${coreTrends.map(item => `<li>${link(item)}</li>`).join('')}</ul>
+      </section>
+      `);
+    }
+
+    const streakBrief = toList(aiInsights.streakBrief);
+    if (streakBrief.length > 0) {
+      blocks.push(`
+      <section class="daily-streak-brief">
+        <h2>连续上榜简讯</h2>
+        <ul>${streakBrief.map(item => `<li>${link(item)}</li>`).join('')}</ul>
+      </section>
+      `);
+    }
+
+    if (this.hasValue(aiInsights.churn)) {
+      blocks.push(`
+      <section class="daily-churn">
+        <h2>换血情况</h2>
+        <p>${link(aiInsights.churn)}</p>
+      </section>
+      `);
+    }
+
+    if (this.hasValue(aiInsights.deepAnalysis)) {
+      blocks.push(`
+      <section class="daily-deep-analysis">
+        <h2>深度分析</h2>
+        <p>${link(aiInsights.deepAnalysis)}</p>
+      </section>
+      `);
+    }
+
+    return blocks.join('');
   }
 
   renderProjectListSection(projects) {
@@ -456,7 +532,6 @@ class HTMLGenerator {
     }
 
     const summary = aiInsights.summary || aiInsights.oneLiner || '';
-    const projectInsights = aiInsights.project_insights || [];
     const recommendations = aiInsights.recommendations || aiInsights.action || [];
     const hot = aiInsights.hot || [];
     const hypeIndex = aiInsights.hypeIndex;
@@ -506,18 +581,6 @@ class HTMLGenerator {
           <ul>
             ${hot.map(item => `<li>${linkifyText(item)}</li>`).join('')}
           </ul>
-        ` : ''}
-
-        ${projectInsights.length > 0 ? `
-          <h3>重点项目分析</h3>
-          ${projectInsights.map(insight => `
-            <div style="margin-bottom: 12px;">
-              <div style="margin-bottom: 4px;">
-                ${insight.project_name ? `<a href="${insight.github_url || '#'}" class="project-link" target="_blank">${insight.project_name}</a>` : ''}
-              </div>
-              <p>${linkifyText(insight.oneSentence || insight.analysis || '')}</p>
-            </div>
-          `).join('')}
         ` : ''}
 
         ${recommendations.length > 0 ? `

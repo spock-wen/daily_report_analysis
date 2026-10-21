@@ -95,7 +95,7 @@ node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/c
 - 退出码：`0` PASS；`1` FAIL（或有用例未通过）；`2` 参数错误。
 - 常规模式把 FAIL 清单写到 `<data-dir>/../check/check-<level>-<period>.{json,md}`，每条含文件、行号、字段、原句、规则 ID 和说明。
 - `--cases` 读取 jsonl（每行 `id, rule_id, expect, file, line, quote, expected_hit_fields, source`），用例文件路径相对 `--cases-root`（默认 `/home/box/shared/report-redesign`）；`line: null` 表示整份文档级检查。
-- 覆盖规则：A1、A2、A5、B3、B4、B5、B7、B8、B10、B11、B15、C1、C2、C3、C4、C5、D2（NAME）。
+- 覆盖规则：A1、A2、A5、B3、B4、B5、B7、B8、B10、B11、B12、B13、B15、B16、C1、C2、C3、C4、C5、D2（NAME）。
 - 生成流程在写 HTML 前调用同一套核查；FAIL 时自动重写洞察 1 次，仍 FAIL 则不写 HTML、不推送，写出 FAIL 清单并以非 0 退出（D1/D3）。
 
 ### 配置文件与开关
@@ -202,11 +202,17 @@ node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/c
 | B6 | 与上一期同层报告（日报上一有数据日、周报上一 ISO 周、月报上月）某整句完全相同即 FAIL。 |
 | B10 | `render_map` 中每条事实渲染记录的 `role` 必须与事实表对应事实的 `role` 一致；渲染后文本中占位所在语义槽必须容纳该 role（`掉榜`→`dropped`、`新上榜`→`new`、`今日新增`→`today_stars`/`total_today`、`累计`→`stars`、`回归`→`returned` 等）。不一致即 FAIL；生成时由渲染器触发重试 1 次，仍不一致该期 FAIL。 |
 | B11 | 日报 AI 文字中的「新上榜/首日/回归/连续 N 天」必须与该项目卡片标签（`新`/`回归`/`连续 N 天`，来自 `dailyDiff` tag）一致，不一致即 FAIL。 |
+| B12 | 日报 HTML 必须显示快照抓取时刻：`抓取时刻：YYYY-MM-DD HH:mm:ss（UTC+8）`；缺失即 FAIL。 |
+| B13 | HTML 中资源标签（`link`/`script`/`img`/`source`/`video`/`audio`/`iframe`/`embed`/`object`）的相对 `href`/`src` 必须存在于输出目录（相对 HTML 所在目录解析）；缺失即 FAIL。外部 URL、协议相对 `//`、`#`、根路径 `/` 不判。 |
 | B15 | 成品（insights/HTML/Markdown）命中 `config/checker/spelling_words.txt` 中的错误写法（如 `YANGI`）即 FAIL。 |
+| B16 | 命中「不是……而是……」句式即 FAIL。 |
 
 B4 白名单格式（这些数字不要求 render_map 条目）：
 
 - 日期：`YYYY-MM-DD`、`YYYY年M月D日`、`M月D日`
+- 时间：`HH:mm`、`HH:mm:ss`（B12 抓取时刻）
+- 时区：`UTC+8`、`UTC+08:00`（B12 抓取时刻）
+- 参照口径：`7 日`、`前 7 个`（B16 的「7 日均值」短语，不是数字断言）
 - 期号：`YYYY-Www`（如 `2026-W42`）、`YYYY-MM`（如 `2026-09`）
 - 排名序号：`第N`、`TopN`（大小写不敏感）、`#N`、`1.` 形式的列表序号
 
@@ -217,6 +223,35 @@ B4 白名单格式（这些数字不要求 render_map 条目）：
 - 事实表、渲染记录与 brief/insights/HTML/核查清单一样，已存在即报错退出（退出码 2），不覆盖。
 - `--out-dir`、`--data-dir` 仍为必填（B8）；事实表写入 `<out-dir>/data/facts/`，不读取也不修改源数据目录的 facts。
 - 事实表在洞察分析之前写出；核查 FAIL 时事实表仍保留，便于复盘。
+
+### 单一快照与内容标杆（B12–B16）
+
+**B12 单一快照**
+
+```bash
+node scripts/build-brief-from-snapshot.js \
+  --snapshot <trending-raw.json> --date YYYY-MM-DD --data-dir D
+```
+
+- `--snapshot`、`--date`、`--data-dir` 均必填；目标 `D/briefs/daily/data-<date>.json` 已存在即报错退出（退出码 2），不覆盖。
+- 只读取快照 `repositories[]` 的 `stars`、`todayStars`、`forks` 等数字，不调用 GitHub API、不重抓、不改数字；描述翻译/分析可复用历史 brief。
+- brief 记录 `scrapedAt`（快照抓取时刻）；日报页显示 `抓取时刻：YYYY-MM-DD HH:mm:ss（UTC+8）`。
+
+**B13 自包含**
+
+- `generate-sample.js` 写出的样例 HTML 会把 `public/css/*.css` 内联为 `<style>`，不依赖输出目录外的静态资源。
+- 检查器 B13 校验 HTML 资源标签（`link`/`script`/`img`/`source`/`video`/`audio`/`iframe`/`embed`/`object`）的相对 `href`/`src` 存在于 HTML 所在目录；缺失即 FAIL。外部 URL、协议相对 `//`、`#`、根路径 `/` 不判。
+
+**B14 榜单排序**
+
+- 日报榜单按 `todayStars` 降序。GitHub Trending 原站不按这个口径排序，因此本系统排名与原站可能不同。
+
+**B16 内容标杆**
+
+- 日报 facts.json 增加参照事实：昨日（前一有数据日）、7 日均值（前 7 个有数据日）、上月同期（前一月同日）；类目/语言头部份额变化；连续上榜项目的 `streak`、`acceleration`、`acceleration_ratio`；换血的 `dropped`、`new`、`retention_rate`、`new_face_rate`。缺历史即不产出对应事实。
+- 提示词要求：概览带参照；核心趋势 3–4 条讲「今天什么变了」；连续上榜简讯带天数与提速；换血段；深度分析给可用判断；项目卡 `oneSentence` 不占洞察篇幅；禁用「不是……而是……」。
+- 页面模板最小绑定：`overview`、`coreTrends`、`streakBrief`、`churn`、`deepAnalysis` 有内容才渲染。
+- 检查器 B16：命中「不是……而是……」句式即 FAIL。
 
 ---
 

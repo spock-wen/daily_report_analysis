@@ -1,19 +1,63 @@
 'use strict';
 
-const CLAUSE_SEP_RE = /[，,；;。\n\r]/;
+const CLAUSE_SEP_RE = /[，,、；;。\n\r]/;
 
 // B10：语义槽 → 允许的 role。槽名取自规则举例（掉榜/新上榜/今日新增/累计）
 // 以及事实表 label 中同义的状态词，role 必须落在槽的允许集合内。
+const REFERENCE_PREV_ROLES = [
+  'prev_total_projects',
+  'prev_ai_projects',
+  'prev_avg_stars',
+  'prev_hot_count',
+  'prev_total_today',
+  'prev_max_today',
+];
+
+const REFERENCE_AVG7_ROLES = [
+  'avg7_total_projects',
+  'avg7_ai_projects',
+  'avg7_avg_stars',
+  'avg7_hot_count',
+  'avg7_total_today',
+  'avg7_max_today',
+];
+
+const REFERENCE_MOM_ROLES = [
+  'mom_total_projects',
+  'mom_ai_projects',
+  'mom_avg_stars',
+  'mom_hot_count',
+  'mom_total_today',
+  'mom_max_today',
+];
+
+// 「较昨日变化/提速」也属于昨日语义槽。
+const PREV_SLOT_ROLES = [
+  ...REFERENCE_PREV_ROLES,
+  'category_shift',
+  'language_shift',
+  'acceleration',
+  'acceleration_ratio',
+];
+
 const SLOT_RULES = [
   { pattern: /掉榜|出局/g, roles: ['dropped'] },
-  { pattern: /新上榜|新面孔/g, roles: ['new'] },
+  { pattern: /新上榜|新面孔(?!率)/g, roles: ['new'] },
   { pattern: /回归/g, roles: ['returned'] },
   { pattern: /连续(?:在榜|\s*\d+\s*[天日])/g, roles: ['streak', 'kept'] },
   { pattern: /今日新增|当日新增|单日新增|当天新增/g, roles: ['today_stars', 'total_today'] },
   { pattern: /本周新增/g, roles: ['week_stars', 'total_week'] },
   { pattern: /本月新增/g, roles: ['month_stars', 'total_month'] },
   { pattern: /累计/g, roles: ['stars'] },
-  { pattern: /合计/g, roles: ['total_today', 'total_week', 'total_month'] },
+  { pattern: /合计/g, roles: ['total_today', 'total_week', 'total_month', 'prev_total_today', 'avg7_total_today', 'mom_total_today', 'prev_week_total', 'prev_month_total'] },
+  // B16：参照数、份额变化、提速、换血率的语义槽。
+  { pattern: /昨日|前一有数据日|上一有数据日/g, roles: PREV_SLOT_ROLES },
+  { pattern: /7\s*日均值|七日均值|前\s*7\s*个有数据日/g, roles: REFERENCE_AVG7_ROLES },
+  { pattern: /上月同期|上月同日|前一月同日/g, roles: REFERENCE_MOM_ROLES },
+  { pattern: /类目[^，,、；;。\n]{0,20}份额|语言[^，,、；;。\n]{0,20}份额|份额变化/g, roles: ['category_share', 'category_shift', 'language_share', 'language_shift'] },
+  { pattern: /提速|加速/g, roles: ['acceleration', 'acceleration_ratio'] },
+  { pattern: /留存率/g, roles: ['retention_rate'] },
+  { pattern: /新面孔率/g, roles: ['new_face_rate'] },
 ];
 
 function clauseRange(text, position) {

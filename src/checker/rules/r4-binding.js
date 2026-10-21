@@ -12,6 +12,9 @@ const WHITELIST_PATTERNS = [
   /\d{1,2}月\d{1,2}日/g,
   /\d{4}-W\d{2}/g,
   /\d{4}-\d{2}/g,
+  /\d{1,2}:\d{2}(?::\d{2})?/g,
+  /UTC\+0?8(?::00)?/gi,
+  /(?:前\s*)?7\s*(?:日|个)/g,
   /第\s*\d+/g,
   /Top\s*\d+/gi,
   /#\s*\d+/g,
@@ -21,7 +24,8 @@ const WHITELIST_PATTERNS = [
 function normalizeNumberText(text) {
   return String(text === undefined || text === null ? '' : text)
     .replace(/[,\s]/g, '')
-    .replace(/^\+/, '');
+    // 变化量可能是负数；抽数时不含符号，这里统一去掉正负号再比较。
+    .replace(/^[+\-−]/, '');
 }
 
 function maskWhitelist(text) {
