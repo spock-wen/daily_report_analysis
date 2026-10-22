@@ -89,9 +89,9 @@ function sortFindings(findings) {
   });
 }
 
-function runRules({ level, period, dataDir, brief, insights, documents, renderMap, facts, r3 }) {
+function runRules({ level, period, dataDir, brief, insights, documents, renderMap, facts, r3, viewModel, prevDate }) {
   const config = loadConfig();
-  const ctx = buildContext({ level, period, dataDir, brief, insights, renderMap, facts, r3 });
+  const ctx = buildContext({ level, period, dataDir, brief, insights, renderMap, facts, r3, viewModel, prevDate });
   const findings = [];
 
   for (const doc of documents) {
@@ -192,6 +192,8 @@ function checkDocument(options = {}) {
       renderMap,
       facts,
       r3: options.r3,
+      viewModel: options.viewModel,
+      prevDate: options.prevDate,
     }),
     target,
     doc,
@@ -305,6 +307,50 @@ function evaluateCase(caseItem, options = {}) {
     return { case: caseItem, ok: false, error: `文件不存在：${filePath}`, matched: [], findings: [] };
   }
 
+  let brief = options.brief;
+  let viewModel = options.viewModel;
+  if (!brief && !viewModel && filePath) {
+    const fixtureDir = path.dirname(filePath);
+    if (fs.existsSync(fixtureDir)) {
+      const files = fs.readdirSync(fixtureDir);
+      const briefFileName = files.find(f => /^data-\d{4}-\d{2}-\d{2}\.json$/.test(f));
+      if (briefFileName) {
+        try {
+          brief = JSON.parse(fs.readFileSync(path.join(fixtureDir, briefFileName), 'utf8'));
+          let insights = null;
+          if (fs.existsSync(filePath)) insights = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+          let facts = readCaseJson(caseItem.facts, root);
+          const { buildViewModel } = require('../generator/daily-v3-view-model');
+          const date = brief.date || (briefFileName.match(/\d{4}-\d{2}-\d{2}/) || [])[0];
+          const projects = brief.projects || brief.trending_repos || [];
+          const stats = brief.stats || {};
+          const reportData = {
+            ...brief,
+            date,
+            projects,
+            trending_repos: projects,
+            stats,
+            aiInsights: insights,
+            brief: {
+              ...brief,
+              trending_repos: projects,
+              stats,
+              generated_at: brief.generatedAt,
+            },
+            facts,
+            dailyDiff: brief.dailyDiff,
+            streakDays: brief.streakDays,
+            caption: brief.caption,
+            isSample: true,
+          };
+          viewModel = buildViewModel(reportData);
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+  }
+
   let result;
   try {
     const dataDir = caseItem.data_dir
@@ -316,6 +362,9 @@ function evaluateCase(caseItem, options = {}) {
       renderMap: readCaseJson(caseItem.render_map, root),
       facts: readCaseJson(caseItem.facts, root),
       r3: caseItem.r3,
+      brief,
+      viewModel,
+      prevDate: caseItem.prevDate,
     });
   } catch (error) {
     return { case: caseItem, ok: false, error: error.message, matched: [], findings: [] };

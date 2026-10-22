@@ -454,6 +454,7 @@ function inlineSampleStyles(htmlPath) {
 }
 
 // B13：对最终写出的 HTML 文件运行自包含检查（PASS 与 .FAIL 两条路径都要核）。
+// F4 审计说明：HTML 级别不另加 R5，因 F1/F2 已把 buildReportData + buildViewModel 产出的 VM 作为页面数据源注入 R5 检查器，覆盖了所有页面级数据与文本约束。
 function checkFinalHtml(htmlPath, level) {
   const { loadDocument } = require('../src/checker/document');
   const b13 = require('../src/checker/rules/b13');
@@ -702,6 +703,10 @@ async function main() {
       return 1;
     }
 
+    const reportData = buildReportData(level, period, brief, computed, r5Insights);
+    const { buildViewModel } = require('../src/generator/daily-v3-view-model');
+    const viewModel = level === 'daily' ? buildViewModel(reportData) : null;
+
     const { loadDocument } = require('../src/checker/document');
     const { buildContext } = require('../src/checker/context');
     const { loadConfig } = require('../src/checker/config');
@@ -714,10 +719,11 @@ async function main() {
       brief,
       insights: r5Insights,
       facts,
+      viewModel,
     });
+    ctx.viewModel = viewModel;
     const r5Findings = r5.check(ctx, doc, loadConfig());
 
-    const reportData = buildReportData(level, period, brief, computed, r5Insights);
     const generatedHtmlPath = await writeSampleHtml(level, reportData, { fail: false });
     const htmlFindings = checkFinalHtml(generatedHtmlPath, level);
     const findings = dedupeFindings([...r5Findings, ...htmlFindings]);

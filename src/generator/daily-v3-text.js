@@ -327,7 +327,7 @@ function stripMetricNames(text, config) {
   return result;
 }
 
-const REASON_FORBIDDEN_REGEX = /(?:\d|[零一二两三四五六七八九十百千万亿]|昨|昨天|昨日|前日|前天|前一天|上周|上月|本月|今日|今天|本期|上期|近\s*\d|过去|\d+\s*天前|\d{1,2}[-/.月]\d{1,2}|比|较|同比|环比|相比|对比|高于|低于|超过|落后|多于|少于|均值|平均|倍|增|降|多|少|涨|跌|高|低|上升|下降|增长|回落|暴涨|暴跌|走强|走弱|持平|回归|新增|新进|掉榜|刷新|领先)/;
+const REASON_FORBIDDEN_REGEX = /(?:\d|[零一二两三四五六七八九十百千万亿]|昨天|昨日|前日|前天|前一天|上周|上月|本月|今天|上期|近\s*\d|过去|\d+\s*天前|\d{1,2}[-/.月]\d{1,2}|比|较|相比|对比|同比|环比|高于|低于|超过|落后|多于|少于|均值|平均|倍|上升|下降|增长|回落|走强|走弱|持平|更高|更低|更多|更少|增加|减少|暴涨|暴跌|上涨|下跌|回归|新增|新进|掉榜|刷新|领先)/;
 
 function checkSlotText(value, spec, config, regex) {
   if (!hasValue(value)) return { ok: false, reason: '为空' };
@@ -484,11 +484,11 @@ function comparisonClause(index, write, { metric, unit = '', prevLabel = '较上
       write.signed(dayDelta);
       parts.push('与上期持平');
     } else {
-      parts.push(`${prevLabel} ${write.signed(dayDelta)}${unit}`);
+      parts.push(`${prevLabel}${write.signed(dayDelta)}${unit}`);
     }
   } else {
     const previous = index.role(`prev_${metric}`);
-    if (previous) parts.push(`${prevLabel} ${write.num(previous)}${unit}`);
+    if (previous) parts.push(`${prevLabel}${write.num(previous)}${unit}`);
   }
   return parts.length ? `，${parts.join('、')}` : '';
 }
@@ -498,21 +498,34 @@ function makeSentence(writer) {
   const write = {
     num(fact) {
       if (!fact) return '';
-      const text = String(fact.value);
+      const val = Number(fact.value);
+      const text = Number.isFinite(val) && Math.abs(val) >= 1000
+        ? Math.round(val).toLocaleString('en-US')
+        : String(fact.value);
       entries.push({ factId: fact.id, role: fact.role || null, text });
       return text;
     },
     signed(fact) {
       if (!fact) return '';
       const value = Number(fact.value);
-      const text = Number.isFinite(value) && value > 0 ? `+${fact.value}` : String(fact.value);
+      let text;
+      if (Number.isFinite(value) && Math.abs(value) >= 1000) {
+        const fmt = Math.round(Math.abs(value)).toLocaleString('en-US');
+        text = value > 0 ? `+${fmt}` : (value < 0 ? `-${fmt}` : '0');
+      } else if (Number.isFinite(value) && value > 0) {
+        text = `+${fact.value}`;
+      } else {
+        text = String(fact.value);
+      }
       entries.push({ factId: fact.id, role: fact.role || null, text });
       return text;
     },
     abs(fact) {
       if (!fact) return '';
       const value = Math.abs(Number(fact.value));
-      const text = Number.isFinite(value) ? String(value) : String(fact.value).replace(/^[+\-−]/, '');
+      const text = Number.isFinite(value)
+        ? (value >= 1000 ? Math.round(value).toLocaleString('en-US') : String(value))
+        : String(fact.value).replace(/^[+\-−]/, '');
       entries.push({ factId: fact.id, role: fact.role || null, text });
       return text;
     },
@@ -584,19 +597,35 @@ function buildTrendCandidates(index, prevLabel = '较上期') {
 
         let newPart = `新进 ${w.num(newCount)} 个`;
         if (newDelta) {
-          newPart += `（${prevLabel} ${w.signed(newDelta)}）`;
+          const val = Number(newDelta.value);
+          if (val === 0) {
+            w.signed(newDelta);
+            newPart += '，与上期持平';
+          } else if (val > 0) {
+            newPart += `，${prevLabel}多 ${w.abs(newDelta)} 个`;
+          } else {
+            newPart += `，${prevLabel}少 ${w.abs(newDelta)} 个`;
+          }
         } else if (newPrev) {
-          newPart += `（${prevLabel} ${w.num(newPrev)}）`;
+          newPart += `，${prevLabel}${w.num(newPrev)} 个`;
         }
 
         let dropPart = `掉榜 ${w.num(dropped)} 个`;
         if (droppedDelta) {
-          dropPart += `（${prevLabel} ${w.signed(droppedDelta)}）`;
+          const val = Number(droppedDelta.value);
+          if (val === 0) {
+            w.signed(droppedDelta);
+            dropPart += '，与上期持平';
+          } else if (val > 0) {
+            dropPart += `，${prevLabel}多 ${w.abs(droppedDelta)} 个`;
+          } else {
+            dropPart += `，${prevLabel}少 ${w.abs(droppedDelta)} 个`;
+          }
         } else if (droppedPrev) {
-          dropPart += `（${prevLabel} ${w.num(droppedPrev)}）`;
+          dropPart += `，${prevLabel}${w.num(droppedPrev)} 个`;
         }
 
-        return `${newPart}、${dropPart}，连续在榜 ${w.num(kept)} 个，留存率 ${w.num(retention)}%`;
+        return `${newPart}；${dropPart}，连续在榜 ${w.num(kept)} 个，留存率 ${w.num(retention)}%`;
       }),
       slotId: 'trend.churn.reason',
     });
@@ -652,10 +681,15 @@ function buildAnalysisCandidates(index, prevLabel = '较上期') {
         let base = `当日新增星合计 ${w.num(totalToday)} 星`;
         if (dayDelta) {
           const dVal = Number(dayDelta.value);
-          const dWord = dVal >= 0 ? '多' : '少';
-          base += `，比${prevTarget}${dWord} ${w.abs(dayDelta)} 星`;
+          if (dVal === 0) {
+            w.signed(dayDelta);
+            base += '，与上期持平';
+          } else {
+            const dWord = dVal > 0 ? '多' : '少';
+            base += `，比${prevTarget}${dWord}${w.abs(dayDelta)} 星`;
+          }
         } else if (previous) {
-          base += `，较${prevTarget} ${w.num(previous)} 星`;
+          base += `，较${prevTarget}${w.num(previous)} 星`;
         }
         return base;
       }),
@@ -989,20 +1023,14 @@ function buildDailyV3Text(options = {}) {
 
   const adviceCandidates = buildAdviceCandidates(brief, index, cmpTerm);
   const advice = adviceCandidates.slice(0, 3).map((candidate, position) => {
-    const slotId = `advice.${position + 1}.reason`;
-    const isAccepted = resolved.accepted[slotId];
-    const slotText = resolved.text[slotId];
-    const cleanSlotText = (isAccepted && slotText && slotText.trim() && slotText !== DEFAULT_PHRASES.reason && !slotText.includes('可结合项目描述理解'))
-      ? slotText.trim()
-      : null;
     const sentence = finalize({
       ...candidate,
-      slotIds: [slotId],
-    }, `advice[${position}].text`, cleanSlotText, Boolean(cleanSlotText));
+      slotIds: [],
+    }, `advice[${position}].text`, null, false);
     renderEntries.push(...sentence.entries);
     return {
       text: sentence.text,
-      slotIds: sentence.slotIds,
+      slotIds: [],
     };
   });
 
@@ -1038,16 +1066,21 @@ function buildDailyV3Text(options = {}) {
 
     let detailClause = '';
     if (dropDetails && dropDetails.length > 0) {
-      const types = [...new Set(dropDetails.map(d => d.typeName).filter(Boolean))];
-      if (types.length === 1 && dropDetails.length > 1) {
-        detailClause = `，其中 ${dropDetails.map(d => d.shortName).join('与')} 均为 ${types[0]} 类`;
-      } else if (types.length === 1 && dropDetails.length === 1) {
-        detailClause = `，其中 ${dropDetails[0].shortName} 为 ${types[0]} 类`;
-      } else if (types.length > 1) {
-        detailClause = `，其中 ${dropDetails.map(d => `${d.shortName} 为 ${d.typeName || '其他'} 类`).join('、')}`;
-      } else {
-        detailClause = `，其中包含 ${dropDetails.map(d => d.shortName).join('、')}`;
+      const byType = new Map();
+      for (const d of dropDetails) {
+        const t = d.typeName || '其他';
+        if (!byType.has(t)) byType.set(t, []);
+        byType.get(t).push(d.shortName);
       }
+      const clauses = [];
+      for (const [type, names] of byType.entries()) {
+        if (names.length > 1) {
+          clauses.push(`${names.join('与')} 均为 ${type}类`);
+        } else {
+          clauses.push(`${names[0]} 为 ${type}类`);
+        }
+      }
+      detailClause = `，其中 ${clauses.join('，')}`;
     }
 
     const cleanSlotText = (isAccepted && slotText && slotText.trim() && slotText !== DEFAULT_PHRASES.reason && !slotText.includes('可结合项目描述理解'))

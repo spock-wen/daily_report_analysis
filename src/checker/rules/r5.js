@@ -40,19 +40,39 @@ function textFields(json) {
   return fields;
 }
 
+function getPath(obj, path) {
+  if (!obj || typeof obj !== 'object') return undefined;
+  const parts = Array.isArray(path) ? path : String(path).split('.');
+  let curr = obj;
+  for (const part of parts) {
+    if (curr === null || curr === undefined || typeof curr !== 'object') return undefined;
+    curr = curr[part];
+  }
+  return curr;
+}
+
+function pick(json, ctx, path) {
+  const fromJson = getPath(json, path);
+  if (fromJson !== undefined && fromJson !== null) return fromJson;
+  const fromVm = getPath(ctx?.viewModel, path);
+  if (fromVm !== undefined && fromVm !== null) return fromVm;
+  return undefined;
+}
+
 function factList(ctx) {
-  if (Array.isArray(ctx.facts)) return ctx.facts;
-  if (Array.isArray(ctx.facts?.facts)) return ctx.facts.facts;
+  if (Array.isArray(ctx?.facts)) return ctx.facts;
+  if (Array.isArray(ctx?.facts?.facts)) return ctx.facts.facts;
   return [];
 }
 
-function checkHero(json, doc, findings) {
-  if (!Object.prototype.hasOwnProperty.call(json, 'hero')) return;
-  const hero = json.hero && typeof json.hero === 'object' ? json.hero : {};
+function checkHero(json, ctx, doc, findings) {
+  const hero = pick(json, ctx, 'hero');
+  if (hero === undefined) return;
+  const heroObj = hero && typeof hero === 'object' ? hero : {};
   const lead = fieldText(
-    hero.lead !== undefined ? hero.lead
-      : (hero.oneLiner !== undefined ? hero.oneLiner
-        : (typeof json.hero === 'string' ? json.hero : ''))
+    heroObj.lead !== undefined ? heroObj.lead
+      : (heroObj.oneLiner !== undefined ? heroObj.oneLiner
+        : (typeof hero === 'string' ? hero : ''))
   ).trim();
   if (lead) return;
   findings.push(makeFinding('R5', doc, {
@@ -81,7 +101,7 @@ function textOf(value) {
   return '';
 }
 
-function checkFieldMapBlocks(json, doc, findings) {
+function checkFieldMapBlocks(json, ctx, doc, findings) {
   const trends = Array.isArray(json.trends) ? json.trends : [];
   if (trends.length < 3) {
     findings.push(makeFinding('R5', doc, {
@@ -170,12 +190,9 @@ function checkFieldMapBlocks(json, doc, findings) {
     }
   }
 
-  const slots = json.slots && typeof json.slots === 'object' && !Array.isArray(json.slots)
-    ? json.slots
-    : {};
-  const heroText = Object.prototype.hasOwnProperty.call(json, 'hero')
-    ? textOf(json.hero?.lead ?? json.hero)
-    : textOf(slots['hero.reason']);
+  const hero = pick(json, ctx, 'hero');
+  const heroLead = pick(json, ctx, 'hero.lead') ?? (hero && typeof hero === 'object' ? hero.lead : (typeof hero === 'string' ? hero : ''));
+  const heroText = textOf(heroLead);
   if (!heroText) {
     findings.push(makeFinding('R5', doc, {
       field: 'hero.lead',
@@ -215,7 +232,7 @@ function checkFieldMapBlocks(json, doc, findings) {
   }
 }
 
-function checkNoPlaceholder(json, doc, findings) {
+function checkNoPlaceholder(json, ctx, doc, findings) {
   const candidates = [];
   const push = (field, value) => {
     const text = textOf(value);
@@ -231,7 +248,7 @@ function checkNoPlaceholder(json, doc, findings) {
   }
   push('churnNewText', json.churnNewText);
   push('churnDropText', json.churnDropText);
-  push('hero.lead', json.hero?.lead);
+  push('hero.lead', pick(json, ctx, 'hero.lead') ?? pick(json, ctx, 'hero')?.lead);
   push('hypeIndex.reason', json.hypeIndex?.reason);
   for (const [index, project] of (Array.isArray(json.projects) ? json.projects : []).entries()) {
     push(`projects[${index}].descShortZh`, project?.descShortZh);
@@ -308,9 +325,10 @@ function isAvgStarsMetric(item) {
   return label.includes('平均') && /(Stars|星)/.test(label);
 }
 
-function checkAvgStars(json, doc, findings) {
-  const metrics = Array.isArray(json.metrics) ? json.metrics : [];
-  for (const [index, item] of metrics.entries()) {
+function checkAvgStars(json, ctx, doc, findings) {
+  const metrics = pick(json, ctx, 'metrics');
+  const metricList = Array.isArray(metrics) ? metrics : [];
+  for (const [index, item] of metricList.entries()) {
     if (!isAvgStarsMetric(item)) continue;
     if (item.value === undefined || item.value === null || String(item.value).trim() === '') continue;
     if (isKFormat(item.value)) continue;
@@ -394,6 +412,7 @@ function maskDateTimes(text) {
 
 function isAiSlotPath(path) {
   if (!path || typeof path !== 'string') return false;
+  if (path.startsWith('hero.')) return false;
   return path.startsWith('slots.') || path.endsWith('.reason') || path.includes('.reason');
 }
 
@@ -744,26 +763,28 @@ function checkRepoWhitelist(json, ctx, doc, findings) {
     }
   }
 
-  if (json.hero?.lead) {
-    const repos = findRepoFullNames(json.hero.lead);
+  const heroLead = pick(json, ctx, 'hero.lead') ?? pick(json, ctx, 'hero')?.lead;
+  if (heroLead) {
+    const repos = findRepoFullNames(heroLead);
     for (const repo of repos) {
       if (!allowed.has(repo)) {
         findings.push(makeFinding('R5', doc, {
           field: 'hero.lead',
-          quote: json.hero.lead,
+          quote: heroLead,
           message: `项目名「${repo}」不在当期允许的仓库白名单中`,
         }));
       }
     }
   }
 
-  if (json.sparkNote) {
-    const repos = findRepoFullNames(json.sparkNote);
+  const sparkNote = pick(json, ctx, 'sparkNote');
+  if (sparkNote) {
+    const repos = findRepoFullNames(sparkNote);
     for (const repo of repos) {
       if (!allowed.has(repo)) {
         findings.push(makeFinding('R5', doc, {
           field: 'sparkNote',
-          quote: json.sparkNote,
+          quote: sparkNote,
           message: `项目名「${repo}」不在当期允许的仓库白名单中`,
         }));
       }
@@ -952,14 +973,18 @@ function checkCardDuplicate(json, doc, findings) {
 }
 
 function getPrevDate(ctx, json) {
-  if (json?.prevDate) return json.prevDate;
+  const prevDate = pick(json, ctx, 'prevDate');
+  if (prevDate) return prevDate;
+  if (ctx?.prevDate) return ctx.prevDate;
   if (ctx?.brief?.dailyDiff?.prevDate) return ctx.brief.dailyDiff.prevDate;
   if (ctx?.brief?.stats?.prevDate) return ctx.brief.stats.prevDate;
+  const vmPrevDate = pick(json, ctx, 'cmp.prevDateShort');
+  if (vmPrevDate && /^\d{4}-\d{2}-\d{2}$/.test(vmPrevDate)) return vmPrevDate;
   for (const fact of factList(ctx)) {
     const match = /briefs\/daily\/data-(\d{4}-\d{2}-\d{2})\.json/.exec(String(fact?.source || ''));
     if (match) return match[1];
   }
-  const date = json?.date || ctx?.period || ctx?.brief?.date;
+  const date = pick(json, ctx, 'date') || ctx?.period || ctx?.brief?.date;
   const scrapedAt = ctx?.brief?.scrapedAt || ctx?.brief?.generatedAt;
   if (scrapedAt && typeof history.getBaselineSnapshot === 'function') {
     const baseline = history.getBaselineSnapshot(scrapedAt);
@@ -986,7 +1011,7 @@ function toYMD(d) {
 }
 
 function checkPeriodLabels(json, ctx, doc, findings) {
-  const date = json?.date || ctx?.period || ctx?.brief?.date || '2026-10-21';
+  const date = pick(json, ctx, 'date') || ctx?.period || ctx?.brief?.date || '2026-10-21';
   const prevDate = getPrevDate(ctx, json);
   if (!prevDate) return;
 
@@ -1099,41 +1124,37 @@ function checkPeriodLabels(json, ctx, doc, findings) {
   }
 
   // 区块标题与目录文字
-  checkItem('cmpTitle', json.cmpTitle);
-  checkItem('cmpNav', json.cmpNav);
-  checkItem('cmpNavText', json.cmpNavText);
-  checkItem('cmpNavLabel', json.cmpNavLabel);
+  checkItem('cmpTitle', pick(json, ctx, 'cmpTitle'));
 
-  if (json.nav && typeof json.nav === 'object') {
-    checkItem('nav.cmp', json.nav.cmp);
-    checkItem('nav.cmpTitle', json.nav.cmpTitle);
-    checkItem('nav.cmpText', json.nav.cmpText);
-    checkItem('nav.cmpNav', json.nav.cmpNav);
+  const nav = pick(json, ctx, 'nav');
+  if (nav && typeof nav === 'object') {
+    checkItem('nav.cmp', nav.cmp);
   }
 
-  if (json.toc && typeof json.toc === 'object') {
-    checkItem('toc.cmp', json.toc.cmp);
-    checkItem('toc.cmpTitle', json.toc.cmpTitle);
-    checkItem('toc.cmpText', json.toc.cmpText);
+  const toc = pick(json, ctx, 'toc');
+  if (toc && typeof toc === 'object') {
+    checkItem('toc.cmp', toc.cmp);
   }
 
-  if (Array.isArray(json.metrics)) {
-    for (const [index, m] of json.metrics.entries()) {
+  const metrics = pick(json, ctx, 'metrics');
+  if (Array.isArray(metrics)) {
+    for (const [index, m] of metrics.entries()) {
       checkItem(`metrics[${index}].prevLabel`, m.prevLabel);
       checkItem(`metrics[${index}].label`, m.label);
       checkItem(`metrics[${index}].dYText`, m.dYText);
     }
   }
-  checkItem('sparkNote', json.sparkNote);
+  checkItem('sparkNote', pick(json, ctx, 'sparkNote'));
 
-  if (json.cmp) {
-    checkItem('cmp.title', json.cmp.title);
-    checkItem('cmp.navText', json.cmp.navText);
-    checkItem('cmp.navLabel', json.cmp.navLabel);
-    checkItem('cmp.prevDateLabel', json.cmp.prevDateLabel);
-    checkItem('cmp.caption', json.cmp.caption);
-    if (Array.isArray(json.cmp.rows)) {
-      for (const [rIndex, row] of json.cmp.rows.entries()) {
+  const cmp = pick(json, ctx, 'cmp');
+  if (cmp) {
+    checkItem('cmp.title', cmp.title);
+    checkItem('cmp.navText', cmp.navText);
+    checkItem('cmp.navLabel', cmp.navLabel);
+    checkItem('cmp.prevDateLabel', cmp.prevDateLabel);
+    checkItem('cmp.caption', cmp.caption);
+    if (Array.isArray(cmp.rows)) {
+      for (const [rIndex, row] of cmp.rows.entries()) {
         checkItem(`cmp.rows[${rIndex}].label`, row.label);
         if (Array.isArray(row.refs)) {
           for (const [cIndex, ref] of row.refs.entries()) {
@@ -1144,27 +1165,31 @@ function checkPeriodLabels(json, ctx, doc, findings) {
     }
   }
 
-  if (Array.isArray(json.langRows)) {
-    for (const [index, row] of json.langRows.entries()) {
+  const langRows = pick(json, ctx, 'langRows');
+  if (Array.isArray(langRows)) {
+    for (const [index, row] of langRows.entries()) {
       checkItem(`langRows[${index}].label`, row.label);
     }
   }
-  if (Array.isArray(json.typeRows)) {
-    for (const [index, row] of json.typeRows.entries()) {
+  const typeRows = pick(json, ctx, 'typeRows');
+  if (Array.isArray(typeRows)) {
+    for (const [index, row] of typeRows.entries()) {
       checkItem(`typeRows[${index}].label`, row.label);
     }
   }
-  checkItem('langNote', json.langNote);
+  checkItem('langNote', pick(json, ctx, 'langNote'));
 
-  if (json.slope) {
-    checkItem('slope.colPrev', json.slope.colPrev);
+  const slope = pick(json, ctx, 'slope');
+  if (slope) {
+    checkItem('slope.colPrev', slope.colPrev);
   }
-  if (Array.isArray(json.rankRows)) {
-    for (const [index, row] of json.rankRows.entries()) {
+  const rankRows = pick(json, ctx, 'rankRows');
+  if (Array.isArray(rankRows)) {
+    for (const [index, row] of rankRows.entries()) {
       checkItem(`rankRows[${index}].prev`, row.prev);
     }
   }
-  checkItem('rankNote', json.rankNote);
+  checkItem('rankNote', pick(json, ctx, 'rankNote'));
 }
 
 function findMatchingCmpRow(rows, metricLabel) {
@@ -1182,12 +1207,14 @@ function findMatchingCmpRow(rows, metricLabel) {
 }
 
 function checkMetricDy(json, ctx, doc, findings) {
-  const metrics = Array.isArray(json.metrics) ? json.metrics : [];
-  if (!metrics.length) return;
-  const cmpRows = json.cmp?.rows || ctx?.cmp?.rows || null;
+  const metrics = pick(json, ctx, 'metrics');
+  const metricList = Array.isArray(metrics) ? metrics : [];
+  if (!metricList.length) return;
+  const cmp = pick(json, ctx, 'cmp');
+  const cmpRows = cmp?.rows || ctx?.cmp?.rows || null;
   if (!cmpRows) return;
 
-  for (const [index, metric] of metrics.entries()) {
+  for (const [index, metric] of metricList.entries()) {
     if (metric.dYText === undefined || metric.dYText === null || metric.dYText === '') continue;
     const cmpRow = findMatchingCmpRow(cmpRows, metric.label);
     if (!cmpRow || !Array.isArray(cmpRow.refs) || !cmpRow.refs.length) continue;
@@ -1211,7 +1238,47 @@ function checkMetricDy(json, ctx, doc, findings) {
   }
 }
 
-function checkConsecutiveDuplicates(json, doc, findings) {
+function checkMetricFacts(json, ctx, doc, findings) {
+  const metrics = pick(json, ctx, 'metrics');
+  if (!Array.isArray(metrics) || !metrics.length) return;
+  const facts = factList(ctx);
+  if (!facts.length) return;
+
+  const roleMap = {
+    totalProjects: 'total_projects',
+    aiProjects: 'ai_projects',
+    totalToday: 'total_today',
+    avgStars: 'avg_stars',
+  };
+  const labelMap = {
+    '上榜项目': 'total_projects',
+    'AI 项目': 'ai_projects',
+    '今日新增星合计': 'total_today',
+    '平均总星': 'avg_stars',
+  };
+
+  for (const [index, metric] of metrics.entries()) {
+    if (!metric) continue;
+    const role = roleMap[metric.key] || labelMap[metric.label];
+    if (!role) continue;
+    const fact = facts.find(f => f.role === role);
+    if (!fact) continue;
+
+    const metricNum = toNumber(metric.value);
+    const factNum = toNumber(fact.value);
+    if (metricNum !== null && factNum !== null) {
+      if (metricNum !== factNum) {
+        findings.push(makeFinding('R5', doc, {
+          field: `metrics[${index}].value`,
+          quote: String(metric.value),
+          message: `指标卡「${metric.label}」数值（${metric.value}）与事实表（${fact.value}）不一致`,
+        }));
+      }
+    }
+  }
+}
+
+function checkConsecutiveDuplicates(json, ctx, doc, findings) {
   const checkText = (path, text) => {
     if (!text || typeof text !== 'string') return;
     const dup = findConsecutiveDuplicate(text);
@@ -1228,10 +1295,14 @@ function checkConsecutiveDuplicates(json, doc, findings) {
     checkText(field.path, field.text);
   }
 
-  if (json.hero?.lead) checkText('hero.lead', json.hero.lead);
-  if (json.sparkNote) checkText('sparkNote', json.sparkNote);
-  if (json.langNote) checkText('langNote', json.langNote);
-  if (json.rankNote) checkText('rankNote', json.rankNote);
+  const heroLead = pick(json, ctx, 'hero.lead') ?? pick(json, ctx, 'hero')?.lead;
+  if (heroLead) checkText('hero.lead', heroLead);
+  const sparkNote = pick(json, ctx, 'sparkNote');
+  if (sparkNote) checkText('sparkNote', sparkNote);
+  const langNote = pick(json, ctx, 'langNote');
+  if (langNote) checkText('langNote', langNote);
+  const rankNote = pick(json, ctx, 'rankNote');
+  if (rankNote) checkText('rankNote', rankNote);
 
   const projects = Array.isArray(json.projects) ? json.projects : [];
   for (const [index, p] of projects.entries()) {
@@ -1247,15 +1318,33 @@ function checkConsecutiveDuplicates(json, doc, findings) {
   }
 }
 
-function collectAllDocumentTexts(json) {
+function collectAllDocumentTexts(json, ctx) {
   const fields = [];
-  if (!json || typeof json !== 'object') return fields;
-  if (json.hero && typeof json.hero === 'object') {
-    if (typeof json.hero.lead === 'string') fields.push({ path: 'hero.lead', text: json.hero.lead });
-    if (typeof json.hero.sub === 'string') fields.push({ path: 'hero.sub', text: json.hero.sub });
-    if (typeof json.hero.oneLiner === 'string') fields.push({ path: 'hero.oneLiner', text: json.hero.oneLiner });
-    if (typeof json.hero.reason === 'string') fields.push({ path: 'hero.reason', text: json.hero.reason });
+  const hero = pick(json, ctx, 'hero');
+  if (hero && typeof hero === 'object') {
+    if (typeof hero.lead === 'string') fields.push({ path: 'hero.lead', text: hero.lead });
+    if (typeof hero.sub === 'string') fields.push({ path: 'hero.sub', text: hero.sub });
+    if (typeof hero.oneLiner === 'string') fields.push({ path: 'hero.oneLiner', text: hero.oneLiner });
+    if (typeof hero.reason === 'string') fields.push({ path: 'hero.reason', text: hero.reason });
   }
+  const metrics = pick(json, ctx, 'metrics');
+  if (Array.isArray(metrics)) {
+    for (const [idx, m] of metrics.entries()) {
+      if (m?.value !== undefined && m?.value !== null) {
+        fields.push({ path: `metrics[${idx}].value`, text: String(m.value) });
+      }
+      if (m?.dYText !== undefined && m?.dYText !== null && m.dYText !== '') {
+        fields.push({ path: `metrics[${idx}].dYText`, text: String(m.dYText) });
+      }
+    }
+  }
+  const sparkNote = pick(json, ctx, 'sparkNote');
+  if (typeof sparkNote === 'string') fields.push({ path: 'sparkNote', text: sparkNote });
+  const langNote = pick(json, ctx, 'langNote');
+  if (typeof langNote === 'string') fields.push({ path: 'langNote', text: langNote });
+  const rankNote = pick(json, ctx, 'rankNote');
+  if (typeof rankNote === 'string') fields.push({ path: 'rankNote', text: rankNote });
+
   for (const [idx, item] of (Array.isArray(json.trends) ? json.trends : []).entries()) {
     fields.push({ path: `trends[${idx}].text`, text: fieldText(item) });
   }
@@ -1286,7 +1375,7 @@ function buildFactNumberSet(ctx, json) {
 
 function checkThreeDigitNumbersInFacts(json, ctx, doc, findings) {
   const known = buildKnownSourceNumberSet(ctx, json);
-  const fields = collectAllDocumentTexts(json);
+  const fields = collectAllDocumentTexts(json, ctx);
 
   for (const field of fields) {
     if (!field.text) continue;
@@ -1317,18 +1406,19 @@ function check(ctx, doc, config) {
   checkSlots(doc.json, doc, config || {}, findings);
   checkNumbers(doc.json, ctx, doc, findings);
   checkThreeDigitNumbersInFacts(doc.json, ctx, doc, findings);
-  checkHero(doc.json, doc, findings);
+  checkHero(doc.json, ctx, doc, findings);
   checkCardIntro(doc.json, doc, findings);
-  checkAvgStars(doc.json, doc, findings);
-  checkFieldMapBlocks(doc.json, doc, findings);
-  checkNoPlaceholder(doc.json, doc, findings);
+  checkAvgStars(doc.json, ctx, doc, findings);
+  checkFieldMapBlocks(doc.json, ctx, doc, findings);
+  checkNoPlaceholder(doc.json, ctx, doc, findings);
   checkTrendNumbers(doc.json, doc, findings);
   checkCardRepoName(doc.json, doc, findings);
   checkRepoWhitelist(doc.json, ctx, doc, findings);
   checkCardDuplicate(doc.json, doc, findings);
   checkPeriodLabels(doc.json, ctx, doc, findings);
   checkMetricDy(doc.json, ctx, doc, findings);
-  checkConsecutiveDuplicates(doc.json, doc, findings);
+  checkMetricFacts(doc.json, ctx, doc, findings);
+  checkConsecutiveDuplicates(doc.json, ctx, doc, findings);
 
   if (Array.isArray(doc.json.advice) && doc.json.advice.length > 3) {
     findings.push(makeFinding('R5', doc, {

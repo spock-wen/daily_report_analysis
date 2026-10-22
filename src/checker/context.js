@@ -202,6 +202,8 @@ function buildContext(options = {}) {
     r3,
     renderMap,
     facts,
+    viewModel: options.viewModel || null,
+    prevDate: options.prevDate || null,
     readDailyInsights,
     getPreviousDailyInsights(date, count = 1) {
       const results = [];

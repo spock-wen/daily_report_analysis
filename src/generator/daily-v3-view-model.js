@@ -555,7 +555,6 @@ function buildCmp({
     navText: cmpTitle,
     prevDateLabel: prevDateLabel === '—' ? '无基准' : `${prevDateLabel}（本期之前最近一份快照）`,
     prevDateShort: prevDateLabel,
-    lastMonthDateShort: monthDateLabel,
     rows,
     caption: '高热＝今日新增超过 100 星；「暂无」表示当前无该项参照数据。',
   };
@@ -778,7 +777,7 @@ function buildViewModel(data) {
   const baselineSnapshots = scrapedAt ? history.getBaselineSnapshots(scrapedAt, 8) : [];
   const priorEntries = baselineSnapshots.slice(0, 7);
   const priorSnapshots = priorEntries.map(entry => snapshotOf(entry.brief));
-  const previousDate = priorEntries[0]?.date || null;
+  const previousDate = priorEntries[0]?.date || data.prevDate || brief.dailyDiff?.prevDate || null;
   const isYesterday = isPrevYesterday(date, previousDate);
 
   const recentPriors = priorEntries.slice(0, 6).reverse();
@@ -1026,8 +1025,14 @@ function buildViewModel(data) {
   } else {
     leadSub = '上榜项目整体结构平稳。';
   }
+  const hotRatio = currentSnapshot.totalProjects > 0
+    ? currentSnapshot.hotCount / currentSnapshot.totalProjects
+    : 0;
+  const hotPct = Math.round(hotRatio * 100);
+  const hypeReason = `高热项目 ${currentSnapshot.hotCount} 个，占全部 ${currentSnapshot.totalProjects} 个（占比 ${hotPct}%）；当日新增合计 ${currentSnapshot.totalToday} 星。`;
+
   hero.sub = leadSub;
-  hero.reason = hypeIndex.reason;
+  hero.reason = hypeReason;
 
   return {
     css: fs.readFileSync(CSS_PATH, 'utf8'),
@@ -1054,11 +1059,10 @@ function buildViewModel(data) {
     archive: buildArchive({ date, weekLabel }),
     hero,
     verdict: {
-      oneLiner: insights.oneLiner || '',
       hypeScore: hypeIndex.score,
       hypeDots: '●'.repeat(Number(hypeIndex.score) || 0)
         + '○'.repeat(Math.max(0, 5 - (Number(hypeIndex.score) || 0))),
-      hypeReason: hypeIndex.reason || '',
+      hypeReason,
     },
     baseLabel,
     metrics,
