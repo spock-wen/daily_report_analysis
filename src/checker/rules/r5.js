@@ -355,7 +355,8 @@ function checkNoPlaceholder(json, ctx, doc, findings) {
   }
 }
 
-const TREND_COMPARISON_RE = /(?:较昨日|较上期(?:[（(][\d-]+[）)])?|较上一有数据日|较\s*7\s*日均|较近\s*\d+\s*日均|上期无数据)\s*[+\-−]?\d|与上期持平|上期无数据/;
+// R4：S5 生成句写「较上期多/少 N 个」，比较词后允许一个多/少/高/低再接数字。
+const TREND_COMPARISON_RE = /(?:较昨日|较上期(?:[（(][\d-]+[）)])?|较上一有数据日|较\s*7\s*日均|较近\s*\d+\s*日均|上期无数据)\s*(?:[多少高低]\s*)?[+\-−]?\d|与上期持平|上期无数据/;
 
 // 事实表里是否存在上期（prev_ 开头 role）条目。
 function hasPrevPeriodFacts(ctx) {
@@ -629,6 +630,15 @@ function buildKnownSourceNumberSet(ctx, json) {
     ]) {
       if (v !== undefined && v !== null) {
         addCanonicalKeys(set, v);
+        // R3：页面对 facts 小数（如 7 日均 36091.4、较 7 日均 −24840.4）按整数显示、差值写「高/低 N」取绝对值，
+        // 只放行同一 fact 的四舍五入整数及其绝对值，不放行其他派生数。
+        const num = typeof v === 'number' ? v : Number(v);
+        if (Number.isFinite(num) && !Number.isInteger(num)) {
+          addCanonicalKeys(set, Math.round(num));
+          addCanonicalKeys(set, Math.round(Math.abs(num)));
+        } else if (Number.isFinite(num) && num < 0) {
+          addCanonicalKeys(set, Math.abs(num));
+        }
       }
     }
   }
@@ -1286,9 +1296,27 @@ function checkPeriodLabels(json, ctx, doc, findings) {
       }
     }
 
-    // 6. 上月 / 上月同期
-    const shangyueRe = /(?:较上月|上月同期|上月)/g;
+    // 6a. 上月同期 MM-DD：对比表上月同期列，日期须严格等于本期日期回退一个月（与 mom_ 事实同一口径）。
+    const momTarget = baseDate
+      ? toYMD(new Date(Date.UTC(baseDate.getUTCFullYear(), baseDate.getUTCMonth() - 1, baseDate.getUTCDate())))
+      : null;
+    const momDateRe = /上月同期\s*(?:(\d{1,2})[-/.月](\d{1,2})日?|—)/g;
+    while ((match = momDateRe.exec(text)) !== null) {
+      if (match[1] === undefined) continue;
+      const mmdd = `${String(match[1]).padStart(2, '0')}-${String(match[2]).padStart(2, '0')}`;
+      if (!momTarget || mmdd !== momTarget.slice(5)) {
+        findings.push(makeFinding('R5', doc, {
+          field: path,
+          quote: text,
+          message: `时间指代「${match[0]}」日期（${mmdd}）与上月同期日期（${momTarget || '无法换算'}）不一致`,
+        }));
+      }
+    }
+
+    // 6. 上月 / 上月同期（不带日期的写法；带日期或「—」的已在 6a 核对）
+    const shangyueRe = /(?:较上月|上月同期(?!\s*(?:\d{1,2}[-/.月]\d{1,2}|—))|上月)/g;
     while ((match = shangyueRe.exec(text)) !== null) {
+      if (match[0] === '上月' && /^同期\s*(?:\d{1,2}[-/.月]\d{1,2}|—)/.test(text.slice(match.index + 2))) continue;
       const target = baseDate ? toYMD(new Date(Date.UTC(baseDate.getUTCFullYear(), baseDate.getUTCMonth() - 1, baseDate.getUTCDate()))) : null;
       if (target && target !== prevDate) {
         findings.push(makeFinding('R5', doc, {
@@ -1740,9 +1768,13 @@ function checkPunctSpace(json, ctx, doc, findings) {
 }
 
 // 术语统一：agent 一律写作「智能体」，不得写「代理」。
+const NETWORK_AGENT_RE = /(反向代理|正向代理|透明代理|代理服务器|代理IP|代理 IP|代理端口|代理池|代理模式|(?:HTTP|HTTPS|SOCKS5?|网络)\s*代理)/gi;
+
 function checkAgentTerm(page, ctx, doc, findings) {
   for (const field of collectAllDocumentTexts(page, ctx)) {
     if (!field.text || !field.text.includes('代理')) continue;
+    // R6：与生成端 normalizeAgentTerm 同一张网络义豁免表（反向代理/代理服务器/网络代理…），剔除后仍有「代理」才拦。
+    if (!field.text.replace(NETWORK_AGENT_RE, '').includes('代理')) continue;
     findings.push(makeFinding('R5', doc, {
       field: field.path,
       quote: field.text,

@@ -484,7 +484,8 @@ function buildCmp({
   isYesterday = true,
   facts,
 }) {
-  const cmpTitle = '和昨天比';
+  // R1：上一份快照是前一天写「和昨天比」，否则写「和 MM-DD 比」（日期取上一份快照），不改检查规则。
+  const cmpTitle = (isYesterday || !previousDate) ? '和昨天比' : `和 ${dateShort(previousDate)} 比`;
   const prevSnapshot = previousBrief ? snapshotOf(previousBrief) : null;
   const monthSnapshot = monthEntry ? snapshotOf(monthEntry.brief) : null;
   const avgOf = key => (priorSnapshots.length >= 2

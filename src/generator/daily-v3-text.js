@@ -183,7 +183,16 @@ function buildDefaultDescShortZh(project, existingTexts = []) {
 function buildDefaultOneSentence(project, descZh, existingTexts = []) {
   const candidates = extractCandidateClauses(project);
   const remaining = candidates.filter(c => !c.includes(descZh) && !descZh.includes(c));
-  return pickProgrammaticClause(remaining.length ? remaining : candidates, project, existingTexts, 40);
+  const picked = pickProgrammaticClause(remaining, project, existingTexts, 40);
+  // R7：简介表未收录时，默认一句话不得与中文简介相同或互相包含（10-19 #8「视频还原工具」）。
+  const desc = String(descZh || '').trim();
+  if (desc && (picked === desc || picked.includes(desc) || desc.includes(picked))) {
+    const topic = buildTopicsClause(project).slice(0, 40);
+    if (topic !== desc && !topic.includes(desc) && !desc.includes(topic)) return topic;
+    const cleanName = (project.name || project.fullName || '开发者').split('/').pop().slice(0, 12);
+    return `${cleanName} 开源项目，详见简介`;
+  }
+  return picked;
 }
 
 // 槽位 JSON 允许扁平点号键，也允许嵌套对象；统一摊平成 slotId -> 文本。
