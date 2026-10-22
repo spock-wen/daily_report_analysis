@@ -258,11 +258,6 @@ function buildMetrics({ series, priorSnapshots, prevSnapshot = null, isYesterday
   const previous = prevSnapshot || (series.length > 1 ? series[series.length - 2] : null);
   const priorCount = priorSnapshots.length;
   const prevLabel = isYesterday ? '较昨日' : '较上期';
-  const baseLabel = priorCount >= 7
-    ? '较 7 日均'
-    : priorCount >= 2
-      ? `较近 ${priorCount} 日均`
-      : '不足 7 天';
 
   const metrics = [
     { key: 'totalProjects', label: '上榜项目' },
@@ -273,11 +268,8 @@ function buildMetrics({ series, priorSnapshots, prevSnapshot = null, isYesterday
     const values = series.map(item => item[definition.key]);
     const now = current[definition.key];
     const yesterday = previous ? previous[definition.key] : null;
-    const base = priorCount >= 2 ? average(priorSnapshots.map(item => item[definition.key])) : null;
     const dayDelta = yesterday === null || now === null ? null : now - yesterday;
-    const baseDelta = base === null || now === null ? null : now - base;
     const dayDirection = dayDelta === null ? { cls: '', arrow: '' } : directionOf(dayDelta);
-    const baseDirection = baseDelta === null ? { cls: '', arrow: '' } : directionOf(baseDelta);
     return {
       label: definition.label,
       value: formatMetric(definition.key, now),
@@ -286,29 +278,17 @@ function buildMetrics({ series, priorSnapshots, prevSnapshot = null, isYesterday
       dYCls: dayDirection.cls,
       dYArrow: dayDirection.arrow,
       dYText: dayDelta === null ? '' : formatMetric(definition.key, Math.abs(dayDelta)),
-      dACls: baseDirection.cls,
-      dAArrow: baseDirection.arrow,
-      dAText: baseDelta === null ? '' : formatMetric(definition.key, Math.abs(baseDelta)),
     };
   });
 
-  return { metrics, baseLabel, prevLabel };
+  return { metrics, prevLabel };
 }
 
-function buildSparkNote({ seriesDates, priorDates, baseLabel, priorCount }) {
-  const parts = [];
+function buildSparkNote({ seriesDates, priorDates, priorCount }) {
   if (seriesDates.length >= 2 && priorCount >= 2) {
-    parts.push(`小走势线为近 ${seriesDates.length} 份快照（${seriesDates[0]}～${seriesDates[seriesDates.length - 1]}）。`);
-  } else {
-    parts.push('样本不足，暂不绘制走势线。');
+    return `小走势线为近 ${seriesDates.length} 份快照（${seriesDates[0]}～${seriesDates[seriesDates.length - 1]}）。`;
   }
-  if (priorDates.length >= 2) {
-    const name = priorDates.length >= 7 ? '7 日均值' : `近 ${priorDates.length} 日均值`;
-    parts.push(`${name}取 ${priorDates[0]} 至 ${priorDates[priorDates.length - 1]}。`);
-  } else {
-    parts.push(`${baseLabel}。`);
-  }
-  return parts.join('');
+  return '样本不足，暂不绘制走势线。';
 }
 
 function buildBars(projects, descShortOf) {
@@ -478,7 +458,7 @@ function buildCmp({
   const monthDateLabel = monthEntry ? dateShort(monthEntry.date) : '—';
   const avgMissing = priorSnapshots.length < 2 ? '不足 7 天' : null;
 
-  const refsFor = (currentValue, prevValue, avgValue, monthValue, formatter) => {
+  const refsFor = (currentValue, prevValue, formatter) => {
     const makeRef = (lab, value, missingText = null) => {
       if (value === null || value === undefined || !Number.isFinite(value)) {
         return { lab, missing: true, missingText };
@@ -488,8 +468,6 @@ function buildCmp({
     };
     return [
       makeRef(`上期 ${prevDateLabel}`, prevValue),
-      makeRef('7 日均值', avgValue, avgMissing),
-      makeRef(`上月同期 ${monthDateLabel}`, monthValue),
     ];
   };
 
@@ -501,38 +479,32 @@ function buildCmp({
     {
       label: '上榜项目数',
       now: formatCount(currentSnapshot.totalProjects),
-      refs: refsFor(currentSnapshot.totalProjects,
-        prevSnapshot?.totalProjects, avgOf('totalProjects'), monthSnapshot?.totalProjects, countFormat),
+      refs: refsFor(currentSnapshot.totalProjects, prevSnapshot?.totalProjects, countFormat),
     },
     {
       label: 'AI 项目数',
       now: formatCount(currentSnapshot.aiProjects),
-      refs: refsFor(currentSnapshot.aiProjects,
-        prevSnapshot?.aiProjects, avgOf('aiProjects'), monthSnapshot?.aiProjects, countFormat),
+      refs: refsFor(currentSnapshot.aiProjects, prevSnapshot?.aiProjects, countFormat),
     },
     {
       label: '平均 Stars',
       now: avgFormat(currentSnapshot.avgStars),
-      refs: refsFor(currentSnapshot.avgStars,
-        prevSnapshot?.avgStars, avgOf('avgStars'), monthSnapshot?.avgStars, avgFormat),
+      refs: refsFor(currentSnapshot.avgStars, prevSnapshot?.avgStars, avgFormat),
     },
     {
       label: '高热项目数',
       now: formatCount(currentSnapshot.hotCount),
-      refs: refsFor(currentSnapshot.hotCount,
-        prevSnapshot?.hotCount, avgOf('hotCount'), monthSnapshot?.hotCount, countFormat),
+      refs: refsFor(currentSnapshot.hotCount, prevSnapshot?.hotCount, countFormat),
     },
     {
       label: '当日新增星合计',
       now: formatCount(currentSnapshot.totalToday),
-      refs: refsFor(currentSnapshot.totalToday,
-        prevSnapshot?.totalToday, avgOf('totalToday'), monthSnapshot?.totalToday, countFormat),
+      refs: refsFor(currentSnapshot.totalToday, prevSnapshot?.totalToday, countFormat),
     },
     {
       label: '最大单项目新增',
       now: formatCount(currentSnapshot.maxToday),
-      refs: refsFor(currentSnapshot.maxToday,
-        prevSnapshot?.maxToday, avgOf('maxToday'), monthSnapshot?.maxToday, countFormat),
+      refs: refsFor(currentSnapshot.maxToday, prevSnapshot?.maxToday, countFormat),
     },
   ];
 
@@ -543,8 +515,6 @@ function buildCmp({
       now: shareFormat(topCategory.share),
       refs: refsFor(topCategory.share,
         previousBrief ? shareOf(previousBrief.projects || [], selector, topCategory.name) : null,
-        avgShare(selector, topCategory.name),
-        monthEntry ? shareOf(monthEntry.brief?.projects || [], selector, topCategory.name) : null,
         shareFormat),
     });
   }
@@ -556,37 +526,11 @@ function buildCmp({
       now: shareFormat(topLanguage.share),
       refs: refsFor(topLanguage.share,
         previousBrief ? shareOf(previousBrief.projects || [], selector, topLanguage.name) : null,
-        avgShare(selector, topLanguage.name),
-        monthEntry ? shareOf(monthEntry.brief?.projects || [], selector, topLanguage.name) : null,
         shareFormat),
     });
   }
 
   const allSnapshots = baselineSnapshots.length ? baselineSnapshots : priorEntries;
-  const retentionList = [];
-  const newFaceList = [];
-  for (let i = 0; i < allSnapshots.length - 1; i++) {
-    const r = retentionBetween(allSnapshots[i].brief, allSnapshots[i + 1].brief);
-    if (r !== null) retentionList.push(r);
-    const nf = newFaceBetween(allSnapshots[i].brief, allSnapshots[i + 1].brief);
-    if (nf !== null) newFaceList.push(nf);
-  }
-  const avgRetention = priorSnapshots.length >= 2 && retentionList.length > 0 ? average(retentionList) : null;
-  const avgNewFace = priorSnapshots.length >= 2 && newFaceList.length > 0 ? average(newFaceList) : null;
-
-  let monthRetention = null;
-  let monthNewFace = null;
-  if (monthEntry && monthEntry.brief) {
-    const monthScraped = monthEntry.brief.scrapedAt || monthEntry.brief.generatedAt;
-    const prevMonthEntry = monthScraped ? history.getBaselineSnapshot(monthScraped) : null;
-    const prevMonthBrief = prevMonthEntry?.brief
-      || (monthEntry.date ? history.readDailyBrief(history.getPreviousDailyDate(monthEntry.date)) : null);
-    if (prevMonthBrief) {
-      monthRetention = retentionBetween(monthEntry.brief, prevMonthBrief);
-      monthNewFace = newFaceBetween(monthEntry.brief, prevMonthBrief);
-    }
-  }
-
   const prevRetention = previousBrief && allSnapshots[1]
     ? retentionBetween(previousBrief, allSnapshots[1].brief)
     : null;
@@ -597,12 +541,12 @@ function buildCmp({
   rows.push({
     label: '留存率',
     now: shareFormat(currentRetention),
-    refs: refsFor(currentRetention, prevRetention, avgRetention, monthRetention, shareFormat),
+    refs: refsFor(currentRetention, prevRetention, shareFormat),
   });
   rows.push({
     label: '新面孔率',
     now: shareFormat(currentNewFace),
-    refs: refsFor(currentNewFace, prevNewFace, avgNewFace, monthNewFace, shareFormat),
+    refs: refsFor(currentNewFace, prevNewFace, shareFormat),
   });
 
   return {
@@ -613,11 +557,11 @@ function buildCmp({
     prevDateShort: prevDateLabel,
     lastMonthDateShort: monthDateLabel,
     rows,
-    caption: '7 日均值取今日之前最近 7 份快照；高热＝今日新增超过 100 星；「暂无」表示当前无该项参照数据。',
+    caption: '高热＝今日新增超过 100 星；「暂无」表示当前无该项参照数据。',
   };
 }
 
-function buildSlope(todayProjects, previousProjects, isYesterday = true) {
+function buildSlope(todayProjects, previousProjects, isYesterday = true, returnedNames = new Set()) {
   if (!previousProjects || !previousProjects.length || !todayProjects.length) return null;
   const previousRank = new Map(previousProjects.map((project, index) => [projectKey(project), index + 1]));
   const y = rank => 26 + (rank - 1) * 22;
@@ -635,12 +579,16 @@ function buildSlope(todayProjects, previousProjects, isYesterday = true) {
     if (previous === undefined) {
       lines.push({ x1: 200, y1: y(rank), x2: 260, y2: y(rank), color: COLORS.accent, dash: true });
       endDots.push({ cx: 260, cy: y(rank), color: COLORS.accent, ty: y(rank) + 4, rank });
-      rankRows.push({ r: rank, name: projectShortName(project), prev: `${prevPrefix} —`, cls: 'new', text: '新上榜' });
+      const fullName = project?.fullName || name;
+      const isReturned = project.tag === '回归' || returnedNames.has(name) || returnedNames.has(fullName);
+      const labelText = isReturned ? '回归' : '新上榜';
+      const cls = isReturned ? 'ret' : 'new';
+      rankRows.push({ r: rank, name: projectShortName(project), prev: `${prevPrefix} —`, cls, text: labelText });
       return;
     }
     const delta = previous - rank;
     const cls = delta > 0 ? 'up' : delta < 0 ? 'dn' : 'eq';
-    const text = delta > 0 ? `▲${delta}` : delta < 0 ? `▼${-delta}` : '原序';
+    const text = delta > 0 ? `▲${delta}` : delta < 0 ? `▼${-delta}` : '持平';
     const color = delta > 0 ? COLORS.up : delta < 0 ? COLORS.down : COLORS.sub;
     lines.push({ x1: 40, y1: y(previous), x2: 260, y2: y(rank), color, dash: false });
     startDots.push({ cx: 40, cy: y(previous), color });
@@ -655,7 +603,7 @@ function buildSlope(todayProjects, previousProjects, isYesterday = true) {
       sub: COLORS.sub,
       ink: COLORS.ink,
       colPrev,
-      colToday: '今日',
+      colToday: '本期',
       lines,
       startDots,
       endDots,
@@ -887,14 +835,17 @@ function buildViewModel(data) {
   });
   const langNote = buildLangNote({ distribution: language, previousProjects, isYesterday });
 
-  const rank = buildSlope(projects, previousProjects, isYesterday);
-  const rankRows = rank?.rankRows || projects.slice(0, 10).map((project, index) => ({
-    r: index + 1,
-    name: projectShortName(project),
-    prev: `${isYesterday ? '昨' : '上期'} —`,
-    cls: 'new',
-    text: '新上榜',
-  }));
+  const rank = buildSlope(projects, previousProjects, isYesterday, returnedNames);
+  const rankRows = rank?.rankRows || projects.slice(0, 10).map((project, index) => {
+    const isReturned = project.tag === '回归' || returnedNames.has(projectKey(project)) || returnedNames.has(project?.fullName);
+    return {
+      r: index + 1,
+      name: projectShortName(project),
+      prev: `${isYesterday ? '昨' : '上期'} —`,
+      cls: isReturned ? 'ret' : 'new',
+      text: isReturned ? '回归' : '新上榜',
+    };
+  });
 
   const currentUrlOf = new Map(projects.map(project => [projectKey(project), project.url]));
   const churn = buildChurn({
@@ -904,8 +855,21 @@ function buildViewModel(data) {
     returnedNames,
   });
 
-  const newTop10 = projects.slice(0, 10).filter(project => !previousRankNames.has(projectKey(project))).length;
-  const rankNote = `前 10 中 ${newTop10} 个为新上榜；今日换入 ${churn.newCount} 个、换出 ${churn.droppedCount} 个。`;
+  const top10 = projects.slice(0, 10);
+  const notInPrevTop10 = top10.filter(p => !previousRankNames.has(projectKey(p))).length;
+  const returnedInTop10 = top10.filter(p => returnedNames.has(projectKey(p)) || returnedNames.has(p.fullName) || p.tag === '回归').length;
+  const newInTop10 = notInPrevTop10 - returnedInTop10;
+  let rankSubText = '';
+  if (notInPrevTop10 > 0) {
+    if (returnedInTop10 > 0 && newInTop10 > 0) {
+      rankSubText = `前 10 中 ${notInPrevTop10} 个上期不在榜（${returnedInTop10} 个回归、${newInTop10} 个新）；`;
+    } else if (returnedInTop10 > 0) {
+      rankSubText = `前 10 中 ${notInPrevTop10} 个为回归项目；`;
+    } else {
+      rankSubText = `前 10 中 ${notInPrevTop10} 个为新上榜；`;
+    }
+  }
+  const rankNote = `${rankSubText}本期换入 ${churn.newCount} 个、换出 ${churn.droppedCount} 个。`;
 
   const monthEntry = sameDayLastMonth(date, scrapedAt);
   const cmp = buildCmp({
@@ -1023,14 +987,47 @@ function buildViewModel(data) {
   const churnNewText = typeof insights.churnNewText === 'string' ? insights.churnNewText : '';
   const churnDropText = typeof insights.churnDropText === 'string' ? insights.churnDropText : '';
 
-  const hypeIndex = insights.hypeIndex && Number(insights.hypeIndex.score) > 0
-    ? insights.hypeIndex
-    : computeHypeIndex({
-        totalProjects: currentSnapshot.totalProjects,
-        hotCount: currentSnapshot.hotCount,
-        totalToday: currentSnapshot.totalToday,
-        avgTotalToday: average(priorSnapshots.map(item => item.totalToday)),
-      });
+  const hypeIndex = computeHypeIndex({
+    totalProjects: currentSnapshot.totalProjects,
+    hotCount: currentSnapshot.hotCount,
+    totalToday: currentSnapshot.totalToday,
+    avgTotalToday: average(priorSnapshots.map(item => item.totalToday)),
+  });
+
+  let leadSub = '';
+  if (priorSnapshots[0]) {
+    const pProj = toNumber(priorSnapshots[0].totalProjects) ?? 0;
+    const pStars = toNumber(priorSnapshots[0].totalToday) ?? 0;
+    const dProj = currentSnapshot.totalProjects - pProj;
+    const dStars = currentSnapshot.totalToday - pStars;
+    if (dProj > 0 && dStars > 0) {
+      let factTail = '头部项目带动效应明显';
+      if (currentSnapshot.aiProjects > currentSnapshot.totalProjects / 2) {
+        factTail = 'AI 项目占比过半';
+      }
+      leadSub = `上榜数和新增星都比上期多，${factTail}。`;
+    } else if (dProj > 0 && dStars === 0) {
+      leadSub = '上榜数比上期增加，新增星与上期持平。';
+    } else if (dProj > 0 && dStars < 0) {
+      leadSub = '上榜数比上期增加，新增星较上期有所回落。';
+    } else if (dProj === 0 && dStars > 0) {
+      leadSub = '上榜数与上期持平，新增星较上期有所走强。';
+    } else if (dProj === 0 && dStars === 0) {
+      leadSub = '上榜数和新增星均与上期持平。';
+    } else if (dProj === 0 && dStars < 0) {
+      leadSub = '上榜数与上期持平，新增星较上期有所回落。';
+    } else if (dProj < 0 && dStars > 0) {
+      leadSub = '上榜数比上期减少，新增星较上期有所走强。';
+    } else if (dProj < 0 && dStars === 0) {
+      leadSub = '上榜数比上期减少，新增星与上期持平。';
+    } else {
+      leadSub = '上榜数和新增星较上期均有所收缩。';
+    }
+  } else {
+    leadSub = '上榜项目整体结构平稳。';
+  }
+  hero.sub = leadSub;
+  hero.reason = hypeIndex.reason;
 
   return {
     css: fs.readFileSync(CSS_PATH, 'utf8'),
@@ -1040,9 +1037,6 @@ function buildViewModel(data) {
     date,
     dateShort: dateShort(date),
     cmpTitle,
-    cmpNav: cmpTitle,
-    cmpNavText: cmpTitle,
-    cmpNavLabel: cmpTitle,
     nav: {
       home: '../index.html',
       daily: '#',
@@ -1050,15 +1044,9 @@ function buildViewModel(data) {
       monthly: '../monthly/',
       wiki: '../wiki/',
       cmp: cmpTitle,
-      cmpTitle,
-      cmpText: cmpTitle,
-      cmpNav: cmpTitle,
     },
     toc: {
       cmp: cmpTitle,
-      cmpTitle,
-      cmpText: cmpTitle,
-      cmpNav: cmpTitle,
     },
     week: { label: weekLabel, href: '../weekly/' },
     scrapedAtLocal,

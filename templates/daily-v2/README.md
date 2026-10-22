@@ -15,7 +15,7 @@
 | verdict.hypeScore / hypeDots / hypeReason | ins.hypeIndex.score / score 个●+(5-score) 个○ / ins.hypeIndex.reason |
 | cmp.prevDateShort / prevDateLabel | brief.dailyDiff.prevDate（上期快照日，不一定是昨天） |
 | cmp.lastMonthDateShort | 上月同期 facts 的来源日期（f34 source 中的日期） |
-| cmp.rows[] {label,now,refs[3]} | 见 FIELD_MAP 第 2 节逐行；refs 顺序固定：上期 / 7 日均值 / 上月同期 |
+| cmp.rows[] {label,now,refs[1]} | 见 FIELD_MAP 第 2 节逐行；refs 仅保留上期 |
 | refs[].value / dirText / dirCls | facts 参照值 / facts 方向值（上升/下降/持平）/ up·down·flat；没有参照值时给 `{missing:true}`，页面显示「—」 |
 | cmp.caption | 生成端写的读者口径说明（不得含字段名） |
 | stats[] {label,value,prev,dirText} | brief.stats.totalProjects/aiProjects/avgStars + facts f4；prev 与方向取 facts 昨日项 |

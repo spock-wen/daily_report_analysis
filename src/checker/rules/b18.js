@@ -297,6 +297,7 @@ function check(ctx, doc, config) {
 function isR5Daily(ctx) {
   return ctx.level === 'daily' && Boolean(ctx.insights)
     && (ctx.insights.version === 'r5'
+      || ctx.insights.version === 'r9'
       || (ctx.insights.slots && typeof ctx.insights.slots === 'object' && !Array.isArray(ctx.insights.slots)));
 }
 

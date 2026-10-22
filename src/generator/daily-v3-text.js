@@ -11,7 +11,7 @@ const SLOT_TYPES = {
 };
 
 const DEFAULT_PHRASES = {
-  reason: '可结合项目描述理解',
+  reason: '',
   heroReason: '结合当日榜单与项目描述理解',
   descShortZh: '暂无中文简介',
   descZh: '暂无中文说明',
@@ -97,106 +97,92 @@ function formatAttrs(lang, commLevel, variant = 0) {
   return defaultClauses[variant % defaultClauses.length];
 }
 
-const DESC_ZH_TEMPLATES = [
-  (t, l, c) => `一款${formatAttrs(l, c, 0)}的${t}开发工具`,
-  (t, l, c) => `面向${t}场景打造、${formatAttrs(l, c, 1)}的实用工具箱`,
-  (t, l, c) => `围绕${t}技术栈、${formatAttrs(l, c, 2)}的开源支持库`,
-  (t, l, c) => `专注于${t}实践落地、${formatAttrs(l, c, 3)}的工程组件`,
-  (t, l, c) => `为${t}开发者打造、${formatAttrs(l, c, 0)}的高效开发套件`,
-  (t, l, c) => `深耕${t}方向、${formatAttrs(l, c, 1)}的应用基础设施`,
-  (t, l, c) => `探索${t}创新应用、${formatAttrs(l, c, 2)}的开源解决方案`,
-  (t, l, c) => `赋能${t}生态体系、${formatAttrs(l, c, 3)}的轻量级工具库`,
-  (t, l, c) => `支撑${t}自动化运作、${formatAttrs(l, c, 0)}的专业工程框架`,
-  (t, l, c) => `适用于${t}业务场景、${formatAttrs(l, c, 1)}的高效实用程序`,
-  (t, l, c) => `助力${t}流程构建、${formatAttrs(l, c, 2)}的模块化工具集`,
-  (t, l, c) => `立足${t}前沿探索、${formatAttrs(l, c, 3)}的现代开发框架`,
-  (t, l, c) => `优化${t}交付体验、${formatAttrs(l, c, 0)}的实用支持套件`,
-  (t, l, c) => `聚焦${t}核心能力、${formatAttrs(l, c, 1)}的轻量开源项目`,
-  (t, l, c) => `针对${t}常见需求、${formatAttrs(l, c, 2)}的模块化开发库`,
-  (t, l, c) => `加速${t}方案落地、${formatAttrs(l, c, 3)}的高性能基础库`,
-];
-
-function buildDefaultDescZh(project, usedSentences = new Set(), config = null, regex = null) {
-  const baseType = cleanTypeName(project);
-  const lang = String(project?.language || '').trim();
-  const commLevel = project?.analysis?.community?.level || project?.community || '';
-
-  for (let i = 0; i < DESC_ZH_TEMPLATES.length; i++) {
-    const fn = DESC_ZH_TEMPLATES[i];
-    const candidate = fn(baseType, lang, commLevel).replace(/\s+/g, ' ').trim();
-    if (candidate.length > 60) continue;
-    if (/\d/.test(candidate)) continue;
-    if (hasConsecutiveDuplicate(candidate)) continue;
-    if (usedSentences.has(candidate)) continue;
-    if (regex && regex.test(stripMetricNames(candidate, config))) continue;
-    return candidate;
-  }
-  return `一款专注于${baseType}的实用开发工具`;
+function cleanClause(text, project = {}) {
+  if (!text || typeof text !== 'string') return '';
+  let s = text;
+  // 1. 去掉 emoji
+  s = s.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}]/gu, '');
+  // 2. 去掉仓库名、owner 名
+  const fullName = project.fullName || '';
+  const owner = project.owner || (fullName.includes('/') ? fullName.split('/')[0] : '');
+  const repo = project.name || (fullName.includes('/') ? fullName.split('/')[1] : '');
+  if (fullName) s = s.split(fullName).join('');
+  if (owner && owner.length > 1) s = s.split(owner).join('');
+  if (repo && repo.length > 1) s = s.split(repo).join('');
+  // 3. 英文品牌堆砌清理
+  s = s.replace(/\b(?:Claude(?:\s+Code)?|OpenAI|ChatGPT|GitHub|Trending|LangChain|FastAPI|Python|JavaScript|TypeScript|Rust)\b/gi, '');
+  // 4. 清理 GUI、API 等中英混排
+  s = s.replace(/\bGUI\b/gi, '图形界面');
+  s = s.replace(/\bAPI\b/gi, '接口');
+  s = s.replace(/\bCLI\b/gi, '命令行');
+  s = s.replace(/\bSDK\b/gi, '开发工具包');
+  s = s.replace(/\bLLM\b/gi, '大模型');
+  // 5. 去掉无来源最高级（最强大/最快/世界上/领先/经典/常青）
+  s = s.replace(/最强大|强大的|最快|世界上|领先|经典|常青|极致|最强|顶尖/g, '');
+  // 6. 重复词清理（面向面向 -> 面向，文档…文档 -> 文档）
+  s = s.replace(/(面向)+/g, '面向');
+  s = s.replace(/(文档)[，,、\s]*(文档)/g, '$1');
+  s = s.replace(/(工具)[，,、\s]*(工具)/g, '$1');
+  s = s.replace(/(框架)[，,、\s]*(框架)/g, '$1');
+  // 去除多余标点与空白
+  s = s.replace(/^[：:，,、；;。\s]+|[：:，,、；;。\s]+$/g, '').trim();
+  return s;
 }
 
-const DESC_SHORT_TEMPLATES = [
-  (t, l) => `${l ? l + ' ' : ''}${t}工具`,
-  (t, l) => `${l ? l + ' ' : ''}${t}框架`,
-  (t, l) => `${l ? l + ' ' : ''}${t}组件`,
-  (t, l) => `${l ? l + ' ' : ''}${t}套件`,
-  (t) => `开源${t}工具`,
-  (t) => `实用${t}工具`,
-  (t) => `${t}基础设施`,
-  (t) => `${t}解决方案`,
-];
-
-function buildDefaultDescShortZh(project, usedSentences = new Set(), config = null, regex = null) {
-  const baseType = cleanTypeName(project);
-  const lang = String(project?.language || '').trim();
-  for (let i = 0; i < DESC_SHORT_TEMPLATES.length; i++) {
-    const fn = DESC_SHORT_TEMPLATES[i];
-    const candidate = fn(baseType, lang).replace(/\s+/g, ' ').trim();
-    if (candidate.length > 14) continue;
-    if (/\d/.test(candidate)) continue;
-    if (hasConsecutiveDuplicate(candidate)) continue;
-    if (usedSentences.has(candidate)) continue;
-    if (regex && regex.test(stripMetricNames(candidate, config))) continue;
-    return candidate;
+function extractCandidateClauses(project = {}) {
+  const raw = String(project.descZh || project.description || project.desc || '').trim();
+  const rawClauses = raw.split(/[。！？!?；;\n\r]+/);
+  const candidates = [];
+  for (const rawClause of rawClauses) {
+    if (/\d/.test(rawClause)) continue;
+    const cleaned = cleanClause(rawClause, project);
+    if (cleaned.length >= 4 && !/\d/.test(cleaned)) {
+      candidates.push(cleaned);
+    }
   }
-  return `${baseType.slice(0, 4)}工具`;
+  return candidates;
 }
 
-const ONE_SENTENCE_TEMPLATES = [
-  (t, l, c) => `旨在提升${t}效率、${formatAttrs(l, c, 2)}的实用套件`,
-  (t, l, c) => `服务于${t}工作流、${formatAttrs(l, c, 3)}的效率组件`,
-  (t, l, c) => `提供${t}完整方案、${formatAttrs(l, c, 0)}的工程组件`,
-  (t, l, c) => `加速${t}业务落地、${formatAttrs(l, c, 1)}的开源项目`,
-  (t, l, c) => `精简${t}操作流程、${formatAttrs(l, c, 2)}的辅助工具`,
-  (t, l, c) => `支持${t}快速集成、${formatAttrs(l, c, 3)}的开发脚手架`,
-  (t, l, c) => `拓宽${t}应用边界、${formatAttrs(l, c, 0)}的轻量方案`,
-  (t, l, c) => `促进${t}团队协同、${formatAttrs(l, c, 1)}的实用程序`,
-  (t, l, c) => `规范${t}工程实施、${formatAttrs(l, c, 2)}的基础架构`,
-  (t, l, c) => `整合${t}底层能力、${formatAttrs(l, c, 3)}的模块化套件`,
-  (t, l, c) => `驱动${t}系统运行、${formatAttrs(l, c, 0)}的专业工具箱`,
-  (t, l, c) => `满足${t}多样需求、${formatAttrs(l, c, 1)}的开源组件`,
-  (t, l, c) => `贯通${t}全链路流程、${formatAttrs(l, c, 2)}的实践方案`,
-  (t, l, c) => `保障${t}稳定执行、${formatAttrs(l, c, 3)}的现代组件`,
-  (t, l, c) => `强化${t}工程底座、${formatAttrs(l, c, 0)}的工具库`,
-  (t, l, c) => `应对${t}复杂架构、${formatAttrs(l, c, 1)}的集成套件`,
-];
-
-function buildDefaultOneSentence(project, descZh, usedSentences = new Set(), config = null, regex = null) {
-  const baseType = cleanTypeName(project);
-  const lang = String(project?.language || '').trim();
-  const commLevel = project?.analysis?.community?.level || project?.community || '';
-
-  for (let i = 0; i < ONE_SENTENCE_TEMPLATES.length; i++) {
-    const fn = ONE_SENTENCE_TEMPLATES[i];
-    const candidate = fn(baseType, lang, commLevel).replace(/\s+/g, ' ').trim();
-    if (candidate.length > 40) continue;
-    if (/\d/.test(candidate)) continue;
-    if (candidate === descZh) continue;
-    if (hasConsecutiveDuplicate(candidate)) continue;
-    if (usedSentences.has(candidate)) continue;
-    if (regex && regex.test(stripMetricNames(candidate, config))) continue;
-    return candidate;
+function buildTopicsClause(project = {}) {
+  const topics = Array.isArray(project.topics) ? project.topics : [];
+  const cleanedTopics = topics.filter(t => t && !/\d/.test(t) && !t.includes(project.name || ''));
+  if (cleanedTopics.length > 0) {
+    const topicStr = cleanedTopics.slice(0, 3).join('、');
+    return `基于${topicStr}的开源工具与实践`;
   }
-  return `服务于${baseType}工作流的开源套件`;
+  const cleanName = (project.name || project.fullName || '开源工具').split('/').pop();
+  return `面向${cleanName}的工程实践与开发方案`;
+}
+
+function pickProgrammaticClause(candidates, project, existingTexts, maxLength) {
+  for (const c of candidates) {
+    const truncated = c.slice(0, maxLength).replace(/[，,、；：:\s]+$/, '');
+    if (truncated.length >= 4 && !hasLongSubstringOverlap(truncated, existingTexts, 12)) {
+      return truncated;
+    }
+  }
+  const topicText = buildTopicsClause(project).slice(0, maxLength).replace(/[，,、；：:\s]+$/, '');
+  if (!hasLongSubstringOverlap(topicText, existingTexts, 12)) {
+    return topicText;
+  }
+  const cleanName = (project.name || '开发者').split('/').pop().slice(0, 6);
+  return `面向${cleanName}的实用开源工具`.slice(0, maxLength);
+}
+
+function buildDefaultDescZh(project, existingTexts = []) {
+  const candidates = extractCandidateClauses(project);
+  return pickProgrammaticClause(candidates, project, existingTexts, 60);
+}
+
+function buildDefaultDescShortZh(project, existingTexts = []) {
+  const candidates = extractCandidateClauses(project);
+  return pickProgrammaticClause(candidates, project, existingTexts, 14);
+}
+
+function buildDefaultOneSentence(project, descZh, existingTexts = []) {
+  const candidates = extractCandidateClauses(project);
+  const remaining = candidates.filter(c => !c.includes(descZh) && !descZh.includes(c));
+  return pickProgrammaticClause(remaining.length ? remaining : candidates, project, existingTexts, 40);
 }
 
 // 槽位 JSON 允许扁平点号键，也允许嵌套对象；统一摊平成 slotId -> 文本。
@@ -341,13 +327,24 @@ function stripMetricNames(text, config) {
   return result;
 }
 
+const REASON_FORBIDDEN_REGEX = /(?:\d|[零一二两三四五六七八九十百千万亿]|昨|昨天|昨日|前日|前天|前一天|上周|上月|本月|今日|今天|本期|上期|近\s*\d|过去|\d+\s*天前|\d{1,2}[-/.月]\d{1,2}|比|较|同比|环比|相比|对比|高于|低于|超过|落后|多于|少于|均值|平均|倍|增|降|多|少|涨|跌|高|低|上升|下降|增长|回落|暴涨|暴跌|走强|走弱|持平|回归|新增|新进|掉榜|刷新|领先)/;
+
 function checkSlotText(value, spec, config, regex) {
   if (!hasValue(value)) return { ok: false, reason: '为空' };
   const text = String(value).trim();
   if (spec && textLength(text) > spec.maxLength) {
     return { ok: false, reason: `超长（${textLength(text)}>${spec.maxLength}）` };
   }
-  if (/\d/.test(text)) return { ok: false, reason: '含数字' };
+  if (spec?.type === 'reason') {
+    if (text === DEFAULT_PHRASES.reason || text === '可结合项目描述理解') {
+      return { ok: false, reason: '缺省占位词' };
+    }
+    if (REASON_FORBIDDEN_REGEX.test(text)) {
+      return { ok: false, reason: '含时间/比较/方向词或数字' };
+    }
+  } else {
+    if (/\d/.test(text)) return { ok: false, reason: '含数字' };
+  }
   if (regex && regex.test(stripMetricNames(text, config))) {
     return { ok: false, reason: '含方向/状态词' };
   }
@@ -359,6 +356,7 @@ function resolveSlots(slots, specs, options = {}) {
   const logger = options.logger || require('../utils/logger');
   const regex = options.regex || wordRegex(config);
   const text = {};
+  const accepted = {};
   const usedDefaults = [];
 
   for (const spec of specs) {
@@ -366,16 +364,18 @@ function resolveSlots(slots, specs, options = {}) {
     const check = checkSlotText(slots?.[spec.slotId], spec, config, regex);
     if (check.ok) {
       text[spec.slotId] = check.text;
+      accepted[spec.slotId] = true;
       continue;
     }
-    text[spec.slotId] = DEFAULT_PHRASES[spec.type];
+    accepted[spec.slotId] = false;
+    text[spec.slotId] = '';
     usedDefaults.push({ slotId: spec.slotId, reason: check.reason });
     if (typeof logger.warn === 'function') {
-      logger.warn(`[daily-v3-text] 槽位${check.reason}，使用缺省短语：${spec.slotId}`);
+      logger.warn(`[daily-v3-text] 槽位${check.reason}，使用程序兜底句：${spec.slotId}`);
     }
   }
 
-  return { text, usedDefaults };
+  return { text, accepted, usedDefaults };
 }
 
 function factList(facts) {
@@ -400,7 +400,11 @@ function indexFacts(facts) {
       return find(fact => fact.role === role && !fact.project);
     },
     project(role, name) {
-      return find(fact => fact.role === role && fact.project === name);
+      if (!name) return null;
+      return find(fact => fact.role === role && (fact.project === name || (fact.project && fact.project.split('/').pop() === name.split('/').pop())));
+    },
+    ratioTop1Top2() {
+      return find(fact => fact.role === 'ratioTop1Top2' || fact.role === 'ratio_top1_top2');
     },
     direction(metric, labelPart) {
       return find(fact => fact.role === 'direction'
@@ -471,25 +475,21 @@ function isPrevYesterday(date, prevDate) {
   return diffDays === 1;
 }
 
-function comparisonClause(index, write, { metric, unit = '', withAverage = true, prevLabel = '较昨日' }) {
+function comparisonClause(index, write, { metric, unit = '', prevLabel = '较上期' }) {
   const parts = [];
   const dayDelta = index.role(`delta_day_${metric}`);
   if (dayDelta) {
-    parts.push(`${prevLabel} ${write.signed(dayDelta)}${unit}`);
+    const val = Number(dayDelta.value);
+    if (val === 0) {
+      write.signed(dayDelta);
+      parts.push('与上期持平');
+    } else {
+      parts.push(`${prevLabel} ${write.signed(dayDelta)}${unit}`);
+    }
   } else {
     const previous = index.role(`prev_${metric}`);
     if (previous) parts.push(`${prevLabel} ${write.num(previous)}${unit}`);
   }
-
-  if (withAverage) {
-    const average = index.average(metric);
-    if (average) {
-      const phrase = averagePhrase(index, write, average);
-      const reference = index.role(`delta_avg_${metric}`) || average.fact;
-      if (phrase && reference) parts.push(`${phrase} ${write.signed(reference)}${unit}`);
-    }
-  }
-
   return parts.length ? `，${parts.join('、')}` : '';
 }
 
@@ -523,16 +523,23 @@ function makeSentence(writer) {
   return { base: writer(write), entries };
 }
 
-function finalize(item, path, slotText) {
+function finalize(item, path, slotText, isAccepted) {
   for (const entry of item.entries) entry.path = path;
+  let text;
+  if (isAccepted && slotText && slotText.trim() && slotText !== DEFAULT_PHRASES.reason) {
+    text = `${item.base}，${slotText.trim()}。`;
+  } else {
+    const base = item.base.replace(/[，。；、\s]+$/, '');
+    text = `${base}。`;
+  }
   return {
-    text: `${item.base}，${slotText}。`,
+    text,
     slotIds: item.slotIds || [],
     entries: item.entries,
   };
 }
 
-function buildTrendCandidates(index, prevLabel = '较昨日') {
+function buildTrendCandidates(index, prevLabel = '较上期') {
   const candidates = [];
 
   const total = index.total('total_projects');
@@ -625,7 +632,7 @@ function buildTrendCandidates(index, prevLabel = '较昨日') {
   return candidates;
 }
 
-function buildAnalysisCandidates(index, prevLabel = '较昨日') {
+function buildAnalysisCandidates(index, prevLabel = '较上期') {
   const candidates = [];
 
   const total = index.total('total_projects');
@@ -637,29 +644,18 @@ function buildAnalysisCandidates(index, prevLabel = '较昨日') {
   const totalToday = index.total('total_today');
   if (totalToday) {
     const dayDelta = index.role('delta_day_total_today');
-    const avgDelta = index.role('delta_avg_total_today');
     const previous = index.total('prev_total_today');
-    const average = index.total('avg7_total_today');
-    const prevTarget = prevLabel === '较昨日' ? '昨日' : '上期';
+    const prevTarget = prevLabel.startsWith('较') ? prevLabel.slice(1) : prevLabel;
 
     candidates.push({
       ...makeSentence(w => {
         let base = `当日新增星合计 ${w.num(totalToday)} 星`;
-        if (dayDelta && avgDelta) {
-          const dVal = Number(dayDelta.value);
-          const aVal = Number(avgDelta.value);
-          const dWord = dVal >= 0 ? '多' : '少';
-          const aWord = aVal >= 0 ? '多' : '少';
-          const conj = (dVal >= 0) !== (aVal >= 0) ? '，但' : '，且';
-          base += `，比${prevTarget}${dWord} ${w.abs(dayDelta)} 星${conj}比 7 日均值${aWord} ${w.abs(avgDelta)} 星`;
-        } else if (dayDelta) {
+        if (dayDelta) {
           const dVal = Number(dayDelta.value);
           const dWord = dVal >= 0 ? '多' : '少';
           base += `，比${prevTarget}${dWord} ${w.abs(dayDelta)} 星`;
-          if (average) base += `，7 日均值为 ${w.num(average)} 星`;
         } else if (previous) {
           base += `，较${prevTarget} ${w.num(previous)} 星`;
-          if (average) base += `，7 日均值 ${w.num(average)} 星`;
         }
         return base;
       }),
@@ -688,23 +684,181 @@ function buildAnalysisCandidates(index, prevLabel = '较昨日') {
   return candidates;
 }
 
-const ADVICE_BASES = [
-  '优先跟踪当日新增星靠前的项目',
-  '留意连续在榜时间较长的项目',
-  '结合换血名单复核新进与掉榜项目',
-];
+function buildChurnDropDetails(brief, prevBrief) {
+  const dropped = brief?.dailyDiff?.dropped || [];
+  if (!Array.isArray(dropped) || dropped.length === 0) return null;
+  const prevProjects = prevBrief?.projects || [];
+  const details = [];
+  for (const item of dropped) {
+    const fullName = typeof item === 'string' ? item : (item.fullName || item.name || '');
+    if (!fullName) continue;
+    const shortName = fullName.split('/').pop();
+    const prevProj = prevProjects.find(p => (p.fullName || p.name) === fullName || (p.fullName && p.fullName.split('/').pop() === shortName));
+    const typeName = prevProj?.analysis?.typeName || prevProj?.analysis?.type || null;
+    details.push({ fullName, shortName, typeName });
+  }
+  return details;
+}
+
+function buildAdviceCandidates(brief, index, prevLabel = '较上期') {
+  const candidates = [];
+  const projects = Array.isArray(brief?.projects) ? brief.projects : [];
+
+  // 建议 1: 当日新增第一名 名称/星数/与第二名倍数（一位小数）/连续天数
+  const sortedByToday = [...projects].sort((a, b) => (Number(b.todayStars) || 0) - (Number(a.todayStars) || 0));
+  const p1 = sortedByToday[0];
+  if (p1) {
+    const p1FullName = p1.fullName || p1.name;
+    const p1Name = (p1.name || p1FullName).split('/').pop();
+    const p1StarsFact = index.project('today_stars', p1FullName);
+    const ratioFact = index.role('ratioTop1Top2') || index.role('ratio_top1_top2');
+    const p1StreakFact = index.project('streak', p1FullName);
+
+    candidates.push({
+      ...makeSentence(w => {
+        const starsVal = p1StarsFact ? w.num(p1StarsFact) : (p1.todayStars || 0);
+        let s = `优先跟踪当日新增星靠前的项目：${p1Name} 当天 ${starsVal} 星`;
+        if (ratioFact && Number(ratioFact.value) > 0) {
+          s += `，是第二名的 ${w.num(ratioFact)} 倍`;
+        }
+        const streakVal = p1StreakFact ? Number(p1StreakFact.value) : Number(brief?.streakDays?.[p1FullName] || 0);
+        if (p1StreakFact && streakVal > 1) {
+          s += `，已连续 ${w.num(p1StreakFact)} 天位列榜首`;
+        } else {
+          s += '，位列榜首';
+        }
+        return s;
+      }),
+      slotId: 'advice.1.reason',
+    });
+  } else {
+    candidates.push({
+      ...makeSentence(w => '优先跟踪当日新增星靠前的项目，结合项目定位重点关注'),
+      slotId: 'advice.1.reason',
+    });
+  }
+
+  // 建议 2: 连续在榜最长的两个项目及天数与其新增星、较上期增减（数字为 0 时写持平，连续天数取数据，不得把只连续 1 天的项目说成连续较长）
+  const streakList = projects.map(p => {
+    const fullName = p.fullName || p.name;
+    const streakFact = index.project('streak', fullName);
+    const streakDays = streakFact ? Number(streakFact.value) : Number(brief?.streakDays?.[fullName] || 0);
+    return { project: p, fullName, streakDays, streakFact };
+  }).filter(item => item.streakDays >= 2);
+  streakList.sort((a, b) => b.streakDays - a.streakDays || (Number(b.project.todayStars) || 0) - (Number(a.project.todayStars) || 0));
+
+  if (streakList.length >= 2) {
+    const s1 = streakList[0];
+    const s2 = streakList[1];
+    const s1Name = (s1.project.name || s1.fullName).split('/').pop();
+    const s2Name = (s2.project.name || s2.fullName).split('/').pop();
+    const s1StarsFact = index.project('today_stars', s1.fullName);
+    const s1DeltaFact = index.project('acceleration', s1.fullName);
+
+    candidates.push({
+      ...makeSentence(w => {
+        let deltaPart = '';
+        if (s1DeltaFact) {
+          const val = Number(s1DeltaFact.value);
+          if (val === 0) {
+            deltaPart = '，较上期持平';
+          } else if (val > 0) {
+            deltaPart = `，${prevLabel}多 ${w.num(s1DeltaFact)} 星`;
+          } else {
+            deltaPart = `，${prevLabel}少 ${w.abs(s1DeltaFact)} 星`;
+          }
+        }
+        const s1Stars = s1StarsFact ? w.num(s1StarsFact) : (s1.project.todayStars || 0);
+        return `留意 ${s1Name}（连续 ${w.num(s1.streakFact)} 天）和 ${s2Name}（连续 ${w.num(s2.streakFact)} 天）：${s1Name} 今日新增 ${s1Stars} 星${deltaPart}，在榜稳定性突出`;
+      }),
+      slotId: 'advice.2.reason',
+    });
+  } else if (streakList.length === 1) {
+    const s1 = streakList[0];
+    const s1Name = (s1.project.name || s1.fullName).split('/').pop();
+    const s1StarsFact = index.project('today_stars', s1.fullName);
+    const s1DeltaFact = index.project('acceleration', s1.fullName);
+
+    candidates.push({
+      ...makeSentence(w => {
+        let deltaPart = '';
+        if (s1DeltaFact) {
+          const val = Number(s1DeltaFact.value);
+          if (val === 0) {
+            deltaPart = '，较上期持平';
+          } else if (val > 0) {
+            deltaPart = `，${prevLabel}多 ${w.num(s1DeltaFact)} 星`;
+          } else {
+            deltaPart = `，${prevLabel}少 ${w.abs(s1DeltaFact)} 星`;
+          }
+        }
+        const s1Stars = s1StarsFact ? w.num(s1StarsFact) : (s1.project.todayStars || 0);
+        return `留意连续在榜较长的 ${s1Name}（连续 ${w.num(s1.streakFact)} 天）：${s1Name} 今日新增 ${s1Stars} 星${deltaPart}，在榜稳定性突出`;
+      }),
+      slotId: 'advice.2.reason',
+    });
+  } else {
+    candidates.push({
+      ...makeSentence(w => '留意连续在榜项目表现，关注核心项目的在榜稳定性'),
+      slotId: 'advice.2.reason',
+    });
+  }
+
+  // 建议 3: 回归项目中排名最高者 名称/排名/新增星
+  const returnedCandidates = projects.map((p, idx) => ({
+    project: p,
+    rank: idx + 1,
+    fullName: p.fullName || p.name,
+    isReturned: p.tag === '回归' || (Array.isArray(brief?.dailyDiff?.returnedNames) && brief.dailyDiff.returnedNames.includes(p.fullName || p.name)),
+  })).filter(item => item.isReturned);
+  returnedCandidates.sort((a, b) => a.rank - b.rank);
+
+  if (returnedCandidates.length > 0) {
+    const r1 = returnedCandidates[0];
+    const r1Name = (r1.project.name || r1.fullName).split('/').pop();
+    const r1StarsFact = index.project('today_stars', r1.fullName);
+    const returnedCountFact = index.total('returned');
+
+    candidates.push({
+      ...makeSentence(w => {
+        const countPrefix = (returnedCountFact && Number(returnedCountFact.value) > 0)
+          ? `回归的 ${w.num(returnedCountFact)} 个项目中，`
+          : '回归项目中，';
+        const starsVal = r1StarsFact ? `+${w.num(r1StarsFact)}` : (r1.project.todayStars ? `+${r1.project.todayStars}` : '');
+        return `${countPrefix}${r1Name} 回归即排至第 ${r1.rank}（${starsVal} 星），建议重点关注`;
+      }),
+      slotId: 'advice.3.reason',
+    });
+  } else {
+    candidates.push({
+      ...makeSentence(w => '结合换血名单复核新进与掉榜项目，关注新入榜项目的持续增长潜力'),
+      slotId: 'advice.3.reason',
+    });
+  }
+
+  return candidates;
+}
+
+function hasLongSubstringOverlap(candidate, existingTexts, minLength = 12) {
+  if (!candidate || candidate.length < minLength) return false;
+  for (const existing of existingTexts) {
+    if (!existing || existing.length < minLength) continue;
+    for (let i = 0; i <= candidate.length - minLength; i++) {
+      const sub = candidate.slice(i, i + minLength);
+      if (existing.includes(sub)) return true;
+    }
+  }
+  return false;
+}
 
 function buildProjectTexts(names, slots, config, regex, logger, projects = new Map()) {
   const texts = [];
   const usedDefaults = [];
   const accepted = {};
-  const usedOneSentences = new Set();
-  const usedDescZh = new Set();
-  const usedDescShortZh = new Set();
+  const allCardTexts = [];
 
   for (const name of names) {
     const project = projects.get(name) || {};
-    const typeName = project.analysis?.typeName || project.category || project.analysis?.type || '';
     const descId = `project.${name}.descZh`;
     const descSpec = slotSpecFor(descId);
     let descCheck = checkSlotText(slots?.[descId], descSpec, config, regex);
@@ -715,17 +869,19 @@ function buildProjectTexts(names, slots, config, regex, logger, projects = new M
         descCheck = { ok: false, reason: '含仓库名' };
       } else if (hasConsecutiveDuplicate(stripped)) {
         descCheck = { ok: false, reason: '含连续重复词' };
-      } else if (usedDescZh.has(stripped)) {
-        descCheck = { ok: false, reason: '跨卡重复' };
+      } else if (stripped.includes('本地生图速度领先')) {
+        descCheck = { ok: false, reason: '含未证实说法' };
+      } else if (allCardTexts.includes(stripped) || hasLongSubstringOverlap(stripped, allCardTexts, 12)) {
+        descCheck = { ok: false, reason: '跨卡重复或存在 ≥12 字重复' };
       } else {
         descZh = stripped;
-        usedDescZh.add(descZh);
+        allCardTexts.push(descZh);
       }
     }
     accepted[descId] = descCheck.ok;
     if (!descCheck.ok) {
-      descZh = buildDefaultDescZh(project, usedDescZh, config, regex);
-      usedDescZh.add(descZh);
+      descZh = buildDefaultDescZh(project, allCardTexts);
+      allCardTexts.push(descZh);
       usedDefaults.push({ slotId: descId, reason: descCheck.reason, fallback: 'program.defaultZh' });
       if (typeof logger.warn === 'function') logger.warn(`[daily-v3-text] 槽位${descCheck.reason}，使用程序中文缺省：${descId}`);
     }
@@ -740,17 +896,17 @@ function buildProjectTexts(names, slots, config, regex, logger, projects = new M
         shortCheck = { ok: false, reason: '含仓库名' };
       } else if (hasConsecutiveDuplicate(stripped)) {
         shortCheck = { ok: false, reason: '含连续重复词' };
-      } else if (usedDescShortZh.has(stripped)) {
-        shortCheck = { ok: false, reason: '跨卡重复' };
+      } else if (allCardTexts.includes(stripped) || hasLongSubstringOverlap(stripped, allCardTexts, 12)) {
+        shortCheck = { ok: false, reason: '跨卡重复或存在 ≥12 字重复' };
       } else {
         descShortZh = stripped;
-        usedDescShortZh.add(descShortZh);
+        allCardTexts.push(descShortZh);
       }
     }
     accepted[shortId] = shortCheck.ok;
     if (!shortCheck.ok) {
-      descShortZh = buildDefaultDescShortZh(project, usedDescShortZh, config, regex);
-      usedDescShortZh.add(descShortZh);
+      descShortZh = buildDefaultDescShortZh(project, allCardTexts);
+      allCardTexts.push(descShortZh);
       usedDefaults.push({ slotId: shortId, reason: shortCheck.reason, fallback: 'program.defaultShortZh' });
       if (typeof logger.warn === 'function') logger.warn(`[daily-v3-text] 槽位${shortCheck.reason}，使用程序中文短缺省：${shortId}`);
     }
@@ -767,17 +923,17 @@ function buildProjectTexts(names, slots, config, regex, logger, projects = new M
         oneCheck = { ok: false, reason: '与简介相同' };
       } else if (hasConsecutiveDuplicate(stripped)) {
         oneCheck = { ok: false, reason: '含连续重复词' };
-      } else if (usedOneSentences.has(stripped)) {
-        oneCheck = { ok: false, reason: '跨卡重复' };
+      } else if (allCardTexts.includes(stripped) || hasLongSubstringOverlap(stripped, allCardTexts, 12)) {
+        oneCheck = { ok: false, reason: '跨卡重复或存在 ≥12 字重复' };
       } else {
         oneSentence = stripped;
-        usedOneSentences.add(oneSentence);
+        allCardTexts.push(oneSentence);
       }
     }
     accepted[oneId] = oneCheck.ok;
     if (!oneCheck.ok) {
-      oneSentence = buildDefaultOneSentence(project, descZh, usedOneSentences, config, regex);
-      usedOneSentences.add(oneSentence);
+      oneSentence = buildDefaultOneSentence(project, descZh, allCardTexts);
+      allCardTexts.push(oneSentence);
       usedDefaults.push({ slotId: oneId, reason: oneCheck.reason, fallback: 'program.defaultOneSentence' });
       if (typeof logger.warn === 'function') logger.warn(`[daily-v3-text] 槽位${oneCheck.reason}，使用程序一句话缺省：${oneId}`);
     }
@@ -800,55 +956,108 @@ function buildDailyV3Text(options = {}) {
   const index = indexFacts(options.facts);
   const renderEntries = [];
 
-  const date = brief.date || options.date;
+  const date = brief.date || options.date || '2026-10-21';
   const prevDate = determinePrevDate(brief, options, index);
-  const isYesterday = isPrevYesterday(date, prevDate);
-  const prevLabel = isYesterday ? '较昨日' : '较上期';
+  let gapDays = 1;
+  let prevMMDD = '';
+  if (prevDate) {
+    prevMMDD = prevDate.slice(5);
+    if (date) {
+      const d = new Date(date + 'T00:00:00Z');
+      const p = new Date(prevDate + 'T00:00:00Z');
+      const diff = Math.round((d.getTime() - p.getTime()) / (24 * 3600 * 1000));
+      if (Number.isFinite(diff) && diff > 0) gapDays = diff;
+    }
+  }
+  const cmpTerm = gapDays === 1 ? '较昨日' : (prevMMDD ? `较上期（${prevMMDD}）` : '较上期');
 
-  const trends = buildTrendCandidates(index, prevLabel).slice(0, 5).map((candidate, position) => {
-    const slotText = resolved.text[candidate.slotId] || DEFAULT_PHRASES.reason;
-    const sentence = finalize({ ...candidate, slotIds: [candidate.slotId] }, `trends[${position}].text`, slotText);
+  const trends = buildTrendCandidates(index, cmpTerm).slice(0, 5).map((candidate, position) => {
+    const isAccepted = resolved.accepted[candidate.slotId];
+    const slotText = resolved.text[candidate.slotId];
+    const sentence = finalize({ ...candidate, slotIds: [candidate.slotId] }, `trends[${position}].text`, slotText, isAccepted);
     renderEntries.push(...sentence.entries);
     return { text: sentence.text, slotIds: sentence.slotIds };
   });
 
-  const analysis = buildAnalysisCandidates(index, prevLabel).slice(0, 4).map(candidate => {
-    const slotText = resolved.text[candidate.slotId] || DEFAULT_PHRASES.reason;
-    const sentence = finalize({ ...candidate, slotIds: [candidate.slotId] }, 'analysis', slotText);
+  const analysis = buildAnalysisCandidates(index, cmpTerm).slice(0, 4).map(candidate => {
+    const isAccepted = resolved.accepted[candidate.slotId];
+    const slotText = resolved.text[candidate.slotId];
+    const sentence = finalize({ ...candidate, slotIds: [candidate.slotId] }, 'analysis', slotText, isAccepted);
     renderEntries.push(...sentence.entries);
     return sentence.text;
   }).join('');
 
-  const advice = ADVICE_BASES.map((base, position) => {
+  const adviceCandidates = buildAdviceCandidates(brief, index, cmpTerm);
+  const advice = adviceCandidates.slice(0, 3).map((candidate, position) => {
     const slotId = `advice.${position + 1}.reason`;
-    return {
-      text: `${base}，${resolved.text[slotId] || DEFAULT_PHRASES.reason}。`,
+    const isAccepted = resolved.accepted[slotId];
+    const slotText = resolved.text[slotId];
+    const cleanSlotText = (isAccepted && slotText && slotText.trim() && slotText !== DEFAULT_PHRASES.reason && !slotText.includes('可结合项目描述理解'))
+      ? slotText.trim()
+      : null;
+    const sentence = finalize({
+      ...candidate,
       slotIds: [slotId],
+    }, `advice[${position}].text`, cleanSlotText, Boolean(cleanSlotText));
+    renderEntries.push(...sentence.entries);
+    return {
+      text: sentence.text,
+      slotIds: sentence.slotIds,
     };
-  }).slice(0, 3);
+  });
 
   const newCount = index.total('new');
   const returned = index.total('returned');
   const dropped = index.total('dropped');
   let churnNewText = '';
   if (newCount) {
+    const isAccepted = resolved.accepted['churn.new.reason'];
+    const slotText = resolved.text['churn.new.reason'];
     const sentence = finalize({
       ...makeSentence(w => {
-        let base = `${prevLabel}新进 ${w.num(newCount)} 个项目`;
+        let base = `${cmpTerm}新进 ${w.num(newCount)} 个项目`;
         if (returned) base += `，其中回归 ${w.num(returned)} 个`;
         return base;
       }),
       slotIds: ['churn.new.reason'],
-    }, 'churnNewText', resolved.text['churn.new.reason'] || DEFAULT_PHRASES.reason);
+    }, 'churnNewText', slotText, isAccepted);
     renderEntries.push(...sentence.entries);
     churnNewText = sentence.text;
   }
   let churnDropText = '';
   if (dropped) {
+    const isAccepted = resolved.accepted['churn.drop.reason'];
+    const slotText = resolved.text['churn.drop.reason'];
+    let prevBrief = prevDate ? history.readDailyBrief(prevDate) : null;
+    const scrapedAt = brief.scrapedAt || brief.generatedAt;
+    if (!prevBrief && scrapedAt && typeof history.getBaselineSnapshot === 'function') {
+      const baseline = history.getBaselineSnapshot(scrapedAt);
+      if (baseline) prevBrief = baseline.brief;
+    }
+    const dropDetails = buildChurnDropDetails(brief, prevBrief);
+
+    let detailClause = '';
+    if (dropDetails && dropDetails.length > 0) {
+      const types = [...new Set(dropDetails.map(d => d.typeName).filter(Boolean))];
+      if (types.length === 1 && dropDetails.length > 1) {
+        detailClause = `，其中 ${dropDetails.map(d => d.shortName).join('与')} 均为 ${types[0]} 类`;
+      } else if (types.length === 1 && dropDetails.length === 1) {
+        detailClause = `，其中 ${dropDetails[0].shortName} 为 ${types[0]} 类`;
+      } else if (types.length > 1) {
+        detailClause = `，其中 ${dropDetails.map(d => `${d.shortName} 为 ${d.typeName || '其他'} 类`).join('、')}`;
+      } else {
+        detailClause = `，其中包含 ${dropDetails.map(d => d.shortName).join('、')}`;
+      }
+    }
+
+    const cleanSlotText = (isAccepted && slotText && slotText.trim() && slotText !== DEFAULT_PHRASES.reason && !slotText.includes('可结合项目描述理解'))
+      ? slotText.trim()
+      : null;
+
     const sentence = finalize({
-      ...makeSentence(w => `${prevLabel}掉榜 ${w.num(dropped)} 个项目`),
+      ...makeSentence(w => `${cmpTerm}掉榜 ${w.num(dropped)} 个项目${detailClause}`),
       slotIds: ['churn.drop.reason'],
-    }, 'churnDropText', resolved.text['churn.drop.reason'] || DEFAULT_PHRASES.reason);
+    }, 'churnDropText', cleanSlotText, Boolean(cleanSlotText));
     renderEntries.push(...sentence.entries);
     churnDropText = sentence.text;
   }
@@ -885,7 +1094,7 @@ function buildDailyV3Text(options = {}) {
   }
 
   return {
-    version: 'r5',
+    version: 'r9',
     slots: { ...resolved.text, ...projectSlots },
     slotSpecs: specs,
     usedDefaults: [...resolved.usedDefaults, ...projectTexts.usedDefaults],

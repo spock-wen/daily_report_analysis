@@ -37,6 +37,7 @@ function selfWrittenWords(sentence, regex, config) {
 function isR5Insights(insights) {
   return Boolean(insights && typeof insights === 'object'
     && (insights.version === 'r5'
+      || insights.version === 'r9'
       || (insights.slots && typeof insights.slots === 'object' && !Array.isArray(insights.slots))));
 }
 

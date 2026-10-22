@@ -233,13 +233,13 @@ function addDailyReferenceFacts({ brief, add, addNumber }) {
       addNumber(referenceValue, {
         kind: 'total',
         field: metric.field,
-        label: `昨日${metric.label}`,
+        label: `上期${metric.label}`,
         role: `prev_${metric.key}`,
         source: `briefs/daily/data-${prevEntries[0].date}.json#${metric.field}`,
       });
       addDirection({
         metric,
-        label: `今日${metric.label}较昨日`,
+        label: `今日${metric.label}较上期`,
         currentValue: metric.pick(current),
         referenceValue,
         source: `briefs/daily/data-${date}.json#${metric.field}; briefs/daily/data-${prevEntries[0].date}.json#${metric.field}`,
@@ -250,7 +250,7 @@ function addDailyReferenceFacts({ brief, add, addNumber }) {
         add(round1(currentValue - previousValue), {
           kind: 'total',
           field: metric.field,
-          label: `今日${metric.label}较昨日变化`,
+          label: `今日${metric.label}较上期变化`,
           role: `delta_day_${metric.key}`,
           source: `briefs/daily/data-${date}.json#${metric.field}; briefs/daily/data-${prevEntries[0].date}.json#${metric.field}`,
           comparison: { metric: metric.key, kind: 'day' },
@@ -335,14 +335,14 @@ function addDailyReferenceFacts({ brief, add, addNumber }) {
   addNumber(previousMaxStreak, {
     kind: 'total',
     field: 'streakDays',
-    label: '昨日连续在榜最长天数',
+    label: '上期连续在榜最长天数',
     role: 'prev_max_streak',
   });
   if (currentMaxStreak !== null && previousMaxStreak !== null) {
     add(round1(currentMaxStreak - previousMaxStreak), {
       kind: 'total',
       field: 'streakDays',
-      label: '连续在榜最长天数较昨日变化',
+      label: '连续在榜最长天数较上期变化',
       role: 'delta_day_max_streak',
       source: `briefs/daily/data-${date}.json#streakDays; briefs/daily/data-${prevEntries[0].date}.json#streakDays`,
       comparison: { metric: 'max_streak', kind: 'day' },
@@ -380,7 +380,7 @@ function addDailyReferenceFacts({ brief, add, addNumber }) {
     addNumber(previousValue, {
       kind: 'total',
       field: `dailyDiff.counts.${key}`,
-      label: `昨日${key === 'new' ? '新进' : key === 'dropped' ? '掉榜' : '连续在榜'}数`,
+      label: `上期${key === 'new' ? '新进' : key === 'dropped' ? '掉榜' : '连续在榜'}数`,
       role: `prev_${key}`,
       source: `briefs/daily/data-${prevEntries[0].date}.json#dailyDiff.counts.${key}`,
     });
@@ -388,7 +388,7 @@ function addDailyReferenceFacts({ brief, add, addNumber }) {
       add(round1(currentValue - previousValue), {
         kind: 'total',
         field: `dailyDiff.counts.${key}`,
-        label: `${key === 'new' ? '新进' : key === 'dropped' ? '掉榜' : '连续在榜'}数较昨日变化`,
+        label: `${key === 'new' ? '新进' : key === 'dropped' ? '掉榜' : '连续在榜'}数较上期变化`,
         role: `delta_day_${key}`,
         source: `briefs/daily/data-${date}.json#dailyDiff.counts.${key}; briefs/daily/data-${prevEntries[0].date}.json#dailyDiff.counts.${key}`,
         comparison: { metric: key, kind: 'day' },
@@ -402,6 +402,21 @@ function addDailyReferenceFacts({ brief, add, addNumber }) {
     const projects = brief.projects || [];
     const category = topShare(projects, projectCategory);
     if (category) {
+      add(category.count, {
+        kind: 'total',
+        field: 'projects[*].analysis.type',
+        label: `头部类目「${category.name}」项目数`,
+        role: 'category_count',
+        source: `briefs/daily/data-${date}.json#projects[*].analysis.type`,
+      });
+      const previousCount = prevProjects.filter(project => projectCategory(project) === category.name).length;
+      add(previousCount, {
+        kind: 'total',
+        field: 'projects[*].analysis.type',
+        label: `上期头部类目「${category.name}」项目数`,
+        role: 'prev_category_count',
+        source: `briefs/daily/data-${prevEntries[0].date}.json#projects[*].analysis.type`,
+      });
       const previousShare = shareOf(prevProjects, projectCategory, category.name);
       if (previousShare !== null) {
         add(category.share, {
@@ -431,6 +446,21 @@ function addDailyReferenceFacts({ brief, add, addNumber }) {
 
     const language = topShare(projects, project => project.language || null);
     if (language) {
+      add(language.count, {
+        kind: 'total',
+        field: 'projects[*].language',
+        label: `头部语言「${language.name}」项目数`,
+        role: 'language_count',
+        source: `briefs/daily/data-${date}.json#projects[*].language`,
+      });
+      const previousCount = prevProjects.filter(project => (project.language || null) === language.name).length;
+      add(previousCount, {
+        kind: 'total',
+        field: 'projects[*].language',
+        label: `上期头部语言「${language.name}」项目数`,
+        role: 'prev_language_count',
+        source: `briefs/daily/data-${prevEntries[0].date}.json#projects[*].language`,
+      });
       const previousShare = shareOf(prevProjects, project => project.language || null, language.name);
       if (previousShare !== null) {
         add(language.share, {
@@ -568,6 +598,29 @@ function buildDailyFacts({ brief, add, addNumber }) {
   addNumber(counts.dropped, { kind: 'total', field: 'dailyDiff.counts.dropped', label: '较上期掉榜数', role: 'dropped' });
   addNumber(counts.kept, { kind: 'total', field: 'dailyDiff.counts.kept', label: '较上期连续在榜数', role: 'kept' });
   addNumber(counts.returned, { kind: 'total', field: 'dailyDiff.counts.returned', label: '较上期回归数', role: 'returned' });
+
+  const sortedByToday = [...projects].sort((a, b) => (Number(b.todayStars) || 0) - (Number(a.todayStars) || 0));
+  if (sortedByToday.length >= 2) {
+    const top1 = sortedByToday[0];
+    const top2 = sortedByToday[1];
+    const top1Stars = Number(top1.todayStars) || 0;
+    const top2Stars = Number(top2.todayStars) || 0;
+    if (top2Stars > 0) {
+      const ratio = round1(top1Stars / top2Stars);
+      add(ratio, {
+        kind: 'total',
+        field: 'projects[*].todayStars',
+        label: '当日新增第一名与第二名倍数',
+        role: 'ratioTop1Top2',
+      });
+      add(ratio, {
+        kind: 'total',
+        field: 'projects[*].todayStars',
+        label: '当日新增第一名与第二名倍数（别名）',
+        role: 'ratio_top1_top2',
+      });
+    }
+  }
 
   addDailyReferenceFacts({ brief, add, addNumber });
   addStreakAcceleration({ brief, add, addNumber });

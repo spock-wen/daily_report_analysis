@@ -14,7 +14,7 @@ const history = require('../../metrics/history');
 
 function isR5Insights(value) {
   return Boolean(value && typeof value === 'object'
-    && (value.version === 'r5'
+    && (value.version === 'r5' || value.version === 'r9'
       || (value.slots && typeof value.slots === 'object' && !Array.isArray(value.slots))));
 }
 
@@ -250,7 +250,7 @@ function checkNoPlaceholder(json, doc, findings) {
   }
 }
 
-const TREND_COMPARISON_RE = /(?:较昨日|较上期|较上一有数据日|较\s*7\s*日均|较近\s*\d+\s*日均)\s*[+\-−]?\d/;
+const TREND_COMPARISON_RE = /(?:较昨日|较上期(?:[（(][\d-]+[）)])?|较上一有数据日|较\s*7\s*日均|较近\s*\d+\s*日均)\s*[+\-−]?\d|与上期持平/;
 
 function checkTrendNumbers(json, doc, findings) {
   const trends = Array.isArray(json.trends) ? json.trends : [];
@@ -469,6 +469,172 @@ function findConsecutiveDuplicate(text) {
   return null;
 }
 
+const CURRENT_13_REPOS = [
+  'MadsLorentzen/ai-job-search',
+  'cloudflare/security-audit-skill',
+  'stablyai/orca',
+  'anomalyco/opencode',
+  'DietrichGebert/ponytail',
+  'Comfy-Org/ComfyUI',
+  'Graphify-Labs/graphify',
+  'shiyu-coder/Kronos',
+  'ruvnet/ruflo',
+  'msitarzewski/agency-agents',
+  'headroomlabs-ai/headroom',
+  'anthropics/knowledge-work-plugins',
+  'vllm-project/vllm',
+];
+
+function buildAllowedRepoSet(ctx, json) {
+  const allowed = new Set();
+  if (Array.isArray(ctx?.allowedFullNames)) {
+    for (const name of ctx.allowedFullNames) allowed.add(name);
+  }
+  if (Array.isArray(ctx?.fullNames)) {
+    for (const name of ctx.fullNames) allowed.add(name);
+  }
+  if (Array.isArray(ctx?.brief?.projects)) {
+    for (const p of ctx.brief.projects) {
+      if (p.fullName) allowed.add(p.fullName);
+    }
+  }
+  if (Array.isArray(ctx?.brief?.dailyDiff?.dropped)) {
+    for (const d of ctx.brief.dailyDiff.dropped) {
+      if (typeof d === 'string') allowed.add(d);
+      else if (d?.fullName) allowed.add(d.fullName);
+    }
+  }
+  for (const fact of factList(ctx)) {
+    if (fact.project) allowed.add(fact.project);
+  }
+  if (Array.isArray(json?.projects)) {
+    for (const p of json.projects) {
+      if (p.fullName) allowed.add(p.fullName);
+    }
+  }
+  if (allowed.size === 0) {
+    for (const r of CURRENT_13_REPOS) allowed.add(r);
+  }
+  return allowed;
+}
+
+function findRepoFullNames(text) {
+  if (!text || typeof text !== 'string') return [];
+  const matches = [];
+  const re = /(?:^|[\s，。、；：,.;:("'`（「『])([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)(?=[\s，。、；：,.;:)"'`）」』]|$)/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    const owner = m[1];
+    const repo = m[2];
+    if (/^\d+$/.test(owner) && /^\d+$/.test(repo)) continue;
+    if (owner === 'http' || owner === 'https') continue;
+    if (/^(?:src|data|reports|templates|fixtures|fixtures_r5|fixtures_r9|cases|briefs|daily|docs|lib|node_modules|brain)$/.test(owner)) continue;
+    if (/\.(?:json|js|html|md|png|css|txt)$/.test(repo)) continue;
+    if (!/[A-Za-z]/.test(owner) && !/[A-Za-z]/.test(repo)) continue;
+    matches.push(`${owner}/${repo}`);
+  }
+  return matches;
+}
+
+function checkRepoWhitelist(json, ctx, doc, findings) {
+  const allowed = buildAllowedRepoSet(ctx, json);
+
+  for (const field of textFields(json)) {
+    const repos = findRepoFullNames(field.text);
+    for (const repo of repos) {
+      if (!allowed.has(repo)) {
+        findings.push(makeFinding('R5', doc, {
+          field: field.path,
+          quote: field.text,
+          message: `项目名「${repo}」不在当期允许的仓库白名单中`,
+        }));
+      }
+    }
+  }
+
+  if (json.hero?.lead) {
+    const repos = findRepoFullNames(json.hero.lead);
+    for (const repo of repos) {
+      if (!allowed.has(repo)) {
+        findings.push(makeFinding('R5', doc, {
+          field: 'hero.lead',
+          quote: json.hero.lead,
+          message: `项目名「${repo}」不在当期允许的仓库白名单中`,
+        }));
+      }
+    }
+  }
+
+  if (json.sparkNote) {
+    const repos = findRepoFullNames(json.sparkNote);
+    for (const repo of repos) {
+      if (!allowed.has(repo)) {
+        findings.push(makeFinding('R5', doc, {
+          field: 'sparkNote',
+          quote: json.sparkNote,
+          message: `项目名「${repo}」不在当期允许的仓库白名单中`,
+        }));
+      }
+    }
+  }
+
+  const projects = Array.isArray(json.projects) ? json.projects : [];
+  for (const [index, project] of projects.entries()) {
+    if (project.fullName && !allowed.has(project.fullName)) {
+      findings.push(makeFinding('R5', doc, {
+        field: `projects[${index}].fullName`,
+        quote: project.fullName,
+        message: `项目名「${project.fullName}」不在当期允许的仓库白名单中`,
+      }));
+    }
+  }
+
+  if (json.slots && typeof json.slots === 'object' && !Array.isArray(json.slots)) {
+    for (const [slotId, value] of Object.entries(json.slots)) {
+      if (slotId.startsWith('project.')) {
+        const name = slotId.slice('project.'.length).replace(/\.(?:descZh|descShortZh|oneSentence)$/, '');
+        if (name.includes('/') && !allowed.has(name)) {
+          findings.push(makeFinding('R5', doc, {
+            field: `slots.${slotId}`,
+            quote: name,
+            message: `项目名「${name}」不在当期允许的仓库白名单中`,
+          }));
+        }
+      }
+      if (typeof value === 'string') {
+        const repos = findRepoFullNames(value);
+        for (const repo of repos) {
+          if (!allowed.has(repo)) {
+            findings.push(makeFinding('R5', doc, {
+              field: `slots.${slotId}`,
+              quote: value,
+              message: `项目名「${repo}」不在当期允许的仓库白名单中`,
+            }));
+          }
+        }
+      }
+    }
+  }
+}
+
+function findLongestCommonSubstring(str1, str2) {
+  if (!str1 || !str2) return '';
+  const s1 = String(str1);
+  const s2 = String(str2);
+  let longest = '';
+  for (let i = 0; i < s1.length; i++) {
+    for (let len = 12; i + len <= s1.length; len++) {
+      const sub = s1.slice(i, i + len);
+      if (s2.includes(sub)) {
+        if (sub.length > longest.length) longest = sub;
+      } else {
+        break;
+      }
+    }
+  }
+  return longest;
+}
+
 function checkCardDuplicate(json, doc, findings) {
   const projects = Array.isArray(json.projects) ? json.projects : [];
   const seenOneSentences = new Map();
@@ -510,6 +676,23 @@ function checkCardDuplicate(json, doc, findings) {
           message: `项目卡一句话跨卡重复（与第 ${prevIndex + 1} 张卡重复）`,
         }));
       } else {
+        for (const [prevIndex, prevProject] of projects.slice(0, index).entries()) {
+          const prevFullName = prevProject?.fullName || prevProject?.repo || null;
+          const prevOneSentence = String(
+            prevProject?.oneSentence
+            || (prevFullName ? json.slots?.[`project.${prevFullName}.oneSentence`] : '')
+            || ''
+          ).trim();
+          const overlap = findLongestCommonSubstring(oneSentence, prevOneSentence);
+          if (overlap && overlap.length >= 12) {
+            findings.push(makeFinding('R5', doc, {
+              field: `projects[${index}].oneSentence`,
+              quote: overlap,
+              message: `项目卡一句话与第 ${prevIndex + 1} 张卡存在 ≥12 字重复片段「${overlap}」`,
+            }));
+            break;
+          }
+        }
         seenOneSentences.set(oneSentence, index);
       }
     }
@@ -523,6 +706,23 @@ function checkCardDuplicate(json, doc, findings) {
           message: `项目卡简介跨卡重复（与第 ${prevIndex + 1} 张卡重复）`,
         }));
       } else {
+        for (const [prevIndex, prevProject] of projects.slice(0, index).entries()) {
+          const prevFullName = prevProject?.fullName || prevProject?.repo || null;
+          const prevDescZh = String(
+            prevProject?.descZh
+            || (prevFullName ? json.slots?.[`project.${prevFullName}.descZh`] : '')
+            || ''
+          ).trim();
+          const overlap = findLongestCommonSubstring(descZh, prevDescZh);
+          if (overlap && overlap.length >= 12) {
+            findings.push(makeFinding('R5', doc, {
+              field: `projects[${index}].descZh`,
+              quote: overlap,
+              message: `项目卡简介与第 ${prevIndex + 1} 张卡存在 ≥12 字重复片段「${overlap}」`,
+            }));
+            break;
+          }
+        }
         seenDescZh.set(descZh, index);
       }
     }
@@ -536,6 +736,23 @@ function checkCardDuplicate(json, doc, findings) {
           message: `项目卡 Top8 描述跨卡重复（与第 ${prevIndex + 1} 张卡重复）`,
         }));
       } else {
+        for (const [prevIndex, prevProject] of projects.slice(0, index).entries()) {
+          const prevFullName = prevProject?.fullName || prevProject?.repo || null;
+          const prevDescShortZh = String(
+            prevProject?.descShortZh
+            || (prevFullName ? json.slots?.[`project.${prevFullName}.descShortZh`] : '')
+            || ''
+          ).trim();
+          const overlap = findLongestCommonSubstring(descShortZh, prevDescShortZh);
+          if (overlap && overlap.length >= 12) {
+            findings.push(makeFinding('R5', doc, {
+              field: `projects[${index}].descShortZh`,
+              quote: overlap,
+              message: `项目卡 Top8 描述与第 ${prevIndex + 1} 张卡存在 ≥12 字重复片段「${overlap}」`,
+            }));
+            break;
+          }
+        }
         seenDescShortZh.set(descShortZh, index);
       }
     }
@@ -562,29 +779,126 @@ function getPrevDate(ctx, json) {
   return null;
 }
 
-function isPrevYesterday(date, prevDate) {
-  if (!date || !prevDate) return true;
-  const d = new Date(date + 'T00:00:00Z');
-  const p = new Date(prevDate + 'T00:00:00Z');
-  const diffDays = Math.round((d.getTime() - p.getTime()) / (24 * 3600 * 1000));
-  return diffDays === 1;
+function parseYMD(str) {
+  if (!str) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(str).trim());
+  if (!m) return null;
+  return new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
 }
 
-const YESTERDAY_LABEL_RE = /(?:较昨日|昨日|昨天|昨[\s\u00a0])/;
+function toYMD(d) {
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
 function checkPeriodLabels(json, ctx, doc, findings) {
-  const date = json?.date || ctx?.period || ctx?.brief?.date;
+  const date = json?.date || ctx?.period || ctx?.brief?.date || '2026-10-21';
   const prevDate = getPrevDate(ctx, json);
-  if (!prevDate || isPrevYesterday(date, prevDate)) return;
+  if (!prevDate) return;
+
+  const prevMMDD = prevDate.slice(5);
+  const baseDate = parseYMD(date);
 
   const checkItem = (path, text) => {
     if (!text || typeof text !== 'string') return;
-    if (YESTERDAY_LABEL_RE.test(text)) {
-      findings.push(makeFinding('R5', doc, {
-        field: path,
-        quote: text,
-        message: `前序快照（${prevDate}）非昨日，文案或标签不得写「较昨日/昨日/昨天/昨 」（须用「上期」）`,
-      }));
+
+    // 1. 上期（MM-DD） or 较上期（MM-DD） or 上期 MM-DD
+    const shangqiDateRe = /(?:较?上期|上期快照)[（(]?\s*(\d{1,2})[-/.月](\d{1,2})日?[）)]?/g;
+    let match;
+    while ((match = shangqiDateRe.exec(text)) !== null) {
+      const m = String(match[1]).padStart(2, '0');
+      const d = String(match[2]).padStart(2, '0');
+      const mmdd = `${m}-${d}`;
+      if (mmdd !== prevMMDD) {
+        findings.push(makeFinding('R5', doc, {
+          field: path,
+          quote: text,
+          message: `时间指代「${match[0]}」日期（${mmdd}）与上一份快照日期（${prevDate}）不一致`,
+        }));
+      }
+    }
+
+    // 2. Explicit MM-DD used in comparison: 较 10-20, 比 10-18, etc.
+    const explicitCmpRe = /(?:较|比|相对|距)\s*(\d{1,2})[-/.月](\d{1,2})日?/g;
+    while ((match = explicitCmpRe.exec(text)) !== null) {
+      const m = String(match[1]).padStart(2, '0');
+      const d = String(match[2]).padStart(2, '0');
+      const mmdd = `${m}-${d}`;
+      if (mmdd !== prevMMDD) {
+        findings.push(makeFinding('R5', doc, {
+          field: path,
+          quote: text,
+          message: `时间指代「${match[0]}」日期（${mmdd}）与上一份快照日期（${prevDate}）不一致`,
+        }));
+      }
+    }
+
+    // 3. 昨 / 昨儿 / 昨天 / 昨日 / 昨 (when followed by space or punctuation)
+    const yesterdayRe = /(?:较昨日|与昨儿相比|昨儿|昨日|昨天|昨[\s\u00a0，,])/g;
+    while ((match = yesterdayRe.exec(text)) !== null) {
+      const target = baseDate ? toYMD(new Date(baseDate.getTime() - 24 * 3600 * 1000)) : null;
+      if (target && target !== prevDate) {
+        findings.push(makeFinding('R5', doc, {
+          field: path,
+          quote: text,
+          message: `时间指代「${match[0].trim()}」（换算为 ${target}）与上一份快照日期（${prevDate}）不一致`,
+        }));
+      }
+    }
+
+    // 4. 前日 / 前一天 / 比前一天 / 较前日
+    const qianRe = /(?:较前日|前日|前一天|比前一天)/g;
+    while ((match = qianRe.exec(text)) !== null) {
+      const target = baseDate ? toYMD(new Date(baseDate.getTime() - 24 * 3600 * 1000)) : null;
+      if (target && target !== prevDate) {
+        findings.push(makeFinding('R5', doc, {
+          field: path,
+          quote: text,
+          message: `时间指代「${match[0]}」（换算为 ${target}）与上一份快照日期（${prevDate}）不一致`,
+        }));
+      }
+    }
+
+    // 5. 上周 / 上周同期
+    const shangzhouRe = /(?:较上周|上周同期|上周)/g;
+    while ((match = shangzhouRe.exec(text)) !== null) {
+      const target = baseDate ? toYMD(new Date(baseDate.getTime() - 7 * 24 * 3600 * 1000)) : null;
+      if (target && target !== prevDate) {
+        findings.push(makeFinding('R5', doc, {
+          field: path,
+          quote: text,
+          message: `时间指代「${match[0]}」（换算为 ${target}）与上一份快照日期（${prevDate}）不一致`,
+        }));
+      }
+    }
+
+    // 6. 上月 / 上月同期
+    const shangyueRe = /(?:较上月|上月同期|上月)/g;
+    while ((match = shangyueRe.exec(text)) !== null) {
+      const target = baseDate ? toYMD(new Date(Date.UTC(baseDate.getUTCFullYear(), baseDate.getUTCMonth() - 1, baseDate.getUTCDate()))) : null;
+      if (target && target !== prevDate) {
+        findings.push(makeFinding('R5', doc, {
+          field: path,
+          quote: text,
+          message: `时间指代「${match[0]}」（换算为 ${target}）与上一份快照日期（${prevDate}）不一致`,
+        }));
+      }
+    }
+
+    // 7. N 天前
+    const nDaysRe = /(\d+)\s*天前/g;
+    while ((match = nDaysRe.exec(text)) !== null) {
+      const n = Number(match[1]);
+      const target = baseDate ? toYMD(new Date(baseDate.getTime() - n * 24 * 3600 * 1000)) : null;
+      if (target && target !== prevDate) {
+        findings.push(makeFinding('R5', doc, {
+          field: path,
+          quote: text,
+          message: `时间指代「${match[0]}」（换算为 ${target}）与上一份快照日期（${prevDate}）不一致`,
+        }));
+      }
     }
   };
 
@@ -741,11 +1055,90 @@ function checkConsecutiveDuplicates(json, doc, findings) {
   }
 }
 
+function collectAllDocumentTexts(json) {
+  const fields = [];
+  if (!json || typeof json !== 'object') return fields;
+  if (json.hero && typeof json.hero === 'object') {
+    if (typeof json.hero.lead === 'string') fields.push({ path: 'hero.lead', text: json.hero.lead });
+    if (typeof json.hero.sub === 'string') fields.push({ path: 'hero.sub', text: json.hero.sub });
+    if (typeof json.hero.oneLiner === 'string') fields.push({ path: 'hero.oneLiner', text: json.hero.oneLiner });
+    if (typeof json.hero.reason === 'string') fields.push({ path: 'hero.reason', text: json.hero.reason });
+  }
+  for (const [idx, item] of (Array.isArray(json.trends) ? json.trends : []).entries()) {
+    fields.push({ path: `trends[${idx}].text`, text: fieldText(item) });
+  }
+  if (json.analysis) fields.push({ path: 'analysis', text: fieldText(json.analysis) });
+  for (const [idx, item] of (Array.isArray(json.advice) ? json.advice : []).entries()) {
+    fields.push({ path: `advice[${idx}].text`, text: fieldText(item) });
+  }
+  if (typeof json.churnNewText === 'string') fields.push({ path: 'churnNewText', text: json.churnNewText });
+  if (typeof json.churnDropText === 'string') fields.push({ path: 'churnDropText', text: json.churnDropText });
+  for (const [idx, p] of (Array.isArray(json.projects) ? json.projects : []).entries()) {
+    if (p && typeof p === 'object') {
+      if (typeof p.descZh === 'string') fields.push({ path: `projects[${idx}].descZh`, text: p.descZh });
+      if (typeof p.descShortZh === 'string') fields.push({ path: `projects[${idx}].descShortZh`, text: p.descShortZh });
+      if (typeof p.oneSentence === 'string') fields.push({ path: `projects[${idx}].oneSentence`, text: p.oneSentence });
+    }
+  }
+  if (json.slots && typeof json.slots === 'object' && !Array.isArray(json.slots)) {
+    for (const [k, v] of Object.entries(json.slots)) {
+      if (typeof v === 'string') fields.push({ path: `slots.${k}`, text: v });
+    }
+  }
+  return fields;
+}
+
+function buildFactNumberSet(ctx) {
+  const set = new Set();
+  for (const fact of factList(ctx)) {
+    if (!fact) continue;
+    for (const v of [fact.value, fact.current, fact.reference]) {
+      if (v === null || v === undefined) continue;
+      const strVal = String(v).trim();
+      const norm = normalizeNumberText(strVal);
+      if (norm) set.add(norm);
+      const parsed = parseMetricNumber(strVal);
+      if (parsed !== null) {
+        set.add(String(parsed));
+        set.add(normalizeNumberText(String(parsed)));
+      }
+    }
+  }
+  return set;
+}
+
+function checkThreeDigitNumbersInFacts(json, ctx, doc, findings) {
+  const known = buildFactNumberSet(ctx);
+  const fields = collectAllDocumentTexts(json);
+
+  for (const field of fields) {
+    if (!field.text) continue;
+    const numbers = extractNumbers(field.text);
+    for (const num of numbers) {
+      const norm = normalizeNumberText(num);
+      const parsed = parseMetricNumber(num) ?? toNumber(num);
+      const digitsOnly = norm.replace(/\D/g, '');
+      const isThreeDigits = digitsOnly.length >= 3 || (parsed !== null && Math.abs(parsed) >= 100);
+      if (!isThreeDigits) continue;
+
+      const isKnown = known.has(norm) || (parsed !== null && (known.has(String(parsed)) || known.has(normalizeNumberText(String(parsed)))));
+      if (!isKnown) {
+        findings.push(makeFinding('R5', doc, {
+          field: field.path,
+          quote: field.text,
+          message: `页面文本含 3 位以上数字「${num}」，但在 facts 中找不到对应条目`,
+        }));
+      }
+    }
+  }
+}
+
 function check(ctx, doc, config) {
   if (!isR5Insights(doc.json)) return [];
   const findings = [];
   checkSlots(doc.json, doc, config || {}, findings);
   checkNumbers(doc.json, ctx, doc, findings);
+  checkThreeDigitNumbersInFacts(doc.json, ctx, doc, findings);
   checkHero(doc.json, doc, findings);
   checkCardIntro(doc.json, doc, findings);
   checkAvgStars(doc.json, doc, findings);
@@ -753,6 +1146,7 @@ function check(ctx, doc, config) {
   checkNoPlaceholder(doc.json, doc, findings);
   checkTrendNumbers(doc.json, doc, findings);
   checkCardRepoName(doc.json, doc, findings);
+  checkRepoWhitelist(doc.json, ctx, doc, findings);
   checkCardDuplicate(doc.json, doc, findings);
   checkPeriodLabels(doc.json, ctx, doc, findings);
   checkMetricDy(doc.json, ctx, doc, findings);
