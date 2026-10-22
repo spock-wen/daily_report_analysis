@@ -371,22 +371,205 @@ function checkSlots(json, doc, config, findings) {
   }
 }
 
-function checkNumbers(json, ctx, doc, findings) {
+function maskDateTimes(text) {
+  if (!text || typeof text !== 'string') return '';
+  const patterns = [
+    /(?:较?上期|上期快照)[（(]?\s*\d{1,2}[-/.月]\d{1,2}日?[）)]?/g,
+    /(?:较|比|相对|距)\s*\d{1,2}[-/.月]\d{1,2}日?/g,
+    /[（(]\s*\d{1,2}[-/.月]\d{1,2}日?\s*[）)]/g,
+    /\d{4}[-/年]\d{1,2}[-/月]\d{1,2}日?/g,
+    /\d{4}-W\d{2}/gi,
+    /\d{4}-\d{2}/g,
+    /\d{1,2}月\d{1,2}日?/g,
+    /(?<!\d)\d{2}-\d{2}(?!\d)/g,
+    /(?<!\d)\d{1,2}:\d{2}(?::\d{2})?(?!\d)/g,
+    /UTC[+-]\d{1,2}(?::\d{2})?/gi,
+  ];
+  let res = text;
+  for (const pattern of patterns) {
+    res = res.replace(pattern, m => ' '.repeat(m.length));
+  }
+  return res;
+}
+
+function isAiSlotPath(path) {
+  if (!path || typeof path !== 'string') return false;
+  return path.startsWith('slots.') || path.endsWith('.reason') || path.includes('.reason');
+}
+
+function addCanonicalKeys(set, value) {
+  if (value === null || value === undefined || value === '') return;
+  const rawStr = String(value).trim();
+  if (!rawStr) return;
+
+  set.add(rawStr);
+
+  const cleaned = rawStr.replace(/[,\s]/g, '');
+  if (cleaned) set.add(cleaned);
+
+  const norm = normalizeNumberText(rawStr);
+  if (norm) set.add(norm);
+
+  const noPercent = cleaned.replace(/%/g, '');
+  if (noPercent) set.add(noPercent);
+
+  const noSign = noPercent.replace(/^[+\-−]/, '');
+  if (noSign) {
+    set.add(noSign);
+    const trimmedDec = noSign.replace(/\.0+$/, '').replace(/(\.\d*[1-9])0+$/, '$1');
+    if (trimmedDec) set.add(trimmedDec);
+  }
+
+  const parsed = toNumber(rawStr) ?? parseMetricNumber(rawStr) ?? toNumber(noPercent) ?? parseMetricNumber(noPercent);
+  if (parsed !== null && Number.isFinite(parsed)) {
+    const abs = Math.abs(parsed);
+    set.add(`num:${parsed}`);
+    set.add(`num:${abs}`);
+    set.add(String(parsed));
+    set.add(String(abs));
+    const parsedNorm = normalizeNumberText(String(parsed));
+    if (parsedNorm) set.add(parsedNorm);
+
+    if (abs > 0 && abs < 1) {
+      const p100 = Math.round(abs * 10000) / 100;
+      set.add(`num:${p100}`);
+      set.add(String(p100));
+      set.add(`${p100}%`);
+    } else if (abs >= 1 && abs <= 100) {
+      const div100 = abs / 100;
+      set.add(`num:${div100}`);
+    }
+
+    if (abs >= 1000 && abs < 10000000) {
+      const kVal = abs / 1000;
+      set.add(`${kVal}k`);
+      set.add(`${kVal.toFixed(1)}k`);
+      set.add(`${Math.round(kVal)}k`);
+    }
+  }
+}
+
+function isKnownNumber(set, numStr) {
+  if (numStr === null || numStr === undefined || numStr === '') return false;
+  const rawStr = String(numStr).trim();
+  if (!rawStr) return false;
+
+  if (set.has(rawStr)) return true;
+
+  const cleaned = rawStr.replace(/[,\s]/g, '');
+  if (set.has(cleaned)) return true;
+
+  const norm = normalizeNumberText(rawStr);
+  if (norm && set.has(norm)) return true;
+
+  const noPercent = cleaned.replace(/%/g, '');
+  if (set.has(noPercent)) return true;
+
+  const noSign = noPercent.replace(/^[+\-−]/, '');
+  if (noSign) {
+    if (set.has(noSign)) return true;
+    const trimmedDec = noSign.replace(/\.0+$/, '').replace(/(\.\d*[1-9])0+$/, '$1');
+    if (trimmedDec && set.has(trimmedDec)) return true;
+  }
+
+  const parsed = toNumber(rawStr) ?? parseMetricNumber(rawStr) ?? toNumber(noPercent) ?? parseMetricNumber(noPercent);
+  if (parsed !== null && Number.isFinite(parsed)) {
+    const abs = Math.abs(parsed);
+    if (set.has(`num:${parsed}`) || set.has(`num:${abs}`)) return true;
+    if (set.has(String(parsed)) || set.has(String(abs))) return true;
+    const parsedNorm = normalizeNumberText(String(parsed));
+    if (parsedNorm && set.has(parsedNorm)) return true;
+
+    if (abs > 0 && abs < 1) {
+      const p100 = Math.round(abs * 10000) / 100;
+      if (set.has(`num:${p100}`) || set.has(String(p100)) || set.has(`${p100}%`)) return true;
+    } else if (abs >= 1 && abs <= 100) {
+      const div100 = abs / 100;
+      if (set.has(`num:${div100}`)) return true;
+    }
+  }
+
+  return false;
+}
+
+function buildKnownSourceNumberSet(ctx, json) {
+  const set = new Set();
+
+  for (const fact of factList(ctx)) {
+    if (!fact) continue;
+    for (const v of [
+      fact.value,
+      fact.current,
+      fact.reference,
+      fact.target,
+      fact.diff,
+      fact.delta,
+      fact.previous,
+      fact.count,
+    ]) {
+      if (v !== undefined && v !== null) {
+        addCanonicalKeys(set, v);
+      }
+    }
+  }
+
   const entries = renderEntries(json);
-  const byPath = new Map();
   for (const entry of entries) {
     if (!entry || typeof entry !== 'object') continue;
-    const path = nullSafePath(entry.path);
-    if (!byPath.has(path)) byPath.set(path, []);
-    byPath.get(path).push(entry);
+    if (entry.text !== undefined && entry.text !== null) {
+      addCanonicalKeys(set, entry.text);
+      for (const num of extractNumbers(maskDateTimes(String(entry.text)))) {
+        addCanonicalKeys(set, num);
+      }
+    }
+    if (entry.value !== undefined && entry.value !== null) {
+      addCanonicalKeys(set, entry.value);
+    }
   }
+
+  if (Array.isArray(ctx?.renderEntries)) {
+    for (const entry of ctx.renderEntries) {
+      if (!entry || typeof entry !== 'object') continue;
+      if (entry.text !== undefined && entry.text !== null) {
+        addCanonicalKeys(set, entry.text);
+        for (const num of extractNumbers(maskDateTimes(String(entry.text)))) {
+          addCanonicalKeys(set, num);
+        }
+      }
+      if (entry.value !== undefined && entry.value !== null) {
+        addCanonicalKeys(set, entry.value);
+      }
+    }
+  }
+  if (Array.isArray(ctx?.renderMap?.entries)) {
+    for (const entry of ctx.renderMap.entries) {
+      if (!entry || typeof entry !== 'object') continue;
+      if (entry.text !== undefined && entry.text !== null) {
+        addCanonicalKeys(set, entry.text);
+        for (const num of extractNumbers(maskDateTimes(String(entry.text)))) {
+          addCanonicalKeys(set, num);
+        }
+      }
+      if (entry.value !== undefined && entry.value !== null) {
+        addCanonicalKeys(set, entry.value);
+      }
+    }
+  }
+
+  return set;
+}
+
+function checkNumbers(json, ctx, doc, findings) {
+  const entries = renderEntries(json);
+  const known = buildKnownSourceNumberSet(ctx, json);
 
   for (const field of textFields(json)) {
     if (!field.text) continue;
-    const numbers = extractNumbers(field.text);
+    const cleanText = maskDateTimes(field.text);
+    const numbers = extractNumbers(cleanText);
     if (numbers.length === 0) continue;
-    const missing = missingNumbers(numbers, byPath.get(field.path) || []);
-    for (const number of missing) {
+    for (const number of numbers) {
+      if (!isAiSlotPath(field.path) && isKnownNumber(known, number)) continue;
       findings.push(makeFinding('R5', doc, {
         field: field.path,
         quote: field.text,
@@ -1097,40 +1280,26 @@ function collectAllDocumentTexts(json) {
   return fields;
 }
 
-function buildFactNumberSet(ctx) {
-  const set = new Set();
-  for (const fact of factList(ctx)) {
-    if (!fact) continue;
-    for (const v of [fact.value, fact.current, fact.reference]) {
-      if (v === null || v === undefined) continue;
-      const strVal = String(v).trim();
-      const norm = normalizeNumberText(strVal);
-      if (norm) set.add(norm);
-      const parsed = parseMetricNumber(strVal);
-      if (parsed !== null) {
-        set.add(String(parsed));
-        set.add(normalizeNumberText(String(parsed)));
-      }
-    }
-  }
-  return set;
+function buildFactNumberSet(ctx, json) {
+  return buildKnownSourceNumberSet(ctx, json);
 }
 
 function checkThreeDigitNumbersInFacts(json, ctx, doc, findings) {
-  const known = buildFactNumberSet(ctx);
+  const known = buildKnownSourceNumberSet(ctx, json);
   const fields = collectAllDocumentTexts(json);
 
   for (const field of fields) {
     if (!field.text) continue;
-    const numbers = extractNumbers(field.text);
+    const cleanText = maskDateTimes(field.text);
+    const numbers = extractNumbers(cleanText);
     for (const num of numbers) {
       const norm = normalizeNumberText(num);
-      const parsed = parseMetricNumber(num) ?? toNumber(num);
+      const parsed = toNumber(num) ?? parseMetricNumber(num);
       const digitsOnly = norm.replace(/\D/g, '');
       const isThreeDigits = digitsOnly.length >= 3 || (parsed !== null && Math.abs(parsed) >= 100);
       if (!isThreeDigits) continue;
 
-      const isKnown = known.has(norm) || (parsed !== null && (known.has(String(parsed)) || known.has(normalizeNumberText(String(parsed)))));
+      const isKnown = !isAiSlotPath(field.path) && isKnownNumber(known, num);
       if (!isKnown) {
         findings.push(makeFinding('R5', doc, {
           field: field.path,
