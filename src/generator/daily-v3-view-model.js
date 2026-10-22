@@ -794,15 +794,18 @@ function buildDeepAnalysis({
 
   const sorted = [...projects].sort((left, right) => (toNumber(right.todayStars) || 0) - (toNumber(left.todayStars) || 0));
   const top3 = sorted.slice(0, 3);
+  // 「占了一半」用于前 3 名合计达到当日新增约一半（≥45%）的情形，否则如实写百分比。
+  let top3Part = null;
   if (top3.length === 3) {
     const top3Sum = top3.reduce((sum, project) => sum + (toNumber(project.todayStars) || 0), 0);
     const share = round1(top3Sum / totalToday * 100);
-    parts.push(share >= 50
+    top3Part = share >= 45
       ? `前 3 名占了一半（${formatCount(top3Sum)} 星）`
-      : `前 3 名占 ${share}%（${formatCount(top3Sum)} 星）`);
+      : `前 3 名占 ${share}%（${formatCount(top3Sum)} 星）`;
   }
 
   const returnedList = (churn.new || []).filter(item => returnedNames.has(item.fullName));
+  const newParts = [];
   if (churn.newCount > 0 && returnedList.length > 0) {
     const rankOf = new Map(projects.map((project, index) => [projectKey(project), index + 1]));
     const best = returnedList
@@ -812,24 +815,32 @@ function buildDeepAnalysis({
     const tail = best
       ? (best.rank <= 3 ? `，其中 ${shortNameOf(best.fullName)} 一回来就排到第 ${best.rank}` : `，其中排名最高的是 ${shortNameOf(best.fullName)}（第 ${best.rank}）`)
       : '';
-    parts.push(`新进 ${churn.newCount} 个里有 ${returnedList.length} 个是回归项目${tail}`);
+    newParts.push(`新进 ${churn.newCount} 个里有 ${returnedList.length} 个是回归项目${tail}`);
   } else if (churn.newCount > 0) {
-    parts.push(`新进 ${churn.newCount} 个`);
+    newParts.push(`新进 ${churn.newCount} 个`);
   }
 
+  const retentionParts = [];
   if (retention !== null && retention !== undefined) {
     if (prevKept === null || prevKept === undefined) {
-      parts.push(`留存率 ${retention}%`);
+      retentionParts.push(`留存率 ${retention}%`);
     } else {
       const keptDelta = keptCount - prevKept;
       const keptText = keptDelta === 0
         ? '与上期持平'
         : (keptDelta < 0 ? `比上期的 ${prevKept} 个连续在榜少了 ${-keptDelta} 个` : `比上期的 ${prevKept} 个连续在榜多了 ${keptDelta} 个`);
-      parts.push(`留存率 ${retention}%，${keptText}`);
+      retentionParts.push(`留存率 ${retention}%，${keptText}`);
     }
   }
 
-  return `${parts.join('；')}。`;
+  // 句群：第一句＝合计＋前 3 名（逗号相连）；第二句＝新进/回归＋留存率（分号相连）。
+  const sentences = [];
+  const head = [parts[0]];
+  if (top3Part) head.push(top3Part);
+  sentences.push(`${head.join('，')}。`);
+  const tailParts = [...newParts, ...retentionParts];
+  if (tailParts.length) sentences.push(`${tailParts.join('；')}。`);
+  return sentences.join('');
 }
 
 // 建议 2：`留意 ruflo（连续 6 天）和 ai-job-search（连续 5 天）：ruflo 今日新增 684 星，比上期多 120 星，但排名从第 5 降到第 9。`
