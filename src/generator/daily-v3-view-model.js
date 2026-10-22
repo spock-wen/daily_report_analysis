@@ -485,7 +485,7 @@ function buildCmp({
   facts,
 }) {
   // R1：上一份快照是前一天写「和昨天比」，否则写「和 MM-DD 比」（日期取上一份快照），不改检查规则。
-  const cmpTitle = (isYesterday || !previousDate) ? '和昨天比' : `和 ${dateShort(previousDate)} 比`;
+  const cmpTitle = !previousDate ? '和上期比' : (isYesterday ? '和昨天比' : `和 ${dateShort(previousDate)} 比`);
   const prevSnapshot = previousBrief ? snapshotOf(previousBrief) : null;
   const monthSnapshot = monthEntry ? snapshotOf(monthEntry.brief) : null;
   const avgOf = key => (priorSnapshots.length >= 2
@@ -524,8 +524,11 @@ function buildCmp({
       const value = role ? factValue(facts, `${suffix}_${role}`) : null;
       return value !== null && Number.isFinite(value) ? value : null;
     };
-    const avg7 = fromFacts('avg7') ?? (key ? avgOf(key) : null);
-    const monthValue = fromFacts('mom') ?? (key && monthSnapshot ? toNumber(monthSnapshot[key]) : null);
+    // 有事实表时只认 facts（检查器 checkCmpFacts 按 avg7_/mom_ role 找出处），缺 role 显示「暂无」；
+    // 没有事实表（旧数据）才退回往期快照。
+    const hasFacts = factList(facts).length > 0;
+    const avg7 = fromFacts('avg7') ?? (!hasFacts && key ? avgOf(key) : null);
+    const monthValue = fromFacts('mom') ?? (!hasFacts && key && monthSnapshot ? toNumber(monthSnapshot[key]) : null);
     return [
       makeRef(`上期 ${prevDateLabel}`, prevValue),
       makeRef('7 日均值', avg7, avgMissing || '暂无'),
@@ -815,11 +818,12 @@ function buildStreakText({ fullName, days, todayStarsRaw, prevToday }) {
 }
 
 // trends[0]：`今日 13 个上榜项目中，AI 项目 10 个，与上期持平；Agent 系统项目从上期 8 个增至 10 个，份额从 66.7% 升到 76.9%。`
-function buildCompositionTrend({ projects, previousProjects, aiProjects, totalProjects, prevAiProjects, hasPrev }) {
+function buildCompositionTrend({ projects, previousProjects, aiProjects, totalProjects, prevAiProjects, hasPrev, hasPrevFacts = false, prevTotalProjects = null }) {
   if (!totalProjects) return null;
   const aiDelta = prevAiProjects === null ? null : aiProjects - prevAiProjects;
+  // 有上期（快照或 prev_ 事实）但缺这一项时不写「上期无数据」，避免与上期存在相矛盾。
   const aiTail = aiDelta === null
-    ? '，上期无数据'
+    ? (hasPrev || hasPrevFacts ? '' : '，上期无数据')
     : (aiDelta === 0 ? '，与上期持平' : (aiDelta > 0 ? `，较上期多 ${aiDelta} 个` : `，较上期少 ${-aiDelta} 个`));
 
   const countOf = (list, name) => (list || []).filter(project => (project.analysis?.typeName || null) === name).length;
@@ -842,7 +846,14 @@ function buildCompositionTrend({ projects, previousProjects, aiProjects, totalPr
     typeTail = `；${top.name}项目 ${top.count} 个，与上期持平`;
   }
 
-  return `今日 ${totalProjects} 个上榜项目中，AI 项目 ${aiProjects} 个${aiTail}${typeTail}。`;
+  // 有上期但缺上期 AI 数时，改用上期上榜数（prev_total_projects）给出比较，不写「上期无数据」。
+  let totalTail = '';
+  if (aiDelta === null && (hasPrev || hasPrevFacts) && Number.isFinite(prevTotalProjects)) {
+    const totalDelta = totalProjects - prevTotalProjects;
+    totalTail = totalDelta === 0 ? '（与上期持平）'
+      : (totalDelta > 0 ? `（较上期多 ${totalDelta} 个）` : `（较上期少 ${-totalDelta} 个）`);
+  }
+  return `今日 ${totalProjects} 个上榜项目${totalTail}中，AI 项目 ${aiProjects} 个${aiTail}${typeTail}。`;
 }
 
 // 深度分析：`今日新增星合计 14,517 星，比上期（10-19）多 3,266 星，前 3 名占了一半（7,138 星）。新进 6 个里有 4 个是回归项目，其中 security-audit-skill 一回来就排到第 2；留存率 58.3%，比上期的 8 个连续在榜少了 1 个。`
@@ -1295,8 +1306,15 @@ function buildViewModel(data) {
     previousProjects,
     aiProjects: currentSnapshot.aiProjects,
     totalProjects: currentSnapshot.totalProjects,
-    prevAiProjects: priorSnapshots[0] ? (toNumber(priorSnapshots[0].aiProjects) ?? 0) : null,
+    // 无往期快照时退回事实表 prev_ai_projects（与检查器 hasPrevPeriodFacts 同一来源）。
+    prevAiProjects: priorSnapshots[0]
+      ? (toNumber(priorSnapshots[0].aiProjects) ?? 0)
+      : (Number.isFinite(factValue(data.facts, 'prev_ai_projects')) ? factValue(data.facts, 'prev_ai_projects') : null),
     hasPrev: Boolean(priorSnapshots[0]),
+    prevTotalProjects: priorSnapshots[0]
+      ? toNumber(priorSnapshots[0].totalProjects)
+      : (Number.isFinite(factValue(data.facts, 'prev_total_projects')) ? factValue(data.facts, 'prev_total_projects') : null),
+    hasPrevFacts: factList(data.facts).some(fact => fact && typeof fact.role === 'string' && fact.role.startsWith('prev_')),
   });
   if (compositionTrend) {
     if (trends.length) trends[0] = { text: compositionTrend };

@@ -384,6 +384,7 @@ function evaluateCase(caseItem, options = {}) {
           brief,
           insights,
           facts: readCaseJson(caseItem.facts, root),
+          prevDate: caseItem.prevDate,
           date: brief.date || (briefFileName.match(/\d{4}-\d{2}-\d{2}/) || [])[0],
         });
         // 用例可在 cases 里声明 {path, value} 改写 VM，仅影响本条用例的检查。

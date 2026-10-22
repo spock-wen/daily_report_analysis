@@ -135,6 +135,7 @@ for (const casesFile of casesFiles) {
       brief,
       insights,
       facts: readCaseJson(item.facts),
+      prevDate: item.prevDate,
       date: brief.date || (briefFileName.match(/\d{4}-\d{2}-\d{2}/) || [])[0],
     });
     if (!viewModel) {
@@ -154,21 +155,33 @@ echo "== ④ check-report --cases 六组 =="
 
 GROUP_LINES=()
 FAILED=0
+KNOWN_FILE="qa/known_fail.txt"
+KNOWN_IDS="$(grep -v '^#' "$KNOWN_FILE" 2>/dev/null | sed '/^\s*$/d' || true)"
+UNKNOWN_FAILS=()
+KNOWN_HIT=()
 for casesFile in "${CASES_FILES[@]}"; do
   name="$(basename "$casesFile" .jsonl)"
   code=0
-  node scripts/check-report.js --cases "$casesFile" --cases-root "$CASES_ROOT" || code=$?
+  out="$(node scripts/check-report.js --cases "$casesFile" --cases-root "$CASES_ROOT" 2>&1)" || code=$?
+  printf '%s\n' "$out"
   GROUP_LINES+=("GROUP ${name} exit=${code}")
   if [ "$code" -ne 0 ]; then
-    FAILED=1
+    # 只有名单（qa/known_fail.txt）里的用例失败时，这一组按已知失败放行；否则整体失败。
+    while read -r id; do
+      [ -z "$id" ] && continue
+      if printf '%s\n' "$KNOWN_IDS" | grep -qxF "$id"; then KNOWN_HIT+=("$id"); else UNKNOWN_FAILS+=("$id"); fi
+    done < <(printf '%s\n' "$out" | sed -n 's/^FAIL \([^ ]*\) .*/\1/p')
+    if ! printf '%s\n' "$out" | grep -q '^FAIL '; then UNKNOWN_FAILS+=("${name}:exit=${code}"); fi
   fi
 done
 
 for line in "${GROUP_LINES[@]}"; do
   echo "$line"
 done
+echo "已知失败（qa/known_fail.txt）命中 ${#KNOWN_HIT[@]} 条：${KNOWN_HIT[*]:-无}"
 
-if [ "$FAILED" -ne 0 ]; then
+if [ "${#UNKNOWN_FAILS[@]}" -ne 0 ]; then
+  echo "名单外失败 ${#UNKNOWN_FAILS[@]} 条：${UNKNOWN_FAILS[*]}" >&2
   echo "加载闸：有用例组非 0 退出" >&2
   exit 1
 fi

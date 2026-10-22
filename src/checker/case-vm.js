@@ -11,7 +11,7 @@
  * 构造失败直接抛错，由调用方记为错误/FAIL，不得静默吞掉。
  */
 
-function buildCaseViewModel({ brief, insights, facts, date }) {
+function buildCaseViewModel({ brief, insights, facts, date, prevDate }) {
   if (!brief || typeof brief !== 'object') return undefined;
   const { buildViewModel } = require('../generator/daily-v3-view-model');
   const projects = brief.projects || brief.trending_repos || [];
@@ -34,6 +34,8 @@ function buildCaseViewModel({ brief, insights, facts, date }) {
     streakDays: brief.streakDays,
     caption: brief.caption,
     isSample: true,
+    // 用例声明的上一份快照日期（cases 的 prevDate），与检查器时间指代同一基准；生成端不传则沿用磁盘历史。
+    ...(prevDate ? { prevDate } : {}),
   };
   return buildViewModel(reportData);
 }
