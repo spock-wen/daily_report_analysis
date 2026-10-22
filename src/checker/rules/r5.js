@@ -11,6 +11,7 @@ const {
 } = require('../../generator/daily-v3-text');
 const { cardIntroText, hasChinese } = require('./b17');
 const history = require('../../metrics/history');
+const { parseMetricNumber } = require('../../facts/build-facts');
 
 function isR5Insights(value) {
   return Boolean(value && typeof value === 'object'
@@ -469,51 +470,59 @@ function findConsecutiveDuplicate(text) {
   return null;
 }
 
-const CURRENT_13_REPOS = [
-  'MadsLorentzen/ai-job-search',
-  'cloudflare/security-audit-skill',
-  'stablyai/orca',
-  'anomalyco/opencode',
-  'DietrichGebert/ponytail',
-  'Comfy-Org/ComfyUI',
-  'Graphify-Labs/graphify',
-  'shiyu-coder/Kronos',
-  'ruvnet/ruflo',
-  'msitarzewski/agency-agents',
-  'headroomlabs-ai/headroom',
-  'anthropics/knowledge-work-plugins',
-  'vllm-project/vllm',
-];
+function cleanRepoName(raw) {
+  if (typeof raw !== 'string') return '';
+  const trimmed = raw.trim();
+  const matched = /^\{\{p:(.+)\}\}$/.exec(trimmed);
+  return matched ? matched[1].trim() : trimmed;
+}
 
 function buildAllowedRepoSet(ctx, json) {
   const allowed = new Set();
   if (Array.isArray(ctx?.allowedFullNames)) {
     for (const name of ctx.allowedFullNames) allowed.add(name);
+  } else if (ctx?.allowedFullNames instanceof Set) {
+    for (const name of ctx.allowedFullNames) allowed.add(name);
   }
   if (Array.isArray(ctx?.fullNames)) {
     for (const name of ctx.fullNames) allowed.add(name);
+  } else if (ctx?.fullNames instanceof Set) {
+    for (const name of ctx.fullNames) allowed.add(name);
   }
-  if (Array.isArray(ctx?.brief?.projects)) {
-    for (const p of ctx.brief.projects) {
-      if (p.fullName) allowed.add(p.fullName);
+
+  const factRepos = new Set();
+  for (const fact of factList(ctx)) {
+    if (!fact) continue;
+    const name = cleanRepoName(fact.fullName || fact.repo || fact.project);
+    if (name) factRepos.add(name);
+  }
+  if (Array.isArray(ctx?.facts?.projects)) {
+    for (const p of ctx.facts.projects) {
+      const raw = typeof p === 'string' ? p : (p?.fullName || p?.repo || p?.project);
+      const name = cleanRepoName(raw);
+      if (name) factRepos.add(name);
     }
   }
+
+  if (factRepos.size > 0) {
+    for (const r of factRepos) allowed.add(r);
+  } else if (Array.isArray(ctx?.brief?.projects)) {
+    for (const p of ctx.brief.projects) {
+      const name = cleanRepoName(p?.fullName || p?.repo);
+      if (name) allowed.add(name);
+    }
+  }
+
   if (Array.isArray(ctx?.brief?.dailyDiff?.dropped)) {
     for (const d of ctx.brief.dailyDiff.dropped) {
       if (typeof d === 'string') allowed.add(d);
       else if (d?.fullName) allowed.add(d.fullName);
     }
   }
-  for (const fact of factList(ctx)) {
-    if (fact.project) allowed.add(fact.project);
-  }
   if (Array.isArray(json?.projects)) {
     for (const p of json.projects) {
-      if (p.fullName) allowed.add(p.fullName);
+      if (p?.fullName) allowed.add(p.fullName);
     }
-  }
-  if (allowed.size === 0) {
-    for (const r of CURRENT_13_REPOS) allowed.add(r);
   }
   return allowed;
 }

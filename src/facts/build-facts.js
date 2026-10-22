@@ -983,4 +983,5 @@ module.exports = {
   buildFacts,
   BRIEF_PATHS,
   THRESHOLDS,
+  parseMetricNumber,
 };
