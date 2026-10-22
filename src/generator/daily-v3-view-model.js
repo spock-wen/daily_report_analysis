@@ -1385,7 +1385,7 @@ const TEXT_SKIP_KEYS = new Set([
 function normalizeViewModelText(value, key = '') {
   if (typeof value === 'string') {
     if (TEXT_SKIP_KEYS.has(key)) return value;
-    return normalizeCjkSpacing(value);
+    return normalizeCjkSpacing(value.replace(/代理/g, '智能体'));
   }
   if (Array.isArray(value)) return value.map(item => normalizeViewModelText(item, key));
   if (value && typeof value === 'object') {

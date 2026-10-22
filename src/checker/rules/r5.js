@@ -1650,6 +1650,18 @@ function checkPunctSpace(json, ctx, doc, findings) {
   }
 }
 
+// 术语统一：agent 一律写作「智能体」，不得写「代理」。
+function checkAgentTerm(page, ctx, doc, findings) {
+  for (const field of collectAllDocumentTexts(page, ctx)) {
+    if (!field.text || !field.text.includes('代理')) continue;
+    findings.push(makeFinding('R5', doc, {
+      field: field.path,
+      quote: field.text,
+      message: '术语须统一为『智能体』',
+    }));
+  }
+}
+
 function check(ctx, doc, config) {
   const findings = [];
   if (!isR5Insights(doc.json) || isDegradedInsights(doc.json)) {
@@ -1680,6 +1692,7 @@ function check(ctx, doc, config) {
   checkMetricFacts(page, ctx, doc, findings);
   checkCmpFacts(page, ctx, doc, findings);
   checkPunctSpace(page, ctx, doc, findings);
+  checkAgentTerm(page, ctx, doc, findings);
   checkConsecutiveDuplicates(page, ctx, doc, findings);
 
   if (Array.isArray(page.advice) && page.advice.length > 3) {

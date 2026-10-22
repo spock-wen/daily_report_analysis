@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# qa 不用 npm test：node --test 会改仓库已跟踪的数据和报告文件，而且长时间不结束
 # 加载闸（qa gate）
 #
 # 改完 src/ 后跑一遍，确认四件事按顺序成立：
