@@ -28,6 +28,7 @@ const {
   getScrapedDate
 } = require('../metrics');
 const { runContentGate } = require('../checker/gate');
+const { buildFacts } = require('../facts/build-facts');
 
 // 导入依赖模块
 const InsightAnalyzer = require('../analyzer/insight-analyzer');
@@ -908,6 +909,22 @@ class ReportPipeline {
     // 添加 AI 洞察
     if (insights) {
       reportData.aiInsights = insights;
+    }
+
+    // r10e N4：日报页面 VM 需要 facts（7 日均/上月同期/走势说明）。
+    // AI 分析阶段已用同一套 buildFacts，这里只把结果挂到 reportData，不改算法。
+    if (type === 'daily' && !reportData.facts) {
+      const briefForFacts = {
+        date: date,
+        projects: projects,
+        stats: stats,
+        dailyDiff: data.dailyDiff,
+        streakDays: data.streakDays,
+        caption: data.caption,
+        scrapedAt: data.scrapedAt || null,
+        generatedAt: data.generatedAt || data.scrapedAt || new Date().toISOString()
+      };
+      reportData.facts = buildFacts({ level: 'daily', period: date, brief: briefForFacts });
     }
     
     // 根据类型添加特定字段
