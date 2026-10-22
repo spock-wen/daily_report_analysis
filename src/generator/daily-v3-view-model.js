@@ -1220,7 +1220,8 @@ function buildViewModel(data) {
     totalToday: currentSnapshot.totalToday,
     prevTotalToday: priorSnapshots[0] ? (toNumber(priorSnapshots[0].totalToday) ?? null) : null,
     retention: churn.retention,
-    prevKept: countsForBrief(previousBrief)?.kept ?? null,
+    // prevKept 只认 facts 里 role==='prev_kept' 的 value（facts 缺失时为 null），不再反推上一份快照。
+    prevKept: toNumber(factList(facts).find(fact => fact && fact.role === 'prev_kept')?.value) ?? null,
     keptCount: churn.keptCount,
   });
   const churnNewText = typeof insights.churnNewText === 'string' ? insights.churnNewText : '';
