@@ -90,6 +90,8 @@ function mergeProjects(jsonProjects, vmProjects) {
     const next = { ...project };
     if (vm.oneSentence !== undefined) next.oneSentence = vm.oneSentence;
     if (vm.descZh !== undefined) next.descZh = vm.descZh;
+    // 有 VM 时页面短描述取自 vm.bars[i].desc，insights 的 descShortZh 一律不得进入检查面。
+    next.descShortZh = vm.descShortZh;
     return next;
   });
   for (const vm of byName.values()) merged.push(vm);
@@ -259,11 +261,15 @@ function checkFieldMapBlocks(json, ctx, doc, findings) {
   }
 
   const projects = Array.isArray(json.projects) ? json.projects : [];
+  const vm = ctx && ctx.viewModel;
+  const hasVm = !!vm;
+  const bars = hasVm && Array.isArray(vm.bars) ? vm.bars : [];
   for (const [index, project] of projects.slice(0, 8).entries()) {
-    const descShort = textOf(project?.descShortZh);
+    const bar = bars[index];
+    const descShort = textOf(hasVm ? bar?.desc : project?.descShortZh);
     if (!descShort) {
       findings.push(makeFinding('R5', doc, {
-        field: `projects[${index}].descShortZh`,
+        field: hasVm ? `bars[${index}].desc` : `projects[${index}].descShortZh`,
         quote: '',
         message: 'Top8 中文短描述为空（FIELD_MAP Top8 描述必填）',
       }));
@@ -334,7 +340,8 @@ function checkNoPlaceholder(json, ctx, doc, findings) {
     push(`projects[${index}].descShortZh`, project?.descShortZh);
     push(`projects[${index}].descZh`, project?.descZh);
   }
-  if (json.slots && typeof json.slots === 'object' && !Array.isArray(json.slots)) {
+  // 有 VM 时页面不渲染 AI 原稿 slots，不收集、不检查。
+  if (!(ctx && ctx.viewModel) && json.slots && typeof json.slots === 'object' && !Array.isArray(json.slots)) {
     for (const [slotId, value] of Object.entries(json.slots)) push(`slots.${slotId}`, value);
   }
 
@@ -348,14 +355,28 @@ function checkNoPlaceholder(json, ctx, doc, findings) {
   }
 }
 
-const TREND_COMPARISON_RE = /(?:较昨日|较上期(?:[（(][\d-]+[）)])?|较上一有数据日|较\s*7\s*日均|较近\s*\d+\s*日均)\s*[+\-−]?\d|与上期持平/;
+const TREND_COMPARISON_RE = /(?:较昨日|较上期(?:[（(][\d-]+[）)])?|较上一有数据日|较\s*7\s*日均|较近\s*\d+\s*日均|上期无数据)\s*[+\-−]?\d|与上期持平|上期无数据/;
 
-function checkTrendNumbers(json, doc, findings) {
+// 事实表里是否存在上期（prev_ 开头 role）条目。
+function hasPrevPeriodFacts(ctx) {
+  return factList(ctx).some(fact => fact && typeof fact.role === 'string' && fact.role.startsWith('prev_'));
+}
+
+function checkTrendNumbers(json, ctx, doc, findings) {
   const trends = Array.isArray(json.trends) ? json.trends : [];
   for (const [index, item] of trends.entries()) {
     const text = textOf(item);
     if (!text) continue;
-    if (TREND_COMPARISON_RE.test(text)) continue;
+    if (TREND_COMPARISON_RE.test(text)) {
+      if (text.includes('上期无数据') && hasPrevPeriodFacts(ctx)) {
+        findings.push(makeFinding('R5', doc, {
+          field: `trends[${index}].text`,
+          quote: text,
+          message: '有上期数据却写上期无数据',
+        }));
+      }
+      continue;
+    }
     findings.push(makeFinding('R5', doc, {
       field: `trends[${index}].text`,
       quote: text,
@@ -1643,9 +1664,17 @@ function collectAllDocumentTexts(json, ctx) {
       if (typeof p.oneSentence === 'string') fields.push({ path: `projects[${idx}].oneSentence`, text: p.oneSentence });
     }
   }
-  if (json.slots && typeof json.slots === 'object' && !Array.isArray(json.slots)) {
+  // 有 VM 时页面不渲染 AI 原稿 slots，不收集、不检查。
+  if (!(ctx && ctx.viewModel) && json.slots && typeof json.slots === 'object' && !Array.isArray(json.slots)) {
     for (const [k, v] of Object.entries(json.slots)) {
       if (typeof v === 'string') fields.push({ path: `slots.${k}`, text: v });
+    }
+  }
+  // 有 VM 时页面 Top8 短描述取自 vm.bars[i].desc。
+  if (ctx && ctx.viewModel && Array.isArray(ctx.viewModel.bars)) {
+    for (const [idx, bar] of ctx.viewModel.bars.entries()) {
+      const desc = bar && typeof bar === 'object' ? bar.desc : undefined;
+      if (typeof desc === 'string') fields.push({ path: `bars[${idx}].desc`, text: desc });
     }
   }
   return fields;
@@ -1728,7 +1757,7 @@ function check(ctx, doc, config) {
   checkAvgStars(page, ctx, doc, findings);
   checkFieldMapBlocks(page, ctx, doc, findings);
   checkNoPlaceholder(page, ctx, doc, findings);
-  checkTrendNumbers(page, doc, findings);
+  checkTrendNumbers(page, ctx, doc, findings);
   checkCardRepoName(page, doc, findings);
   checkRepoWhitelist(page, ctx, doc, findings);
   checkCardDuplicate(page, doc, findings);
