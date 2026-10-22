@@ -1296,6 +1296,10 @@ function buildViewModel(data) {
 
   const scrapedAtLocal = formatLocal(scrapedAt);
   const generatedAtLocal = formatLocal(generatedAt);
+  // ERRLIST #15：样例/回放生成（generate-sample）时生成时间会晚于抓取一天以上，页头页脚注明是回放，不改时间本身。
+  const replayNote = data.isSample && String(generatedAtLocal).slice(0, 5) !== String(scrapedAtLocal).slice(0, 5)
+    ? '回放生成'
+    : null;
 
   const trends = (Array.isArray(insights.trends) ? insights.trends : []).map(item => ({
     text: typeof item === 'string' ? item : String(item?.text || ''),
@@ -1489,7 +1493,8 @@ function buildViewModel(data) {
       ...(Array.isArray(insights.render_entries) ? insights.render_entries : []),
       ...heroEntries,
     ],
-    footer: `数据来源：GitHub Trending（每日）· ${projects.length} 个仓库 · 抓取 ${scrapedAtLocal}（UTC+8） · 生成 ${generatedAtLocal}（UTC+8）`,
+    footer: `数据来源：GitHub Trending（每日）· ${projects.length} 个仓库 · 抓取 ${scrapedAtLocal}（UTC+8） · 生成 ${generatedAtLocal}（UTC+8）${replayNote ? ` · ${replayNote}` : ''}`,
+    replayNote,
   };
 
   return normalizeViewModelText(view);
