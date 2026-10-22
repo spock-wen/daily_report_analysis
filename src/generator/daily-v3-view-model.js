@@ -520,7 +520,7 @@ function buildCmp({
   ];
 
   if (topCategory) {
-    const selector = project => project.analysis?.typeName;
+    const selector = project => project.analysis?.type;
     rows.push({
       label: `${capitalize(topCategory.name)} 类目份额`,
       now: shareFormat(topCategory.share),
@@ -750,7 +750,14 @@ function buildStreakText({ fullName, days, todayStarsRaw, prevToday }) {
     return `${base}，上期不在榜。`;
   }
   const ratio = round2(todayStarsRaw / prevToday);
-  if (ratio === 1) return `${base}，与上期持平。`;
+  if (todayStarsRaw === prevToday) return `${base}，与上期持平。`;
+  if (ratio === 1) {
+    const delta = todayStarsRaw - prevToday;
+    const deltaText = delta > 0
+      ? `比上期多 ${formatCount(delta)} 星`
+      : `比上期少 ${formatCount(-delta)} 星`;
+    return `${base}，${deltaText}。`;
+  }
   return `${base}，是上期的 ${ratio} 倍。`;
 }
 
@@ -1092,7 +1099,7 @@ function buildViewModel(data) {
     previousBrief,
     previousDate: priorEntries[0]?.date || null,
     monthEntry,
-    topCategory: topShare(projects, project => project.analysis?.typeName),
+    topCategory: topShare(projects, project => project.analysis?.type),
     topLanguage: topShare(projects, project => project.language),
     currentRetention: churn.retention,
     currentNewFace: churn.newFace,
@@ -1328,7 +1335,7 @@ function buildViewModel(data) {
     cmpTitle,
     nav: {
       home: '../index.html',
-      daily: '#',
+      daily: `github-ai-trending-${date}.html`,
       weekly: '../weekly/',
       monthly: '../monthly/',
       wiki: '../wiki/',
