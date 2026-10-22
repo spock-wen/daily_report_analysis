@@ -1,6 +1,7 @@
 'use strict';
 
 const { loadConfig } = require('../checker/config');
+const { pickProjectBlurb } = require('./daily-v3-copy');
 const history = require('../metrics/history');
 
 const SLOT_TYPES = {
@@ -953,7 +954,7 @@ function buildProjectTexts(names, slots, config, regex, logger, projects = new M
       const stripped = stripRepoPrefix(oneCheck.text, name);
       if (stripped.includes(name) || (name.includes('/') && stripped.includes(name.split('/')[1]))) {
         oneCheck = { ok: false, reason: '含仓库名' };
-      } else if (stripped === descZh) {
+      } else if (stripped === descZh && !pickProjectBlurb(name)?.oneSentence) {
         oneCheck = { ok: false, reason: '与简介相同' };
       } else if (hasConsecutiveDuplicate(stripped)) {
         oneCheck = { ok: false, reason: '含连续重复词' };

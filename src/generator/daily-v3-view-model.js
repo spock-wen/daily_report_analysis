@@ -739,7 +739,7 @@ function buildChurnDropText({ dropped, typeNameOf, previousDate }) {
     if (!groups.has(typeName)) groups.set(typeName, []);
     groups.get(typeName).push(shortNameOf(fullName));
   }
-  const clauses = [...groups.entries()].map(([typeName, names]) => `${names.join('、')} 属于 ${typeName}`);
+  const clauses = [...groups.entries()].map(([typeName, names]) => `${names.join('、')} 属于${typeName}`);
   return `${prevLabel}掉榜 ${list.length} 个：${clauses.join('，')}。`;
 }
 
@@ -1060,8 +1060,13 @@ function buildViewModel(data) {
   });
 
   const top10 = projects.slice(0, 10);
+  // 回归判定唯一口径：上期在榜（rankNote/上期快照）且上期未进过前十名。
+  const isReturnedProject = (nameOrProject) => {
+    const key = typeof nameOrProject === 'string' ? nameOrProject : projectKey(nameOrProject);
+    return Boolean(key) && returnedNames.has(key) && !previousRankNames.has(key);
+  };
   const notInPrevTop10 = top10.filter(p => !previousRankNames.has(projectKey(p))).length;
-  const returnedInTop10 = top10.filter(p => returnedNames.has(projectKey(p)) || returnedNames.has(p.fullName) || p.tag === '回归').length;
+  const returnedInTop10 = top10.filter(p => isReturnedProject(p)).length;
   const newInTop10 = notInPrevTop10 - returnedInTop10;
   let rankSubText = '';
   if (notInPrevTop10 > 0) {
@@ -1128,7 +1133,7 @@ function buildViewModel(data) {
   const viewProjects = projects.map((project, index) => {
     const fullName = projectKey(project) || '—';
     const days = streakOf(fullName);
-    const returned = returnedNames.has(fullName) && !previousRankNames.has(fullName);
+    const returned = isReturnedProject(fullName);
     const tag = project.tag
       || (days >= 2 ? `连续 ${days} 天` : previousBrief ? (returned ? '回归' : '新') : '');
     const descZh = stripRepoPrefix(pickChinese(
@@ -1137,17 +1142,19 @@ function buildViewModel(data) {
       project.analysis?.descZh
     ) || defaultProjectText(project.analysis?.typeName, 'descZh'), fullName);
 
-    let oneSentenceCandidate = stripRepoPrefix(pickChinese(
-      pickProjectBlurb(fullName)?.oneSentence,
+    // 简介表命中时原样输出，不参与去重、不替换为默认句。
+    const blurbOne = pickProjectBlurb(fullName)?.oneSentence;
+    let oneSentenceCandidate = blurbOne || stripRepoPrefix(pickChinese(
       slotOneSentenceOf(project),
       projectInsights.get(fullName)
     ), fullName);
 
-    if (!oneSentenceCandidate
+    if (!blurbOne && (
+      !oneSentenceCandidate
       || oneSentenceCandidate === descZh
       || usedOneSentences.has(oneSentenceCandidate)
       || oneSentenceCandidate.includes(fullName)
-      || (fullName.includes('/') && oneSentenceCandidate.includes(fullName.split('/')[1]))) {
+      || (fullName.includes('/') && oneSentenceCandidate.includes(fullName.split('/')[1])))) {
       oneSentenceCandidate = buildDefaultOneSentence(project, descZh, usedOneSentences);
     }
     usedOneSentences.add(oneSentenceCandidate);

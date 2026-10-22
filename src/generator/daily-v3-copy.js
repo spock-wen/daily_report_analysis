@@ -21,8 +21,8 @@ const CJK_PUNCT = '　-〿＀-￯';
 function normalizeCjkSpacing(text) {
   if (typeof text !== 'string' || !text) return text;
   let out = text;
-  // 中文/中文标点 后接 英文或数字
-  out = out.replace(new RegExp(`([${CJK}${CJK_PUNCT}])([A-Za-z0-9])`, 'g'), '$1 $2');
+  // 中文 后接 英文或数字（全角标点后不补空格）
+  out = out.replace(new RegExp(`([${CJK}])([A-Za-z0-9])`, 'g'), '$1 $2');
   // 英文或数字 后接 中文（不含中文标点，避免破坏「100%。」这类写法）
   out = out.replace(new RegExp(`([A-Za-z0-9])([${CJK}])`, 'g'), '$1 $2');
   return out;

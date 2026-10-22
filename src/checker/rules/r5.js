@@ -1637,6 +1637,19 @@ function checkThreeDigitNumbersInFacts(json, ctx, doc, findings) {
   }
 }
 
+function checkPunctSpace(json, ctx, doc, findings) {
+  const fields = collectAllDocumentTexts(json, ctx);
+  for (const field of fields) {
+    if (!field.text) continue;
+    if (!/[　-〿＀-￯] /.test(field.text)) continue;
+    findings.push(makeFinding('R5', doc, {
+      field: field.path,
+      quote: field.text,
+      message: '全角标点后接空格',
+    }));
+  }
+}
+
 function check(ctx, doc, config) {
   const findings = [];
   if (!isR5Insights(doc.json) || isDegradedInsights(doc.json)) {
@@ -1666,6 +1679,7 @@ function check(ctx, doc, config) {
   checkMetricDy(page, ctx, doc, findings);
   checkMetricFacts(page, ctx, doc, findings);
   checkCmpFacts(page, ctx, doc, findings);
+  checkPunctSpace(page, ctx, doc, findings);
   checkConsecutiveDuplicates(page, ctx, doc, findings);
 
   if (Array.isArray(page.advice) && page.advice.length > 3) {
