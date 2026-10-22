@@ -1464,7 +1464,28 @@ function checkCmpFacts(json, ctx, doc, findings) {
   const rows = Array.isArray(cmp?.rows) ? cmp.rows : [];
   if (!rows.length) return;
   const facts = factList(ctx);
-  if (!facts.length) return;
+  if (!facts.length) {
+    for (const [index, row] of rows.entries()) {
+      if (!row) continue;
+      const label = String(row.label || '').trim().replace(/\s+/g, ' ');
+      const checks = [
+        { value: row.now, field: `cmp.rows[${index}].now` },
+        { value: row.refs?.[0]?.value, field: `cmp.rows[${index}].refs[0].value` },
+      ];
+      for (const item of checks) {
+        if (item.value === undefined || item.value === null || item.value === '') continue;
+        const raw = String(item.value).trim();
+        if (raw === '上期无数据' || raw === '—') continue;
+        if (toCmpNumber(item.value) === null) continue;
+        findings.push(makeFinding('R5', doc, {
+          field: item.field,
+          quote: raw,
+          message: `对比表「${label}」有数字但事实表为空`,
+        }));
+      }
+    }
+    return;
+  }
 
   const roleByLabel = new Map([
     ['上榜项目数', 'total_projects'],
@@ -1486,7 +1507,24 @@ function checkCmpFacts(json, ctx, doc, findings) {
     const label = String(row.label || '').trim().replace(/\s+/g, ' ');
     const suffixRole = roleBySuffix.find(([suffix]) => label.endsWith(suffix));
     const nowRole = roleByLabel.get(label) || (suffixRole ? suffixRole[1] : null);
-    if (!nowRole) continue;
+    if (!nowRole) {
+      const checks = [
+        { value: row.now, field: `cmp.rows[${index}].now` },
+        { value: row.refs?.[0]?.value, field: `cmp.rows[${index}].refs[0].value` },
+      ];
+      for (const item of checks) {
+        if (item.value === undefined || item.value === null || item.value === '') continue;
+        const raw = String(item.value).trim();
+        if (raw === '上期无数据' || raw === '—') continue;
+        if (toCmpNumber(item.value) === null) continue;
+        findings.push(makeFinding('R5', doc, {
+          field: item.field,
+          quote: raw,
+          message: `对比表「${label}」无 facts 映射`,
+        }));
+      }
+      continue;
+    }
 
     const checks = [
       { value: row.now, role: nowRole, field: `cmp.rows[${index}].now` },
@@ -1498,7 +1536,14 @@ function checkCmpFacts(json, ctx, doc, findings) {
       // 上期无数据/占位符不参与比较。
       if (raw === '上期无数据' || raw === '—') continue;
       const fact = facts.find(f => f && f.role === item.role);
-      if (!fact || fact.value === undefined || fact.value === null || fact.value === '') continue;
+      if (!fact || fact.value === undefined || fact.value === null || fact.value === '') {
+        findings.push(makeFinding('R5', doc, {
+          field: item.field,
+          quote: raw,
+          message: `对比表「${label}」数值在事实表里找不到出处（role=${item.role}）`,
+        }));
+        continue;
+      }
       const cmpNum = toCmpNumber(item.value);
       const factNum = toCmpNumber(fact.value);
       if (cmpNum === null || factNum === null) continue;
