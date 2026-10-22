@@ -1188,7 +1188,7 @@ function buildViewModel(data) {
     priorEntries,
     baselineSnapshots,
     isYesterday,
-    facts: data.facts,
+    facts,
   });
   const cmpTitle = cmp.title;
 
@@ -1313,12 +1313,12 @@ function buildViewModel(data) {
     // 无往期快照时退回事实表 prev_ai_projects（与检查器 hasPrevPeriodFacts 同一来源）。
     prevAiProjects: priorSnapshots[0]
       ? (toNumber(priorSnapshots[0].aiProjects) ?? 0)
-      : (Number.isFinite(factValue(data.facts, 'prev_ai_projects')) ? factValue(data.facts, 'prev_ai_projects') : null),
+      : (Number.isFinite(factValue(facts, 'prev_ai_projects')) ? factValue(facts, 'prev_ai_projects') : null),
     hasPrev: Boolean(priorSnapshots[0]),
     prevTotalProjects: priorSnapshots[0]
       ? toNumber(priorSnapshots[0].totalProjects)
-      : (Number.isFinite(factValue(data.facts, 'prev_total_projects')) ? factValue(data.facts, 'prev_total_projects') : null),
-    hasPrevFacts: factList(data.facts).some(fact => fact && typeof fact.role === 'string' && fact.role.startsWith('prev_')),
+      : (Number.isFinite(factValue(facts, 'prev_total_projects')) ? factValue(facts, 'prev_total_projects') : null),
+    hasPrevFacts: factList(facts).some(fact => fact && typeof fact.role === 'string' && fact.role.startsWith('prev_')),
   });
   if (compositionTrend) {
     if (trends.length) trends[0] = { text: compositionTrend };

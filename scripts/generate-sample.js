@@ -704,6 +704,8 @@ async function main() {
     }
 
     const reportData = buildReportData(level, period, brief, computed, r5Insights);
+    // 渲染页面与检查器用同一份 facts（否则页面 VM 无 facts，7 日均/上月同期/走势说明与被检 VM 不一致）。
+    reportData.facts = facts;
     // 与检查器共用同一处 VM 构造实现（src/checker/case-vm.js），避免两侧漂移
     const { buildCaseViewModel } = require('../src/checker/case-vm');
     const viewModel = level === 'daily'
