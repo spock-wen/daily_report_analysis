@@ -780,6 +780,19 @@ function buildDailyFacts({ brief, add, addNumber }) {
   addStreakAcceleration({ brief, add, addNumber });
   addDistributionFacts({ brief, add, addNumber });
 
+  const maxToday = maxTodayStars(brief.projects || []);
+  if (maxToday !== null && maxToday !== undefined) {
+    add(maxToday, {
+      kind: 'total',
+      field: 'projects[*].todayStars',
+      label: '最大单项目新增',
+      role: 'max_today',
+      source: `briefs/daily/data-${brief.date}.json#projects[*].todayStars`,
+    });
+  }
+
+  addCurrentShareFactsIfNoPrev({ brief, add });
+
   projects.forEach((project, index) => {
     const fullName = history.projectKey(project);
     if (!fullName) return;
@@ -819,6 +832,53 @@ function buildDailyFacts({ brief, add, addNumber }) {
   }
 
   return history.getProjectNames(brief);
+}
+
+// 无上一份 brief（与 addDailyReferenceFacts:399 同一判定）时，原分支不产出当期份额/新面孔率，
+// 这里补齐当期口径的三条事实；有上一份 brief 时由原分支产出，此处直接跳过，不重复。
+function addCurrentShareFactsIfNoPrev({ brief, add }) {
+  const date = brief.date;
+  if (!date) return;
+  const scrapedAt = brief.scrapedAt || brief.generatedAt;
+  if (history.getBaselineSnapshot(scrapedAt)) return;
+
+  const projects = brief.projects || [];
+
+  const category = topShare(projects, projectCategory);
+  if (category) {
+    add(category.share, {
+      kind: 'total',
+      field: 'projects[*].analysis.type',
+      label: `头部类目「${category.name}」份额（%）`,
+      role: 'category_share',
+      source: `briefs/daily/data-${date}.json#projects[*].analysis.type`,
+    });
+  }
+
+  const language = topShare(projects, project => project.language || null);
+  if (language) {
+    add(language.share, {
+      kind: 'total',
+      field: 'projects[*].language',
+      label: `头部语言「${language.name}」份额（%）`,
+      role: 'language_share',
+      source: `briefs/daily/data-${date}.json#projects[*].language`,
+    });
+  }
+
+  const counts = brief.dailyDiff?.counts;
+  const newCount = toNumber(counts?.new);
+  const returned = toNumber(counts?.returned) || 0;
+  const totalProjects = dailySnapshot(brief).totalProjects;
+  if (newCount !== null && totalProjects > 0) {
+    add(round1((Math.max(0, newCount - returned) / totalProjects) * 100), {
+      kind: 'total',
+      field: 'dailyDiff.counts.new',
+      label: '新面孔率（(新进数 − 回归数) ÷ 当日在榜数 × 100）',
+      role: 'new_face_rate',
+      source: `briefs/daily/data-${date}.json#dailyDiff.counts.new; briefs/daily/data-${date}.json#dailyDiff.counts.returned; briefs/daily/data-${date}.json#stats.totalProjects`,
+    });
+  }
 }
 
 function buildWeeklyFacts({ brief, metrics, add, addNumber }) {
