@@ -71,6 +71,46 @@ function pick(json, ctx, path) {
   return undefined;
 }
 
+// 按 fullName 合并 insights 项目与 VM 项目：oneSentence/descZh 以 VM 为准，
+// 其余字段沿用 insights；VM 独有的项目照样纳入。
+function mergeProjects(jsonProjects, vmProjects) {
+  const jsonList = Array.isArray(jsonProjects) ? jsonProjects : [];
+  const vmList = Array.isArray(vmProjects) ? vmProjects : [];
+  if (!vmList.length) return jsonProjects;
+  const byName = new Map();
+  for (const item of vmList) {
+    const name = item && typeof item === 'object' ? item.fullName : undefined;
+    if (name) byName.set(name, item);
+  }
+  const merged = jsonList.map((project) => {
+    if (!project || typeof project !== 'object') return project;
+    const vm = byName.get(project.fullName);
+    if (!vm) return project;
+    byName.delete(project.fullName);
+    const next = { ...project };
+    if (vm.oneSentence !== undefined) next.oneSentence = vm.oneSentence;
+    if (vm.descZh !== undefined) next.descZh = vm.descZh;
+    return next;
+  });
+  for (const vm of byName.values()) merged.push(vm);
+  return merged;
+}
+
+// 页面字段一律以 VM（由 brief 生成）为准，insights JSON 不得覆盖页面字段。
+function pageView(json, ctx) {
+  const vm = ctx && ctx.viewModel;
+  if (!vm) return json;
+  return {
+    ...json,
+    trends: vm.trends ?? json.trends,
+    analysis: vm.analysis ?? json.analysis,
+    advice: vm.advice ?? json.advice,
+    churnNewText: vm.churnNew ?? json.churnNewText,
+    churnDropText: vm.churnDrop ?? json.churnDropText,
+    projects: mergeProjects(json.projects, vm.projects),
+  };
+}
+
 // insights（AI 输出）里不得出现页面字段键，否则 AI 可顶替页面数据并自证数字。
 const PAGE_FIELD_KEYS = [
   'hero',
@@ -1545,29 +1585,30 @@ function check(ctx, doc, config) {
     return findings;
   }
   checkNoPageFieldsInInsights(doc.json, doc, findings);
-  checkProjectBlurbs(doc.json, doc, findings);
-  checkSlots(doc.json, doc, config || {}, findings);
-  checkNumbers(doc.json, ctx, doc, findings);
-  checkThreeDigitNumbersInFacts(doc.json, ctx, doc, findings);
-  checkHero(doc.json, ctx, doc, findings);
-  checkCardIntro(doc.json, doc, findings);
-  checkAvgStars(doc.json, ctx, doc, findings);
-  checkFieldMapBlocks(doc.json, ctx, doc, findings);
-  checkNoPlaceholder(doc.json, ctx, doc, findings);
-  checkTrendNumbers(doc.json, doc, findings);
-  checkCardRepoName(doc.json, doc, findings);
-  checkRepoWhitelist(doc.json, ctx, doc, findings);
-  checkCardDuplicate(doc.json, doc, findings);
-  checkPeriodLabels(doc.json, ctx, doc, findings);
-  checkMetricDy(doc.json, ctx, doc, findings);
-  checkMetricFacts(doc.json, ctx, doc, findings);
-  checkConsecutiveDuplicates(doc.json, ctx, doc, findings);
+  const page = pageView(doc.json, ctx);
+  checkProjectBlurbs(page, doc, findings);
+  checkSlots(page, doc, config || {}, findings);
+  checkNumbers(page, ctx, doc, findings);
+  checkThreeDigitNumbersInFacts(page, ctx, doc, findings);
+  checkHero(page, ctx, doc, findings);
+  checkCardIntro(page, doc, findings);
+  checkAvgStars(page, ctx, doc, findings);
+  checkFieldMapBlocks(page, ctx, doc, findings);
+  checkNoPlaceholder(page, ctx, doc, findings);
+  checkTrendNumbers(page, doc, findings);
+  checkCardRepoName(page, doc, findings);
+  checkRepoWhitelist(page, ctx, doc, findings);
+  checkCardDuplicate(page, doc, findings);
+  checkPeriodLabels(page, ctx, doc, findings);
+  checkMetricDy(page, ctx, doc, findings);
+  checkMetricFacts(page, ctx, doc, findings);
+  checkConsecutiveDuplicates(page, ctx, doc, findings);
 
-  if (Array.isArray(doc.json.advice) && doc.json.advice.length > 3) {
+  if (Array.isArray(page.advice) && page.advice.length > 3) {
     findings.push(makeFinding('R5', doc, {
       field: 'advice',
       quote: '',
-      message: `advice 最多 3 条，当前 ${doc.json.advice.length} 条`,
+      message: `advice 最多 3 条，当前 ${page.advice.length} 条`,
     }));
   }
 

@@ -426,6 +426,13 @@ function addDailyReferenceFacts({ brief, add, addNumber }) {
           role: 'category_share',
           source: `briefs/daily/data-${date}.json#projects[*].analysis.type`,
         });
+        add(round1(previousShare), {
+          kind: 'total',
+          field: 'projects[*].analysis.type',
+          label: `上期头部类目份额「${category.name}」（%）`,
+          role: 'prev_category_share',
+          source: `briefs/daily/data-${prevEntries[0].date}.json#projects[*].analysis.type`,
+        });
         const shiftValue = round1(category.share - previousShare);
         add(shiftValue, {
           kind: 'total',
@@ -469,6 +476,13 @@ function addDailyReferenceFacts({ brief, add, addNumber }) {
           label: `头部语言「${language.name}」份额（%）`,
           role: 'language_share',
           source: `briefs/daily/data-${date}.json#projects[*].language`,
+        });
+        add(round1(previousShare), {
+          kind: 'total',
+          field: 'projects[*].language',
+          label: `上期头部语言份额「${language.name}」（%）`,
+          role: 'prev_language_share',
+          source: `briefs/daily/data-${prevEntries[0].date}.json#projects[*].language`,
         });
         const shiftValue = round1(language.share - previousShare);
         add(shiftValue, {

@@ -131,6 +131,11 @@ function factList(value) {
   return [];
 }
 
+function factValue(facts, role) {
+  const fact = factList(facts).find(item => item && item.role === role);
+  return fact ? Number(fact.value) : null;
+}
+
 function heroReasonOf(insights) {
   const text = pickChinese(insights?.slots?.['hero.reason']);
   return text && !/\d/.test(text) ? text : DEFAULT_PHRASES.heroReason;
@@ -448,6 +453,7 @@ function buildCmp({
   priorEntries,
   baselineSnapshots = [],
   isYesterday = true,
+  facts,
 }) {
   const cmpTitle = isYesterday ? '和昨天比' : '和上期比';
   const prevSnapshot = previousBrief ? snapshotOf(previousBrief) : null;
@@ -536,22 +542,27 @@ function buildCmp({
   }
 
   const allSnapshots = baselineSnapshots.length ? baselineSnapshots : priorEntries;
-  const prevRetention = previousBrief && allSnapshots[1]
-    ? retentionBetween(previousBrief, allSnapshots[1].brief)
-    : null;
-  const prevNewFace = previousBrief && allSnapshots[1]
-    ? newFaceBetween(previousBrief, allSnapshots[1].brief)
-    : null;
+  // facts 里有上期份额/留存等数值时一律以 facts 为准，只有缺失才回退到快照推算。
+  const prevRetention = factValue(facts, 'prev_retention_rate')
+    ?? (previousBrief && allSnapshots[1]
+      ? retentionBetween(previousBrief, allSnapshots[1].brief)
+      : null);
+  const prevNewFace = factValue(facts, 'prev_new_face_rate')
+    ?? (previousBrief && allSnapshots[1]
+      ? newFaceBetween(previousBrief, allSnapshots[1].brief)
+      : null);
+  const nowRetention = factValue(facts, 'retention_rate') ?? currentRetention;
+  const nowNewFace = factValue(facts, 'new_face_rate') ?? currentNewFace;
 
   rows.push({
     label: '留存率',
-    now: shareFormat(currentRetention),
-    refs: refsFor(currentRetention, prevRetention, shareFormat),
+    now: shareFormat(nowRetention),
+    refs: refsFor(nowRetention, prevRetention, shareFormat),
   });
   rows.push({
     label: '新面孔率',
-    now: shareFormat(currentNewFace),
-    refs: refsFor(currentNewFace, prevNewFace, shareFormat),
+    now: shareFormat(nowNewFace),
+    refs: refsFor(nowNewFace, prevNewFace, shareFormat),
   });
 
   return {
@@ -1078,6 +1089,7 @@ function buildViewModel(data) {
     priorEntries,
     baselineSnapshots,
     isYesterday,
+    facts: data.facts,
   });
   const cmpTitle = isYesterday ? '和昨天比' : '和上期比';
 
