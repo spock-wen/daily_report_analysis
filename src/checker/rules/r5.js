@@ -28,6 +28,14 @@ function fieldText(value) {
   return '';
 }
 
+// B4：AI 降级（fallback）洞察一律判 FAIL，不得发布
+function isDegradedInsights(value) {
+  if (!value || typeof value !== 'object') return false;
+  if (value._fallback === true) return true;
+  const candidates = [value.oneLiner, value.hero?.oneLiner, value.hero?.lead];
+  return candidates.some(text => typeof text === 'string' && text.includes('AI 分析服务暂时不可用'));
+}
+
 function textFields(json) {
   const fields = [];
   for (const [index, item] of (Array.isArray(json.trends) ? json.trends : []).entries()) {
@@ -1527,8 +1535,15 @@ function checkThreeDigitNumbersInFacts(json, ctx, doc, findings) {
 }
 
 function check(ctx, doc, config) {
-  if (!isR5Insights(doc.json)) return [];
   const findings = [];
+  if (!isR5Insights(doc.json) || isDegradedInsights(doc.json)) {
+    findings.push(makeFinding('R5', doc, {
+      field: 'insights',
+      quote: '',
+      message: 'AI 降级洞察/非 r5 洞察，禁止发布',
+    }));
+    return findings;
+  }
   checkNoPageFieldsInInsights(doc.json, doc, findings);
   checkProjectBlurbs(doc.json, doc, findings);
   checkSlots(doc.json, doc, config || {}, findings);
@@ -1561,8 +1576,9 @@ function check(ctx, doc, config) {
 
 module.exports = {
   id: 'R5',
-  applies: (ctx, doc) => ctx.level === 'daily' && doc.role === 'insights' && isR5Insights(doc.json),
+  applies: (ctx, doc) => ctx.level === 'daily' && doc.role === 'insights',
   check,
   isR5Insights,
+  isDegradedInsights,
   textFields,
 };

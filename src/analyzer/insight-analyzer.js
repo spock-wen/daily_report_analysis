@@ -346,6 +346,7 @@ class InsightAnalyzer {
 
   getFallbackInsights() {
     return {
+      _fallback: true,
       oneLiner: "AI 分析服务暂时不可用，请查看完整项目列表。",
       hypeIndex: { score: 0, reason: "无法连接 AI 服务" },
       hot: [],

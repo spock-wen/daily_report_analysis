@@ -140,6 +140,9 @@ function runCases(args) {
       const expectation = item.expect;
       console.log(`${status} ${item.id} rule=${item.rule_id} expect=${expectation}${evaluation.error ? ` error=${evaluation.error}` : ''}`);
       if (!evaluation.ok) {
+        if (evaluation.missingFields && evaluation.missingFields.length > 0) {
+          console.log(`   未命中期望字段：${evaluation.missingFields.join(', ')}`);
+        }
         if (evaluation.matched.length === 0) {
           console.log(`   未命中期望的 ${item.rule_id} FAIL；实际 findings=${evaluation.findings.length}`);
           for (const finding of evaluation.findings.slice(0, 5)) {

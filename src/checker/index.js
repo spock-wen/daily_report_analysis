@@ -129,6 +129,13 @@ function checkReport(options = {}) {
   const renderMap = resolveRenderMap(options, dataDir, level, period);
   const facts = resolveFacts(options, dataDir, level, period);
 
+  // B1：daily 未显式给 viewModel 时，用 brief/insights/facts 构造 VM 再进规则
+  // （与 case 运行器共用 case-vm.js 一处实现，构造失败直接抛错，不静默退回不受检）
+  let viewModel = options.viewModel;
+  if (viewModel === undefined && level === 'daily' && brief) {
+    viewModel = buildCaseViewModel({ brief, insights, facts, date: period });
+  }
+
   const documents = [];
   if (insights) {
     documents.push(fileExists(insightsPath)
@@ -160,7 +167,19 @@ function checkReport(options = {}) {
     };
   }
 
-  return runRules({ level, period, dataDir, brief, insights, documents, renderMap, facts, r3: options.r3 });
+  return runRules({
+    level,
+    period,
+    dataDir,
+    brief,
+    insights,
+    documents,
+    renderMap,
+    facts,
+    r3: options.r3,
+    viewModel,
+    prevDate: options.prevDate,
+  });
 }
 
 function checkDocument(options = {}) {
@@ -368,13 +387,28 @@ function evaluateCase(caseItem, options = {}) {
     ruleIdMatches(finding.rule_id, caseItem.rule_id) && locationMatches(finding, caseItem)
   );
 
-  const ruleOk = caseItem.expect === 'FAIL' ? matched.length > 0 : matched.length === 0;
+  // B5：期望 FAIL 且指定了 expected_hit_fields 时，命中还需覆盖每个字段（前缀匹配）
+  const expectedFields = Array.isArray(caseItem.expected_hit_fields)
+    ? caseItem.expected_hit_fields.filter(field => field !== '(none)')
+    : [];
+  let missingFields = [];
+  if (caseItem.expect === 'FAIL' && expectedFields.length > 0) {
+    const hitFields = matched.map(finding => String(finding.field || ''));
+    missingFields = expectedFields.filter(expected =>
+      !hitFields.some(hit => hit === expected || hit.startsWith(`${expected}.`) || hit.startsWith(`${expected}[`))
+    );
+  }
+
+  const ruleOk = caseItem.expect === 'FAIL'
+    ? (matched.length > 0 && missingFields.length === 0)
+    : matched.length === 0;
   const deletion = evaluateDeletedLog(caseItem, root, result);
   return {
     case: caseItem,
     ok: ruleOk && deletion.ok,
     error: deletion.ok ? undefined : deletion.error,
     matched,
+    missingFields,
     findings: result.findings,
     target: result.target,
   };

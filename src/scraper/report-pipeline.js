@@ -18,7 +18,7 @@ const {
   getDailyBriefPath,
   getWeeklyBriefPath,
   getMonthlyBriefPath,
-  DATA_DIR
+  dataDir
 } = require('../utils/path');
 const {
   enrichDailyBrief,
@@ -161,7 +161,7 @@ class ReportPipeline {
           const gate = await runContentGate({
             level: type,
             period: identifier,
-            dataDir: DATA_DIR,
+            dataDir: dataDir(),
             logger,
             getAiCallCount: () => this.getAiCallCount(),
             rewrite: async (findings) => {
