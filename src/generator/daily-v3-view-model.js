@@ -901,7 +901,9 @@ function buildStabilityAdvice({ streak, projects, previousRankOf, prevTodayOf })
     + `${shortNameOf(first.fullName)} 今日新增 ${formatCount(first.todayStars)} 星，${starText}${rankText}。`;
 }
 
-function buildArchive({ date, weekLabel }) {
+// priorDates 为 brief 日期（YYYY-MM-DD，本期之前的最近若干份，新→旧），仅在本期报告目录里
+// 没有日报文件时用来补足日报存档。
+function buildArchive({ date, weekLabel, priorDates }) {
   const dailyFiles = listReportFiles(nodePath.join(paths.REPORTS_DIR, 'daily'));
   const weeklyFiles = listReportFiles(nodePath.join(paths.REPORTS_DIR, 'weekly'));
   const monthlyFiles = listReportFiles(nodePath.join(paths.REPORTS_DIR, 'monthly'));
@@ -910,7 +912,10 @@ function buildArchive({ date, weekLabel }) {
     { cls: '', href: '../weekly/', label: weekLabel },
   ];
   const currentFile = `github-ai-trending-${date}.html`;
-  const recent = dailyFiles.length ? dailyFiles : [currentFile];
+  const priorList = (Array.isArray(priorDates) ? priorDates : []).filter(Boolean);
+  const recent = dailyFiles.length
+    ? dailyFiles
+    : [currentFile, ...priorList.slice(0, 4).map(prior => `github-ai-trending-${prior}.html`)];
   for (const file of recent.slice(0, 5)) {
     const match = /^github-ai-trending-(\d{4}-\d{2}-\d{2})\.html$/.exec(file);
     if (!match) continue;
@@ -928,9 +933,18 @@ function buildArchive({ date, weekLabel }) {
     const match = /^github-weekly-(\d{4}-W\d{2})\.html$/.exec(weeklyFiles[0]);
     if (match) items.push({ cls: '', href: weeklyFiles[0], label: `${match[1]} 周报` });
   }
+  const prevWeek = weekLabel ? history.shiftISOWeek(weekLabel, -1) : null;
+  if (prevWeek) {
+    items.push({ cls: '', href: `../weekly/github-weekly-${prevWeek}.html`, label: `${prevWeek} 周报` });
+  }
   if (monthlyFiles.length) {
     const match = /^github-monthly-(\d{4}-\d{2})\.html$/.exec(monthlyFiles[0]);
     if (match) items.push({ cls: '', href: monthlyFiles[0], label: `${match[1]} 月报` });
+  }
+  const currentMonth = String(date || '').slice(0, 7);
+  const prevMonth = history.getPrevMonth(currentMonth);
+  if (prevMonth) {
+    items.push({ cls: '', href: `../monthly/github-monthly-${prevMonth}.html`, label: `${prevMonth} 月报` });
   }
   return items;
 }
@@ -1191,6 +1205,9 @@ function buildViewModel(data) {
   });
 
   const weekLabel = date ? history.getISOWeekId(date) : '';
+  // 相关报告固定指上一 ISO 周 / 上一月，不跟随本期自身周期。
+  const prevWeekLabel = weekLabel ? history.shiftISOWeek(weekLabel, -1) : null;
+  const prevMonthLabel = history.getPrevMonth(String(date || '').slice(0, 7));
   const previousShort = dateShort(previousDate);
   const related = [
     previousShort
@@ -1200,8 +1217,12 @@ function buildViewModel(data) {
           sub: `${formatCount(previousProjects.length)} 个项目`,
         }
       : null,
-    { href: '../weekly/', title: `${weekLabel || '上周'} 周报`, sub: '上周' },
-    { href: '../monthly/', title: `${String(date || '').slice(0, 7)} 月报`, sub: '上月' },
+    prevWeekLabel
+      ? { href: `../weekly/github-weekly-${prevWeekLabel}.html`, title: `${prevWeekLabel} 周报`, sub: '上周' }
+      : null,
+    prevMonthLabel
+      ? { href: `../monthly/github-monthly-${prevMonthLabel}.html`, title: `${prevMonthLabel} 月报`, sub: '上月' }
+      : null,
     { href: '../wiki/', title: 'Wiki 领域索引', sub: '项目与领域历史' },
   ].filter(Boolean);
 
@@ -1321,6 +1342,14 @@ function buildViewModel(data) {
   } else {
     hypeReason = `高热项目 ${currentSnapshot.hotCount} 个，占全部 ${currentSnapshot.totalProjects} 个（占比 ${hotPct}%）；当日新增合计 ${formatCount(currentSnapshot.totalToday)} 星。`;
   }
+  // facts 带 7 日均值时，在热度理由句末补一句合计对比；热度公式不动。
+  const avg7TotalToday = factValue(facts, 'avg7_total_today');
+  if (avg7TotalToday !== null && Number.isFinite(avg7TotalToday)) {
+    const tail = `当日新增合计 ${formatCount(currentSnapshot.totalToday)} 星，7 日均 ${formatCount(avg7TotalToday)} 星`;
+    hypeReason = hypeReason.endsWith('。')
+      ? `${hypeReason.slice(0, -1)}；${tail}。`
+      : `${hypeReason}；${tail}。`;
+  }
 
   hero.sub = leadSub;
   hero.reason = hypeReason;
@@ -1347,7 +1376,7 @@ function buildViewModel(data) {
     week: { label: weekLabel, href: '../weekly/' },
     scrapedAtLocal,
     generatedAtLocal,
-    archive: buildArchive({ date, weekLabel }),
+    archive: buildArchive({ date, weekLabel, priorDates: priorEntries.map(entry => entry.date) }),
     hero,
     verdict: {
       hypeScore: hypeIndex.score,
