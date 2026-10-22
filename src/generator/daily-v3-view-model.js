@@ -759,8 +759,8 @@ function buildCompositionTrend({ projects, previousProjects, aiProjects, totalPr
   if (!totalProjects) return null;
   const aiDelta = prevAiProjects === null ? null : aiProjects - prevAiProjects;
   const aiTail = aiDelta === null
-    ? ''
-    : (aiDelta === 0 ? '与上期持平' : (aiDelta > 0 ? `较上期多 ${aiDelta} 个` : `较上期少 ${-aiDelta} 个`));
+    ? '，上期无数据'
+    : (aiDelta === 0 ? '，与上期持平' : (aiDelta > 0 ? `，较上期多 ${aiDelta} 个` : `，较上期少 ${-aiDelta} 个`));
 
   const countOf = (list, name) => (list || []).filter(project => (project.analysis?.typeName || null) === name).length;
   const shareOf = (count, total) => (total > 0 ? round1(count / total * 100) : null);
@@ -782,13 +782,14 @@ function buildCompositionTrend({ projects, previousProjects, aiProjects, totalPr
     typeTail = `；${top.name}项目 ${top.count} 个，与上期持平`;
   }
 
-  return `今日 ${totalProjects} 个上榜项目中，AI 项目 ${aiProjects} 个${aiTail ? `，${aiTail}` : ''}${typeTail}。`;
+  return `今日 ${totalProjects} 个上榜项目中，AI 项目 ${aiProjects} 个${aiTail}${typeTail}。`;
 }
 
 // 深度分析：`今日新增星合计 14,517 星，比上期（10-19）多 3,266 星，前 3 名占了一半（7,138 星）。新进 6 个里有 4 个是回归项目，其中 security-audit-skill 一回来就排到第 2；留存率 58.3%，比上期的 8 个连续在榜少了 1 个。`
 function buildDeepAnalysis({
   projects, churn, returnedNames, previousDate, previousShort,
   totalToday, prevTotalToday, retention, prevKept, keptCount,
+  totalProjects, aiProjects,
 }) {
   if (!totalToday) return null;
   const parts = [];
@@ -851,6 +852,10 @@ function buildDeepAnalysis({
   sentences.push(`${head.join('，')}。`);
   const tailParts = [...newParts, ...retentionParts];
   if (tailParts.length) sentences.push(`${tailParts.join('；')}。`);
+  // 兜底：不足两句时补一句总量描述，避免深度分析出现单句。
+  if (sentences.length < 2 && totalProjects) {
+    sentences.push(`今日榜单共 ${totalProjects} 个项目，其中 AI 项目 ${aiProjects} 个。`);
+  }
   return sentences.join('');
 }
 
@@ -1242,6 +1247,8 @@ function buildViewModel(data) {
     // prevKept 只认 facts 里 role==='prev_kept' 的 value（facts 缺失时为 null），不再反推上一份快照。
     prevKept: toNumber(factList(facts).find(fact => fact && fact.role === 'prev_kept')?.value) ?? null,
     keptCount: churn.keptCount,
+    totalProjects: currentSnapshot.totalProjects,
+    aiProjects: currentSnapshot.aiProjects,
   });
   const churnNewText = typeof insights.churnNewText === 'string' ? insights.churnNewText : '';
   const churnDropTextProgram = churnDropText;
@@ -1382,10 +1389,27 @@ const TEXT_SKIP_KEYS = new Set([
   'css', 'url', 'href', 'anchor', 'path', 'id', 'date', 'dateShort', 'slug', 'color', 'dash',
 ]);
 
+function normalizeAgentTerm(value) {
+  // 网络义代理（反向代理/代理服务器/代理池 等）原样保留，其余按术语表统一为「智能体」。
+  const NETWORK_AGENT = /(反向代理|正向代理|透明代理|代理服务器|代理IP|代理 IP|代理端口|代理池|代理模式|(?:HTTP|HTTPS|SOCKS5?|网络)\s*代理)/gi;
+  const store = [];
+  let text = String(value).replace(NETWORK_AGENT, (match) => {
+    store.push(match);
+    return `\u0000${store.length - 1}\u0000`;
+  });
+  text = text
+    .replace(/AI\s*代理/gi, 'AI 智能体')
+    .replace(/人工智能代理/gi, 'AI 智能体')
+    .replace(/智能代理/g, '智能体')
+    .replace(/代理/g, '智能体')
+    .replace(/智能智能体/g, '智能体');
+  return text.replace(/\u0000(\d+)\u0000/g, (match, index) => store[Number(index)]);
+}
+
 function normalizeViewModelText(value, key = '') {
   if (typeof value === 'string') {
     if (TEXT_SKIP_KEYS.has(key)) return value;
-    return normalizeCjkSpacing(value.replace(/代理/g, '智能体'));
+    return normalizeCjkSpacing(normalizeAgentTerm(value));
   }
   if (Array.isArray(value)) return value.map(item => normalizeViewModelText(item, key));
   if (value && typeof value === 'object') {
