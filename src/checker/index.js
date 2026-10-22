@@ -334,6 +334,33 @@ function isDailyR5OrR9Insights(filePath) {
   }
 }
 
+// 按 `a.b[0].c` 这类路径给对象赋值（叶子不存在则创建），仅供用例改写 VM 用。
+function setPath(target, pathText, value) {
+  if (!target || typeof target !== 'object' || !pathText) return target;
+  const keys = String(pathText)
+    .replace(/\[(\d+)\]/g, '.$1')
+    .split('.')
+    .filter(key => key !== '');
+  if (!keys.length) return target;
+  let node = target;
+  for (const [index, key] of keys.entries()) {
+    const isLast = index === keys.length - 1;
+    const arrayKey = /^\d+$/.test(key);
+    if (isLast) {
+      if (arrayKey) node[Number(key)] = value;
+      else node[key] = value;
+      break;
+    }
+    const nextKey = keys[index + 1];
+    const wantArray = /^\d+$/.test(nextKey);
+    if (node[key] === undefined || node[key] === null || typeof node[key] !== 'object') {
+      node[key] = wantArray ? [] : {};
+    }
+    node = node[key];
+  }
+  return target;
+}
+
 function evaluateCase(caseItem, options = {}) {
   const root = path.resolve(options.casesRoot || '/home/box/shared/report-redesign');
   const filePath = path.resolve(root, caseItem.file);
@@ -359,6 +386,11 @@ function evaluateCase(caseItem, options = {}) {
           facts: readCaseJson(caseItem.facts, root),
           date: brief.date || (briefFileName.match(/\d{4}-\d{2}-\d{2}/) || [])[0],
         });
+        // 用例可在 cases 里声明 {path, value} 改写 VM，仅影响本条用例的检查。
+        const mutation = caseItem.vm_mutation;
+        if (mutation && typeof mutation === 'object' && mutation.path && viewModel) {
+          setPath(viewModel, mutation.path, mutation.value);
+        }
       }
     }
   }

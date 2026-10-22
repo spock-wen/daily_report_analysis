@@ -1452,6 +1452,69 @@ function checkMetricFacts(json, ctx, doc, findings) {
   }
 }
 
+// 对比表数值比较：沿用 toNumber（千分位逗号、k 乘 1000），额外容忍百分号。
+function toCmpNumber(value) {
+  if (typeof value === 'string') return toNumber(value.replace(/%/g, '').trim());
+  return toNumber(value);
+}
+
+// 对比表行数值 vs 事实表：行标签映射到 facts.role（现值取 now，上期值取 refs[0].value）。
+function checkCmpFacts(json, ctx, doc, findings) {
+  const cmp = pick(json, ctx, 'cmp');
+  const rows = Array.isArray(cmp?.rows) ? cmp.rows : [];
+  if (!rows.length) return;
+  const facts = factList(ctx);
+  if (!facts.length) return;
+
+  const roleByLabel = new Map([
+    ['上榜项目数', 'total_projects'],
+    ['AI 项目数', 'ai_projects'],
+    ['平均 Stars', 'avg_stars'],
+    ['高热项目数', 'hot_count'],
+    ['当日新增星合计', 'total_today'],
+    ['最大单项目新增', 'max_today'],
+    ['留存率', 'retention_rate'],
+    ['新面孔率', 'new_face_rate'],
+  ]);
+  const roleBySuffix = [
+    ['类目份额', 'category_share'],
+    ['语言份额', 'language_share'],
+  ];
+
+  for (const [index, row] of rows.entries()) {
+    if (!row) continue;
+    const label = String(row.label || '').trim().replace(/\s+/g, ' ');
+    const suffixRole = roleBySuffix.find(([suffix]) => label.endsWith(suffix));
+    const nowRole = roleByLabel.get(label) || (suffixRole ? suffixRole[1] : null);
+    if (!nowRole) continue;
+
+    const checks = [
+      { value: row.now, role: nowRole, field: `cmp.rows[${index}].now` },
+      { value: row.refs?.[0]?.value, role: `prev_${nowRole}`, field: `cmp.rows[${index}].refs[0].value` },
+    ];
+    for (const item of checks) {
+      if (item.value === undefined || item.value === null || item.value === '') continue;
+      const raw = String(item.value).trim();
+      // 上期无数据/占位符不参与比较。
+      if (raw === '上期无数据' || raw === '—') continue;
+      const fact = facts.find(f => f && f.role === item.role);
+      if (!fact || fact.value === undefined || fact.value === null || fact.value === '') continue;
+      const cmpNum = toCmpNumber(item.value);
+      const factNum = toCmpNumber(fact.value);
+      if (cmpNum === null || factNum === null) continue;
+      const kFormat = /k/i.test(raw) || /k/i.test(String(fact.value));
+      const threshold = kFormat ? 500 : 0.05;
+      if (Math.abs(cmpNum - factNum) > threshold) {
+        findings.push(makeFinding('R5', doc, {
+          field: item.field,
+          quote: raw,
+          message: `对比表「${label}」数值与事实表（${item.role}=${fact.value}）不一致`,
+        }));
+      }
+    }
+  }
+}
+
 function checkConsecutiveDuplicates(json, ctx, doc, findings) {
   const checkText = (path, text) => {
     if (!text || typeof text !== 'string') return;
@@ -1602,6 +1665,7 @@ function check(ctx, doc, config) {
   checkPeriodLabels(page, ctx, doc, findings);
   checkMetricDy(page, ctx, doc, findings);
   checkMetricFacts(page, ctx, doc, findings);
+  checkCmpFacts(page, ctx, doc, findings);
   checkConsecutiveDuplicates(page, ctx, doc, findings);
 
   if (Array.isArray(page.advice) && page.advice.length > 3) {

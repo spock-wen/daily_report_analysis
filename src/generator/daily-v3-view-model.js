@@ -744,12 +744,12 @@ function buildChurnDropText({ dropped, typeNameOf, previousDate }) {
 }
 
 // 连续上榜卡片：补上期对比（是上期的 N 倍 / 上期不在榜）。
-function buildStreakText({ fullName, days, todayStars, previousToday }) {
-  const base = `${fullName} 连续 ${days} 天在榜，今日新增 ${formatCount(todayStars)} 星`;
-  if (previousToday === null || previousToday === undefined || previousToday <= 0) {
+function buildStreakText({ fullName, days, todayStarsRaw, prevToday }) {
+  const base = `${fullName} 连续 ${days} 天在榜，今日新增 ${formatCount(todayStarsRaw)} 星`;
+  if (prevToday === null || prevToday === undefined || prevToday <= 0) {
     return `${base}，上期不在榜。`;
   }
-  const ratio = round2(todayStars / previousToday);
+  const ratio = round2(todayStarsRaw / prevToday);
   if (ratio === 1) return `${base}，与上期持平。`;
   return `${base}，是上期的 ${ratio} 倍。`;
 }
