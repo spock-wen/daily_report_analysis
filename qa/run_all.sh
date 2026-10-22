@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # qa 不用 npm test：node --test 会改仓库已跟踪的数据和报告文件，而且长时间不结束
+# eslint 只用仓库 devDependencies（npm ci），不临时下载
 # 加载闸（qa gate）
 #
 # 改完 src/ 后跑一遍，确认四件事按顺序成立：
@@ -33,19 +34,11 @@ fi
 
 echo "== ① eslint no-undef（src scripts） =="
 
-ESLINT_VERSION="$(npx eslint --version 2>/dev/null | sed 's/^v//' | cut -d. -f1 || true)"
-case "$ESLINT_VERSION" in
-  ''|*[!0-9]*) ESLINT_MAJOR=0 ;;
-  *) ESLINT_MAJOR="$ESLINT_VERSION" ;;
-esac
-# eslint 9 起 --no-eslintrc 更名/拆分为 --no-config-lookup
-if [ "$ESLINT_MAJOR" -ge 9 ]; then
-  NO_CONFIG_FLAG="--no-config-lookup"
-else
-  NO_CONFIG_FLAG="--no-eslintrc"
-fi
-echo "eslint 主版本：${ESLINT_MAJOR}（${NO_CONFIG_FLAG}）"
-npx eslint "$NO_CONFIG_FLAG" --env node,es2022 --parser-options=ecmaVersion:2022 \
+npx --no-install eslint --version >/dev/null 2>&1 || {
+  echo "本地未安装 eslint（请先 npm ci）" >&2
+  exit 1
+}
+npx --no-install eslint --no-eslintrc --env node,es2022 --parser-options=ecmaVersion:2022 \
   --rule 'no-undef:error' src scripts
 
 echo "== ② require src/**/*.js =="
