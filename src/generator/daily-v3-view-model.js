@@ -5,7 +5,7 @@ const nodePath = require('path');
 const mustache = require('mustache');
 const history = require('../metrics/history');
 const paths = require('../utils/path');
-const { DEFAULT_PHRASES, computeHypeIndex, defaultProjectText, stripRepoPrefix, buildDefaultOneSentence } = require('./daily-v3-text');
+const { DEFAULT_PHRASES, computeHypeIndex, defaultProjectText, stripRepoPrefix, buildDefaultOneSentence, isPrevYesterday } = require('./daily-v3-text');
 
 const TEMPLATE_DIR = nodePath.join(__dirname, '..', '..', 'templates', 'daily-v3');
 const TEMPLATE_PATH = nodePath.join(TEMPLATE_DIR, 'daily.mustache');
@@ -253,10 +253,11 @@ function directionOf(delta) {
   return { cls: 'eq', arrow: '＝' };
 }
 
-function buildMetrics({ series, priorSnapshots }) {
+function buildMetrics({ series, priorSnapshots, prevSnapshot = null, isYesterday = true }) {
   const current = series[series.length - 1];
-  const previous = series.length > 1 ? series[series.length - 2] : null;
+  const previous = prevSnapshot || (series.length > 1 ? series[series.length - 2] : null);
   const priorCount = priorSnapshots.length;
+  const prevLabel = isYesterday ? '较昨日' : '较上期';
   const baseLabel = priorCount >= 7
     ? '较 7 日均'
     : priorCount >= 2
@@ -281,6 +282,7 @@ function buildMetrics({ series, priorSnapshots }) {
       label: definition.label,
       value: formatMetric(definition.key, now),
       spark: priorCount >= 2 ? sparkOf(values) : null,
+      prevLabel,
       dYCls: dayDirection.cls,
       dYArrow: dayDirection.arrow,
       dYText: dayDelta === null ? '' : formatMetric(definition.key, Math.abs(dayDelta)),
@@ -290,7 +292,7 @@ function buildMetrics({ series, priorSnapshots }) {
     };
   });
 
-  return { metrics, baseLabel };
+  return { metrics, baseLabel, prevLabel };
 }
 
 function buildSparkNote({ seriesDates, priorDates, baseLabel, priorCount }) {
@@ -340,7 +342,7 @@ function buildBars(projects, descShortOf) {
   return { bars, note };
 }
 
-function distributionRows({ todayProjects, previousProjects, selector, palette }) {
+function distributionRows({ todayProjects, previousProjects, selector, palette, isYesterday = true }) {
   const countsFor = projects => {
     const counts = new Map();
     for (const project of projects || []) {
@@ -378,7 +380,8 @@ function distributionRows({ todayProjects, previousProjects, selector, palette }
 
   const rows = [];
   if (previousProjects && previousProjects.length) {
-    rows.push(makeRow('昨日', previousCounts, previousProjects.length));
+    const prevLabel = isYesterday ? '昨日' : '上期';
+    rows.push(makeRow(prevLabel, previousCounts, previousProjects.length));
   }
   rows.push(makeRow('今日', todayCounts, todayProjects.length));
 
@@ -392,7 +395,7 @@ function distributionRows({ todayProjects, previousProjects, selector, palette }
   return { rows, legend, head, counts: { today: todayCounts, previous: previousCounts } };
 }
 
-function buildLangNote({ distribution, previousProjects }) {
+function buildLangNote({ distribution, previousProjects, isYesterday = true }) {
   const languages = distribution.head;
   if (!languages.length) return '';
   let top = languages[0];
@@ -409,9 +412,10 @@ function buildLangNote({ distribution, previousProjects }) {
     return `今日 ${top} 项目 ${today} 个，数量最多。`;
   }
   const yesterday = distribution.counts.previous.get(top) || 0;
-  if (today > yesterday) return `${top} 由昨日 ${yesterday} 个增至 ${today} 个。`;
-  if (today < yesterday) return `${top} 由昨日 ${yesterday} 个降至 ${today} 个。`;
-  return `${top} 昨日与今日均为 ${today} 个。`;
+  const prevTarget = isYesterday ? '昨日' : '上期';
+  if (today > yesterday) return `${top} 由${prevTarget} ${yesterday} 个增至 ${today} 个。`;
+  if (today < yesterday) return `${top} 由${prevTarget} ${yesterday} 个降至 ${today} 个。`;
+  return `${top} ${prevTarget}与今日均为 ${today} 个。`;
 }
 
 function capitalize(text) {
@@ -608,7 +612,7 @@ function buildCmp({
   };
 }
 
-function buildSlope(todayProjects, previousProjects) {
+function buildSlope(todayProjects, previousProjects, isYesterday = true) {
   if (!previousProjects || !previousProjects.length || !todayProjects.length) return null;
   const previousRank = new Map(previousProjects.map((project, index) => [projectKey(project), index + 1]));
   const y = rank => 26 + (rank - 1) * 22;
@@ -616,6 +620,8 @@ function buildSlope(todayProjects, previousProjects) {
   const startDots = [];
   const endDots = [];
   const rankRows = [];
+  const colPrev = isYesterday ? '昨日' : '上期';
+  const prevPrefix = isYesterday ? '昨' : '上期';
 
   todayProjects.slice(0, 10).forEach((project, index) => {
     const rank = index + 1;
@@ -624,7 +630,7 @@ function buildSlope(todayProjects, previousProjects) {
     if (previous === undefined) {
       lines.push({ x1: 200, y1: y(rank), x2: 260, y2: y(rank), color: COLORS.accent, dash: true });
       endDots.push({ cx: 260, cy: y(rank), color: COLORS.accent, ty: y(rank) + 4, rank });
-      rankRows.push({ r: rank, name: projectShortName(project), prev: '昨 —', cls: 'new', text: '新上榜' });
+      rankRows.push({ r: rank, name: projectShortName(project), prev: `${prevPrefix} —`, cls: 'new', text: '新上榜' });
       return;
     }
     const delta = previous - rank;
@@ -634,7 +640,7 @@ function buildSlope(todayProjects, previousProjects) {
     lines.push({ x1: 40, y1: y(previous), x2: 260, y2: y(rank), color, dash: false });
     startDots.push({ cx: 40, cy: y(previous), color });
     endDots.push({ cx: 260, cy: y(rank), color, ty: y(rank) + 4, rank });
-    rankRows.push({ r: rank, name: projectShortName(project), prev: `昨 ${previous}`, cls, text });
+    rankRows.push({ r: rank, name: projectShortName(project), prev: `${prevPrefix} ${previous}`, cls, text });
   });
 
   return {
@@ -643,6 +649,8 @@ function buildSlope(todayProjects, previousProjects) {
       h: 26 + 12 * 22 + 12,
       sub: COLORS.sub,
       ink: COLORS.ink,
+      colPrev,
+      colToday: '今日',
       lines,
       startDots,
       endDots,
@@ -817,14 +825,23 @@ function buildViewModel(data) {
   const baselineSnapshots = scrapedAt ? history.getBaselineSnapshots(scrapedAt, 8) : [];
   const priorEntries = baselineSnapshots.slice(0, 7);
   const priorSnapshots = priorEntries.map(entry => snapshotOf(entry.brief));
+  const previousDate = priorEntries[0]?.date || null;
+  const isYesterday = isPrevYesterday(date, previousDate);
+
+  const recentPriors = priorEntries.slice(0, 6).reverse();
   const series = [
-    ...priorEntries.map((entry, index) => ({ date: entry.date, ...priorSnapshots[index] })),
+    ...recentPriors.map(entry => ({ date: entry.date, ...snapshotOf(entry.brief) })),
     { date, ...currentSnapshot },
-  ].slice(-7);
+  ];
   const seriesDates = series.map(item => dateShort(item.date));
   const priorDates = priorEntries.map(entry => dateShort(entry.date)).reverse();
 
-  const { metrics, baseLabel } = buildMetrics({ series, priorSnapshots });
+  const { metrics, baseLabel } = buildMetrics({
+    series,
+    priorSnapshots,
+    prevSnapshot: priorSnapshots[0] || null,
+    isYesterday,
+  });
   const sparkNote = buildSparkNote({
     seriesDates,
     priorDates,
@@ -854,20 +871,22 @@ function buildViewModel(data) {
     previousProjects,
     selector: project => project.language,
     palette: COLORS.langPalette,
+    isYesterday,
   });
   const type = distributionRows({
     todayProjects: projects,
     previousProjects,
     selector: project => project.analysis?.typeName,
     palette: COLORS.typePalette,
+    isYesterday,
   });
-  const langNote = buildLangNote({ distribution: language, previousProjects });
+  const langNote = buildLangNote({ distribution: language, previousProjects, isYesterday });
 
-  const rank = buildSlope(projects, previousProjects);
+  const rank = buildSlope(projects, previousProjects, isYesterday);
   const rankRows = rank?.rankRows || projects.slice(0, 10).map((project, index) => ({
     r: index + 1,
     name: projectShortName(project),
-    prev: '昨 —',
+    prev: `${isYesterday ? '昨' : '上期'} —`,
     cls: 'new',
     text: '新上榜',
   }));
@@ -968,7 +987,6 @@ function buildViewModel(data) {
   });
 
   const weekLabel = date ? history.getISOWeekId(date) : '';
-  const previousDate = priorEntries[0]?.date || null;
   const previousShort = dateShort(previousDate);
   const related = [
     previousShort

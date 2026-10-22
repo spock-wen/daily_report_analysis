@@ -18,24 +18,117 @@ const DEFAULT_PHRASES = {
 };
 
 const PROJECT_DEFAULT_TEXTS = [
-  { pattern: /agent|代理/i, full: '面向编码代理的开发工具', short: '面向编码代理的工具' },
-  { pattern: /求职|招聘|job/i, full: '面向求职流程的效率工具', short: '求职流程效率工具' },
-  { pattern: /安全|审计|security/i, full: '面向代码安全的审计工具', short: '代码安全审计工具' },
-  { pattern: /知识图谱|图谱|graph/i, full: '面向代码与文档的知识图谱工具', short: '代码知识图谱工具' },
-  { pattern: /推理|模型|llm|大模型|inference/i, full: '面向大模型的推理与服务工具', short: '大模型推理工具' },
-  { pattern: /界面|图形|ui|comfy/i, full: '面向模型工作流的图形界面', short: '模型工作流界面' },
-  { pattern: /数据|金融|行情/i, full: '面向数据分析的基础模型', short: '数据分析基础模型' },
-  { pattern: /插件|plugin/i, full: '面向知识工作的插件合集', short: '知识工作插件合集' },
+  { pattern: /agent|代理/i, full: '面向编码代理的开发工具', short: '面向编码代理的工具', base: '编码代理' },
+  { pattern: /求职|招聘|job/i, full: '面向求职流程的效率工具', short: '求职流程效率工具', base: '求职流程' },
+  { pattern: /安全|审计|security/i, full: '面向代码安全的审计工具', short: '代码安全审计工具', base: '代码安全' },
+  { pattern: /知识图谱|图谱|graph/i, full: '面向代码与文档的知识图谱工具', short: '代码知识图谱工具', base: '代码知识图谱' },
+  { pattern: /推理|模型|llm|大模型|inference/i, full: '面向大模型的推理与服务工具', short: '大模型推理工具', base: '大模型推理' },
+  { pattern: /界面|图形|ui|comfy/i, full: '面向模型工作流的图形界面', short: '模型工作流界面', base: '模型工作流' },
+  { pattern: /数据|金融|行情/i, full: '面向数据分析的基础模型', short: '数据分析基础模型', base: '数据分析' },
+  { pattern: /插件|plugin/i, full: '面向知识工作的插件合集', short: '知识工作插件合集', base: '知识工作插件' },
 ];
-const PROJECT_DEFAULT_FALLBACK = { full: '面向开发者的开源工具', short: '面向开发者的工具' };
+const PROJECT_DEFAULT_FALLBACK = { full: '面向开发者的开源工具', short: '面向开发者的工具', base: '开发工程' };
+
+function cleanTypeName(project) {
+  const typeName = project?.analysis?.typeName || project?.category || project?.analysis?.type || '';
+  const match = PROJECT_DEFAULT_TEXTS.find(item => item.pattern.test(String(typeName)));
+  if (match && match.base) return match.base;
+  let raw = match ? match.short : String(typeName || '开发工程');
+  raw = raw.replace(/^面向/, '').replace(/的?(工具|开发工具|基础模型|合集|界面|框架)$/, '').replace(/的$/, '').trim();
+  return raw || '开发工程';
+}
+
+function hasConsecutiveDuplicate(text) {
+  if (!text || typeof text !== 'string') return false;
+  const match = /([\u4e00-\u9fa5]{2,})\1/.exec(text);
+  if (match) {
+    const word = match[1];
+    if (word !== '一步' && word !== '一点') return true;
+  }
+  const engMatch = /\b([a-zA-Z]{2,})\s+\1\b/i.exec(text);
+  if (engMatch) return true;
+  return false;
+}
 
 function defaultProjectText(typeName, kind = 'descZh') {
   const name = String(typeName || '');
   const matched = PROJECT_DEFAULT_TEXTS.find(item => item.pattern.test(name));
   const entry = matched || PROJECT_DEFAULT_FALLBACK;
   if (kind === 'descShortZh') return entry.short;
-  if (kind === 'oneSentence') return `专注于${entry.short}的工程实践方案`;
+  if (kind === 'oneSentence') {
+    const base = cleanTypeName({ analysis: { typeName } });
+    return `专注于${base}的工程实践方案`;
+  }
   return entry.full;
+}
+
+const DESC_ZH_TEMPLATES = [
+  (t, l, c) => `面向${t}的${l ? l + ' ' : ''}${c ? c + ' ' : ''}开发工具`,
+  (t, l, c) => `服务于${t}工作流的${l ? l + ' ' : ''}${c ? c + ' ' : ''}实用工具箱`,
+  (t, l, c) => `围绕${t}技术栈构建的${l ? l + ' ' : ''}${c ? c + ' ' : ''}开源支持库`,
+  (t, l, c) => `专注于${t}实践落地的${l ? l + ' ' : ''}${c ? c + ' ' : ''}工程组件`,
+  (t, l, c) => `为${t}开发者打造的${l ? l + ' ' : ''}${c ? c + ' ' : ''}高效开发套件`,
+  (t, l, c) => `深耕${t}方向的${l ? l + ' ' : ''}${c ? c + ' ' : ''}应用基础设施`,
+  (t, l, c) => `探索${t}创新的${l ? l + ' ' : ''}${c ? c + ' ' : ''}开源解决方案`,
+  (t, l, c) => `赋能${t}生态的${l ? l + ' ' : ''}${c ? c + ' ' : ''}轻量级工具库`,
+  (t, l, c) => `支撑${t}自动化运行的${l ? l + ' ' : ''}${c ? c + ' ' : ''}专业工程框架`,
+  (t, l, c) => `适用于${t}场景需求的${l ? l + ' ' : ''}${c ? c + ' ' : ''}高效实用程序`,
+  (t, l, c) => `助力${t}流程构建的${l ? l + ' ' : ''}${c ? c + ' ' : ''}模块化工具集`,
+  (t, l, c) => `立足${t}前沿探索的${l ? l + ' ' : ''}${c ? c + ' ' : ''}现代开发框架`,
+  (t, l, c) => `优化${t}交付体验的${l ? l + ' ' : ''}${c ? c + ' ' : ''}实用支持套件`,
+  (t, l, c) => `聚焦${t}核心能力的${l ? l + ' ' : ''}${c ? c + ' ' : ''}轻量开源项目`,
+  (t, l, c) => `针对${t}常见需求的${l ? l + ' ' : ''}${c ? c + ' ' : ''}开源工程实现`,
+  (t, l, c) => `面向${t}应用整合的${l ? l + ' ' : ''}${c ? c + ' ' : ''}集成开发库`,
+];
+
+function buildDefaultDescZh(project, usedSentences = new Set(), config = null, regex = null) {
+  const baseType = cleanTypeName(project);
+  const lang = String(project?.language || '').trim();
+  const commLevel = project?.analysis?.community?.level || project?.community || '';
+  let comm = '';
+  if (commLevel === '极高') comm = '高关注度';
+  else if (commLevel === '高') comm = '高热度';
+  else if (commLevel === '中') comm = '成长型';
+  else if (commLevel === '低') comm = '新兴';
+
+  for (let i = 0; i < DESC_ZH_TEMPLATES.length; i++) {
+    const fn = DESC_ZH_TEMPLATES[i];
+    const candidate = fn(baseType, lang, comm).replace(/\s+/g, ' ').trim();
+    if (candidate.length > 60) continue;
+    if (/\d/.test(candidate)) continue;
+    if (hasConsecutiveDuplicate(candidate)) continue;
+    if (usedSentences.has(candidate)) continue;
+    if (regex && regex.test(stripMetricNames(candidate, config))) continue;
+    return candidate;
+  }
+  return `面向${baseType}领域的开源实用工具`;
+}
+
+const DESC_SHORT_TEMPLATES = [
+  (t, l) => `${l ? l + ' ' : ''}${t}工具`,
+  (t, l) => `${l ? l + ' ' : ''}${t}框架`,
+  (t, l) => `${l ? l + ' ' : ''}${t}组件`,
+  (t, l) => `${l ? l + ' ' : ''}${t}套件`,
+  (t) => `开源${t}工具`,
+  (t) => `实用${t}工具`,
+  (t) => `${t}基础设施`,
+  (t) => `${t}解决方案`,
+];
+
+function buildDefaultDescShortZh(project, usedSentences = new Set(), config = null, regex = null) {
+  const baseType = cleanTypeName(project);
+  const lang = String(project?.language || '').trim();
+  for (let i = 0; i < DESC_SHORT_TEMPLATES.length; i++) {
+    const fn = DESC_SHORT_TEMPLATES[i];
+    const candidate = fn(baseType, lang).replace(/\s+/g, ' ').trim();
+    if (candidate.length > 14) continue;
+    if (/\d/.test(candidate)) continue;
+    if (hasConsecutiveDuplicate(candidate)) continue;
+    if (usedSentences.has(candidate)) continue;
+    if (regex && regex.test(stripMetricNames(candidate, config))) continue;
+    return candidate;
+  }
+  return `${baseType.slice(0, 4)}工具`;
 }
 
 const ONE_SENTENCE_TEMPLATES = [
@@ -62,9 +155,7 @@ const ONE_SENTENCE_TEMPLATES = [
 ];
 
 function buildDefaultOneSentence(project, descZh, usedSentences = new Set(), config = null, regex = null) {
-  const typeName = project?.analysis?.typeName || project?.category || project?.analysis?.type || '';
-  const match = PROJECT_DEFAULT_TEXTS.find(item => item.pattern.test(String(typeName)));
-  const baseType = match ? match.short.replace(/工具$/, '') : (typeName || '开发工程');
+  const baseType = cleanTypeName(project);
   const lang = String(project?.language || '').trim();
   const commLevel = project?.analysis?.community?.level || project?.community || '';
   let comm = '';
@@ -79,6 +170,7 @@ function buildDefaultOneSentence(project, descZh, usedSentences = new Set(), con
     if (candidate.length > 40) continue;
     if (/\d/.test(candidate)) continue;
     if (candidate === descZh) continue;
+    if (hasConsecutiveDuplicate(candidate)) continue;
     if (usedSentences.has(candidate)) continue;
     if (regex && regex.test(stripMetricNames(candidate, config))) continue;
     return candidate;
@@ -586,30 +678,58 @@ function buildProjectTexts(names, slots, config, regex, logger, projects = new M
   const usedDefaults = [];
   const accepted = {};
   const usedOneSentences = new Set();
+  const usedDescZh = new Set();
+  const usedDescShortZh = new Set();
 
   for (const name of names) {
     const project = projects.get(name) || {};
     const typeName = project.analysis?.typeName || project.category || project.analysis?.type || '';
     const descId = `project.${name}.descZh`;
     const descSpec = slotSpecFor(descId);
-    const descCheck = checkSlotText(slots?.[descId], descSpec, config, regex);
-    const descZh = descCheck.ok
-      ? stripRepoPrefix(descCheck.text, name)
-      : defaultProjectText(typeName, 'descZh');
+    let descCheck = checkSlotText(slots?.[descId], descSpec, config, regex);
+    let descZh = null;
+    if (descCheck.ok) {
+      const stripped = stripRepoPrefix(descCheck.text, name);
+      if (stripped.includes(name) || (name.includes('/') && stripped.includes(name.split('/')[1]))) {
+        descCheck = { ok: false, reason: '含仓库名' };
+      } else if (hasConsecutiveDuplicate(stripped)) {
+        descCheck = { ok: false, reason: '含连续重复词' };
+      } else if (usedDescZh.has(stripped)) {
+        descCheck = { ok: false, reason: '跨卡重复' };
+      } else {
+        descZh = stripped;
+        usedDescZh.add(descZh);
+      }
+    }
     accepted[descId] = descCheck.ok;
     if (!descCheck.ok) {
+      descZh = buildDefaultDescZh(project, usedDescZh, config, regex);
+      usedDescZh.add(descZh);
       usedDefaults.push({ slotId: descId, reason: descCheck.reason, fallback: 'program.defaultZh' });
       if (typeof logger.warn === 'function') logger.warn(`[daily-v3-text] 槽位${descCheck.reason}，使用程序中文缺省：${descId}`);
     }
 
     const shortId = `project.${name}.descShortZh`;
     const shortSpec = slotSpecFor(shortId);
-    const shortCheck = checkSlotText(slots?.[shortId], shortSpec, config, regex);
-    const descShortZh = shortCheck.ok
-      ? stripRepoPrefix(shortCheck.text, name)
-      : defaultProjectText(typeName, 'descShortZh');
+    let shortCheck = checkSlotText(slots?.[shortId], shortSpec, config, regex);
+    let descShortZh = null;
+    if (shortCheck.ok) {
+      const stripped = stripRepoPrefix(shortCheck.text, name);
+      if (stripped.includes(name) || (name.includes('/') && stripped.includes(name.split('/')[1]))) {
+        shortCheck = { ok: false, reason: '含仓库名' };
+      } else if (hasConsecutiveDuplicate(stripped)) {
+        shortCheck = { ok: false, reason: '含连续重复词' };
+      } else if (usedDescShortZh.has(stripped)) {
+        shortCheck = { ok: false, reason: '跨卡重复' };
+      } else {
+        descShortZh = stripped;
+        usedDescShortZh.add(descShortZh);
+      }
+    }
     accepted[shortId] = shortCheck.ok;
     if (!shortCheck.ok) {
+      descShortZh = buildDefaultDescShortZh(project, usedDescShortZh, config, regex);
+      usedDescShortZh.add(descShortZh);
       usedDefaults.push({ slotId: shortId, reason: shortCheck.reason, fallback: 'program.defaultShortZh' });
       if (typeof logger.warn === 'function') logger.warn(`[daily-v3-text] 槽位${shortCheck.reason}，使用程序中文短缺省：${shortId}`);
     }
@@ -624,6 +744,8 @@ function buildProjectTexts(names, slots, config, regex, logger, projects = new M
         oneCheck = { ok: false, reason: '含仓库名' };
       } else if (stripped === descZh) {
         oneCheck = { ok: false, reason: '与简介相同' };
+      } else if (hasConsecutiveDuplicate(stripped)) {
+        oneCheck = { ok: false, reason: '含连续重复词' };
       } else if (usedOneSentences.has(stripped)) {
         oneCheck = { ok: false, reason: '跨卡重复' };
       } else {
@@ -776,6 +898,10 @@ module.exports = {
   wordRegex,
   stripMetricNames,
   buildDefaultOneSentence,
+  buildDefaultDescZh,
+  buildDefaultDescShortZh,
+  cleanTypeName,
+  hasConsecutiveDuplicate,
   isPrevYesterday,
   determinePrevDate,
 };

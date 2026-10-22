@@ -438,9 +438,42 @@ function nullSafePath(value) {
   return value === undefined || value === null ? '' : String(value);
 }
 
+function toNumber(value) {
+  if (value === null || value === undefined || value === '') return null;
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  const match = /^([+-]?[\d.]+)\s*(亿|万|千|[kKwW])?$/.exec(String(value).replace(/,/g, '').trim());
+  if (!match) {
+    const number = Number(String(value).replace(/,/g, ''));
+    return Number.isFinite(number) ? number : null;
+  }
+  const number = Number(match[1]);
+  if (!Number.isFinite(number)) return null;
+  const unit = (match[2] || '').toLowerCase();
+  if (unit === 'k' || unit === '千') return number * 1000;
+  if (unit === 'w' || unit === '万') return number * 10000;
+  if (unit === '亿') return number * 100000000;
+  return number;
+}
+
+function findConsecutiveDuplicate(text) {
+  if (!text || typeof text !== 'string') return null;
+  const chineseMatch = /([\u4e00-\u9fa5]{2,})\1/.exec(text);
+  if (chineseMatch) {
+    const word = chineseMatch[1];
+    if (word !== '一步' && word !== '一点') {
+      return chineseMatch[0];
+    }
+  }
+  const engMatch = /\b([a-zA-Z]{2,})\s+\1\b/i.exec(text);
+  if (engMatch) return engMatch[0];
+  return null;
+}
+
 function checkCardDuplicate(json, doc, findings) {
   const projects = Array.isArray(json.projects) ? json.projects : [];
   const seenOneSentences = new Map();
+  const seenDescZh = new Map();
+  const seenDescShortZh = new Map();
 
   for (const [index, project] of projects.entries()) {
     const fullName = project?.fullName || project?.repo || null;
@@ -454,10 +487,13 @@ function checkCardDuplicate(json, doc, findings) {
       || (fullName ? json.slots?.[`project.${fullName}.descZh`] : '')
       || ''
     ).trim();
+    const descShortZh = String(
+      project?.descShortZh
+      || (fullName ? json.slots?.[`project.${fullName}.descShortZh`] : '')
+      || ''
+    ).trim();
 
-    if (!oneSentence) continue;
-
-    if (descZh && oneSentence === descZh) {
+    if (descZh && oneSentence && oneSentence === descZh) {
       findings.push(makeFinding('R5', doc, {
         field: `projects[${index}].oneSentence`,
         quote: oneSentence,
@@ -465,15 +501,43 @@ function checkCardDuplicate(json, doc, findings) {
       }));
     }
 
-    if (seenOneSentences.has(oneSentence)) {
-      const prevIndex = seenOneSentences.get(oneSentence);
-      findings.push(makeFinding('R5', doc, {
-        field: `projects[${index}].oneSentence`,
-        quote: oneSentence,
-        message: `项目卡一句话跨卡重复（与第 ${prevIndex + 1} 张卡重复）`,
-      }));
-    } else {
-      seenOneSentences.set(oneSentence, index);
+    if (oneSentence) {
+      if (seenOneSentences.has(oneSentence)) {
+        const prevIndex = seenOneSentences.get(oneSentence);
+        findings.push(makeFinding('R5', doc, {
+          field: `projects[${index}].oneSentence`,
+          quote: oneSentence,
+          message: `项目卡一句话跨卡重复（与第 ${prevIndex + 1} 张卡重复）`,
+        }));
+      } else {
+        seenOneSentences.set(oneSentence, index);
+      }
+    }
+
+    if (descZh) {
+      if (seenDescZh.has(descZh)) {
+        const prevIndex = seenDescZh.get(descZh);
+        findings.push(makeFinding('R5', doc, {
+          field: `projects[${index}].descZh`,
+          quote: descZh,
+          message: `项目卡简介跨卡重复（与第 ${prevIndex + 1} 张卡重复）`,
+        }));
+      } else {
+        seenDescZh.set(descZh, index);
+      }
+    }
+
+    if (descShortZh) {
+      if (seenDescShortZh.has(descShortZh)) {
+        const prevIndex = seenDescShortZh.get(descShortZh);
+        findings.push(makeFinding('R5', doc, {
+          field: `projects[${index}].descShortZh`,
+          quote: descShortZh,
+          message: `项目卡 Top8 描述跨卡重复（与第 ${prevIndex + 1} 张卡重复）`,
+        }));
+      } else {
+        seenDescShortZh.set(descShortZh, index);
+      }
     }
   }
 }
@@ -506,19 +570,151 @@ function isPrevYesterday(date, prevDate) {
   return diffDays === 1;
 }
 
-function checkTrendLabelDate(json, ctx, doc, findings) {
+const YESTERDAY_LABEL_RE = /(?:较昨日|昨日|昨\s)/;
+
+function checkPeriodLabels(json, ctx, doc, findings) {
   const date = json?.date || ctx?.period || ctx?.brief?.date;
   const prevDate = getPrevDate(ctx, json);
   if (!prevDate || isPrevYesterday(date, prevDate)) return;
 
-  for (const field of textFields(json)) {
-    if (!field.text) continue;
-    if (field.text.includes('较昨日')) {
+  const checkItem = (path, text) => {
+    if (!text || typeof text !== 'string') return;
+    if (YESTERDAY_LABEL_RE.test(text)) {
       findings.push(makeFinding('R5', doc, {
-        field: field.path,
-        quote: field.text,
-        message: `前序快照（${prevDate}）非昨日，文案不得写「较昨日」（须用「较上期」）`,
+        field: path,
+        quote: text,
+        message: `前序快照（${prevDate}）非昨日，文案或标签不得写「较昨日/昨日/昨 」（须用「上期」）`,
       }));
+    }
+  };
+
+  for (const field of textFields(json)) {
+    checkItem(field.path, field.text);
+  }
+
+  if (Array.isArray(json.metrics)) {
+    for (const [index, m] of json.metrics.entries()) {
+      checkItem(`metrics[${index}].prevLabel`, m.prevLabel);
+      checkItem(`metrics[${index}].label`, m.label);
+      checkItem(`metrics[${index}].dYText`, m.dYText);
+    }
+  }
+  checkItem('sparkNote', json.sparkNote);
+
+  if (json.cmp) {
+    checkItem('cmp.prevDateLabel', json.cmp.prevDateLabel);
+    checkItem('cmp.caption', json.cmp.caption);
+    if (Array.isArray(json.cmp.rows)) {
+      for (const [rIndex, row] of json.cmp.rows.entries()) {
+        checkItem(`cmp.rows[${rIndex}].label`, row.label);
+        if (Array.isArray(row.refs)) {
+          for (const [cIndex, ref] of row.refs.entries()) {
+            checkItem(`cmp.rows[${rIndex}].refs[${cIndex}].lab`, ref.lab);
+          }
+        }
+      }
+    }
+  }
+
+  if (Array.isArray(json.langRows)) {
+    for (const [index, row] of json.langRows.entries()) {
+      checkItem(`langRows[${index}].label`, row.label);
+    }
+  }
+  if (Array.isArray(json.typeRows)) {
+    for (const [index, row] of json.typeRows.entries()) {
+      checkItem(`typeRows[${index}].label`, row.label);
+    }
+  }
+  checkItem('langNote', json.langNote);
+
+  if (json.slope) {
+    checkItem('slope.colPrev', json.slope.colPrev);
+  }
+  if (Array.isArray(json.rankRows)) {
+    for (const [index, row] of json.rankRows.entries()) {
+      checkItem(`rankRows[${index}].prev`, row.prev);
+    }
+  }
+  checkItem('rankNote', json.rankNote);
+}
+
+function findMatchingCmpRow(rows, metricLabel) {
+  if (!Array.isArray(rows)) return null;
+  const norm = String(metricLabel || '').replace(/\s+/g, '').replace(/数$/, '');
+  return rows.find(row => {
+    const rowNorm = String(row.label || '').replace(/\s+/g, '').replace(/数$/, '');
+    if (norm === rowNorm) return true;
+    if (norm.includes('上榜') && rowNorm.includes('上榜')) return true;
+    if (norm.includes('AI') && rowNorm.includes('AI')) return true;
+    if ((norm.includes('今日新增') || norm.includes('当日新增')) && (rowNorm.includes('今日新增') || rowNorm.includes('当日新增'))) return true;
+    if ((norm.includes('平均总星') || norm.includes('平均Stars')) && (rowNorm.includes('平均总星') || rowNorm.includes('平均Stars'))) return true;
+    return false;
+  }) || null;
+}
+
+function checkMetricDy(json, ctx, doc, findings) {
+  const metrics = Array.isArray(json.metrics) ? json.metrics : [];
+  if (!metrics.length) return;
+  const cmpRows = json.cmp?.rows || ctx?.cmp?.rows || null;
+  if (!cmpRows) return;
+
+  for (const [index, metric] of metrics.entries()) {
+    if (metric.dYText === undefined || metric.dYText === null || metric.dYText === '') continue;
+    const cmpRow = findMatchingCmpRow(cmpRows, metric.label);
+    if (!cmpRow || !Array.isArray(cmpRow.refs) || !cmpRow.refs.length) continue;
+    const prevRef = cmpRow.refs.find(ref => ref && ref.lab && (ref.lab.includes('上期') || ref.lab.includes('昨日'))) || cmpRow.refs[0];
+    if (!prevRef || prevRef.value === undefined || prevRef.value === null || cmpRow.now === undefined || cmpRow.now === null) continue;
+
+    const nowVal = toNumber(cmpRow.now);
+    const prevVal = toNumber(prevRef.value);
+    const dyCardVal = toNumber(metric.dYText);
+    if (nowVal === null || prevVal === null || dyCardVal === null) continue;
+
+    const expectedDiff = Math.abs(nowVal - prevVal);
+    const threshold = expectedDiff >= 1000 ? 100 : 0.05;
+    if (Math.abs(dyCardVal - expectedDiff) > threshold) {
+      findings.push(makeFinding('R5', doc, {
+        field: `metrics[${index}].dYText`,
+        quote: String(metric.dYText),
+        message: `指标卡「${metric.label}」dy 数值（${metric.dYText}）与参照表上期差值（${nowVal - prevVal}）不一致`,
+      }));
+    }
+  }
+}
+
+function checkConsecutiveDuplicates(json, doc, findings) {
+  const checkText = (path, text) => {
+    if (!text || typeof text !== 'string') return;
+    const dup = findConsecutiveDuplicate(text);
+    if (dup) {
+      findings.push(makeFinding('R5', doc, {
+        field: path,
+        quote: text,
+        message: `文本出现连续重复词「${dup}」`,
+      }));
+    }
+  };
+
+  for (const field of textFields(json)) {
+    checkText(field.path, field.text);
+  }
+
+  if (json.hero?.lead) checkText('hero.lead', json.hero.lead);
+  if (json.sparkNote) checkText('sparkNote', json.sparkNote);
+  if (json.langNote) checkText('langNote', json.langNote);
+  if (json.rankNote) checkText('rankNote', json.rankNote);
+
+  const projects = Array.isArray(json.projects) ? json.projects : [];
+  for (const [index, p] of projects.entries()) {
+    if (p.descZh) checkText(`projects[${index}].descZh`, p.descZh);
+    if (p.descShortZh) checkText(`projects[${index}].descShortZh`, p.descShortZh);
+    if (p.oneSentence) checkText(`projects[${index}].oneSentence`, p.oneSentence);
+  }
+
+  if (json.slots && typeof json.slots === 'object' && !Array.isArray(json.slots)) {
+    for (const [key, val] of Object.entries(json.slots)) {
+      if (typeof val === 'string') checkText(`slots.${key}`, val);
     }
   }
 }
@@ -536,7 +732,9 @@ function check(ctx, doc, config) {
   checkTrendNumbers(doc.json, doc, findings);
   checkCardRepoName(doc.json, doc, findings);
   checkCardDuplicate(doc.json, doc, findings);
-  checkTrendLabelDate(doc.json, ctx, doc, findings);
+  checkPeriodLabels(doc.json, ctx, doc, findings);
+  checkMetricDy(doc.json, ctx, doc, findings);
+  checkConsecutiveDuplicates(doc.json, doc, findings);
 
   if (Array.isArray(doc.json.advice) && doc.json.advice.length > 3) {
     findings.push(makeFinding('R5', doc, {
