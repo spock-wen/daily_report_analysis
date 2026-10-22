@@ -1492,6 +1492,8 @@ function checkCmpFacts(json, ctx, doc, findings) {
       const checks = [
         { value: row.now, field: `cmp.rows[${index}].now` },
         { value: row.refs?.[0]?.value, field: `cmp.rows[${index}].refs[0].value` },
+        { value: row.refs?.[1]?.value, field: `cmp.rows[${index}].refs[1].value` },
+        { value: row.refs?.[2]?.value, field: `cmp.rows[${index}].refs[2].value` },
       ];
       for (const item of checks) {
         if (item.value === undefined || item.value === null || item.value === '') continue;
@@ -1532,6 +1534,8 @@ function checkCmpFacts(json, ctx, doc, findings) {
       const checks = [
         { value: row.now, field: `cmp.rows[${index}].now` },
         { value: row.refs?.[0]?.value, field: `cmp.rows[${index}].refs[0].value` },
+        { value: row.refs?.[1]?.value, field: `cmp.rows[${index}].refs[1].value` },
+        { value: row.refs?.[2]?.value, field: `cmp.rows[${index}].refs[2].value` },
       ];
       for (const item of checks) {
         if (item.value === undefined || item.value === null || item.value === '') continue;
@@ -1550,21 +1554,29 @@ function checkCmpFacts(json, ctx, doc, findings) {
     const checks = [
       { value: row.now, role: nowRole, field: `cmp.rows[${index}].now` },
       { value: row.refs?.[0]?.value, role: `prev_${nowRole}`, field: `cmp.rows[${index}].refs[0].value` },
+      // 7 日均/上月同期只要求事实表有出处（avg7_/mom_ role），不再比数值。
+      { value: row.refs?.[1]?.value, role: `avg7_${nowRole}`, kind: '7 日均', field: `cmp.rows[${index}].refs[1].value` },
+      { value: row.refs?.[2]?.value, role: `mom_${nowRole}`, kind: '上月同期', field: `cmp.rows[${index}].refs[2].value` },
     ];
     for (const item of checks) {
       if (item.value === undefined || item.value === null || item.value === '') continue;
       const raw = String(item.value).trim();
       // 上期无数据/占位符不参与比较。
       if (raw === '上期无数据' || raw === '—') continue;
+      // 7 日均/上月同期在快照不足时按 S2 空态显示占位符，无事实可对。
+      if (item.kind && (raw === '暂无' || raw === '不足 7 天')) continue;
       const fact = facts.find(f => f && f.role === item.role);
       if (!fact || fact.value === undefined || fact.value === null || fact.value === '') {
         findings.push(makeFinding('R5', doc, {
           field: item.field,
           quote: raw,
-          message: `对比表「${label}」数值在事实表里找不到出处（role=${item.role}）`,
+          message: item.kind
+            ? `对比表「${label}」${item.kind}数值在事实表里找不到出处（role=${item.role}）`
+            : `对比表「${label}」数值在事实表里找不到出处（role=${item.role}）`,
         }));
         continue;
       }
+      if (item.kind) continue;
       const cmpNum = toCmpNumber(item.value);
       const factNum = toCmpNumber(fact.value);
       if (cmpNum === null || factNum === null) continue;
@@ -1638,6 +1650,9 @@ function collectAllDocumentTexts(json, ctx) {
       }
       if (m?.dYText !== undefined && m?.dYText !== null && m.dYText !== '') {
         fields.push({ path: `metrics[${idx}].dYText`, text: String(m.dYText) });
+      }
+      if (m?.d7Text !== undefined && m?.d7Text !== null && m.d7Text !== '') {
+        fields.push({ path: `metrics[${idx}].d7Text`, text: String(m.d7Text) });
       }
     }
   }
