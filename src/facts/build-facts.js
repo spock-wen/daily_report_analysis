@@ -579,6 +579,146 @@ function addStreakAcceleration({ brief, add, addNumber }) {
   });
 }
 
+// r10：分布/份额/排名的上期口径，以及上期留存率、上期新面孔率、前 3 名合计。
+// 全部由 brief 与它的上一份快照算出；算不出则不产出对应 fact（页面写「上期无数据」）。
+function addDistributionFacts({ brief, add, addNumber }) {
+  const scrapedAt = brief.scrapedAt || brief.generatedAt;
+  const baseline = scrapedAt ? history.getBaselineSnapshot(scrapedAt) : null;
+  const prevBrief = baseline?.brief || null;
+  const prevDate = baseline?.date || null;
+  const prevSource = prevDate ? `briefs/daily/data-${prevDate}.json` : '';
+  const prevPrevEntry = prevBrief && (prevBrief.scrapedAt || prevBrief.generatedAt)
+    ? history.getBaselineSnapshot(prevBrief.scrapedAt || prevBrief.generatedAt)
+    : null;
+  const prevPrevBrief = prevPrevEntry?.brief || null;
+
+  const projects = brief.projects || [];
+  const prevProjects = prevBrief?.projects || [];
+  const prevTotal = prevProjects.length;
+  const prevPrevTotal = prevPrevBrief ? dailySnapshot(prevPrevBrief).totalProjects : null;
+
+  // 前 3 名今日新增合计
+  const sorted = [...projects].sort((left, right) => (Number(right.todayStars) || 0) - (Number(left.todayStars) || 0));
+  if (sorted.length >= 3) {
+    const top3Sum = sorted.slice(0, 3).reduce((sum, project) => sum + (Number(project.todayStars) || 0), 0);
+    add(top3Sum, {
+      kind: 'total',
+      field: 'projects[*].todayStars',
+      label: '前 3 名今日新增合计',
+      role: 'top3_today_sum',
+      source: `briefs/daily/data-${brief.date}.json#projects[*].todayStars`,
+    });
+  }
+
+  // 上期留存率 / 上期新面孔率（上一份快照与它的前一份 brief）
+  if (prevBrief && prevPrevBrief) {
+    const prevCounts = countsForBrief(prevBrief) || {};
+    const prevKept = toNumber(prevCounts.kept);
+    if (prevKept !== null && prevPrevTotal !== null && prevPrevTotal > 0) {
+      add(round1(prevKept / prevPrevTotal * 100), {
+        kind: 'total',
+        field: 'dailyDiff.counts.kept',
+        label: '上期留存率（上期连续在榜数 ÷ 上期的上一份快照上榜数 × 100）',
+        role: 'prev_retention_rate',
+        source: `${prevSource}#dailyDiff.counts.kept; briefs/daily/data-${prevPrevEntry.date}.json#stats.totalProjects`,
+      });
+    }
+    const prevNew = toNumber(prevCounts.new);
+    const prevReturned = toNumber(prevCounts.returned) || 0;
+    if (prevNew !== null && prevTotal > 0) {
+      add(round1(Math.max(0, prevNew - prevReturned) / prevTotal * 100), {
+        kind: 'total',
+        field: 'dailyDiff.counts.new',
+        label: '上期新面孔率（(上期新进数 − 上期回归数) ÷ 上期在榜数 × 100）',
+        role: 'prev_new_face_rate',
+        source: `${prevSource}#dailyDiff.counts.new; ${prevSource}#dailyDiff.counts.returned; ${prevSource}#stats.totalProjects`,
+      });
+    }
+  }
+
+  // 各语言计数（本期与上期，含非头部）
+  const langCounts = new Map();
+  for (const project of projects) {
+    const name = project.language || null;
+    if (!name) continue;
+    langCounts.set(name, (langCounts.get(name) || 0) + 1);
+  }
+  const prevLangCounts = new Map();
+  for (const project of prevProjects) {
+    const name = project.language || null;
+    if (!name) continue;
+    prevLangCounts.set(name, (prevLangCounts.get(name) || 0) + 1);
+  }
+  for (const [name, count] of langCounts) {
+    add(count, {
+      kind: 'total',
+      field: 'projects[*].language',
+      label: `语言「${name}」项目数`,
+      role: `lang_count_${name}`,
+      source: `briefs/daily/data-${brief.date}.json#projects[*].language`,
+    });
+    if (prevBrief) {
+      add(prevLangCounts.get(name) || 0, {
+        kind: 'total',
+        field: 'projects[*].language',
+        label: `上期语言「${name}」项目数`,
+        role: `prev_lang_count_${name}`,
+        source: `${prevSource}#projects[*].language`,
+      });
+    }
+  }
+
+  // 各类型计数（本期与上期）
+  const typeCounts = new Map();
+  for (const project of projects) {
+    const name = projectCategory(project);
+    if (!name) continue;
+    typeCounts.set(name, (typeCounts.get(name) || 0) + 1);
+  }
+  const prevTypeCounts = new Map();
+  for (const project of prevProjects) {
+    const name = projectCategory(project);
+    if (!name) continue;
+    prevTypeCounts.set(name, (prevTypeCounts.get(name) || 0) + 1);
+  }
+  for (const [name, count] of typeCounts) {
+    add(count, {
+      kind: 'total',
+      field: 'projects[*].analysis.type',
+      label: `类型「${name}」项目数`,
+      role: `type_count_${name}`,
+      source: `briefs/daily/data-${brief.date}.json#projects[*].analysis.type`,
+    });
+    if (prevBrief) {
+      add(prevTypeCounts.get(name) || 0, {
+        kind: 'total',
+        field: 'projects[*].analysis.type',
+        label: `上期类型「${name}」项目数`,
+        role: `prev_type_count_${name}`,
+        source: `${prevSource}#projects[*].analysis.type`,
+      });
+    }
+  }
+
+  // 各项目上期排名（按上一份快照的今日新增降序）
+  if (prevBrief) {
+    const prevRanked = [...prevProjects]
+      .sort((left, right) => (Number(right.todayStars) || 0) - (Number(left.todayStars) || 0));
+    prevRanked.forEach((project, index) => {
+      const key = history.projectKey(project);
+      if (!key) return;
+      add(index + 1, {
+        project: key,
+        kind: 'single',
+        field: 'projects[*].todayStars',
+        label: `${key} 上期排名`,
+        role: 'prev_rank',
+        source: `${prevSource}#projects[*].todayStars`,
+      });
+    });
+  }
+}
+
 function buildDailyFacts({ brief, add, addNumber }) {
   const projects = brief.projects || [];
   const stats = brief.stats || {};
@@ -624,6 +764,7 @@ function buildDailyFacts({ brief, add, addNumber }) {
 
   addDailyReferenceFacts({ brief, add, addNumber });
   addStreakAcceleration({ brief, add, addNumber });
+  addDistributionFacts({ brief, add, addNumber });
 
   projects.forEach((project, index) => {
     const fullName = history.projectKey(project);

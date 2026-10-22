@@ -12,12 +12,12 @@
 | week.label / week.href | 由 date 算 ISO 周（2026-W43）/ 周报路径 |
 | nav.* / archive[] {label,href,cls,cur} | reports/ 目录文件名；cls=sub 为日报子项，cur=当前页 |
 | verdict.oneLiner | ins.oneLiner |
-| verdict.hypeScore / hypeDots / hypeReason | ins.hypeIndex.score / score 个●+(5-score) 个○ / ins.hypeIndex.reason |
+| verdict.hypeScore / hypeDots / hypeReason | ins.hypeIndex.score / score 个●+(5-score) 个○ / 程序句（r10 起）：高热数＝上榜数时写「N 个上榜项目当天新增都超过 100 星，比上期多 D 个。」（D 由 facts 上期高热数算出，D≤0 时如实写「与上期持平 / 比上期少 D 个」），否则写「高热项目 N 个，占全部 T 个（占比 P%）；当日新增合计 S 星。」热度公式不变 |
 | cmp.prevDateShort / prevDateLabel | brief.dailyDiff.prevDate（上期快照日，不一定是昨天） |
 | cmp.lastMonthDateShort | 上月同期 facts 的来源日期（f34 source 中的日期） |
 | cmp.rows[] {label,now,refs[1]} | 见 FIELD_MAP 第 2 节逐行；refs 仅保留上期 |
 | refs[].value / dirText / dirCls | facts 参照值 / facts 方向值（上升/下降/持平）/ up·down·flat；没有参照值时给 `{missing:true}`，页面显示「—」 |
-| cmp.caption | 生成端写的读者口径说明（不得含字段名） |
+| cmp.caption | 生成端写的读者口径说明（不得含字段名）。r10 起为「高热＝今日新增超过 100 星。」 |
 | stats[] {label,value,prev,dirText} | brief.stats.totalProjects/aiProjects/avgStars + facts f4；prev 与方向取 facts 昨日项 |
 | trends[] | ins.coreTrends |
 | streak[] {fullName,anchor,days,todayStars,text}，streakCount | ins.streakBrief[i]；days=brief.streakDays[fullName]；todayStars=projects[].todayStars；按 days 降序 |

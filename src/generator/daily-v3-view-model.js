@@ -6,6 +6,7 @@ const mustache = require('mustache');
 const history = require('../metrics/history');
 const paths = require('../utils/path');
 const { DEFAULT_PHRASES, computeHypeIndex, defaultProjectText, stripRepoPrefix, buildDefaultOneSentence, isPrevYesterday } = require('./daily-v3-text');
+const { normalizeCjkSpacing, pickProjectBlurb, ratioPhrase } = require('./daily-v3-copy');
 
 const TEMPLATE_DIR = nodePath.join(__dirname, '..', '..', 'templates', 'daily-v3');
 const TEMPLATE_PATH = nodePath.join(TEMPLATE_DIR, 'daily.mustache');
@@ -42,6 +43,10 @@ function toNumber(value) {
   if (unit === 'w' || unit === '万') return number * 10000;
   if (unit === '亿') return number * 100000000;
   return number;
+}
+
+function round2(value) {
+  return Math.round(value * 100) / 100;
 }
 
 function round1(value) {
@@ -556,7 +561,7 @@ function buildCmp({
     prevDateLabel: prevDateLabel === '—' ? '无基准' : `${prevDateLabel}（本期之前最近一份快照）`,
     prevDateShort: prevDateLabel,
     rows,
-    caption: '高热＝今日新增超过 100 星；「暂无」表示当前无该项参照数据。',
+    caption: '高热＝今日新增超过 100 星。',
   };
 }
 
@@ -700,6 +705,168 @@ function buildChurn({ todayProjects, previousBrief, currentUrlOf, returnedNames 
   };
 }
 
+function shortNameOf(fullName) {
+  const text = String(fullName || '');
+  const slash = text.lastIndexOf('/');
+  return slash >= 0 ? text.slice(slash + 1) : text;
+}
+
+// 掉榜句：`较上期（10-19）掉榜 5 个：a、b 属于 X 类，c 属于 Y 类。`
+// 按类目分组、组内顿号、组间逗号，类目取自上一份快照的项目分析结果。
+function buildChurnDropText({ dropped, typeNameOf, previousDate }) {
+  const list = Array.isArray(dropped) ? dropped : [];
+  const prevLabel = previousDate ? `较上期（${dateShort(previousDate)}）` : '较上期';
+  if (!list.length) {
+    return previousDate
+      ? `${prevLabel}无掉榜项目。`
+      : '本期无上期基准，不比较掉榜。';
+  }
+  const groups = new Map();
+  for (const item of list) {
+    const fullName = typeof item === 'string' ? item : item.fullName;
+    const typeName = (typeNameOf && typeNameOf.get(fullName)) || '其他';
+    if (!groups.has(typeName)) groups.set(typeName, []);
+    groups.get(typeName).push(shortNameOf(fullName));
+  }
+  const clauses = [...groups.entries()].map(([typeName, names]) => `${names.join('、')} 属于 ${typeName}`);
+  return `${prevLabel}掉榜 ${list.length} 个：${clauses.join('，')}。`;
+}
+
+// 连续上榜卡片：补上期对比（是上期的 N 倍 / 上期不在榜）。
+function buildStreakText({ fullName, days, todayStars, previousToday }) {
+  const base = `${fullName} 连续 ${days} 天在榜，今日新增 ${formatCount(todayStars)} 星`;
+  if (previousToday === null || previousToday === undefined || previousToday <= 0) {
+    return `${base}，上期不在榜。`;
+  }
+  const ratio = round2(todayStars / previousToday);
+  if (ratio === 1) return `${base}，与上期持平。`;
+  return `${base}，是上期的 ${ratio} 倍。`;
+}
+
+// trends[0]：`今日 13 个上榜项目中，AI 项目 10 个，与上期持平；Agent 系统项目从上期 8 个增至 10 个，份额从 66.7% 升到 76.9%。`
+function buildCompositionTrend({ projects, previousProjects, aiProjects, totalProjects, prevAiProjects, hasPrev }) {
+  if (!totalProjects) return null;
+  const aiDelta = prevAiProjects === null ? null : aiProjects - prevAiProjects;
+  const aiTail = aiDelta === null
+    ? ''
+    : (aiDelta === 0 ? '与上期持平' : (aiDelta > 0 ? `较上期多 ${aiDelta} 个` : `较上期少 ${-aiDelta} 个`));
+
+  const countOf = (list, name) => (list || []).filter(project => (project.analysis?.typeName || null) === name).length;
+  const shareOf = (count, total) => (total > 0 ? round1(count / total * 100) : null);
+  const typeNames = [...new Set((projects || []).map(project => project.analysis?.typeName).filter(Boolean))];
+  const ranked = typeNames
+    .map(name => ({ name, count: countOf(projects, name) }))
+    .sort((left, right) => right.count - left.count);
+  const top = ranked[0] || null;
+  const prevCount = top ? countOf(previousProjects, top.name) : null;
+
+  let typeTail = '';
+  if (top && hasPrev && prevCount !== null && prevCount !== top.count) {
+    const prevShare = shareOf(prevCount, (previousProjects || []).length);
+    const nowShare = shareOf(top.count, totalProjects);
+    const rising = top.count > prevCount;
+    typeTail = `；${top.name}项目从上期 ${prevCount} 个${rising ? '增至' : '减至'} ${top.count} 个`
+      + `，份额从 ${prevShare}% ${nowShare > prevShare ? '升' : '降'}到 ${nowShare}%`;
+  } else if (top && hasPrev && prevCount === top.count) {
+    typeTail = `；${top.name}项目 ${top.count} 个，与上期持平`;
+  }
+
+  return `今日 ${totalProjects} 个上榜项目中，AI 项目 ${aiProjects} 个${aiTail ? `，${aiTail}` : ''}${typeTail}。`;
+}
+
+// 深度分析：`今日新增星合计 14,517 星，比上期（10-19）多 3,266 星，前 3 名占了一半（7,138 星）。新进 6 个里有 4 个是回归项目，其中 security-audit-skill 一回来就排到第 2；留存率 58.3%，比上期的 8 个连续在榜少了 1 个。`
+function buildDeepAnalysis({
+  projects, churn, returnedNames, previousDate, previousShort,
+  totalToday, prevTotalToday, retention, prevKept, keptCount,
+}) {
+  if (!totalToday) return null;
+  const parts = [];
+  const prevLabel = previousDate ? `（${dateShort(previousDate)}）` : '';
+  if (prevTotalToday === null || prevTotalToday === undefined) {
+    parts.push(`今日新增星合计 ${formatCount(totalToday)} 星`);
+  } else {
+    const delta = totalToday - prevTotalToday;
+    const deltaText = delta === 0
+      ? `与上期${prevLabel}持平`
+      : (delta > 0 ? `比上期${prevLabel}多 ${formatCount(delta)} 星` : `比上期${prevLabel}少 ${formatCount(-delta)} 星`);
+    parts.push(`今日新增星合计 ${formatCount(totalToday)} 星，${deltaText}`);
+  }
+
+  const sorted = [...projects].sort((left, right) => (toNumber(right.todayStars) || 0) - (toNumber(left.todayStars) || 0));
+  const top3 = sorted.slice(0, 3);
+  if (top3.length === 3) {
+    const top3Sum = top3.reduce((sum, project) => sum + (toNumber(project.todayStars) || 0), 0);
+    const share = round1(top3Sum / totalToday * 100);
+    parts.push(share >= 50
+      ? `前 3 名占了一半（${formatCount(top3Sum)} 星）`
+      : `前 3 名占 ${share}%（${formatCount(top3Sum)} 星）`);
+  }
+
+  const returnedList = (churn.new || []).filter(item => returnedNames.has(item.fullName));
+  if (churn.newCount > 0 && returnedList.length > 0) {
+    const rankOf = new Map(projects.map((project, index) => [projectKey(project), index + 1]));
+    const best = returnedList
+      .map(item => ({ ...item, rank: rankOf.get(item.fullName) || null }))
+      .filter(item => item.rank !== null)
+      .sort((left, right) => left.rank - right.rank)[0];
+    const tail = best
+      ? (best.rank <= 3 ? `，其中 ${shortNameOf(best.fullName)} 一回来就排到第 ${best.rank}` : `，其中排名最高的是 ${shortNameOf(best.fullName)}（第 ${best.rank}）`)
+      : '';
+    parts.push(`新进 ${churn.newCount} 个里有 ${returnedList.length} 个是回归项目${tail}`);
+  } else if (churn.newCount > 0) {
+    parts.push(`新进 ${churn.newCount} 个`);
+  }
+
+  if (retention !== null && retention !== undefined) {
+    if (prevKept === null || prevKept === undefined) {
+      parts.push(`留存率 ${retention}%`);
+    } else {
+      const keptDelta = keptCount - prevKept;
+      const keptText = keptDelta === 0
+        ? '与上期持平'
+        : (keptDelta < 0 ? `比上期的 ${prevKept} 个连续在榜少了 ${-keptDelta} 个` : `比上期的 ${prevKept} 个连续在榜多了 ${keptDelta} 个`);
+      parts.push(`留存率 ${retention}%，${keptText}`);
+    }
+  }
+
+  return `${parts.join('；')}。`;
+}
+
+// 建议 2：`留意 ruflo（连续 6 天）和 ai-job-search（连续 5 天）：ruflo 今日新增 684 星，比上期多 120 星，但排名从第 5 降到第 9。`
+// 排名变化由数据判定：升/降/持平分别写。
+function buildStabilityAdvice({ streak, projects, previousRankOf, prevTodayOf }) {
+  const list = (Array.isArray(streak) ? streak : []).filter(item => item && item.days >= 2);
+  if (list.length < 2) return null;
+  const [first, second] = list;
+  const rankOf = new Map(projects.map((project, index) => [projectKey(project), index + 1]));
+  const rank = rankOf.get(first.fullName);
+  const prevRank = previousRankOf && previousRankOf.get ? previousRankOf.get(first.fullName) : null;
+  const today = toNumber(first.todayStarsRaw);
+  const prevToday = prevTodayOf && prevTodayOf.has(first.fullName) ? prevTodayOf.get(first.fullName) : null;
+
+  let starText = '';
+  if (prevToday !== null && prevToday !== undefined && prevToday > 0 && today !== null) {
+    const delta = today - prevToday;
+    starText = delta === 0
+      ? '与上期持平'
+      : (delta > 0 ? `比上期多 ${formatCount(delta)} 星` : `比上期少 ${formatCount(-delta)} 星`);
+  } else {
+    starText = '上期不在榜';
+  }
+
+  let rankText = '';
+  if (rank && prevRank) {
+    if (rank < prevRank) rankText = `，排名还从第 ${prevRank} 升到第 ${rank}`;
+    else if (rank > prevRank) rankText = `，但排名从第 ${prevRank} 降到第 ${rank}`;
+    else rankText = `，排名与上期持平（第 ${rank}）`;
+  } else if (rank) {
+    rankText = `，上期不在榜`;
+  }
+
+  return `留意 ${shortNameOf(first.fullName)}（连续 ${first.days} 天）和 ${shortNameOf(second.fullName)}（连续 ${second.days} 天）：`
+    + `${shortNameOf(first.fullName)} 今日新增 ${formatCount(first.todayStars)} 星，${starText}${rankText}。`;
+}
+
 function buildArchive({ date, weekLabel }) {
   const dailyFiles = listReportFiles(nodePath.join(paths.REPORTS_DIR, 'daily'));
   const weeklyFiles = listReportFiles(nodePath.join(paths.REPORTS_DIR, 'weekly'));
@@ -804,6 +971,7 @@ function buildViewModel(data) {
   const previousBrief = priorEntries[0]?.brief || null;
   const previousProjects = previousBrief?.projects || [];
   const previousRankNames = namesOf(previousBrief);
+  const previousRankOf = new Map(previousProjects.map((project, index) => [projectKey(project), index + 1]));
 
   const returnedNames = new Set();
   if (previousBrief && date) {
@@ -815,6 +983,9 @@ function buildViewModel(data) {
   const { bars, note: barsNote } = buildBars(projects, project => {
     const slotText = slotDescShortOf(project);
     if (slotText) return slotText;
+    // 长期项目简介表优先于缺省句（原样输出，不经 AI）
+    const blurb = pickProjectBlurb(projectKey(project));
+    if (blurb?.descShortZh) return blurb.descShortZh;
     return defaultProjectText(project.analysis?.typeName, 'descShortZh');
   });
 
@@ -847,11 +1018,23 @@ function buildViewModel(data) {
   });
 
   const currentUrlOf = new Map(projects.map(project => [projectKey(project), project.url]));
+  const prevTypeNameOf = new Map();
+  for (const project of previousBrief?.projects || []) {
+    const key = projectKey(project);
+    if (key) prevTypeNameOf.set(key, project.analysis?.typeName || null);
+  }
   const churn = buildChurn({
     todayProjects: projects,
     previousBrief,
     currentUrlOf,
     returnedNames,
+  });
+
+  // 掉榜句：按类目分组、顿号连接、「属于」引出类目，全部由 brief 与上一份快照算出。
+  const churnDropText = buildChurnDropText({
+    dropped: churn.dropped,
+    typeNameOf: prevTypeNameOf,
+    previousDate: priorEntries[0]?.date || null,
   });
 
   const top10 = projects.slice(0, 10);
@@ -861,7 +1044,7 @@ function buildViewModel(data) {
   let rankSubText = '';
   if (notInPrevTop10 > 0) {
     if (returnedInTop10 > 0 && newInTop10 > 0) {
-      rankSubText = `前 10 中 ${notInPrevTop10} 个上期不在榜（${returnedInTop10} 个回归、${newInTop10} 个新）；`;
+      rankSubText = `前 10 中 ${notInPrevTop10} 个上期不在榜（${returnedInTop10} 个回归、${newInTop10} 个新上榜）；`;
     } else if (returnedInTop10 > 0) {
       rankSubText = `前 10 中 ${notInPrevTop10} 个为回归项目；`;
     } else {
@@ -893,6 +1076,11 @@ function buildViewModel(data) {
     if (name && item.oneSentence) projectInsights.set(name, item.oneSentence);
   }
 
+  const prevTodayOf = new Map();
+  for (const project of previousBrief?.projects || []) {
+    const key = projectKey(project);
+    if (key) prevTodayOf.set(key, toNumber(project.todayStars));
+  }
   const streak = projects
     .map(project => {
       const fullName = projectKey(project);
@@ -902,13 +1090,15 @@ function buildViewModel(data) {
         url: project.url || `https://github.com/${fullName}`,
         days: streakOf(fullName),
         todayStars: formatCount(project.todayStars),
+        todayStarsRaw: toNumber(project.todayStars) || 0,
+        prevToday: prevTodayOf.has(fullName) ? prevTodayOf.get(fullName) : null,
       };
     })
     .filter(item => item.days >= 2)
     .sort((left, right) => right.days - left.days)
     .map(item => ({
       ...item,
-      text: `${item.fullName} 连续 ${item.days} 天在榜，今日新增 ${item.todayStars} 星。`,
+      text: buildStreakText(item),
     }));
 
   const usedOneSentences = new Set();
@@ -917,13 +1107,15 @@ function buildViewModel(data) {
     const days = streakOf(fullName);
     const returned = returnedNames.has(fullName) && !previousRankNames.has(fullName);
     const tag = project.tag
-      || (days >= 2 ? `连续${days}天` : previousBrief ? (returned ? '回归' : '新') : '');
+      || (days >= 2 ? `连续 ${days} 天` : previousBrief ? (returned ? '回归' : '新') : '');
     const descZh = stripRepoPrefix(pickChinese(
+      pickProjectBlurb(fullName)?.descZh,
       slotDescZhOf(project),
       project.analysis?.descZh
     ) || defaultProjectText(project.analysis?.typeName, 'descZh'), fullName);
 
     let oneSentenceCandidate = stripRepoPrefix(pickChinese(
+      pickProjectBlurb(fullName)?.oneSentence,
       slotOneSentenceOf(project),
       projectInsights.get(fullName)
     ), fullName);
@@ -977,14 +1169,51 @@ function buildViewModel(data) {
   const trends = (Array.isArray(insights.trends) ? insights.trends : []).map(item => ({
     text: typeof item === 'string' ? item : String(item?.text || ''),
   }));
+  // trends[0]（构成/份额）是程序句：AI 不得自带数字，一律由 brief 与上一份快照算出。
+  const compositionTrend = buildCompositionTrend({
+    projects,
+    previousProjects,
+    aiProjects: currentSnapshot.aiProjects,
+    totalProjects: currentSnapshot.totalProjects,
+    prevAiProjects: priorSnapshots[0] ? (toNumber(priorSnapshots[0].aiProjects) ?? 0) : null,
+    hasPrev: Boolean(priorSnapshots[0]),
+  });
+  if (compositionTrend) {
+    if (trends.length) trends[0] = { text: compositionTrend };
+    else trends.push({ text: compositionTrend });
+  }
   const analysisText = typeof insights.analysis === 'string'
     ? insights.analysis
     : String(insights.analysis?.text || '');
   const advice = (Array.isArray(insights.advice) ? insights.advice : [])
     .slice(0, 3)
     .map(item => ({ text: typeof item === 'string' ? item : String(item?.text || '') }));
+  // 建议 2（在榜稳定性）是程序句：排名变化由数据判定为升/降/持平分别写。
+  const stabilityAdvice = buildStabilityAdvice({
+    streak,
+    projects,
+    previousRankOf,
+    prevTodayOf,
+  });
+  if (stabilityAdvice) {
+    if (advice.length >= 2) advice[1] = { text: stabilityAdvice };
+    else advice.push({ text: stabilityAdvice });
+  }
+  // 深度分析整段是程序句。
+  const deepText = buildDeepAnalysis({
+    projects,
+    churn,
+    returnedNames,
+    previousDate: priorEntries[0]?.date || null,
+    previousShort,
+    totalToday: currentSnapshot.totalToday,
+    prevTotalToday: priorSnapshots[0] ? (toNumber(priorSnapshots[0].totalToday) ?? null) : null,
+    retention: churn.retention,
+    prevKept: countsForBrief(previousBrief)?.kept ?? null,
+    keptCount: churn.keptCount,
+  });
   const churnNewText = typeof insights.churnNewText === 'string' ? insights.churnNewText : '';
-  const churnDropText = typeof insights.churnDropText === 'string' ? insights.churnDropText : '';
+  const churnDropTextProgram = churnDropText;
 
   const hypeIndex = computeHypeIndex({
     totalProjects: currentSnapshot.totalProjects,
@@ -1000,9 +1229,15 @@ function buildViewModel(data) {
     const dProj = currentSnapshot.totalProjects - pProj;
     const dStars = currentSnapshot.totalToday - pStars;
     if (dProj > 0 && dStars > 0) {
-      let factTail = '头部项目带动效应明显';
-      if (currentSnapshot.aiProjects > currentSnapshot.totalProjects / 2) {
-        factTail = 'AI 项目占比过半';
+      // 副标题尾句按比例区间由程序选择（过半 / 约三分之二 / 约占四分之三 …），不写死。
+      let factTail = `AI 项目${ratioPhrase(currentSnapshot.totalProjects > 0
+        ? currentSnapshot.aiProjects / currentSnapshot.totalProjects
+        : null)}`;
+      if (currentSnapshot.aiProjects <= currentSnapshot.totalProjects / 2) {
+        const sortedNow = [...projects].sort((a, b) => (toNumber(b.todayStars) || 0) - (toNumber(a.todayStars) || 0)).slice(0, 3);
+        const top3Sum = sortedNow.reduce((sum, item) => sum + (toNumber(item.todayStars) || 0), 0);
+        const share = currentSnapshot.totalToday > 0 ? round1(top3Sum / currentSnapshot.totalToday * 100) : null;
+        factTail = share === null ? '头部项目带动明显' : `前 3 名贡献了当日新增的 ${share}%`;
       }
       leadSub = `上榜数和新增星都比上期多，${factTail}。`;
     } else if (dProj > 0 && dStars === 0) {
@@ -1029,12 +1264,23 @@ function buildViewModel(data) {
     ? currentSnapshot.hotCount / currentSnapshot.totalProjects
     : 0;
   const hotPct = Math.round(hotRatio * 100);
-  const hypeReason = `高热项目 ${currentSnapshot.hotCount} 个，占全部 ${currentSnapshot.totalProjects} 个（占比 ${hotPct}%）；当日新增合计 ${currentSnapshot.totalToday} 星。`;
+  // 热度理由：hot == total 时用通用模板句，否则如实写占比。热度公式不动。
+  const prevHotCount = priorSnapshots[0] ? (toNumber(priorSnapshots[0].hotCount) ?? null) : null;
+  const dHot = prevHotCount === null ? null : currentSnapshot.hotCount - prevHotCount;
+  let hypeReason;
+  if (currentSnapshot.hotCount === currentSnapshot.totalProjects && currentSnapshot.totalProjects > 0) {
+    const hotTail = dHot === null
+      ? ''
+      : (dHot > 0 ? `，比上期多 ${dHot} 个` : (dHot < 0 ? `，比上期少 ${-dHot} 个` : '，与上期持平'));
+    hypeReason = `${currentSnapshot.totalProjects} 个上榜项目当天新增都超过 100 星${hotTail}。`;
+  } else {
+    hypeReason = `高热项目 ${currentSnapshot.hotCount} 个，占全部 ${currentSnapshot.totalProjects} 个（占比 ${hotPct}%）；当日新增合计 ${formatCount(currentSnapshot.totalToday)} 星。`;
+  }
 
   hero.sub = leadSub;
   hero.reason = hypeReason;
 
-  return {
+  const view = {
     css: fs.readFileSync(CSS_PATH, 'utf8'),
     isSample: data.isSample === true,
     isFail: data.isFail === true,
@@ -1083,8 +1329,8 @@ function buildViewModel(data) {
     rankRows,
     churn,
     churnNew: churnNewText,
-    churnDrop: churnDropText,
-    analysis: analysisText,
+    churnDrop: churnDropTextProgram,
+    analysis: deepText || analysisText,
     advice,
     total: projects.length,
     projects: viewProjects,
@@ -1096,6 +1342,29 @@ function buildViewModel(data) {
     ],
     footer: `数据来源：GitHub Trending（每日）· ${projects.length} 个仓库 · 抓取 ${scrapedAtLocal}（UTC+8） · 生成 ${generatedAtLocal}（UTC+8）`,
   };
+
+  return normalizeViewModelText(view);
+}
+
+// 对所有中文文本做中英文/数字之间加空格的规范化（不改动覆盖原文里已有的空格）。
+const TEXT_SKIP_KEYS = new Set([
+  'css', 'url', 'href', 'anchor', 'path', 'id', 'date', 'dateShort', 'slug', 'color', 'dash',
+]);
+
+function normalizeViewModelText(value, key = '') {
+  if (typeof value === 'string') {
+    if (TEXT_SKIP_KEYS.has(key)) return value;
+    return normalizeCjkSpacing(value);
+  }
+  if (Array.isArray(value)) return value.map(item => normalizeViewModelText(item, key));
+  if (value && typeof value === 'object') {
+    const out = {};
+    for (const [childKey, childValue] of Object.entries(value)) {
+      out[childKey] = normalizeViewModelText(childValue, childKey);
+    }
+    return out;
+  }
+  return value;
 }
 
 function renderDailyV3(data) {

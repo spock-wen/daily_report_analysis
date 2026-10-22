@@ -18,7 +18,7 @@ const DEFAULT_PHRASES = {
 };
 
 const PROJECT_DEFAULT_TEXTS = [
-  { pattern: /agent|代理/i, full: '面向编码代理的开发工具', short: '面向编码代理的工具', base: '编码代理' },
+  { pattern: /agent|代理|智能体/i, full: '面向编码智能体的开发工具', short: '面向编码智能体的工具', base: '编码智能体' },
   { pattern: /求职|招聘|job/i, full: '面向求职流程的效率工具', short: '求职流程效率工具', base: '求职流程' },
   { pattern: /安全|审计|security/i, full: '面向代码安全的审计工具', short: '代码安全审计工具', base: '代码安全' },
   { pattern: /知识图谱|图谱|graph/i, full: '面向代码与文档的知识图谱工具', short: '代码知识图谱工具', base: '代码知识图谱' },

@@ -18,6 +18,7 @@ const {
   detectDocumentTarget,
 } = require('./document');
 const { dedupeFindings } = require('./rules/util');
+const { buildCaseViewModel } = require('./case-vm');
 
 const RULES = [
   require('./rules/a1'),
@@ -329,38 +330,16 @@ function evaluateCase(caseItem, options = {}) {
       const files = fs.readdirSync(fixtureDir);
       const briefFileName = files.find(f => /^data-\d{4}-\d{2}-\d{2}\.json$/.test(f));
       if (briefFileName) {
-        try {
-          brief = JSON.parse(fs.readFileSync(path.join(fixtureDir, briefFileName), 'utf8'));
-          let insights = null;
-          if (fs.existsSync(filePath)) insights = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-          let facts = readCaseJson(caseItem.facts, root);
-          const { buildViewModel } = require('../generator/daily-v3-view-model');
-          const date = brief.date || (briefFileName.match(/\d{4}-\d{2}-\d{2}/) || [])[0];
-          const projects = brief.projects || brief.trending_repos || [];
-          const stats = brief.stats || {};
-          const reportData = {
-            ...brief,
-            date,
-            projects,
-            trending_repos: projects,
-            stats,
-            aiInsights: insights,
-            brief: {
-              ...brief,
-              trending_repos: projects,
-              stats,
-              generated_at: brief.generatedAt,
-            },
-            facts,
-            dailyDiff: brief.dailyDiff,
-            streakDays: brief.streakDays,
-            caption: brief.caption,
-            isSample: true,
-          };
-          viewModel = buildViewModel(reportData);
-        } catch (e) {
-          // ignore
-        }
+        // 构造 VM 失败直接抛错：该 case 记为错误/FAIL，不得 catch{} 吞掉后悄悄退回不受检。
+        brief = JSON.parse(fs.readFileSync(path.join(fixtureDir, briefFileName), 'utf8'));
+        let insights = null;
+        if (fs.existsSync(filePath)) insights = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        viewModel = buildCaseViewModel({
+          brief,
+          insights,
+          facts: readCaseJson(caseItem.facts, root),
+          date: brief.date || (briefFileName.match(/\d{4}-\d{2}-\d{2}/) || [])[0],
+        });
       }
     }
   }

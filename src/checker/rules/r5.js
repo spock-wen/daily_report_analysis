@@ -1,5 +1,8 @@
 'use strict';
 
+const fs = require('fs');
+const nodePath = require('path');
+
 const { makeFinding } = require('./util');
 const { extractNumbers, missingNumbers, normalizeNumberText } = require('./r4-binding');
 const {
@@ -51,12 +54,41 @@ function getPath(obj, path) {
   return curr;
 }
 
+// 页面字段一律以 VM（由 brief 生成）为准，insights JSON 不得覆盖页面字段。
 function pick(json, ctx, path) {
-  const fromJson = getPath(json, path);
-  if (fromJson !== undefined && fromJson !== null) return fromJson;
   const fromVm = getPath(ctx?.viewModel, path);
   if (fromVm !== undefined && fromVm !== null) return fromVm;
+  const fromJson = getPath(json, path);
+  if (fromJson !== undefined && fromJson !== null) return fromJson;
   return undefined;
+}
+
+// insights（AI 输出）里不得出现页面字段键，否则 AI 可顶替页面数据并自证数字。
+const PAGE_FIELD_KEYS = [
+  'hero',
+  'metrics',
+  'cmp',
+  'nav',
+  'toc',
+  'sparkNote',
+  'langRows',
+  'typeRows',
+  'langNote',
+  'slope',
+  'rankRows',
+  'rankNote',
+];
+
+function checkNoPageFieldsInInsights(json, doc, findings) {
+  if (!json || typeof json !== 'object') return;
+  for (const key of PAGE_FIELD_KEYS) {
+    if (!(key in json)) continue;
+    findings.push(makeFinding('R5', doc, {
+      field: key,
+      quote: fieldText(json[key]).slice(0, 80),
+      message: `insights 不得包含页面字段「${key}」；页面字段由生成端从 brief 生成`,
+    }));
+  }
 }
 
 function factList(ctx) {
@@ -611,70 +643,65 @@ function buildKnownSourceNumberSet(ctx, json) {
     }
   }
 
-  // 2. （hero/指标卡等由 VM 从 brief 生成的字段）
-  if (ctx?.viewModel) {
-    const vmHero = ctx.viewModel.hero;
-    if (vmHero && typeof vmHero === 'object') {
-      for (const v of Object.values(vmHero)) {
-        if (v !== undefined && v !== null) {
-          addCanonicalKeys(set, v);
-          for (const num of extractNumbers(maskDateTimes(String(v)))) {
-            addCanonicalKeys(set, num);
-          }
-        }
-      }
-    }
-    const vmMetrics = ctx.viewModel.metrics;
-    if (Array.isArray(vmMetrics)) {
-      for (const m of vmMetrics) {
-        if (m?.value !== undefined && m?.value !== null) {
-          addCanonicalKeys(set, m.value);
-          for (const num of extractNumbers(maskDateTimes(String(m.value)))) {
-            addCanonicalKeys(set, num);
-          }
-        }
-        if (m?.dYText !== undefined && m?.dYText !== null) {
-          addCanonicalKeys(set, m.dYText);
-          for (const num of extractNumbers(maskDateTimes(String(m.dYText)))) {
-            addCanonicalKeys(set, num);
-          }
-        }
-      }
-    }
-  }
-
-  // 3. 若该夹具没有 brief：按“程序生成的数有来源即放行”处理
-  // hero.lead 中由 VM 模板从 brief 生成的数值（如：acme/alpha 以 1800 星居首）
-  const heroLead = pick(json, ctx, 'hero.lead') ?? pick(json, ctx, 'hero')?.lead;
-  if (typeof heroLead === 'string') {
-    const m = heroLead.match(/(?:以\s*)?([0-9,]+)\s*星居首/);
-    if (m) {
-      addCanonicalKeys(set, m[1]);
-      for (const num of extractNumbers(m[1])) {
+  // 长期项目简介表（config/project-blurbs.json）中显式标记 selfClaim:true 的字段，
+  // 其数字属项目自述（如 headroom「省约 20% 令牌」），按项目自述放行；
+  // 未标记 selfClaim 的简介一律不放行（见 checkProjectBlurbs）。
+  for (const entry of selfClaimBlurbs()) {
+    for (const text of [entry.oneSentence, entry.descShortZh, entry.descZh]) {
+      if (typeof text !== 'string' || !text) continue;
+      addCanonicalKeys(set, text);
+      for (const num of extractNumbers(maskDateTimes(text))) {
         addCanonicalKeys(set, num);
       }
     }
   }
-  // 指标卡（metrics）中的数值（如 avgStars "103k"）
-  const metrics = pick(json, ctx, 'metrics');
-  if (Array.isArray(metrics)) {
-    for (const m of metrics) {
-      if (m?.value !== undefined && m?.value !== null) {
-        addCanonicalKeys(set, m.value);
-        for (const num of extractNumbers(maskDateTimes(String(m.value)))) {
-          addCanonicalKeys(set, num);
-        }
-      }
-      if (m?.dYText !== undefined && m?.dYText !== null) {
-        addCanonicalKeys(set, m.dYText);
-        for (const num of extractNumbers(maskDateTimes(String(m.dYText)))) {
-          addCanonicalKeys(set, num);
-        }
+
+  // 页面字段（hero/metrics/cmp/rankRows/…）由生成端从 brief 经 VM 生成，
+  // 不作为「数字来源」参与自证；数字只认 facts 值、模板渲染记录与 brief 原始数值。
+  return set;
+}
+
+const PROJECT_BLURBS_PATH = nodePath.join(__dirname, '..', '..', '..', 'config', 'project-blurbs.json');
+
+let cachedBlurbs = null;
+
+function projectBlurbTable() {
+  if (cachedBlurbs) return cachedBlurbs;
+  cachedBlurbs = {};
+  try {
+    if (fs.existsSync(PROJECT_BLURBS_PATH)) {
+      const parsed = JSON.parse(fs.readFileSync(PROJECT_BLURBS_PATH, 'utf8'));
+      if (parsed && typeof parsed === 'object') cachedBlurbs = parsed;
+    }
+  } catch (error) {
+    cachedBlurbs = {};
+  }
+  return cachedBlurbs;
+}
+
+// 只取显式标记 selfClaim:true 的条目。
+function selfClaimBlurbs() {
+  return Object.entries(projectBlurbTable())
+    .filter(([key, value]) => !key.startsWith('_') && value && typeof value === 'object' && value.selfClaim === true)
+    .map(([key, value]) => ({ key, ...value }));
+}
+
+// 项目简介表自身约束：未标记 selfClaim 的简介不得含数字（含会变的星数/日期）。
+function checkProjectBlurbs(json, doc, findings) {
+  for (const [key, value] of Object.entries(projectBlurbTable())) {
+    if (key.startsWith('_') || !value || typeof value !== 'object') continue;
+    for (const field of ['oneSentence', 'descShortZh', 'descZh']) {
+      const text = value[field];
+      if (typeof text !== 'string' || !text) continue;
+      if (/\d/.test(text) && value.selfClaim !== true) {
+        findings.push(makeFinding('R5', doc, {
+          field: `project-blurbs.json:${key}.${field}`,
+          quote: text,
+          message: '项目简介含数字但未标记 selfClaim:true；简介不得写会变的数字，项目自述须显式标记',
+        }));
       }
     }
   }
-
-  return set;
 }
 
 function checkNumbers(json, ctx, doc, findings) {
@@ -1502,6 +1529,8 @@ function checkThreeDigitNumbersInFacts(json, ctx, doc, findings) {
 function check(ctx, doc, config) {
   if (!isR5Insights(doc.json)) return [];
   const findings = [];
+  checkNoPageFieldsInInsights(doc.json, doc, findings);
+  checkProjectBlurbs(doc.json, doc, findings);
   checkSlots(doc.json, doc, config || {}, findings);
   checkNumbers(doc.json, ctx, doc, findings);
   checkThreeDigitNumbersInFacts(doc.json, ctx, doc, findings);

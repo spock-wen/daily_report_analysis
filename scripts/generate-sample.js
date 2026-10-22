@@ -704,8 +704,11 @@ async function main() {
     }
 
     const reportData = buildReportData(level, period, brief, computed, r5Insights);
-    const { buildViewModel } = require('../src/generator/daily-v3-view-model');
-    const viewModel = level === 'daily' ? buildViewModel(reportData) : null;
+    // 与检查器共用同一处 VM 构造实现（src/checker/case-vm.js），避免两侧漂移
+    const { buildCaseViewModel } = require('../src/checker/case-vm');
+    const viewModel = level === 'daily'
+      ? buildCaseViewModel({ brief: reportData, insights: r5Insights, facts, date: reportData.date })
+      : null;
 
     const { loadDocument } = require('../src/checker/document');
     const { buildContext } = require('../src/checker/context');
