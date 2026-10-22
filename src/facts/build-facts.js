@@ -780,19 +780,6 @@ function buildDailyFacts({ brief, add, addNumber }) {
   addStreakAcceleration({ brief, add, addNumber });
   addDistributionFacts({ brief, add, addNumber });
 
-  const maxToday = maxTodayStars(brief.projects || []);
-  if (maxToday !== null && maxToday !== undefined) {
-    add(maxToday, {
-      kind: 'total',
-      field: 'projects[*].todayStars',
-      label: '最大单项目新增',
-      role: 'max_today',
-      source: `briefs/daily/data-${brief.date}.json#projects[*].todayStars`,
-    });
-  }
-
-  addCurrentShareFactsIfNoPrev({ brief, add });
-
   projects.forEach((project, index) => {
     const fullName = history.projectKey(project);
     if (!fullName) return;
@@ -830,6 +817,19 @@ function buildDailyFacts({ brief, add, addNumber }) {
       role: 'threshold',
     });
   }
+
+  const maxToday = maxTodayStars(brief.projects || []);
+  if (maxToday !== null && maxToday !== undefined) {
+    add(maxToday, {
+      kind: 'total',
+      field: 'projects[*].todayStars',
+      label: '最大单项目新增',
+      role: 'max_today',
+      source: `briefs/daily/data-${brief.date}.json#projects[*].todayStars`,
+    });
+  }
+
+  addCurrentShareFactsIfNoPrev({ brief, add });
 
   return history.getProjectNames(brief);
 }
