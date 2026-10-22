@@ -62,38 +62,68 @@ function defaultProjectText(typeName, kind = 'descZh') {
   return entry.full;
 }
 
+function formatAttrs(lang, commLevel, variant = 0) {
+  const l = String(lang || '').trim();
+  let c = '';
+  if (commLevel === '极高') c = '关注度极高';
+  else if (commLevel === '高') c = '关注度很高';
+  else if (commLevel === '中') c = '关注度良好';
+  else if (commLevel === '低') c = '处于早期探索';
+
+  const langPhrases = [
+    l ? `用 ${l} 编写` : '',
+    l ? `基于 ${l} 构建` : '',
+    l ? `采用 ${l} 开发` : '',
+    l ? `以 ${l} 实现` : '',
+  ];
+  const langClause = l ? langPhrases[variant % langPhrases.length] : '';
+
+  if (langClause && c) {
+    return `${langClause}、${c}`;
+  }
+  if (langClause) {
+    return langClause;
+  }
+  if (c) {
+    return c;
+  }
+  const defaultClauses = [
+    '功能完整',
+    '设计精炼',
+    '开箱即用',
+    '结构清晰',
+    '易于扩展',
+  ];
+  return defaultClauses[variant % defaultClauses.length];
+}
+
 const DESC_ZH_TEMPLATES = [
-  (t, l, c) => `面向${t}的${l ? l + ' ' : ''}${c ? c + ' ' : ''}开发工具`,
-  (t, l, c) => `服务于${t}工作流的${l ? l + ' ' : ''}${c ? c + ' ' : ''}实用工具箱`,
-  (t, l, c) => `围绕${t}技术栈构建的${l ? l + ' ' : ''}${c ? c + ' ' : ''}开源支持库`,
-  (t, l, c) => `专注于${t}实践落地的${l ? l + ' ' : ''}${c ? c + ' ' : ''}工程组件`,
-  (t, l, c) => `为${t}开发者打造的${l ? l + ' ' : ''}${c ? c + ' ' : ''}高效开发套件`,
-  (t, l, c) => `深耕${t}方向的${l ? l + ' ' : ''}${c ? c + ' ' : ''}应用基础设施`,
-  (t, l, c) => `探索${t}创新的${l ? l + ' ' : ''}${c ? c + ' ' : ''}开源解决方案`,
-  (t, l, c) => `赋能${t}生态的${l ? l + ' ' : ''}${c ? c + ' ' : ''}轻量级工具库`,
-  (t, l, c) => `支撑${t}自动化运行的${l ? l + ' ' : ''}${c ? c + ' ' : ''}专业工程框架`,
-  (t, l, c) => `适用于${t}场景需求的${l ? l + ' ' : ''}${c ? c + ' ' : ''}高效实用程序`,
-  (t, l, c) => `助力${t}流程构建的${l ? l + ' ' : ''}${c ? c + ' ' : ''}模块化工具集`,
-  (t, l, c) => `立足${t}前沿探索的${l ? l + ' ' : ''}${c ? c + ' ' : ''}现代开发框架`,
-  (t, l, c) => `优化${t}交付体验的${l ? l + ' ' : ''}${c ? c + ' ' : ''}实用支持套件`,
-  (t, l, c) => `聚焦${t}核心能力的${l ? l + ' ' : ''}${c ? c + ' ' : ''}轻量开源项目`,
-  (t, l, c) => `针对${t}常见需求的${l ? l + ' ' : ''}${c ? c + ' ' : ''}开源工程实现`,
-  (t, l, c) => `面向${t}应用整合的${l ? l + ' ' : ''}${c ? c + ' ' : ''}集成开发库`,
+  (t, l, c) => `一款${formatAttrs(l, c, 0)}的${t}开发工具`,
+  (t, l, c) => `面向${t}场景打造、${formatAttrs(l, c, 1)}的实用工具箱`,
+  (t, l, c) => `围绕${t}技术栈、${formatAttrs(l, c, 2)}的开源支持库`,
+  (t, l, c) => `专注于${t}实践落地、${formatAttrs(l, c, 3)}的工程组件`,
+  (t, l, c) => `为${t}开发者打造、${formatAttrs(l, c, 0)}的高效开发套件`,
+  (t, l, c) => `深耕${t}方向、${formatAttrs(l, c, 1)}的应用基础设施`,
+  (t, l, c) => `探索${t}创新应用、${formatAttrs(l, c, 2)}的开源解决方案`,
+  (t, l, c) => `赋能${t}生态体系、${formatAttrs(l, c, 3)}的轻量级工具库`,
+  (t, l, c) => `支撑${t}自动化运作、${formatAttrs(l, c, 0)}的专业工程框架`,
+  (t, l, c) => `适用于${t}业务场景、${formatAttrs(l, c, 1)}的高效实用程序`,
+  (t, l, c) => `助力${t}流程构建、${formatAttrs(l, c, 2)}的模块化工具集`,
+  (t, l, c) => `立足${t}前沿探索、${formatAttrs(l, c, 3)}的现代开发框架`,
+  (t, l, c) => `优化${t}交付体验、${formatAttrs(l, c, 0)}的实用支持套件`,
+  (t, l, c) => `聚焦${t}核心能力、${formatAttrs(l, c, 1)}的轻量开源项目`,
+  (t, l, c) => `针对${t}常见需求、${formatAttrs(l, c, 2)}的模块化开发库`,
+  (t, l, c) => `加速${t}方案落地、${formatAttrs(l, c, 3)}的高性能基础库`,
 ];
 
 function buildDefaultDescZh(project, usedSentences = new Set(), config = null, regex = null) {
   const baseType = cleanTypeName(project);
   const lang = String(project?.language || '').trim();
   const commLevel = project?.analysis?.community?.level || project?.community || '';
-  let comm = '';
-  if (commLevel === '极高') comm = '高关注度';
-  else if (commLevel === '高') comm = '高热度';
-  else if (commLevel === '中') comm = '成长型';
-  else if (commLevel === '低') comm = '新兴';
 
   for (let i = 0; i < DESC_ZH_TEMPLATES.length; i++) {
     const fn = DESC_ZH_TEMPLATES[i];
-    const candidate = fn(baseType, lang, comm).replace(/\s+/g, ' ').trim();
+    const candidate = fn(baseType, lang, commLevel).replace(/\s+/g, ' ').trim();
     if (candidate.length > 60) continue;
     if (/\d/.test(candidate)) continue;
     if (hasConsecutiveDuplicate(candidate)) continue;
@@ -101,7 +131,7 @@ function buildDefaultDescZh(project, usedSentences = new Set(), config = null, r
     if (regex && regex.test(stripMetricNames(candidate, config))) continue;
     return candidate;
   }
-  return `面向${baseType}领域的开源实用工具`;
+  return `一款专注于${baseType}的实用开发工具`;
 }
 
 const DESC_SHORT_TEMPLATES = [
@@ -132,41 +162,32 @@ function buildDefaultDescShortZh(project, usedSentences = new Set(), config = nu
 }
 
 const ONE_SENTENCE_TEMPLATES = [
-  (t, l, c) => `面向${t}场景的${l ? l + ' ' : ''}${c ? c + ' ' : ''}实用工具集`,
-  (t, l, c) => `基于${l ? ' ' + l + ' ' : ''}构建的${c ? c + ' ' : ''}${t}开源解决方案`,
-  (t, l, c) => `专注于${t}实践的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}工程组件`,
-  (t, l, c) => `深耕${t}方向的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}应用框架`,
-  (t, l, c) => `服务于${t}工作流的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}效率套件`,
-  (t, l, c) => `聚焦${t}核心能力的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}开源项目`,
-  (t, l, c) => `为${t}开发者打造的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}实用组件`,
-  (t, l, c) => `围绕${t}技术栈构建的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}支持库`,
-  (t, l, c) => `探索${t}创新的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}开发脚手架`,
-  (t, l, c) => `适用于${t}需求的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}基础设施`,
-  (t, l, c) => `面向${t}落地的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}实用程序`,
-  (t, l, c) => `赋能${t}生态的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}轻量工具`,
-  (t, l, c) => `助力${t}流程构建的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}开源模块`,
-  (t, l, c) => `加速${t}实施的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}专业工具箱`,
-  (t, l, c) => `面向${t}领域打造的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}基础框架`,
-  (t, l, c) => `针对${t}痛点设计的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}实用方案`,
-  (t, l, c) => `支撑${t}高效运作的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}开源套件`,
-  (t, l, c) => `立足${t}前沿探索的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}工程框架`,
-  (t, l, c) => `优化${t}交付体验的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}开发套件`,
-  (t, l, c) => `面向${t}应用整合的${l ? ' ' + l + ' ' : ''}${c ? c + ' ' : ''}支撑组件`,
+  (t, l, c) => `旨在提升${t}效率、${formatAttrs(l, c, 2)}的实用套件`,
+  (t, l, c) => `服务于${t}工作流、${formatAttrs(l, c, 3)}的效率组件`,
+  (t, l, c) => `提供${t}完整方案、${formatAttrs(l, c, 0)}的工程组件`,
+  (t, l, c) => `加速${t}业务落地、${formatAttrs(l, c, 1)}的开源项目`,
+  (t, l, c) => `精简${t}操作流程、${formatAttrs(l, c, 2)}的辅助工具`,
+  (t, l, c) => `支持${t}快速集成、${formatAttrs(l, c, 3)}的开发脚手架`,
+  (t, l, c) => `拓宽${t}应用边界、${formatAttrs(l, c, 0)}的轻量方案`,
+  (t, l, c) => `促进${t}团队协同、${formatAttrs(l, c, 1)}的实用程序`,
+  (t, l, c) => `规范${t}工程实施、${formatAttrs(l, c, 2)}的基础架构`,
+  (t, l, c) => `整合${t}底层能力、${formatAttrs(l, c, 3)}的模块化套件`,
+  (t, l, c) => `驱动${t}系统运行、${formatAttrs(l, c, 0)}的专业工具箱`,
+  (t, l, c) => `满足${t}多样需求、${formatAttrs(l, c, 1)}的开源组件`,
+  (t, l, c) => `贯通${t}全链路流程、${formatAttrs(l, c, 2)}的实践方案`,
+  (t, l, c) => `保障${t}稳定执行、${formatAttrs(l, c, 3)}的现代组件`,
+  (t, l, c) => `强化${t}工程底座、${formatAttrs(l, c, 0)}的工具库`,
+  (t, l, c) => `应对${t}复杂架构、${formatAttrs(l, c, 1)}的集成套件`,
 ];
 
 function buildDefaultOneSentence(project, descZh, usedSentences = new Set(), config = null, regex = null) {
   const baseType = cleanTypeName(project);
   const lang = String(project?.language || '').trim();
   const commLevel = project?.analysis?.community?.level || project?.community || '';
-  let comm = '';
-  if (commLevel === '极高') comm = '高关注度';
-  else if (commLevel === '高') comm = '高热度';
-  else if (commLevel === '中') comm = '成长型';
-  else if (commLevel === '低') comm = '新兴';
 
   for (let i = 0; i < ONE_SENTENCE_TEMPLATES.length; i++) {
     const fn = ONE_SENTENCE_TEMPLATES[i];
-    const candidate = fn(baseType, lang, comm).replace(/\s+/g, ' ').trim();
+    const candidate = fn(baseType, lang, commLevel).replace(/\s+/g, ' ').trim();
     if (candidate.length > 40) continue;
     if (/\d/.test(candidate)) continue;
     if (candidate === descZh) continue;
@@ -175,7 +196,7 @@ function buildDefaultOneSentence(project, descZh, usedSentences = new Set(), con
     if (regex && regex.test(stripMetricNames(candidate, config))) continue;
     return candidate;
   }
-  return `面向${baseType}领域的开源实用工具`;
+  return `服务于${baseType}工作流的开源套件`;
 }
 
 // 槽位 JSON 允许扁平点号键，也允许嵌套对象；统一摊平成 slotId -> 文本。

@@ -570,7 +570,7 @@ function isPrevYesterday(date, prevDate) {
   return diffDays === 1;
 }
 
-const YESTERDAY_LABEL_RE = /(?:较昨日|昨日|昨\s)/;
+const YESTERDAY_LABEL_RE = /(?:较昨日|昨日|昨天|昨[\s\u00a0])/;
 
 function checkPeriodLabels(json, ctx, doc, findings) {
   const date = json?.date || ctx?.period || ctx?.brief?.date;
@@ -583,13 +583,32 @@ function checkPeriodLabels(json, ctx, doc, findings) {
       findings.push(makeFinding('R5', doc, {
         field: path,
         quote: text,
-        message: `前序快照（${prevDate}）非昨日，文案或标签不得写「较昨日/昨日/昨 」（须用「上期」）`,
+        message: `前序快照（${prevDate}）非昨日，文案或标签不得写「较昨日/昨日/昨天/昨 」（须用「上期」）`,
       }));
     }
   };
 
   for (const field of textFields(json)) {
     checkItem(field.path, field.text);
+  }
+
+  // 区块标题与目录文字
+  checkItem('cmpTitle', json.cmpTitle);
+  checkItem('cmpNav', json.cmpNav);
+  checkItem('cmpNavText', json.cmpNavText);
+  checkItem('cmpNavLabel', json.cmpNavLabel);
+
+  if (json.nav && typeof json.nav === 'object') {
+    checkItem('nav.cmp', json.nav.cmp);
+    checkItem('nav.cmpTitle', json.nav.cmpTitle);
+    checkItem('nav.cmpText', json.nav.cmpText);
+    checkItem('nav.cmpNav', json.nav.cmpNav);
+  }
+
+  if (json.toc && typeof json.toc === 'object') {
+    checkItem('toc.cmp', json.toc.cmp);
+    checkItem('toc.cmpTitle', json.toc.cmpTitle);
+    checkItem('toc.cmpText', json.toc.cmpText);
   }
 
   if (Array.isArray(json.metrics)) {
@@ -602,6 +621,9 @@ function checkPeriodLabels(json, ctx, doc, findings) {
   checkItem('sparkNote', json.sparkNote);
 
   if (json.cmp) {
+    checkItem('cmp.title', json.cmp.title);
+    checkItem('cmp.navText', json.cmp.navText);
+    checkItem('cmp.navLabel', json.cmp.navLabel);
     checkItem('cmp.prevDateLabel', json.cmp.prevDateLabel);
     checkItem('cmp.caption', json.cmp.caption);
     if (Array.isArray(json.cmp.rows)) {

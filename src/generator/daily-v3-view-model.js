@@ -462,7 +462,9 @@ function buildCmp({
   currentNewFace,
   priorEntries,
   baselineSnapshots = [],
+  isYesterday = true,
 }) {
+  const cmpTitle = isYesterday ? '和昨天比' : '和上期比';
   const prevSnapshot = previousBrief ? snapshotOf(previousBrief) : null;
   const monthSnapshot = monthEntry ? snapshotOf(monthEntry.brief) : null;
   const avgOf = key => (priorSnapshots.length >= 2
@@ -604,6 +606,9 @@ function buildCmp({
   });
 
   return {
+    title: cmpTitle,
+    navLabel: cmpTitle,
+    navText: cmpTitle,
     prevDateLabel: prevDateLabel === '—' ? '无基准' : `${prevDateLabel}（本期之前最近一份快照）`,
     prevDateShort: prevDateLabel,
     lastMonthDateShort: monthDateLabel,
@@ -915,7 +920,9 @@ function buildViewModel(data) {
     currentNewFace: churn.newFace,
     priorEntries,
     baselineSnapshots,
+    isYesterday,
   });
+  const cmpTitle = isYesterday ? '和昨天比' : '和上期比';
 
   const projectInsights = new Map();
   for (const item of insights.project_insights || []) {
@@ -1032,12 +1039,26 @@ function buildViewModel(data) {
     title: `日报 ${date} · GitHub AI Trending 洞察`,
     date,
     dateShort: dateShort(date),
+    cmpTitle,
+    cmpNav: cmpTitle,
+    cmpNavText: cmpTitle,
+    cmpNavLabel: cmpTitle,
     nav: {
       home: '../index.html',
       daily: '#',
       weekly: '../weekly/',
       monthly: '../monthly/',
       wiki: '../wiki/',
+      cmp: cmpTitle,
+      cmpTitle,
+      cmpText: cmpTitle,
+      cmpNav: cmpTitle,
+    },
+    toc: {
+      cmp: cmpTitle,
+      cmpTitle,
+      cmpText: cmpTitle,
+      cmpNav: cmpTitle,
     },
     week: { label: weekLabel, href: '../weekly/' },
     scrapedAtLocal,
