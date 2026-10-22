@@ -300,6 +300,20 @@ function evaluateDeletedLog(caseItem, root, result) {
   return { ok: true };
 }
 
+function isDailyR5OrR9Insights(filePath) {
+  if (!filePath || !filePath.endsWith('.json')) return false;
+  try {
+    const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    return Boolean(
+      content && typeof content === 'object' && !Array.isArray(content) &&
+      (content.version === 'r5' || content.version === 'r9' ||
+       (content.slots && typeof content.slots === 'object' && !Array.isArray(content.slots)))
+    );
+  } catch (e) {
+    return false;
+  }
+}
+
 function evaluateCase(caseItem, options = {}) {
   const root = path.resolve(options.casesRoot || '/home/box/shared/report-redesign');
   const filePath = path.resolve(root, caseItem.file);
@@ -309,7 +323,7 @@ function evaluateCase(caseItem, options = {}) {
 
   let brief = options.brief;
   let viewModel = options.viewModel;
-  if (!brief && !viewModel && filePath) {
+  if (brief === undefined && viewModel === undefined && filePath && isDailyR5OrR9Insights(filePath)) {
     const fixtureDir = path.dirname(filePath);
     if (fs.existsSync(fixtureDir)) {
       const files = fs.readdirSync(fixtureDir);
@@ -356,16 +370,17 @@ function evaluateCase(caseItem, options = {}) {
     const dataDir = caseItem.data_dir
       ? path.resolve(root, caseItem.data_dir)
       : options.dataDir;
-    result = checkDocument({
+    const checkOptions = {
       filePath,
       dataDir,
       renderMap: readCaseJson(caseItem.render_map, root),
       facts: readCaseJson(caseItem.facts, root),
       r3: caseItem.r3,
-      brief,
-      viewModel,
-      prevDate: caseItem.prevDate,
-    });
+    };
+    if (brief !== undefined) checkOptions.brief = brief;
+    if (viewModel !== undefined) checkOptions.viewModel = viewModel;
+    if (caseItem.prevDate !== undefined) checkOptions.prevDate = caseItem.prevDate;
+    result = checkDocument(checkOptions);
   } catch (error) {
     return { case: caseItem, ok: false, error: error.message, matched: [], findings: [] };
   }

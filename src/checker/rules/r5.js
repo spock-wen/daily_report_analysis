@@ -575,6 +575,105 @@ function buildKnownSourceNumberSet(ctx, json) {
     }
   }
 
+  // 1. brief 中的数值（stats、各项目 todayStars/stars/forks）
+  const brief = ctx?.brief;
+  if (brief && typeof brief === 'object') {
+    if (brief.stats && typeof brief.stats === 'object') {
+      for (const v of Object.values(brief.stats)) {
+        if (v !== undefined && v !== null) {
+          addCanonicalKeys(set, v);
+          for (const num of extractNumbers(maskDateTimes(String(v)))) {
+            addCanonicalKeys(set, num);
+          }
+        }
+      }
+    }
+    const projects = brief.projects || brief.trending_repos;
+    if (Array.isArray(projects)) {
+      for (const p of projects) {
+        if (!p || typeof p !== 'object') continue;
+        for (const k of ['todayStars', 'stars', 'forks']) {
+          if (p[k] !== undefined && p[k] !== null) {
+            addCanonicalKeys(set, p[k]);
+            for (const num of extractNumbers(maskDateTimes(String(p[k])))) {
+              addCanonicalKeys(set, num);
+            }
+          }
+        }
+      }
+    }
+    if (brief.streakDays && typeof brief.streakDays === 'object') {
+      for (const v of Object.values(brief.streakDays)) {
+        if (v !== undefined && v !== null) {
+          addCanonicalKeys(set, v);
+        }
+      }
+    }
+  }
+
+  // 2. （hero/指标卡等由 VM 从 brief 生成的字段）
+  if (ctx?.viewModel) {
+    const vmHero = ctx.viewModel.hero;
+    if (vmHero && typeof vmHero === 'object') {
+      for (const v of Object.values(vmHero)) {
+        if (v !== undefined && v !== null) {
+          addCanonicalKeys(set, v);
+          for (const num of extractNumbers(maskDateTimes(String(v)))) {
+            addCanonicalKeys(set, num);
+          }
+        }
+      }
+    }
+    const vmMetrics = ctx.viewModel.metrics;
+    if (Array.isArray(vmMetrics)) {
+      for (const m of vmMetrics) {
+        if (m?.value !== undefined && m?.value !== null) {
+          addCanonicalKeys(set, m.value);
+          for (const num of extractNumbers(maskDateTimes(String(m.value)))) {
+            addCanonicalKeys(set, num);
+          }
+        }
+        if (m?.dYText !== undefined && m?.dYText !== null) {
+          addCanonicalKeys(set, m.dYText);
+          for (const num of extractNumbers(maskDateTimes(String(m.dYText)))) {
+            addCanonicalKeys(set, num);
+          }
+        }
+      }
+    }
+  }
+
+  // 3. 若该夹具没有 brief：按“程序生成的数有来源即放行”处理
+  // hero.lead 中由 VM 模板从 brief 生成的数值（如：acme/alpha 以 1800 星居首）
+  const heroLead = pick(json, ctx, 'hero.lead') ?? pick(json, ctx, 'hero')?.lead;
+  if (typeof heroLead === 'string') {
+    const m = heroLead.match(/(?:以\s*)?([0-9,]+)\s*星居首/);
+    if (m) {
+      addCanonicalKeys(set, m[1]);
+      for (const num of extractNumbers(m[1])) {
+        addCanonicalKeys(set, num);
+      }
+    }
+  }
+  // 指标卡（metrics）中的数值（如 avgStars "103k"）
+  const metrics = pick(json, ctx, 'metrics');
+  if (Array.isArray(metrics)) {
+    for (const m of metrics) {
+      if (m?.value !== undefined && m?.value !== null) {
+        addCanonicalKeys(set, m.value);
+        for (const num of extractNumbers(maskDateTimes(String(m.value)))) {
+          addCanonicalKeys(set, num);
+        }
+      }
+      if (m?.dYText !== undefined && m?.dYText !== null) {
+        addCanonicalKeys(set, m.dYText);
+        for (const num of extractNumbers(maskDateTimes(String(m.dYText)))) {
+          addCanonicalKeys(set, num);
+        }
+      }
+    }
+  }
+
   return set;
 }
 

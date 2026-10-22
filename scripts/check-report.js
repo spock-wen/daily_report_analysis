@@ -134,60 +134,7 @@ function runCases(args) {
         results.push({ ok: false, case: { id: '(parse error)' }, error: error.message });
         continue;
       }
-      let caseBrief = null;
-      let caseViewModel = null;
-      if (item.file) {
-        const itemPath = path.resolve(casesRoot, item.file);
-        const fixtureDir = path.dirname(itemPath);
-        if (fs.existsSync(fixtureDir)) {
-          const files = fs.readdirSync(fixtureDir);
-          const briefFileName = files.find(f => /^data-\d{4}-\d{2}-\d{2}\.json$/.test(f));
-          if (briefFileName) {
-            try {
-              const briefPath = path.join(fixtureDir, briefFileName);
-              caseBrief = JSON.parse(fs.readFileSync(briefPath, 'utf8'));
-              let insights = null;
-              if (fs.existsSync(itemPath)) {
-                insights = JSON.parse(fs.readFileSync(itemPath, 'utf8'));
-              }
-              let facts = null;
-              if (item.facts) {
-                const factsPath = path.resolve(casesRoot, item.facts);
-                if (fs.existsSync(factsPath)) {
-                  facts = JSON.parse(fs.readFileSync(factsPath, 'utf8'));
-                }
-              }
-              const { buildViewModel } = require('../src/generator/daily-v3-view-model');
-              const date = caseBrief.date || (briefFileName.match(/\d{4}-\d{2}-\d{2}/) || [])[0];
-              const projects = caseBrief.projects || caseBrief.trending_repos || [];
-              const stats = caseBrief.stats || {};
-              const reportData = {
-                ...caseBrief,
-                date,
-                projects,
-                trending_repos: projects,
-                stats,
-                aiInsights: insights,
-                brief: {
-                  ...caseBrief,
-                  trending_repos: projects,
-                  stats,
-                  generated_at: caseBrief.generatedAt,
-                },
-                facts,
-                dailyDiff: caseBrief.dailyDiff,
-                streakDays: caseBrief.streakDays,
-                caption: caseBrief.caption,
-                isSample: true,
-              };
-              caseViewModel = buildViewModel(reportData);
-            } catch (err) {
-              // Ignore or log error
-            }
-          }
-        }
-      }
-      const evaluation = evaluateCase(item, { casesRoot, dataDir, brief: caseBrief, viewModel: caseViewModel });
+      const evaluation = evaluateCase(item, { casesRoot, dataDir });
       results.push(evaluation);
       const status = evaluation.ok ? 'PASS' : 'FAIL';
       const expectation = item.expect;
