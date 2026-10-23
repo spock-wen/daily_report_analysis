@@ -49,7 +49,58 @@ const ENTITY_MAP = {
 function decodeEntities(text) {
   return String(text)
     .replace(/&(amp|lt|gt|quot|#39|nbsp);/g, m => ENTITY_MAP[m] || m)
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
     .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)));
+}
+
+/**
+ * 与 generator formatCount 对齐的展示压缩（k/M），供 B7 页头 *Stars 类字段
+ * 把「298k」与 raw 297628 判为等价，避免展示四舍五入假 FAIL。
+ */
+function formatCountLike(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return null;
+  const abs = Math.abs(n);
+  if (abs >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+  if (abs >= 1000) return `${(n / 1000).toFixed(abs >= 10000 ? 0 : 1)}k`;
+  return String(Math.round(n));
+}
+
+/**
+ * 页头展示值 ≡ metrics 原始值：字面全等，或 *Stars 类 k/万/M 展示与 raw 按 formatCountLike 等价。
+ * 真错数（如 214 vs 208、7 vs 6）不走此路径或无法对齐则仍判不等。
+ */
+function displayNumberEquals(actual, expected) {
+  const a = normalize(actual).toLowerCase();
+  const e = normalize(String(expected === undefined || expected === null ? '' : expected)).toLowerCase();
+  if (a === e) return true;
+  if (a.replace(/,/g, '') === e.replace(/,/g, '')) return true;
+  const expNum = Number(String(expected).replace(/,/g, ''));
+  if (!Number.isFinite(expNum)) return false;
+  const formatted = formatCountLike(expNum);
+  if (formatted == null) return false;
+  if (a === normalize(formatted).toLowerCase()) return true;
+  // 亦接受「29.8万」等与 formatCountLike 不同写法：解析后与 raw 在半刻度内
+  const parsed = parseCompactDisplay(actual);
+  if (!parsed) return false;
+  return Math.abs(parsed.value - expNum) <= parsed.halfStep + 1e-9;
+}
+
+function parseCompactDisplay(value) {
+  const source = String(value || '').replace(/,/g, '').trim();
+  const match = /^([+-]?[0-9]+(?:\.[0-9]+)?)\s*(亿|万|千|[kKmMwW])?$/.exec(source);
+  if (!match) return null;
+  const number = Number(match[1]);
+  if (!Number.isFinite(number)) return null;
+  const unit = match[2] || '';
+  let mult = 1;
+  if (unit === '亿') mult = 1e8;
+  else if (unit === '万' || unit === 'w' || unit === 'W') mult = 1e4;
+  else if (unit === '千' || unit === 'k' || unit === 'K') mult = 1e3;
+  else if (unit === 'M' || unit === 'm') mult = 1e6;
+  const decimals = (match[1].split('.')[1] || '').length;
+  const halfStep = unit ? (mult / (2 * (10 ** decimals))) : 0.5;
+  return { value: number * mult, unit, halfStep };
 }
 
 /**
@@ -602,6 +653,9 @@ module.exports = {
   stripHtml,
   stripHtmlWithLineMap,
   decodeEntities,
+  formatCountLike,
+  displayNumberEquals,
+  parseCompactDisplay,
   splitSentences,
   splitClauses,
   splitSentenceUnits,

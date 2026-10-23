@@ -1,6 +1,6 @@
 'use strict';
 
-const { stripHtml, normalize } = require('../text');
+const { stripHtml, normalize, displayNumberEquals } = require('../text');
 const HEADER_FIELDS = require('../header-fields');
 const { makeFinding } = require('./util');
 
@@ -141,7 +141,11 @@ function checkHtml(ctx, doc) {
     if (expectedValue === null || expectedValue === undefined) continue;
 
     if (field.kind === 'text') {
-      if (normalize(card.value).toLowerCase() !== normalize(String(expectedValue)).toLowerCase()) {
+      const isStarDisplay = /Stars$/i.test(field.key);
+      const equal = isStarDisplay
+        ? displayNumberEquals(card.value, expectedValue)
+        : normalize(card.value).toLowerCase() === normalize(String(expectedValue)).toLowerCase();
+      if (!equal) {
         findings.push(makeFinding('B7', doc, {
           field: `header.${field.key}`,
           line: card.line,
