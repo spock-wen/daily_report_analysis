@@ -20,6 +20,12 @@ const {
   oneLiner,
   detailed,
 } = require('./wmh-v3-shared');
+const {
+  renderDailyLineSvg,
+  dailyLineFootnote,
+  renderWeekBarsSvg,
+  weekBarsFootnote,
+} = require('./wmh-svg-charts');
 
 const TEMPLATE_PATH = nodePath.join(TEMPLATE_DIR, 'monthly.mustache');
 
@@ -189,16 +195,21 @@ function buildViewModel(data) {
     href: `../weekly/github-weekly-${w.week}.html`,
   }));
 
-  // 四周走势：按周主题对应周 brief 的 todayStars 合计
-  const weekStarSeries = weekBars.map(w => {
+  // 四周新增柱：按周主题对应周 brief 的 todayStars 合计
+  const weekStarBars = weekBars.map(w => {
     const brief = history.readWeeklyBrief(w.week);
-    return sumToday(brief?.projects);
+    return { week: w.week, stars: sumToday(brief?.projects) };
   });
-  const maxWeekStars = Math.max(1, ...weekStarSeries);
-  const trendBars = weekStarSeries.map((v, i) => ({
-    week: weekBars[i]?.week || `W${i + 1}`,
-    height: `${Math.max(8, Math.round((v / maxWeekStars) * 100))}%`,
+  const weekBarsSvg = renderWeekBarsSvg(weekStarBars);
+  const weekBarsNote = weekBarsFootnote(weekStarBars);
+
+  // 日度新增折线：月内每日 todayStars 合计
+  const dailySeries = history.getMonthDailyEntries(month).map(entry => ({
+    date: entry.date,
+    stars: sumToday(entry.brief?.projects),
   }));
+  const dailyLineSvg = renderDailyLineSvg(dailySeries, { month });
+  const dailyLineNote = dailyLineFootnote(dailySeries);
 
   const topRows = top.map((item, idx) => {
     const p = item.project || {};
@@ -303,13 +314,15 @@ function buildViewModel(data) {
     domainRows,
     insights,
     weekBars,
-    trendBars,
-    trendLabels: trendBars.map(b => b.week),
+    dailyLineSvg,
+    dailyLineNote,
+    weekBarsSvg,
+    weekBarsNote,
     kpiRows,
     fullNote: `全量 Top ${top.length} 已列于上表。Wiki 仅文字入口，无域墙。`,
     wikiHref: '../wiki-index.html',
     caption: metrics.caption || monthlyMetrics.MONTHLY_CAPTION,
-    footer: `报告站 · 月报 ${month} · r11b 飞书 IA · 砍黑马/预测/Wiki域墙 · 热区 a::after≥44`,
+    footer: `报告站 · 月报 ${month} · r11c 趋势图 · 砍黑马/预测/Wiki域墙 · 静态 SVG · 热区 a::after≥44`,
   };
 }
 

@@ -9,6 +9,7 @@
 #   ③ 六组 case 逐个加载，daily 夹具能经 case-vm.buildCaseViewModel 构造 VM
 #   ④ 依次跑 scripts/check-report.js --cases 六组用例，记录每组 exit，任一非 0 则整体 exit 1
 #   ⑤ qa/cases_r11b 周月首页结构门（同类点各一 pass/fail）
+#   ⑥ qa/cases_r11c 趋势图结构门（同类点各一 pass/fail）
 #
 # 用法：
 #   bash qa/run_all.sh
@@ -187,6 +188,14 @@ node qa/cases_r11b/run_r11b.js || R11B_CODE=$?
 GROUP_LINES+=("GROUP cases_r11b exit=${R11B_CODE}")
 if [ "$R11B_CODE" -ne 0 ]; then
   UNKNOWN_FAILS+=("cases_r11b:exit=${R11B_CODE}")
+fi
+
+echo "== ⑥ R11C 趋势图结构门 =="
+R11C_CODE=0
+node qa/cases_r11c/run_r11c.js || R11C_CODE=$?
+GROUP_LINES+=("GROUP cases_r11c exit=${R11C_CODE}")
+if [ "$R11C_CODE" -ne 0 ]; then
+  UNKNOWN_FAILS+=("cases_r11c:exit=${R11C_CODE}")
 fi
 
 if [ "${#UNKNOWN_FAILS[@]}" -ne 0 ]; then
