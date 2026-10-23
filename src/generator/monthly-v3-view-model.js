@@ -233,7 +233,7 @@ function buildViewModel(data) {
     home: '../index.html',
     daily: latestReportHref('daily', { prefix: '../', fallbackId: `${month}-01` }),
     weekly: latestReportHref('weekly', { prefix: '../', fallbackId: weeklyFallback }),
-    monthly: `github-monthly-${month}.html`,
+    monthly: latestReportHref('monthly', { prefix: '../', fallbackId: month }),
   };
 
   const kpiRows = [

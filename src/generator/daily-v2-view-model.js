@@ -5,7 +5,7 @@ const nodePath = require('path');
 const mustache = require('mustache');
 const history = require('../metrics/history');
 const paths = require('../utils/path');
-const { latestReportHref, wikiIndexHref } = require('./report-nav');
+const { latestReportHref, wikiIndexHref, buildNav } = require('./report-nav');
 
 const TEMPLATE_DIR = nodePath.join(__dirname, '..', '..', 'templates', 'daily-v2');
 const TEMPLATE_PATH = nodePath.join(TEMPLATE_DIR, 'daily.mustache');
@@ -565,13 +565,14 @@ function buildViewModel(data) {
     isFail: data.isFail === true,
     date,
     dateShort: dateShort(date),
-    nav: {
+    brandHome: '../index.html',
+    wikiHref: wikiIndexHref('../'),
+    nav: buildNav('daily', {
       home: '../index.html',
-      daily: '#',
+      daily: latestReportHref('daily', { prefix: '../', fallbackId: date }),
       weekly: latestReportHref('weekly', { prefix: '../', fallbackId: weekLabel }),
       monthly: latestReportHref('monthly', { prefix: '../', fallbackId: String(date || '').slice(0, 7) }),
-      wiki: wikiIndexHref('../'),
-    },
+    }),
     week: {
       label: weekLabel,
       href: weekLabel ? `../weekly/github-weekly-${weekLabel}.html` : latestReportHref('weekly', { prefix: '../' }),

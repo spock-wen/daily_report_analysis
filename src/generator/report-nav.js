@@ -82,6 +82,25 @@ function homePeriodKind(kind, periodId, now = new Date()) {
   return '';
 }
 
+
+/**
+ * 四页主导航同一数据源：首页·日报·周报·月报（无 Wiki）。
+ * @param {'home'|'daily'|'weekly'|'monthly'} active
+ * @param {{ home: string, daily: string, weekly: string, monthly: string }} paths
+ */
+function buildNav(active, paths) {
+  const items = [
+    { key: 'home', label: '首页', href: paths.home },
+    { key: 'daily', label: '日报', href: paths.daily },
+    { key: 'weekly', label: '周报', href: paths.weekly },
+    { key: 'monthly', label: '月报', href: paths.monthly },
+  ];
+  return items.map(item => ({
+    ...item,
+    cur: item.key === active,
+  }));
+}
+
 module.exports = {
   listHtml,
   latestFile,
@@ -89,4 +108,5 @@ module.exports = {
   wikiIndexHref,
   todaySingapore,
   homePeriodKind,
+  buildNav,
 };

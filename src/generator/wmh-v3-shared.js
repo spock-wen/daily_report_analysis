@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const nodePath = require('path');
+const { buildNav } = require('./report-nav');
 
 const TEMPLATE_DIR = nodePath.join(__dirname, '..', '..', 'templates', 'wmh-v3');
 const CSS_PATH = nodePath.join(TEMPLATE_DIR, 'site.css');
@@ -84,19 +85,6 @@ function trackOf(project) {
 function trackLabelOfType(type) {
   const raw = String(type || 'other').toLowerCase();
   return TRACK_MAP[raw] || TRACK_MAP.other;
-}
-
-function buildNav(active, paths) {
-  const items = [
-    { key: 'home', label: '首页', href: paths.home },
-    { key: 'daily', label: '日报', href: paths.daily },
-    { key: 'weekly', label: '周报', href: paths.weekly },
-    { key: 'monthly', label: '月报', href: paths.monthly },
-  ];
-  return items.map(item => ({
-    ...item,
-    cur: item.key === active,
-  }));
 }
 
 function oneLiner(theme) {
