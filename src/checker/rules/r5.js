@@ -184,30 +184,7 @@ function textOf(value) {
 }
 
 function checkFieldMapBlocks(json, ctx, doc, findings) {
-  const trends = Array.isArray(json.trends) ? json.trends : [];
-  if (trends.length < 3) {
-    findings.push(makeFinding('R5', doc, {
-      field: 'trends',
-      quote: '',
-      message: `核心趋势为空或不足 3 条（FIELD_MAP 要求 3–5 条），当前 ${trends.length} 条`,
-    }));
-  }
-  if (trends.length > 5) {
-    findings.push(makeFinding('R5', doc, {
-      field: 'trends',
-      quote: '',
-      message: `核心趋势超过 5 条（FIELD_MAP 要求 3–5 条），当前 ${trends.length} 条`,
-    }));
-  }
-  for (const [index, item] of trends.entries()) {
-    if (!textOf(item)) {
-      findings.push(makeFinding('R5', doc, {
-        field: `trends[${index}].text`,
-        quote: '',
-        message: '核心趋势条目为空（FIELD_MAP 核心趋势必填）',
-      }));
-    }
-  }
+  // r11：页面已删 #trends/#rank-churn，不再要求 trends / churnNewText / churnDropText 必填。
 
   const analysis = textOf(json.analysis);
   if (!analysis) {
@@ -243,21 +220,6 @@ function checkFieldMapBlocks(json, ctx, doc, findings) {
         message: '建议条目为空（FIELD_MAP 建议必填）',
       }));
     }
-  }
-
-  if (!textOf(json.churnNewText)) {
-    findings.push(makeFinding('R5', doc, {
-      field: 'churnNewText',
-      quote: '',
-      message: '新上榜解释为空（FIELD_MAP 上榜句必填）',
-    }));
-  }
-  if (!textOf(json.churnDropText)) {
-    findings.push(makeFinding('R5', doc, {
-      field: 'churnDropText',
-      quote: '',
-      message: '掉榜解释为空（FIELD_MAP 掉榜句必填）',
-    }));
   }
 
   const projects = Array.isArray(json.projects) ? json.projects : [];
@@ -364,26 +326,8 @@ function hasPrevPeriodFacts(ctx) {
 }
 
 function checkTrendNumbers(json, ctx, doc, findings) {
-  const trends = Array.isArray(json.trends) ? json.trends : [];
-  for (const [index, item] of trends.entries()) {
-    const text = textOf(item);
-    if (!text) continue;
-    if (TREND_COMPARISON_RE.test(text)) {
-      if (text.includes('上期无数据') && hasPrevPeriodFacts(ctx)) {
-        findings.push(makeFinding('R5', doc, {
-          field: `trends[${index}].text`,
-          quote: text,
-          message: '有上期数据却写上期无数据',
-        }));
-      }
-      continue;
-    }
-    findings.push(makeFinding('R5', doc, {
-      field: `trends[${index}].text`,
-      quote: text,
-      message: '核心趋势条目缺少「较昨日/较上一有数据日/较 7 日均/较近 N 日均」比较表达及其数字',
-    }));
-  }
+  // r11：#trends 已删，不再核查核心趋势比较句。
+  return;
 }
 
 function checkCardRepoName(json, doc, findings) {
@@ -1346,18 +1290,7 @@ function checkPeriodLabels(json, ctx, doc, findings) {
     checkItem(field.path, field.text);
   }
 
-  // 区块标题与目录文字
-  checkItem('cmpTitle', pick(json, ctx, 'cmpTitle'));
-
-  const nav = pick(json, ctx, 'nav');
-  if (nav && typeof nav === 'object') {
-    checkItem('nav.cmp', nav.cmp);
-  }
-
-  const toc = pick(json, ctx, 'toc');
-  if (toc && typeof toc === 'object') {
-    checkItem('toc.cmp', toc.cmp);
-  }
+  // r11：#cmp 已删，不再核 cmpTitle / nav.cmp / toc.cmp / cmp.* 指代。
 
   const metrics = pick(json, ctx, 'metrics');
   if (Array.isArray(metrics)) {
@@ -1369,50 +1302,7 @@ function checkPeriodLabels(json, ctx, doc, findings) {
   }
   checkItem('sparkNote', pick(json, ctx, 'sparkNote'));
 
-  const cmp = pick(json, ctx, 'cmp');
-  if (cmp) {
-    checkItem('cmp.title', cmp.title);
-    checkItem('cmp.navText', cmp.navText);
-    checkItem('cmp.navLabel', cmp.navLabel);
-    checkItem('cmp.prevDateLabel', cmp.prevDateLabel);
-    checkItem('cmp.caption', cmp.caption);
-    if (Array.isArray(cmp.rows)) {
-      for (const [rIndex, row] of cmp.rows.entries()) {
-        checkItem(`cmp.rows[${rIndex}].label`, row.label);
-        if (Array.isArray(row.refs)) {
-          for (const [cIndex, ref] of row.refs.entries()) {
-            checkItem(`cmp.rows[${rIndex}].refs[${cIndex}].lab`, ref.lab);
-          }
-        }
-      }
-    }
-  }
-
-  const langRows = pick(json, ctx, 'langRows');
-  if (Array.isArray(langRows)) {
-    for (const [index, row] of langRows.entries()) {
-      checkItem(`langRows[${index}].label`, row.label);
-    }
-  }
-  const typeRows = pick(json, ctx, 'typeRows');
-  if (Array.isArray(typeRows)) {
-    for (const [index, row] of typeRows.entries()) {
-      checkItem(`typeRows[${index}].label`, row.label);
-    }
-  }
-  checkItem('langNote', pick(json, ctx, 'langNote'));
-
-  const slope = pick(json, ctx, 'slope');
-  if (slope) {
-    checkItem('slope.colPrev', slope.colPrev);
-  }
-  const rankRows = pick(json, ctx, 'rankRows');
-  if (Array.isArray(rankRows)) {
-    for (const [index, row] of rankRows.entries()) {
-      checkItem(`rankRows[${index}].prev`, row.prev);
-    }
-  }
-  checkItem('rankNote', pick(json, ctx, 'rankNote'));
+  // r11：跳过 cmp.* / rankNote 时间指代（区块已删）
 }
 
 function findMatchingCmpRow(rows, metricLabel) {
@@ -1509,6 +1399,8 @@ function toCmpNumber(value) {
 
 // 对比表行数值 vs 事实表：行标签映射到 facts.role（现值取 now，上期值取 refs[0].value）。
 function checkCmpFacts(json, ctx, doc, findings) {
+  // r11：#cmp 参照表已删，不再核查对比表 vs facts。
+  return;
   const cmp = pick(json, ctx, 'cmp');
   const rows = Array.isArray(cmp?.rows) ? cmp.rows : [];
   if (!rows.length) return;
