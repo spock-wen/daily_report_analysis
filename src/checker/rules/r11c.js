@@ -2,6 +2,7 @@
 
 /**
  * r11c：周/月趋势图结构门（三块静态 SVG）。
+ * 月报另守：四周主题非空且四柱合计为 0 → FAIL。
  * 同类点各需 pass/fail；Checker 0 不算过。
  */
 
@@ -56,10 +57,41 @@ function checkBlocks(doc, required, forbidden, prefix) {
   return findings;
 }
 
+function hasNonEmptyWeekThemes(raw) {
+  // 四周主题条：weekbar 内至少一条周报链且周次后有非空主题文案
+  const block = /class="weekbar"[^>]*>([\s\S]*?)<\/div>/.exec(raw);
+  if (!block) return false;
+  return /<b>\d{4}-W\d{2}<\/b>\S/.test(block[1]) || /github-weekly-\d{4}-W\d{2}\.html[^>]*>[^<]*\S/.test(block[1]);
+}
+
+function weekBarsTotalZero(raw) {
+  // 脚注四柱皆 0，或合计约 0（有数时为 102.3k 等）
+  if (/W\d+\s+0\s*·\s*W\d+\s+0\s*·\s*W\d+\s+0\s*·\s*W\d+\s+0/.test(raw)) return true;
+  if (/合计约\s*0(?:\.0)?k?(?:[。.]|<|\s|$)/.test(raw)) return true;
+  return false;
+}
+
+function checkMonthlyWeekBarsValues(doc) {
+  const raw = doc.raw || '';
+  if (!hasNonEmptyWeekThemes(raw)) return [];
+  if (!weekBarsTotalZero(raw)) return [];
+  return [makeFinding('R11C', doc, {
+    field: 'monthly.weekBars.zeroWithThemes',
+    line: null,
+    quote: 'weekBars=0',
+    message: 'r11c：四周主题非空但四柱合计为 0（疑未拷 weekly brief）',
+  })];
+}
+
 function check(ctx, doc) {
   if (doc.role !== 'html' || doc.kind !== 'html') return [];
   if (ctx.level === 'weekly') return checkBlocks(doc, WEEKLY_REQUIRED, WEEKLY_FORBIDDEN, 'weekly');
-  if (ctx.level === 'monthly') return checkBlocks(doc, MONTHLY_REQUIRED, MONTHLY_FORBIDDEN, 'monthly');
+  if (ctx.level === 'monthly') {
+    return [
+      ...checkBlocks(doc, MONTHLY_REQUIRED, MONTHLY_FORBIDDEN, 'monthly'),
+      ...checkMonthlyWeekBarsValues(doc),
+    ];
+  }
   return [];
 }
 

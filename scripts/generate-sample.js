@@ -207,6 +207,7 @@ function copySupportingData(sourceDataDir, outDataDir, level, period) {
   copyDailyBriefs(briefDates);
 
   for (const week of history.getWeeksInMonth(period)) {
+    copy(path.join('briefs', 'weekly', `data-weekly-${week}.json`));
     copy(path.join('insights', 'weekly', `insights-${week}.json`));
   }
 
