@@ -2,6 +2,7 @@ const { writeHtml } = require('../utils/fs');
 const { getMonthlyReportPath } = require('../utils/path');
 const logger = require('../utils/logger');
 const ChartRenderer = require('./chart-renderer');
+const { renderMonthlyV3 } = require('./monthly-v3-view-model');
 
 /**
  * 月度报告 HTML 生成器
@@ -41,36 +42,7 @@ class MonthlyGenerator {
    * 渲染月度报告 HTML
    */
   renderMonthlyHTML(data) {
-    const { month, aggregation, aiInsights } = data;
-
-    return `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GitHub AI 月度趋势报告 - ${month}</title>
-  <link rel="stylesheet" href="../../public/css/style.css">
-  <link rel="stylesheet" href="../../public/css/monthly.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-</head>
-<body>
-  <div class="container monthly-report">
-    ${this.renderHeader(month)}
-    ${this.renderOverview(data.stats, data.caption)}
-    ${this.renderMonthlyMetricsSection(data)}
-    ${this.renderTheme(aiInsights?.monthlyTheme)}
-    ${this.renderTrendEvolution(aiInsights?.trendEvolution)}
-    ${this.renderCharts(aggregation)}
-    ${this.renderWikiTracking(aggregation, this.buildDaysOnListMap(data))}
-    ${this.renderMonthTop(data.monthTop)}
-    ${this.renderLongTermValue(aiInsights?.longTermValue, data.monthTop)}
-    ${this.renderEmergingFields(aiInsights?.emergingFields)}
-    ${this.renderDarkHorse(aiInsights?.darkHorse)}
-    ${this.renderNextMonthForecast(aiInsights?.nextMonthForecast)}
-    ${this.renderFullProjectList(aggregation)}
-  </div>
-</body>
-</html>`;
+    return renderMonthlyV3(data);
   }
 
   /**

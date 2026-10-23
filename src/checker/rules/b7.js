@@ -13,8 +13,8 @@ function parseNumber(value) {
 }
 
 function parseCards(doc) {
-  const re = /<div class="stat-value">([\s\S]*?)<\/div>\s*<div class="stat-label">([^<]+)<\/div>/g;
   const cards = [];
+  const re = /<div class="stat-value">([\s\S]*?)<\/div>\s*<div class="stat-label">([^<]+)<\/div>/g;
   let match;
   while ((match = re.exec(doc.raw)) !== null) {
     cards.push({
@@ -22,6 +22,14 @@ function parseCards(doc) {
       label: match[2].trim(),
       line: doc.lineAtOffset(match.index),
     });
+  }
+  // r11b：ml/mv 顺序（label 在前）且可与 stat-* 并存
+  const re2 = /<div class="ml[^"]*stat-label[^"]*">([^<]+)<\/div>\s*<div class="mv[^"]*stat-value[^"]*">([\s\S]*?)<\/div>/g;
+  while ((match = re2.exec(doc.raw)) !== null) {
+    const label = match[1].trim();
+    const value = stripHtml(match[2]).replace(/\s+/g, ' ').trim();
+    if (cards.some(c => c.label === label && c.value === value)) continue;
+    cards.push({ value, label, line: doc.lineAtOffset(match.index) });
   }
   return cards;
 }
@@ -43,11 +51,16 @@ function expectedHeaderValues(ctx) {
     const total = projects.length;
     const ai = projects.filter(project => project.isAI).length;
     const maxTodayStars = projects.reduce((max, project) => Math.max(max, project.todayStars), 0);
+    const metrics = ctx.metrics || {};
     return {
       totalProjects: total,
+      totalProjectsLegacy: total,
       avgStars: briefStats.avgStars || briefStats.avg_stars || null,
       aiPercent: total > 0 ? Math.round((ai / total) * 100) : null,
       darkHorse: maxTodayStars,
+      weekNewStars: metrics.weekNewStars ?? null,
+      churnRate: metrics.churnRate != null ? `${metrics.churnRate}%` : null,
+      exHeadRate: null,
     };
   }
 

@@ -8,6 +8,7 @@
 #   ② src/**/*.js 全部能 require（加载期不炸）
 #   ③ 六组 case 逐个加载，daily 夹具能经 case-vm.buildCaseViewModel 构造 VM
 #   ④ 依次跑 scripts/check-report.js --cases 六组用例，记录每组 exit，任一非 0 则整体 exit 1
+#   ⑤ qa/cases_r11b 周月首页结构门（同类点各一 pass/fail）
 #
 # 用法：
 #   bash qa/run_all.sh
@@ -179,6 +180,14 @@ for line in "${GROUP_LINES[@]}"; do
   echo "$line"
 done
 echo "已知失败（qa/known_fail.txt）命中 ${#KNOWN_HIT[@]} 条：${KNOWN_HIT[*]:-无}"
+
+echo "== ⑤ R11B 周月首页结构门 =="
+R11B_CODE=0
+node qa/cases_r11b/run_r11b.js || R11B_CODE=$?
+GROUP_LINES+=("GROUP cases_r11b exit=${R11B_CODE}")
+if [ "$R11B_CODE" -ne 0 ]; then
+  UNKNOWN_FAILS+=("cases_r11b:exit=${R11B_CODE}")
+fi
 
 if [ "${#UNKNOWN_FAILS[@]}" -ne 0 ]; then
   echo "名单外失败 ${#UNKNOWN_FAILS[@]} 条：${UNKNOWN_FAILS[*]}" >&2
