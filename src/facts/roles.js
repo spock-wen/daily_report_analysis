@@ -78,16 +78,21 @@ const SLOT_RULES = [
   { pattern: /新上榜|新面孔(?!率)/g, roles: ['new'] },
   { pattern: /回归/g, roles: ['returned'] },
   { pattern: /连续(?:在榜|\s*\d+\s*[天日])/g, roles: ['streak', 'kept'] },
-  { pattern: /今日新增|当日新增|单日新增|当天新增/g, roles: ['today_stars', 'total_today'] },
-  { pattern: /本周新增/g, roles: ['week_stars', 'total_week'] },
+  // max_today：今日/单日峰值与「今日新增」同槽（FINDINGS W42）
+  { pattern: /今日新增|当日新增|单日新增|当天新增|今日峰值|单日峰值|最大单[日项]/g, roles: ['today_stars', 'total_today', 'max_today'] },
+  // week_stars 同义：周榜合计新增 / 本周合计新增（FINDINGS W42）
+  { pattern: /周榜合计新增|本周合计新增|本周新增/g, roles: ['week_stars', 'total_week'] },
   { pattern: /本月新增/g, roles: ['month_stars', 'total_month'] },
+  // days_on_list：上榜 N 天 / 天上榜 / 上榜周期（FINDINGS 月09）
+  { pattern: /天上榜|天的上榜|上榜天数|上榜周期/g, roles: ['days_on_list'] },
   { pattern: /累计/g, roles: ['stars'] },
   { pattern: /Forks|Fork|fork|分支/g, roles: ['forks'] },
   { pattern: /个在榜项目/g, roles: COUNT_ROLES },
   { pattern: /个项目|项目数/g, roles: COUNT_ROLES },
   { pattern: /星门槛/g, roles: ['threshold'] },
   { pattern: /百分点/g, roles: ['category_shift', 'language_shift'] },
-  { pattern: /合计/g, roles: ['total_today', 'total_week', 'total_month', 'prev_total_today', 'avg7_total_today', 'mom_total_today', 'prev_week_total', 'prev_month_total'] },
+  // 合计槽同时容纳 per-project week_stars/month_stars（「周榜合计新增」只命中「合计」时）
+  { pattern: /合计/g, roles: ['total_today', 'total_week', 'total_month', 'week_stars', 'month_stars', 'prev_total_today', 'avg7_total_today', 'mom_total_today', 'prev_week_total', 'prev_month_total'] },
   // B16：参照数、份额变化、提速、换血率的语义槽。
   { pattern: /上期|昨日|前一有数据日|上一有数据日/g, roles: PREV_SLOT_ROLES },
   { pattern: /7\s*日均值|七日均值|前\s*7\s*个有数据日/g, roles: REFERENCE_AVG7_ROLES },
