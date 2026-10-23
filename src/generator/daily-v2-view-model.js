@@ -5,6 +5,7 @@ const nodePath = require('path');
 const mustache = require('mustache');
 const history = require('../metrics/history');
 const paths = require('../utils/path');
+const { latestReportHref, wikiIndexHref } = require('./report-nav');
 
 const TEMPLATE_DIR = nodePath.join(__dirname, '..', '..', 'templates', 'daily-v2');
 const TEMPLATE_PATH = nodePath.join(TEMPLATE_DIR, 'daily.mustache');
@@ -259,9 +260,12 @@ function buildArchive({ date, weekLabel }) {
   const dailyFiles = listReportFiles(nodePath.join(paths.REPORTS_DIR, 'daily'));
   const weeklyFiles = listReportFiles(nodePath.join(paths.REPORTS_DIR, 'weekly'));
   const monthlyFiles = listReportFiles(nodePath.join(paths.REPORTS_DIR, 'monthly'));
+  const weekHref = weekLabel
+    ? `../weekly/github-weekly-${weekLabel}.html`
+    : latestReportHref('weekly', { prefix: '../' });
   const items = [
     { cls: '', href: '../index.html', label: '首页 · 总览' },
-    { cls: '', href: '../weekly/', label: weekLabel },
+    { cls: '', href: weekHref, label: weekLabel || '周报' },
   ];
   const currentFile = `github-ai-trending-${date}.html`;
   const recent = dailyFiles.length ? dailyFiles : [currentFile];
@@ -280,11 +284,11 @@ function buildArchive({ date, weekLabel }) {
   }
   if (weeklyFiles.length) {
     const match = /^github-weekly-(\d{4}-W\d{2})\.html$/.exec(weeklyFiles[0]);
-    if (match) items.push({ cls: '', href: weeklyFiles[0], label: `${match[1]} 周报` });
+    if (match) items.push({ cls: '', href: `../weekly/${weeklyFiles[0]}`, label: `${match[1]} 周报` });
   }
   if (monthlyFiles.length) {
     const match = /^github-monthly-(\d{4}-\d{2})\.html$/.exec(monthlyFiles[0]);
-    if (match) items.push({ cls: '', href: monthlyFiles[0], label: `${match[1]} 月报` });
+    if (match) items.push({ cls: '', href: `../monthly/${monthlyFiles[0]}`, label: `${match[1]} 月报` });
   }
   return items;
 }
@@ -541,11 +545,17 @@ function buildViewModel(data) {
         sub: `${formatCount(prevSnapshot?.totalProjects)} 个项目`,
       }
     : null;
+  const prevWeekLabel = weekLabel ? history.shiftISOWeek(weekLabel, -1) : null;
+  const prevMonthLabel = history.getPrevMonth(String(date || '').slice(0, 7));
   const related = [
     relatedPrev,
-    { href: '../weekly/', title: `${weekLabel || '上周'} 周报`, sub: '上周' },
-    { href: '../monthly/', title: `${String(date || '').slice(0, 7)} 月报`, sub: '上月' },
-    { href: '../wiki/', title: 'Wiki 领域索引', sub: '项目与领域历史' },
+    prevWeekLabel
+      ? { href: `../weekly/github-weekly-${prevWeekLabel}.html`, title: `${prevWeekLabel} 周报`, sub: '上周' }
+      : null,
+    prevMonthLabel
+      ? { href: `../monthly/github-monthly-${prevMonthLabel}.html`, title: `${prevMonthLabel} 月报`, sub: '上月' }
+      : null,
+    { href: wikiIndexHref('../'), title: 'Wiki 领域索引', sub: '项目与领域历史' },
   ].filter(Boolean);
 
   const scrapedAtLocal = formatLocal(scrapedAt);
@@ -558,11 +568,14 @@ function buildViewModel(data) {
     nav: {
       home: '../index.html',
       daily: '#',
-      weekly: '../weekly/',
-      monthly: '../monthly/',
-      wiki: '../wiki/',
+      weekly: latestReportHref('weekly', { prefix: '../', fallbackId: weekLabel }),
+      monthly: latestReportHref('monthly', { prefix: '../', fallbackId: String(date || '').slice(0, 7) }),
+      wiki: wikiIndexHref('../'),
     },
-    week: { label: weekLabel, href: '../weekly/' },
+    week: {
+      label: weekLabel,
+      href: weekLabel ? `../weekly/github-weekly-${weekLabel}.html` : latestReportHref('weekly', { prefix: '../' }),
+    },
     scrapedAtLocal,
     generatedAtLocal: formatLocal(generatedAt),
     archive: buildArchive({ date, weekLabel }),

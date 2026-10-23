@@ -9,6 +9,7 @@ const cases = [
   { id: 'R11C-W-F01', level: 'weekly', file: 'weekly_fail.html', expect: 'FAIL' },
   { id: 'R11C-M-P01', level: 'monthly', file: 'monthly_pass.html', expect: 'PASS' },
   { id: 'R11C-M-F01', level: 'monthly', file: 'monthly_fail.html', expect: 'FAIL' },
+  { id: 'R11C-M-F02', level: 'monthly', file: 'monthly_zerobars_fail.html', expect: 'FAIL' },
 ];
 
 let failed = 0;

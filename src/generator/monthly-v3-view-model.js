@@ -26,6 +26,7 @@ const {
   renderWeekBarsSvg,
   weekBarsFootnote,
 } = require('./wmh-svg-charts');
+const { latestReportHref } = require('./report-nav');
 
 const TEMPLATE_PATH = nodePath.join(TEMPLATE_DIR, 'monthly.mustache');
 
@@ -226,10 +227,12 @@ function buildViewModel(data) {
     };
   });
 
+  const monthWeeks = history.getWeeksInMonth(month) || [];
+  const weeklyFallback = monthWeeks.length ? monthWeeks[monthWeeks.length - 1] : null;
   const paths = {
     home: '../index.html',
-    daily: '../daily/',
-    weekly: '../weekly/',
+    daily: latestReportHref('daily', { prefix: '../', fallbackId: `${month}-01` }),
+    weekly: latestReportHref('weekly', { prefix: '../', fallbackId: weeklyFallback }),
     monthly: `github-monthly-${month}.html`,
   };
 

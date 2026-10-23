@@ -10,6 +10,7 @@
 #   ④ 依次跑 scripts/check-report.js --cases 六组用例，记录每组 exit，任一非 0 则整体 exit 1
 #   ⑤ qa/cases_r11b 周月首页结构门（同类点各一 pass/fail）
 #   ⑥ qa/cases_r11c 趋势图结构门（同类点各一 pass/fail）
+#   ⑦ qa/cases_home_kind 首页 kind 相对日历（pass/fail）
 #
 # 用法：
 #   bash qa/run_all.sh
@@ -196,6 +197,14 @@ node qa/cases_r11c/run_r11c.js || R11C_CODE=$?
 GROUP_LINES+=("GROUP cases_r11c exit=${R11C_CODE}")
 if [ "$R11C_CODE" -ne 0 ]; then
   UNKNOWN_FAILS+=("cases_r11c:exit=${R11C_CODE}")
+fi
+
+echo "== ⑦ 首页 kind 相对日历 =="
+HOME_KIND_CODE=0
+node qa/cases_home_kind/run_home_kind.js || HOME_KIND_CODE=$?
+GROUP_LINES+=("GROUP cases_home_kind exit=${HOME_KIND_CODE}")
+if [ "$HOME_KIND_CODE" -ne 0 ]; then
+  UNKNOWN_FAILS+=("cases_home_kind:exit=${HOME_KIND_CODE}")
 fi
 
 if [ "${#UNKNOWN_FAILS[@]}" -ne 0 ]; then

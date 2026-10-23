@@ -12,6 +12,7 @@ const {
   buildNav,
   oneLiner,
 } = require('./wmh-v3-shared');
+const { homePeriodKind } = require('./report-nav');
 
 const TEMPLATE_PATH = nodePath.join(TEMPLATE_DIR, 'home.mustache');
 
@@ -61,7 +62,7 @@ function buildViewModel(reportsData) {
   if (latestWeekly) {
     const theme = oneLiner(latestWeekly.theme) || latestWeekly.week;
     entries.push({
-      kind: '本周 · 周报',
+      kind: homePeriodKind('weekly', latestWeekly.week),
       title: theme, // 完整标题，不截断（P2 债顺带）
       sum: `${latestWeekly.week} · 上榜 ${latestWeekly.projectCount} · 周星 ${formatCount(weeklyStars)}`,
       nums: [
@@ -75,7 +76,7 @@ function buildViewModel(reportsData) {
   if (latestMonthly) {
     const theme = oneLiner(latestMonthly.theme) || latestMonthly.month;
     entries.push({
-      kind: '本月 · 月报',
+      kind: homePeriodKind('monthly', latestMonthly.month),
       title: theme,
       sum: `${latestMonthly.month} · 收录 ${latestMonthly.projectCount}`,
       nums: [

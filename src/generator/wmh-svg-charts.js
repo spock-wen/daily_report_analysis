@@ -204,7 +204,10 @@ function weekBarsFootnote(bars) {
   if (!items.length) return '脚注：四周新增暂无数据。';
   const parts = items.map(b => `${shortWeek(b.week)} ${formatChartCount(b.stars)}`);
   const total = items.reduce((s, b) => s + (Number(b.stars) || 0), 0);
-  return `脚注：${parts.join(' · ')} · 合计约 ${formatChartCount(total)}。升级 r11b 四周走势空壳；柱端数值可见。`;
+  if (total <= 0) {
+    return `脚注：${parts.join(' · ')} · 合计约 ${formatChartCount(total)}。四周 brief 缺失或柱值为 0。`;
+  }
+  return `脚注：${parts.join(' · ')} · 合计约 ${formatChartCount(total)}。柱端数值可见。`;
 }
 
 /**
