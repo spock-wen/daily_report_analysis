@@ -46,6 +46,7 @@ const RULES = [
   require('./rules/r4-binding'),
   require('./rules/r5'),
   require('./rules/r11b'),
+  require('./rules/r11c'),
 ];
 
 const R5_DISABLED_RULES = new Set([

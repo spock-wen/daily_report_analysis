@@ -19,6 +19,10 @@ const {
   detailed,
   takeTextList,
 } = require('./wmh-v3-shared');
+const {
+  renderWeekTopSvg,
+  weekTopFootnote,
+} = require('./wmh-svg-charts');
 
 const TEMPLATE_PATH = nodePath.join(TEMPLATE_DIR, 'weekly.mustache');
 
@@ -245,6 +249,23 @@ function buildViewModel(data) {
     monthly: '../monthly/',
   };
 
+  const topRows = sorted.slice(0, 10).map(p => ({
+    fullName: projectKey(p),
+    stars: Number(p.todayStars) || 0,
+  }));
+  const topChartSvg = renderWeekTopSvg(topRows, {
+    total: weekNewStars,
+    top1Share,
+    restTotal: Math.max(0, weekNewStars - top1Stars),
+    exHeadRate,
+  });
+  const topChartNote = weekTopFootnote(topRows, {
+    total: weekNewStars,
+    top1Share,
+    restTotal: Math.max(0, weekNewStars - top1Stars),
+    exHeadRate,
+  });
+
   return {
     css: readCss(),
     title: `周报 ${week} · GitHub AI Trending 洞察`,
@@ -283,6 +304,9 @@ function buildViewModel(data) {
     caption: metrics.caption || weeklyMetrics.WEEKLY_CAPTION,
     highlights,
     overviewText: overviewParts.join(''),
+    topChartSvg,
+    topChartNote,
+    hasTopChart: topRows.length > 0,
     hasTrackOverview: tracks.length > 0,
     trackOverviewRows: tracks,
     narratives,
@@ -329,7 +353,7 @@ function buildViewModel(data) {
         deltaCls: top1Share != null && prevNewStars > 0 && top1Share > Math.round((prevTop1 / prevNewStars) * 100) ? 'dn' : 'up',
       },
     ],
-    footer: `报告站 · 周报 ${week} · r11b 飞书 IA · 无 AI 四栏 / 黑马 / 出局 · 热区 a::after≥44`,
+    footer: `报告站 · 周报 ${week} · r11c 趋势图 · 无 AI 四栏 / 黑马 / 出局 · 静态 SVG · 热区 a::after≥44`,
   };
 }
 
