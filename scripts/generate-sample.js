@@ -797,7 +797,7 @@ async function main() {
   };
 
   const renderFeedback = errors => errors.map(error => ({
-    rule_id: 'B3',
+    rule_id: 'PH1',
     field: error.path,
     quote: error.quote || error.placeholder,
     message: error.message,
@@ -839,7 +839,7 @@ async function main() {
       file: outInsightsPath,
       field: error.path,
       line: null,
-      rule_id: 'B3',
+      rule_id: 'PH1',
       quote: error.quote || error.placeholder,
       message: error.message,
     }));
@@ -847,7 +847,8 @@ async function main() {
     // 占位未解析处原样保留（rendered.insights 中仍是占位文本），不删句。
     persistRendered(rendered);
 
-    // B3：占位校验失败不提前退出，继续运行后续全部内容核查规则；
+    // PH1：占位校验失败不提前退出，继续运行后续全部内容核查规则；
+    // （独立 id，禁止再冒充真 B3「日榜常客 fullName」）
     // 占位 FAIL 与规则 FAIL 合并成一份清单，AI 调用次数保持不变（≤2）。
     const gate = await runContentGate({
       level,
@@ -929,7 +930,7 @@ async function main() {
         file: outInsightsPath,
         field: error.path,
         line: null,
-        rule_id: 'B3',
+        rule_id: 'PH1',
         quote: error.quote || error.placeholder,
         message: error.message,
       })),
