@@ -1120,24 +1120,8 @@ function buildViewModel(data) {
   });
   const langNote = buildLangNote({ distribution: language, previousProjects, isYesterday });
 
-  const rank = buildSlope(projects, previousProjects, isYesterday, returnedNames);
-  const rankRows = rank?.rankRows || projects.slice(0, 10).map((project, index) => {
-    const isReturned = project.tag === '回归' || returnedNames.has(projectKey(project)) || returnedNames.has(project?.fullName);
-    return {
-      r: index + 1,
-      name: projectShortName(project),
-      prev: `${isYesterday ? '昨' : '上期'} —`,
-      cls: isReturned ? 'ret' : 'new',
-      text: isReturned ? '回归' : '新上榜',
-    };
-  });
-
+  // r11 瘦身：页面不再渲染 #cmp/#trends/#rank-churn；仍算 churn 供榜单「新/回归」标签与深度分析程序句。
   const currentUrlOf = new Map(projects.map(project => [projectKey(project), project.url]));
-  const prevTypeNameOf = new Map();
-  for (const project of previousBrief?.projects || []) {
-    const key = projectKey(project);
-    if (key) prevTypeNameOf.set(key, project.analysis?.typeName || null);
-  }
   const churn = buildChurn({
     todayProjects: projects,
     previousBrief,
@@ -1145,52 +1129,11 @@ function buildViewModel(data) {
     returnedNames,
   });
 
-  // 掉榜句：按类目分组、顿号连接、「属于」引出类目，全部由 brief 与上一份快照算出。
-  const churnDropText = buildChurnDropText({
-    dropped: churn.dropped,
-    typeNameOf: prevTypeNameOf,
-    previousDate: priorEntries[0]?.date || null,
-  });
-
-  const top10 = projects.slice(0, 10);
-  // 回归判定唯一口径：上期在榜（rankNote/上期快照）且上期未进过前十名。
+  // 回归判定唯一口径：曾在近 30 日榜且上期未进过前十名。
   const isReturnedProject = (nameOrProject) => {
     const key = typeof nameOrProject === 'string' ? nameOrProject : projectKey(nameOrProject);
     return Boolean(key) && returnedNames.has(key) && !previousRankNames.has(key);
   };
-  const notInPrevTop10 = top10.filter(p => !previousRankNames.has(projectKey(p))).length;
-  const returnedInTop10 = top10.filter(p => isReturnedProject(p)).length;
-  const newInTop10 = notInPrevTop10 - returnedInTop10;
-  let rankSubText = '';
-  if (notInPrevTop10 > 0) {
-    if (returnedInTop10 > 0 && newInTop10 > 0) {
-      rankSubText = `前 10 中 ${notInPrevTop10} 个上期不在榜（${returnedInTop10} 个回归、${newInTop10} 个新上榜）；`;
-    } else if (returnedInTop10 > 0) {
-      rankSubText = `前 10 中 ${notInPrevTop10} 个为回归项目；`;
-    } else {
-      rankSubText = `前 10 中 ${notInPrevTop10} 个为新上榜；`;
-    }
-  }
-  const rankNote = `${rankSubText}本期换入 ${churn.newCount} 个、换出 ${churn.droppedCount} 个。`;
-
-  const monthEntry = sameDayLastMonth(date, scrapedAt);
-  const cmp = buildCmp({
-    currentSnapshot,
-    priorSnapshots,
-    previousBrief,
-    previousDate: priorEntries[0]?.date || null,
-    date,
-    monthEntry,
-    topCategory: topShare(projects, project => project.analysis?.type),
-    topLanguage: topShare(projects, project => project.language),
-    currentRetention: churn.retention,
-    currentNewFace: churn.newFace,
-    priorEntries,
-    baselineSnapshots,
-    isYesterday,
-    facts,
-  });
-  const cmpTitle = cmp.title;
 
   const projectInsights = new Map();
   for (const item of insights.project_insights || []) {
@@ -1301,29 +1244,7 @@ function buildViewModel(data) {
     ? '回放生成'
     : null;
 
-  const trends = (Array.isArray(insights.trends) ? insights.trends : []).map(item => ({
-    text: typeof item === 'string' ? item : String(item?.text || ''),
-  }));
-  // trends[0]（构成/份额）是程序句：AI 不得自带数字，一律由 brief 与上一份快照算出。
-  const compositionTrend = buildCompositionTrend({
-    projects,
-    previousProjects,
-    aiProjects: currentSnapshot.aiProjects,
-    totalProjects: currentSnapshot.totalProjects,
-    // 无往期快照时退回事实表 prev_ai_projects（与检查器 hasPrevPeriodFacts 同一来源）。
-    prevAiProjects: priorSnapshots[0]
-      ? (toNumber(priorSnapshots[0].aiProjects) ?? 0)
-      : (Number.isFinite(factValue(facts, 'prev_ai_projects')) ? factValue(facts, 'prev_ai_projects') : null),
-    hasPrev: Boolean(priorSnapshots[0]),
-    prevTotalProjects: priorSnapshots[0]
-      ? toNumber(priorSnapshots[0].totalProjects)
-      : (Number.isFinite(factValue(facts, 'prev_total_projects')) ? factValue(facts, 'prev_total_projects') : null),
-    hasPrevFacts: factList(facts).some(fact => fact && typeof fact.role === 'string' && fact.role.startsWith('prev_')),
-  });
-  if (compositionTrend) {
-    if (trends.length) trends[0] = { text: compositionTrend };
-    else trends.push({ text: compositionTrend });
-  }
+  // r11：不再向页面导出 trends（核心趋势整段已删）。
   const analysisText = typeof insights.analysis === 'string'
     ? insights.analysis
     : String(insights.analysis?.text || '');
@@ -1357,9 +1278,6 @@ function buildViewModel(data) {
     totalProjects: currentSnapshot.totalProjects,
     aiProjects: currentSnapshot.aiProjects,
   });
-  const churnNewText = typeof insights.churnNewText === 'string' ? insights.churnNewText : '';
-  const churnDropTextProgram = churnDropText;
-
   const hypeIndex = computeHypeIndex({
     totalProjects: currentSnapshot.totalProjects,
     hotCount: currentSnapshot.hotCount,
@@ -1440,18 +1358,14 @@ function buildViewModel(data) {
     title: `日报 ${date} · GitHub AI Trending 洞察`,
     date,
     dateShort: dateShort(date),
-    cmpTitle,
     nav: {
       home: '../index.html',
       daily: `github-ai-trending-${date}.html`,
       weekly: '../weekly/',
       monthly: '../monthly/',
       wiki: '../wiki/',
-      cmp: cmpTitle,
     },
-    toc: {
-      cmp: cmpTitle,
-    },
+    toc: {},
     week: { label: weekLabel, href: '../weekly/' },
     scrapedAtLocal,
     generatedAtLocal,
@@ -1466,8 +1380,8 @@ function buildViewModel(data) {
     baseLabel,
     metrics,
     sparkNote,
-    cmp,
-    trends,
+    // r11：显式空数组/省略，避免 pageView 回落到 insights.trends / churn 文案。
+    trends: [],
     barsNote,
     bars,
     langNote,
@@ -1477,12 +1391,8 @@ function buildViewModel(data) {
     typeLegend: type.legend,
     streak,
     streakCount: streak.length,
-    rankNote,
-    slope: rank?.slope || null,
-    rankRows,
-    churn,
-    churnNew: churnNewText,
-    churnDrop: churnDropTextProgram,
+    churnNew: '',
+    churnDrop: '',
     analysis: deepText || analysisText,
     advice,
     total: projects.length,
