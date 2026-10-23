@@ -40,6 +40,9 @@ class CompleteWorkflow {
       enableHTML: options.enableHTML !== undefined ? options.enableHTML : true,
       enableIndex: options.enableIndex !== undefined ? options.enableIndex : true,
       enableNotification: options.enableNotification !== undefined ? options.enableNotification : true,
+      contentCheck: options.contentCheck !== undefined ? options.contentCheck : true,
+      rewriteInsights: typeof options.rewriteInsights === 'function' ? options.rewriteInsights : null,
+      getAiCallCount: typeof options.getAiCallCount === 'function' ? options.getAiCallCount : null,
       autoStart: options.autoStart || false
     };
     
@@ -70,7 +73,10 @@ class CompleteWorkflow {
       enableAI: this.options.enableAI,
       enableHTML: this.options.enableHTML,
       enableIndex: this.options.enableIndex,
-      enableNotification: this.options.enableNotification
+      enableNotification: this.options.enableNotification,
+      contentCheck: this.options.contentCheck,
+      rewriteInsights: this.options.rewriteInsights,
+      getAiCallCount: this.options.getAiCallCount
     });
     
     // 注册回调
@@ -295,6 +301,9 @@ class CompleteWorkflow {
       return {
         success: false,
         error: error.message,
+        errorCode: error.code || null,
+        failPaths: error.failPaths || null,
+        findings: error.findings || null,
         type
       };
     }

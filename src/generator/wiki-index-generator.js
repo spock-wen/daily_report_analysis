@@ -7,11 +7,14 @@ const fs = require('fs');
 const path = require('path');
 const WikiManager = require('../wiki/wiki-manager');
 const logger = require('../utils/logger');
+const { getEnvBool } = require('../utils/config');
 
 class WikiIndexGenerator {
   constructor(options = {}) {
     this.wikiManager = new WikiManager(options);
-    this.outputDir = options.outputDir || path.join(process.cwd(), 'reports');
+    this.outputDir = options.outputDir || (process.env.REPORT_OUT_DIR
+      ? path.resolve(process.env.REPORT_OUT_DIR)
+      : path.join(process.cwd(), 'reports'));
   }
 
   /**
@@ -19,6 +22,11 @@ class WikiIndexGenerator {
    * @returns {Promise<string>} 输出文件路径
    */
   async generate() {
+    if (getEnvBool('REPORT_NO_WIKI', false)) {
+      logger.info('[WikiIndexGenerator] REPORT_NO_WIKI=1，跳过 Wiki 索引写入');
+      return null;
+    }
+
     try {
       logger.info('生成 Wiki 索引页...');
 

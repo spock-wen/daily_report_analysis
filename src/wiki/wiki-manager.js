@@ -8,15 +8,20 @@ const path = require('path');
 const { renderTemplate } = require('./wiki-templates');
 const { renderTemplateV2, generateProjectOverview, generateTechStack } = require('./wiki-templates-v2');
 const logger = require('../utils/logger');
+const { getEnvBool } = require('../utils/config');
 
 class WikiManager {
   constructor(options = {}) {
     this.baseDir = options.baseDir || path.join(process.cwd(), 'wiki');
     this.projectsDir = path.join(this.baseDir, 'projects');
     this.domainsDir = path.join(this.baseDir, 'domains');
+    this.disabled = getEnvBool('REPORT_NO_WIKI', false);
 
-    // 确保目录存在
-    this.ensureDirectories();
+    if (this.disabled) {
+      logger.info('[WikiManager] REPORT_NO_WIKI=1，跳过 Wiki 写入');
+    } else {
+      this.ensureDirectories();
+    }
   }
 
   ensureDirectories() {
@@ -69,6 +74,7 @@ class WikiManager {
    * @returns {Promise<string>} Wiki 文件路径
    */
   async createProjectWikiV2(owner, repo, data) {
+    if (this.disabled) return null;
     const { exists, path: wikiPath } = await this.getOrCreateWiki(owner, repo);
     if (exists) {
       logger.warn(`Wiki 已存在：${owner}/${repo}`);
@@ -141,6 +147,7 @@ class WikiManager {
    * @returns {Promise<void>}
    */
   async appendVersion(owner, repo, versionData, useV2 = true) {
+    if (this.disabled) return;
     const wiki = await this.getOrCreateWiki(owner, repo);
     let content = wiki.content || '';
 
@@ -225,6 +232,7 @@ class WikiManager {
    * @returns {Promise<void>}
    */
   async updateBasicInfo(owner, repo, newData) {
+    if (this.disabled) return;
     const wiki = await this.getOrCreateWiki(owner, repo);
     if (!wiki.exists || !wiki.content) return;
 
@@ -381,6 +389,7 @@ class WikiManager {
    * @returns {Promise<void>}
    */
   async updateAnalysisInfo(owner, repo, analysisData) {
+    if (this.disabled) return;
     const wiki = await this.getOrCreateWiki(owner, repo);
     if (!wiki.exists || !wiki.content) return;
 
@@ -419,6 +428,7 @@ class WikiManager {
    * @returns {Promise<void>}
    */
   async appendMonthlySummary(owner, repo, monthlyData) {
+    if (this.disabled) return;
     const wiki = await this.getOrCreateWiki(owner, repo);
     let content = wiki.content || '';
 

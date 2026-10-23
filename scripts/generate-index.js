@@ -25,7 +25,10 @@ async function generateIndex() {
     // 步骤 2: 生成 HTML
     console.log('🎨 步骤 2/3: 生成 HTML...');
     const html = generateIndexHTML(reportsData);
-    const indexPath = path.join(process.cwd(), 'reports', 'index.html');
+    const reportsDir = process.env.REPORT_OUT_DIR
+      ? path.resolve(process.env.REPORT_OUT_DIR)
+      : path.join(process.cwd(), 'reports');
+    const indexPath = path.join(reportsDir, 'index.html');
     fs.writeFileSync(indexPath, html, 'utf-8');
     console.log(`   ✅ HTML 已生成：${indexPath}\n`);
 
@@ -68,7 +71,10 @@ async function generateIndex() {
  * 收集所有报告数据
  */
 function collectReportsData() {
-  const dataDir = path.join(process.cwd(), 'data', 'briefs');
+  const dataRoot = process.env.REPORT_DATA_DIR
+    ? path.resolve(process.env.REPORT_DATA_DIR)
+    : path.join(process.cwd(), 'data');
+  const dataDir = path.join(dataRoot, 'briefs');
   const reportsData = {
     daily: [],
     weekly: [],

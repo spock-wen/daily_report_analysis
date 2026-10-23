@@ -11,6 +11,15 @@ const WELINK_ENABLED = getEnvBool('WELINK_ENABLED', false);
 
 const FEISHU_API_BASE = 'https://open.feishu.cn/open-apis';
 
+function isPushDisabled() {
+  const value = process.env.REPORT_NO_PUSH;
+  return value === '1' || value === 'true';
+}
+
+function skipPush() {
+  console.log('SKIP_PUSH');
+}
+
 // Token 缓存
 let cachedToken = null;
 let tokenExpireTime = 0;
@@ -29,6 +38,11 @@ class PaperNotification {
    * @returns {Promise<Object>} 发送结果
    */
   async sendFeishu(options) {
+    if (isPushDisabled()) {
+      skipPush();
+      return { success: false, platform: 'feishu', skipped: true };
+    }
+
     if (!FEISHU_ENABLED) {
       logger.warn('飞书通知已禁用，跳过发送');
       return { success: false, platform: 'feishu', error: '飞书通知已禁用' };
@@ -130,6 +144,11 @@ class PaperNotification {
    * @returns {Promise<Array>} 发送结果数组
    */
   async sendWeLink(options) {
+    if (isPushDisabled()) {
+      skipPush();
+      return { success: false, platform: 'welink', skipped: true };
+    }
+
     if (!WELINK_ENABLED) {
       logger.warn('WeLink 通知已禁用，跳过发送');
       return { success: false, platform: 'welink', error: 'WeLink 通知已禁用' };
@@ -324,6 +343,14 @@ class PaperNotification {
    * @returns {Promise<Array>} 所有发送结果
    */
   async sendAll(options) {
+    if (isPushDisabled()) {
+      skipPush();
+      return [
+        { success: false, platform: 'feishu', skipped: true },
+        { success: false, platform: 'welink', skipped: true }
+      ];
+    }
+
     const [feishuResult, welinkResults] = await Promise.all([
       this.sendFeishu(options),
       this.sendWeLink(options)

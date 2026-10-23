@@ -1,9 +1,101 @@
+const fs = require('fs');
 const { callLLM } = require('../utils/llm');
 const { writeJson } = require('../utils/fs');
 const { getAIInsightsPath } = require('../utils/path');
 const logger = require('../utils/logger');
 const prompts = require('../../config/prompts.json');
 const WikiManager = require('../wiki/wiki-manager');
+const history = require('../metrics/history');
+const { loadConfig } = require('../checker/config');
+const { computeMonthlyMetrics } = require('../metrics');
+const { buildFacts } = require('../facts/build-facts');
+const { projectNameFromPlaceholder } = require('../render/placeholder-renderer');
+const { translateDescription } = require('./project-analyzer');
+
+const WRITING_RULES = {
+  oneLiner: '前 2 天（日报）/前 2 期（周/月报）oneLiner 已注入，必须换一种说法，不得复用 4 字以上短语。',
+  numbers: '一个分句只写一个项目的数字；每张卡片只写本卡项目的数字，不写其他项目的数字。',
+  cumulative: '累计数必须写「累计」字样（累计 X 星）。',
+  fullName: '仓库名必须逐字复制注入的 fullName 清单，不得手写、缩写或改写大小写。',
+  bannedWords: '禁词表已注入；月报引用 weekThemes 旧周主题时必须改写去禁词。'
+};
+
+function readJsonFile(filePath) {
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+function previousIdentifiers(level, identifier) {
+  const result = [];
+  if (level === 'daily') {
+    let cursor = identifier;
+    for (let i = 0; i < 2; i += 1) {
+      cursor = history.getPreviousDailyDate(cursor);
+      if (!cursor) break;
+      result.push(cursor);
+    }
+    return result;
+  }
+
+  if (level === 'weekly') {
+    let cursor = identifier;
+    for (let i = 0; i < 2; i += 1) {
+      cursor = history.shiftISOWeek(cursor, -1);
+      if (!cursor) break;
+      result.push(cursor);
+    }
+    return result;
+  }
+
+  if (level === 'monthly') {
+    let cursor = identifier;
+    for (let i = 0; i < 2; i += 1) {
+      cursor = history.getPrevMonth(cursor);
+      if (!cursor) break;
+      result.push(cursor);
+    }
+  }
+  return result;
+}
+
+function readInsights(level, identifier) {
+  if (level === 'weekly') return history.readWeeklyInsights(identifier);
+  if (level === 'monthly') return history.readMonthlyInsights(identifier);
+  return readJsonFile(getAIInsightsPath('daily', identifier));
+}
+
+function collectSuggestions(insights) {
+  const lines = [];
+  const push = (value) => {
+    if (typeof value === 'string' && value.trim()) {
+      lines.push(value.trim());
+      return;
+    }
+    if (Array.isArray(value)) {
+      value.forEach(push);
+    }
+  };
+
+  push(insights?.action);
+  push(insights?.recommendations?.developers);
+  push(insights?.recommendations?.enterprises);
+  push(insights?.nextWeekPoints);
+  push(insights?.trends?.shortTerm);
+  return Array.from(new Set(lines));
+}
+
+const SLOT_KEY_RE = /^(?:hero|trend|analysis|advice|churn|project)\./;
+
+function isSlotMap(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const { flattenSlots } = require('../generator/daily-v3-text');
+  const slots = flattenSlots(value);
+  const keys = Object.keys(slots);
+  return keys.length > 0 && keys.every(key => SLOT_KEY_RE.test(key));
+}
 
 const AI_RETRY_CONFIG = {
   maxRetries: 3,
@@ -49,22 +141,55 @@ async function callLLMWithRetry(prompt, options = {}) {
 class InsightAnalyzer {
   constructor(options = {}) {
     this.wikiManager = new WikiManager(options);
+    this.aiCallCount = 0;
   }
 
-  async analyzeDaily(dailyData) {
+  getAiCallCount() {
+    return this.aiCallCount;
+  }
+
+  buildFeedbackPrompt(feedback) {
+    if (!Array.isArray(feedback) || feedback.length === 0) return '';
+    const items = feedback.slice(0, 40).map(item => {
+      const quote = item.quote ? `（原句：${item.quote}）` : '';
+      return `- [${item.rule_id}] ${item.field || ''} ${item.message}${quote}`;
+    });
+    return `\n\n## 上一版输出未通过内容核查，请逐条修正后重新输出完整 JSON（不要解释）\n${items.join('\n')}`;
+  }
+
+  async analyzeDaily(dailyData, options = {}) {
     try {
       logger.info('开始分析日报数据...', { date: dailyData.date });
 
-      const contextData = await this.prepareContextData(dailyData.brief);
+      const facts = dailyData.facts || options.facts
+        || buildFacts({ level: 'daily', period: dailyData.date, brief: dailyData.brief });
+      const contextData = await this.prepareContextData(dailyData.brief, {
+        level: 'daily',
+        identifier: dailyData.date,
+        rawData: dailyData,
+        facts
+      });
       const promptTemplate = prompts.daily.userPrompt;
-      const prompt = this.buildPrompt(promptTemplate, contextData);
+      let prompt = this.buildPrompt(promptTemplate, contextData);
+      prompt += this.buildFeedbackPrompt(options.feedback);
 
+      this.aiCallCount += 1;
       const result = await callLLMWithRetry(prompt, {
         temperature: 0.7,
         max_tokens: 8000
       });
 
-      const insights = this.parseInsights(result, dailyData.brief);
+      const parsed = this.parseInsights(result, dailyData.brief);
+      const { buildDailyV3Text, flattenSlots } = require('../generator/daily-v3-text');
+      const slotMap = flattenSlots(parsed);
+      const slotIds = Object.keys(slotMap).filter(key => SLOT_KEY_RE.test(key));
+      const insights = isSlotMap(parsed) || slotIds.length >= 3
+        ? buildDailyV3Text({
+            brief: dailyData.brief,
+            facts,
+            slots: slotMap,
+          })
+        : parsed;
       await this.saveInsights('daily', dailyData.date, insights);
 
       logger.success('日报 AI 分析完成', {
@@ -80,17 +205,31 @@ class InsightAnalyzer {
     }
   }
 
-  async analyzeWeekly(weeklyData) {
+  async analyzeWeekly(weeklyData, options = {}) {
     try {
       logger.info('开始分析周报数据...', { weekStart: weeklyData.weekStart });
 
-      const contextData = await this.prepareContextData(weeklyData.brief);
+      const facts = weeklyData.facts || options.facts
+        || buildFacts({
+          level: 'weekly',
+          period: weeklyData.weekStart || weeklyData.date,
+          brief: weeklyData.brief,
+          metrics: weeklyData.weekMetrics,
+        });
+      const contextData = await this.prepareContextData(weeklyData.brief, {
+        level: 'weekly',
+        identifier: weeklyData.weekStart || weeklyData.date,
+        rawData: weeklyData,
+        facts
+      });
       const promptTemplate = prompts.weekly.userPrompt;
-      const prompt = this.buildPrompt(promptTemplate, contextData);
+      let prompt = this.buildPrompt(promptTemplate, contextData);
+      prompt += this.buildFeedbackPrompt(options.feedback);
       logger.info('Prompt 构建完成，准备调用 LLM...', { promptLength: prompt.length });
 
       let result;
       try {
+        this.aiCallCount += 1;
         result = await callLLMWithRetry(prompt, {
           temperature: 0.7,
           max_tokens: 8000
@@ -102,6 +241,7 @@ class InsightAnalyzer {
       }
 
       const insights = this.parseInsights(result, weeklyData.brief);
+      this.applyWeeklyFactFallbacks(insights, contextData.metrics, contextData.facts);
       await this.saveInsights('weekly', weeklyData.weekStart, insights);
 
       logger.success('周报 AI 分析完成', {
@@ -116,14 +256,37 @@ class InsightAnalyzer {
     }
   }
 
-  async analyzeMonthly(monthlyData) {
+  async analyzeMonthly(monthlyData, options = {}) {
     try {
       logger.info('开始分析月报数据...', { month: monthlyData.month });
 
-      const contextData = await this.prepareContextData(monthlyData.brief);
+      const month = monthlyData.month || monthlyData.date;
+      let computed = monthlyData.metrics || null;
+      if (!computed && month) {
+        try {
+          computed = computeMonthlyMetrics(month);
+        } catch (error) {
+          logger.warn(`读取月度指标失败：${error.message}`);
+        }
+      }
+      const facts = monthlyData.facts || options.facts
+        || buildFacts({
+          level: 'monthly',
+          period: month,
+          brief: monthlyData.brief || monthlyData,
+          metrics: computed || monthlyData
+        });
+      const contextData = await this.prepareContextData(monthlyData.brief, {
+        level: 'monthly',
+        identifier: monthlyData.month || monthlyData.date,
+        rawData: monthlyData,
+        facts
+      });
       const promptTemplate = prompts.monthly.userPrompt;
-      const prompt = this.buildPrompt(promptTemplate, contextData);
+      let prompt = this.buildPrompt(promptTemplate, contextData);
+      prompt += this.buildFeedbackPrompt(options.feedback);
 
+      this.aiCallCount += 1;
       const result = await callLLMWithRetry(prompt, {
         temperature: 0.7,
         max_tokens: 8000
@@ -183,6 +346,7 @@ class InsightAnalyzer {
 
   getFallbackInsights() {
     return {
+      _fallback: true,
       oneLiner: "AI 分析服务暂时不可用，请查看完整项目列表。",
       hypeIndex: { score: 0, reason: "无法连接 AI 服务" },
       hot: [],
@@ -219,8 +383,9 @@ class InsightAnalyzer {
     };
   }
 
-  async prepareContextData(briefData) {
-    const trendingRepos = briefData.projects || briefData.trending_repos || [];
+  async prepareContextData(briefData, options = {}) {
+    const brief = briefData || {};
+    const trendingRepos = brief.projects || brief.trending_repos || [];
 
     logger.debug('准备上下文数据', {
       trendingReposCount: trendingRepos.length,
@@ -228,6 +393,7 @@ class InsightAnalyzer {
     });
 
     // 并发读取所有项目的 Wiki 历史
+    const hasChinese = text => /[\u4e00-\u9fa5]/.test(String(text || ''));
     const projectsWithHistory = await Promise.all(
       trendingRepos.map(async (repo) => {
         const fullName = repo.fullName || repo.name;
@@ -240,11 +406,25 @@ class InsightAnalyzer {
           logger.warn(`读取 Wiki 历史失败：${fullName} - ${error.message}`);
         }
 
+        const description = repo.description || repo.desc || '';
+        let descZh = repo.descZh || '';
+        if (!hasChinese(descZh)) {
+          const source = descZh || description;
+          if (source) {
+            descZh = await translateDescription(source);
+            if (!hasChinese(descZh)) {
+              logger.warn(`项目描述翻译失败，沿用原文：${fullName}`);
+            }
+          }
+        }
+
         return {
           name: fullName,
           fullName,
-          description: repo.description || repo.desc || '',
+          description,
+          descZh,
           stars: repo.stars || 0,
+          todayStars: Number(repo.todayStars) || 0,
           forks: repo.forks || 0,
           language: repo.language || '',
           topics: repo.topics || [],
@@ -255,12 +435,28 @@ class InsightAnalyzer {
       })
     );
 
-    const stats = briefData.stats || {};
+    const stats = brief.stats || {};
+    const level = options.level || null;
+    const identifier = options.identifier || brief.date || brief.weekStart || brief.month || '';
+    const rawData = options.rawData || brief;
+
+    const facts = options.facts || rawData.facts || null;
+    const metrics = this.buildMetricsFacts(brief, rawData, level, identifier);
+    if (level === 'monthly' && Array.isArray(facts?.projects) && facts.projects.length > 0) {
+      metrics.allRepos = facts.projects;
+    }
 
     const result = {
+      level,
+      identifier,
       projects: projectsWithHistory,
       stats,
-      generatedAt: briefData.generatedAt || briefData.generated_at || new Date().toISOString()
+      facts,
+      metrics,
+      recentOneLiners: this.buildRecentOneLiners(level, identifier),
+      recentSuggestions: this.buildRecentSuggestions(level, identifier),
+      baseline: level === 'daily' ? this.buildBaselineNote(brief) : null,
+      generatedAt: brief.generatedAt || brief.generated_at || new Date().toISOString()
     };
 
     logger.debug('上下文数据准备完成', {
@@ -271,42 +467,292 @@ class InsightAnalyzer {
     return result;
   }
 
+  buildMetricsFacts(brief, rawData, level, identifier) {
+    const source = rawData || {};
+    const pick = (key) => (source[key] !== undefined ? source[key] : brief[key]);
+    const projects = brief.projects || brief.trending_repos || [];
+    const projectFacts = projects.map(project => ({
+      fullName: project.fullName || project.repo || project.name || '',
+      todayStars: Number(project.todayStars) || 0,
+      stars: Number(project.stars) || 0
+    }));
+
+    if (level === 'daily') {
+      return {
+        level,
+        date: identifier,
+        caption: pick('caption'),
+        dailyDiff: pick('dailyDiff'),
+        streakDays: pick('streakDays'),
+        projects: projectFacts,
+        writingRules: WRITING_RULES
+      };
+    }
+
+    if (level === 'weekly') {
+      const metrics = source.weekMetrics || brief.weekMetrics || {};
+      return {
+        level,
+        week: identifier,
+        caption: pick('caption') || metrics.caption,
+        weekNewStars: pick('weekNewStars') !== undefined ? pick('weekNewStars') : metrics.weekNewStars,
+        prevWeekStats: pick('prevWeekStats') || metrics.prevWeekStats,
+        wow: metrics.wow,
+        churnRate: metrics.churnRate,
+        churnCount: metrics.churnCount,
+        dailyCounts: pick('dailyCounts') || metrics.dailyCounts,
+        dailyTop3: metrics.dailyTop3,
+        dailyTop3Stats: metrics.dailyTop3Stats,
+        new: metrics.new,
+        continuing: metrics.continuing,
+        returning: metrics.returning,
+        out: metrics.out,
+        projects: projectFacts,
+        aggregateRule: '汇总数字（如 weekNewStars、周榜新增星总数）写入文案时必须带「合计」字样，例：周榜合计新增 297628 星；不带「合计」会被核查按单项目归属判 FAIL。',
+        writingRules: WRITING_RULES
+      };
+    }
+
+    if (level === 'monthly') {
+      const monthTop = pick('monthTop') || [];
+      const aggregation = source.aggregation || {};
+      const periodProjects = (aggregation.trendEvolution || []).map(period => ({
+        period: period.period,
+        dates: period.dates,
+        projectCount: period.projectCount,
+        topType: period.topType,
+        keyProjects: (period.keyProjects || []).slice(0, 3)
+      }));
+      const topProjectCandidates = monthTop.map(item => ({
+        repo: item.fullName,
+        monthStars: item.monthStars,
+        daysOnList: item.daysOnList,
+        stars: item.lastStars
+      }));
+      const allRepos = [
+        ...new Set([
+          ...monthTop.map(item => item.fullName),
+          ...(aggregation.topGainers?.map(item => item.repo) || []),
+          ...(aggregation.recurringProjects?.map(item => item.repo) || [])
+        ].filter(Boolean))
+      ];
+      const stats = pick('stats') || {};
+      const priorProjects = stats.priorProjects ?? stats.prior_projects;
+      const rookiesCount = pick('rookiesCount')
+        ?? (stats.totalProjects !== undefined && priorProjects !== undefined
+          ? stats.totalProjects - priorProjects
+          : undefined);
+
+      return {
+        level,
+        month: identifier,
+        dailyCount: source.dailyDataList?.length || 0,
+        weeklyCount: source.weeklyDataList?.length || 0,
+        caption: pick('caption'),
+        stats,
+        rookiesCount,
+        priorProjects,
+        prevMonthStats: pick('prevMonthStats'),
+        weekThemes: pick('weekThemes'),
+        monthTop,
+        dropList: pick('dropList'),
+        dropListNote: pick('dropListNote'),
+        top5Share: pick('top5Share'),
+        newStarsTotal: pick('newStarsTotal'),
+        periodProjects,
+        topProjectCandidates,
+        allRepos,
+        projects: projectFacts,
+        aggregateRule: '汇总数字（如 newStarsTotal、本月新增星合计）写入文案时必须带「合计」字样，例：本月合计新增 297628 星；不带「合计」会被核查按单项目归属判 FAIL。',
+        writingRules: WRITING_RULES
+      };
+    }
+
+    return { projects: projectFacts };
+  }
+
+  buildRecentOneLiners(level, identifier) {
+    if (!level || !identifier) return '（无）';
+    const lines = [];
+    for (const previous of previousIdentifiers(level, identifier)) {
+      const insights = readInsights(level, previous);
+      const oneLiner = insights?.oneLiner
+        || insights?.weeklyTheme?.oneLiner
+        || insights?.monthlyTheme?.oneLiner;
+      if (oneLiner) lines.push(`${previous}：${oneLiner}`);
+    }
+    return lines.length > 0 ? lines.join('\n') : '（无）';
+  }
+
+  // J1：基准按抓取日判定；没有更早抓取日快照时明确写「无基准」。
+  buildBaselineNote(brief) {
+    const baseline = history.getBaselineSnapshot(brief?.scrapedAt || brief?.generatedAt);
+    if (!baseline) {
+      return '无基准（没有早于本期抓取日的快照，不得写昨日/7 日均值/上月同期对比）';
+    }
+    return `基准快照 ${baseline.date}（抓取日 ${baseline.snapshotDate}）`;
+  }
+
+  buildRecentSuggestions(level, identifier) {
+    if (!level || !identifier) return '（无）';
+
+    // C5：日报按「期次 + 建议文本 + 建议对象」注入近 2 期 action，供模型判断是否连续第 3 次推荐同一对象。
+    if (level === 'daily') {
+      const blocks = [];
+      for (const previous of previousIdentifiers(level, identifier)) {
+        const insights = readInsights(level, previous);
+        const actions = Array.isArray(insights?.action)
+          ? insights.action.filter(item => typeof item === 'string' && item.trim())
+          : [];
+        if (actions.length === 0) continue;
+        const names = history.getProjectNames(history.readDailyBrief(previous));
+        blocks.push({
+          period: previous,
+          actions: actions.map(text => ({
+            text,
+            objects: names.filter(name => text.includes(name) || text.includes(name.split('/')[1] || '')),
+          })),
+        });
+      }
+      return blocks.length > 0 ? JSON.stringify(blocks, null, 2) : '（无）';
+    }
+
+    const suggestions = [];
+    for (const previous of previousIdentifiers(level, identifier)) {
+      const insights = readInsights(level, previous);
+      for (const item of collectSuggestions(insights)) {
+        suggestions.push(`${previous}：${item}`);
+      }
+    }
+    const unique = Array.from(new Set(suggestions));
+    return unique.length > 0 ? unique.slice(0, 12).join('\n') : '（无）';
+  }
+
+  applyWeeklyFactFallbacks(insights, metrics, facts) {
+    if (!insights || !metrics) return;
+
+    const currentWeekly = new Set([
+      ...(metrics.new || []),
+      ...(metrics.continuing || []),
+      ...(metrics.returning || [])
+    ]);
+    const existingText = JSON.stringify(insights);
+    const notes = Array.isArray(insights.dailyTop3Notes) ? insights.dailyTop3Notes.slice() : [];
+    const factByLabel = new Map();
+    for (const fact of facts?.facts || []) {
+      if (fact.label) factByLabel.set(fact.label, fact);
+    }
+    const factPlaceholder = fact => (fact.role ? `{{${fact.id}:${fact.role}}}` : `{{${fact.id}}}`);
+
+    for (const item of metrics.dailyTop3Stats || []) {
+      if (existingText.includes(item.fullName)) continue;
+      const daysFact = factByLabel.get(`${item.fullName} 本周日报上榜天数`);
+      const starsFact = factByLabel.get(`${item.fullName} 本周日报新增星`);
+      if (!daysFact || !starsFact) continue;
+      const inWeekly = currentWeekly.has(item.fullName);
+      notes.push({
+        repo: `{{p:${item.fullName}}}`,
+        note: inWeekly
+          ? `本周日报上榜 ${factPlaceholder(daysFact)} 天，期内新增 ${factPlaceholder(starsFact)} 星，同时进入周榜。`
+          : `本周日报上榜 ${factPlaceholder(daysFact)} 天，期内新增 ${factPlaceholder(starsFact)} 星，但未进入周榜，原因未知。`
+      });
+    }
+
+    if (notes.length > 0) {
+      insights.dailyTop3Notes = notes;
+    }
+  }
+
   buildPrompt(template, contextData) {
     let prompt = template;
 
-    prompt = prompt.replace('{date}', contextData.generatedAt || new Date().toISOString());
+    prompt = prompt.replace('{date}', contextData.identifier || contextData.generatedAt || new Date().toISOString());
+    prompt = prompt.replace('{baseline}', contextData.baseline || '（无）');
     prompt = prompt.replace('{projectCount}', contextData.projects.length);
 
-    const projectsForPrompt = contextData.projects.map(p => ({
-      name: p.name,
-      fullName: p.fullName || p.name,
-      description: p.description || '',
-      stars: p.stars || 0,
-      language: p.language || '',
-      url: p.url || '',
-      isAI: p.isAI || false
+    const factList = Array.isArray(contextData.facts?.facts) ? contextData.facts.facts : [];
+    const factsForPrompt = factList.map(item => ({
+      id: item.id,
+      role: item.role,
+      label: item.label,
+      value: item.value,
+      project: item.project ?? null,
+      kind: item.kind
     }));
+    prompt = prompt.replace('{facts}', () => JSON.stringify(factsForPrompt, null, 2));
 
-    prompt = prompt.replace('{projects}', JSON.stringify(projectsForPrompt, null, 2));
+    const projectByName = new Map(contextData.projects.map(p => [p.fullName || p.name, p]));
+    const candidateByName = new Map(
+      (contextData.metrics?.topProjectCandidates || []).map(item => [item.repo, item])
+    );
+    const factProjectNames = Array.isArray(contextData.facts?.projects) ? contextData.facts.projects : [];
+    const projectsForPrompt = (factProjectNames.length > 0 ? factProjectNames : contextData.projects.map(p => p.fullName || p.name))
+      .filter(Boolean)
+      .map(name => {
+        const project = projectByName.get(name) || {};
+        const candidate = candidateByName.get(name) || {};
+        return {
+          fullName: name,
+          description: project.description || candidate.description || '',
+          descZh: project.descZh || '',
+          language: project.language || '',
+          topics: project.topics || [],
+          url: project.url || '',
+          isAI: project.isAI || false
+        };
+      });
+
+    prompt = prompt.replace('{projects}', () => JSON.stringify(projectsForPrompt, null, 2));
 
     // 新增：生成 Wiki 历史上下文
     const wikiHistoryContext = this.buildWikiHistoryContext(contextData.projects);
     prompt = prompt.replace('{wikiHistoryContext}', wikiHistoryContext);
 
-    if (contextData.stats) {
-      prompt = prompt.replace('{totalProjects}', contextData.stats.total_projects || contextData.stats.total || 0);
-      prompt = prompt.replace('{aiProjects}', contextData.stats.ai_projects || 0);
-      prompt = prompt.replace('{aiPercentage}', Math.round((contextData.stats.ai_projects || 0) / (contextData.stats.total_projects || 1) * 100));
-      prompt = prompt.replace('{topProjects}', JSON.stringify(contextData.projects.slice(0, 5), null, 2));
-      prompt = prompt.replace('{week}', contextData.generatedAt || '');
-      prompt = prompt.replace('{month}', contextData.generatedAt?.substring(0, 7) || '');
+    const stats = contextData.stats || {};
+    const totalProjects = stats.totalProjects ?? stats.total_projects ?? stats.total ?? contextData.projects.length;
+    const aiProjects = stats.aiProjects ?? stats.ai_projects ?? contextData.projects.filter(p => p.isAI).length;
+    const aiPercentage = totalProjects > 0 ? Math.round((aiProjects / totalProjects) * 100) : 0;
+
+    prompt = prompt.replace('{totalProjects}', totalProjects);
+    prompt = prompt.replace('{aiProjects}', aiProjects);
+    prompt = prompt.replace('{aiPercentage}', aiPercentage);
+    prompt = prompt.replace('{topProjects}', JSON.stringify(projectsForPrompt.slice(0, 5), null, 2));
+    prompt = prompt.replace('{week}', contextData.identifier || '');
+    prompt = prompt.replace('{month}', contextData.identifier || '');
+
+    const metrics = contextData.metrics || {};
+    prompt = prompt.replace('{dailyCount}', metrics.dailyCount || 0);
+    prompt = prompt.replace('{weeklyCount}', metrics.weeklyCount || 0);
+    prompt = prompt.replace('{periodProjects}', (metrics.periodProjects || []).map(period =>
+      `- ${period.period} (${period.dates}): 主导类型：${period.topType || '未知'}；关键项目：${(period.keyProjects || []).map(repo => `{{p:${repo}}}`).join('、')}`
+    ).join('\n'));
+    prompt = prompt.replace('{topProjectCandidates}', (metrics.topProjectCandidates || [])
+      .map(item => `- {{p:${item.repo}}}`)
+      .join('\n'));
+    prompt = prompt.replace('{allRepos}', (metrics.allRepos || []).slice(0, 80).map(repo => `- {{p:${repo}}}`).join('\n'));
+
+    const checkerConfig = loadConfig();
+    prompt = prompt.replace('{metricsFacts}', JSON.stringify(contextData.metrics || {}, null, 2));
+    prompt = prompt.replace('{recentOneLiners}', contextData.recentOneLiners || '（无）');
+    prompt = prompt.replace('{recentSuggestions}', contextData.recentSuggestions || '（无）');
+    prompt = prompt.replace('{bannedWords}', (checkerConfig.bannedWords || []).join('\n'));
+    prompt = prompt.replace('{compareWords}', (checkerConfig.compareWords || []).join('、'));
+
+    if (prompt.includes('{slots}')) {
+      const { buildSlotSpecs } = require('../generator/daily-v3-text');
+      prompt = prompt.replace('{slots}', () =>
+        JSON.stringify(buildSlotSpecs({ projects: contextData.projects }), null, 2));
+    }
+    if (prompt.includes('{directionWords}')) {
+      prompt = prompt.replace('{directionWords}', () =>
+        (checkerConfig.directionStatusWords || []).map(item => item.word).filter(Boolean).join('、'));
     }
 
     prompt = prompt.replace('{{projects_count}}', contextData.projects.length);
     prompt = prompt.replace('{{projects_json}}', JSON.stringify(contextData.projects, null, 2));
 
-    if (contextData.stats && prompt.includes('{{stats_json}}')) {
-      prompt = prompt.replace('{{stats_json}}', JSON.stringify(contextData.stats, null, 2));
+    if (prompt.includes('{{stats_json}}')) {
+      prompt = prompt.replace('{{stats_json}}', JSON.stringify(stats, null, 2));
     }
 
     return prompt;
@@ -380,9 +826,13 @@ class InsightAnalyzer {
       const insights = JSON.parse(jsonContent);
 
       if (insights.project_insights) {
-        const trendingRepos = briefData.trending_repos || [];
+        const trendingRepos = briefData.projects || briefData.trending_repos || [];
         insights.project_insights = insights.project_insights.map(insight => {
-          const repo = trendingRepos.find(r => r.name === insight.project_name);
+          const projectName = projectNameFromPlaceholder(insight.project_name);
+          const repo = trendingRepos.find(r => {
+            const name = r.name || r.fullName || r.repo;
+            return name === projectName || r.fullName === projectName;
+          });
           return {
             ...insight,
             github_url: repo?.url || '',

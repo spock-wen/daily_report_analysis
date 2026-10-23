@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：11
-- 最近更新：2026-09-14
+- 项目总数：10
+- 最近更新：2026-10-18
 - 报告类型：daily
 
 speech 领域收录了与语音识别、语音合成、音频处理相关的项目。
@@ -19,15 +19,15 @@ speech 领域收录了与语音识别、语音合成、音频处理相关的项�
 | 5 | [Starmel/OpenSuperWhisper](../../wiki/projects/Starmel_OpenSuperWhisper.md) | 2026-07-06 | 1 | 1804 |
 | 6 | [microsoft/VibeVoice](../../wiki/projects/microsoft_VibeVoice.md) | 2026-07-29 | 1 | 51242 |
 | 7 | [moeru-ai/airi](../../wiki/projects/moeru-ai_airi.md) | 2026-08-03 | 1 | 46542 |
-| 8 | [jamiepine/voicebox](../../wiki/projects/jamiepine_voicebox.md) | 2026-08-03 | 1 | 48645 |
-| 9 | [hugohe3/ppt-master](../../wiki/projects/hugohe3_ppt-master.md) | 2026-08-12 | 1 | 45531 |
-| 10 | [debpalash/VoiceStudio](../../wiki/projects/debpalash_VoiceStudio.md) | 2026-09-14 | 1 | 29099 |
+| 8 | [jamiepine/voicebox](../../wiki/projects/jamiepine_voicebox.md) | 2026-09-17 | 1 | 54826 |
+| 9 | [hugohe3/ppt-master](../../wiki/projects/hugohe3_ppt-master.md) | 2026-10-10 | 1 | 59397 |
+| 10 | [debpalash/VoiceStudio](../../wiki/projects/debpalash_VoiceStudio.md) | 2026-10-18 | 1 | 75250 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：541,523
+- 总 Stars 数：570,369
 - 最热项目：[yt-dlp/yt-dlp](../../wiki/projects/yt-dlp_yt-dlp.md) (164940 ⭐)
 
 

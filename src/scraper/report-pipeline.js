@@ -12,12 +12,23 @@
 
 const logger = require('../utils/logger');
 const { writeJson } = require('../utils/fs');
+const { getEnvBool } = require('../utils/config');
 const fs = require('fs');
 const {
   getDailyBriefPath,
   getWeeklyBriefPath,
-  getMonthlyBriefPath
+  getMonthlyBriefPath,
+  dataDir
 } = require('../utils/path');
+const {
+  enrichDailyBrief,
+  enrichWeeklyBrief,
+  enrichMonthlyBrief,
+  getISOWeekDates,
+  getScrapedDate
+} = require('../metrics');
+const { runContentGate } = require('../checker/gate');
+const { buildFacts } = require('../facts/build-facts');
 
 // 导入依赖模块
 const InsightAnalyzer = require('../analyzer/insight-analyzer');
@@ -50,6 +61,9 @@ class ReportPipeline {
     this.enableIndex = options.enableIndex !== undefined ? options.enableIndex : true;
     this.enableNotification = options.enableNotification !== undefined ? options.enableNotification : true;
     this.enableWikiPostProcessing = options.enableWikiPostProcessing !== undefined ? options.enableWikiPostProcessing : true;
+    this.enableContentCheck = options.contentCheck !== undefined ? options.contentCheck : true;
+    this.rewriteInsightsHook = typeof options.rewriteInsights === 'function' ? options.rewriteInsights : null;
+    this.aiCallCountProvider = typeof options.getAiCallCount === 'function' ? options.getAiCallCount : null;
 
     // 初始化子模块
     this.analyzer = new InsightAnalyzer();
@@ -112,6 +126,11 @@ class ReportPipeline {
         logger.info('[ReportPipeline] 月报数据为聚合数据，跳过仓库增强');
       }
 
+      // 步骤 1.5: 计算期内指标
+      await this.executeStep('compute-metrics', async () => {
+        this.attachMetrics(data, type);
+      }, result);
+
       // 步骤 2: 调用 AI 分析生成洞察
       if (this.enableAI) {
         // 如果数据中已有 AI 洞察（如月报预生成），则跳过 AI 分析
@@ -136,14 +155,59 @@ class ReportPipeline {
         await this.saveRawData(data, type);
       }, result);
 
-      // 步骤 3.5: 更新 Wiki（日报、周报、月报）
-      if (type === 'daily' || type === 'weekly' || type === 'monthly') {
-        await this.executeStep('update-wiki', async () => {
-          await this.updateProjectWikis(data, result.insights, type);
+      // 步骤 3.5: 内容核查闸（D1/D3）——写 HTML 之前
+      if (this.enableContentCheck) {
+        await this.executeStep('content-check', async () => {
+          const identifier = this.getReportIdentifier(data, type);
+          const gate = await runContentGate({
+            level: type,
+            period: identifier,
+            dataDir: dataDir(),
+            logger,
+            getAiCallCount: () => this.getAiCallCount(),
+            rewrite: async (findings) => {
+              let rewritten;
+              if (this.rewriteInsightsHook) {
+                rewritten = await this.rewriteInsightsHook(findings);
+              } else {
+                rewritten = await this.generateAIInsights(data, type, {
+                  feedback: findings,
+                  previousInsights: result.insights
+                });
+              }
+              if (rewritten) {
+                result.insights = rewritten;
+                data.aiInsights = rewritten;
+                await this.saveRawData(data, type);
+              }
+              return rewritten;
+            }
+          });
+
+          if (!gate.pass) {
+            const error = new Error(`内容核查未通过（${gate.findings.length} 条 FAIL），已停止生成`);
+            error.code = 'CONTENT_CHECK_FAILED';
+            error.findings = gate.findings;
+            error.failPaths = gate.paths;
+            throw error;
+          }
         }, result);
+      } else {
+        logger.info('[ReportPipeline] 内容核查已禁用，跳过');
+      }
+
+      // 步骤 3.6: 更新 Wiki（日报、周报、月报）
+      if (type === 'daily' || type === 'weekly' || type === 'monthly') {
+        if (getEnvBool('REPORT_NO_WIKI', false)) {
+          logger.info('[ReportPipeline] REPORT_NO_WIKI=1，跳过 Wiki 更新');
+        } else {
+          await this.executeStep('update-wiki', async () => {
+            await this.updateProjectWikis(data, result.insights, type);
+          }, result);
+        }
 
         // 步骤 3.6: Wiki 后处理（日报、周报、月报）
-        if (this.enableWikiPostProcessing) {
+        if (this.enableWikiPostProcessing && !getEnvBool('REPORT_NO_WIKI', false)) {
           await this.executeStep('wiki-post-processing', async () => {
             try {
               const projects = data.repositories || data.projects || [];
@@ -327,6 +391,31 @@ class ReportPipeline {
     };
   }
 
+  attachMetrics(data, type) {
+    if (type === 'daily') {
+      // J1：期次与基准都按 scrapedAt 换算的 SGT 抓取日，不沿用抓取前的数据日期。
+      data.date = getScrapedDate(data.scrapedAt)
+        || getScrapedDate(data.generatedAt)
+        || data.date;
+      if (data.date) enrichDailyBrief(data, { date: data.date });
+      return;
+    }
+
+    if (type === 'weekly') {
+      const week = this.getWeeklyIdentifier(data);
+      const weekDates = getISOWeekDates(week);
+      data.weekStart = week;
+      data.weekEnd = weekDates[6] || data.weekEnd;
+      enrichWeeklyBrief(data, { week });
+      return;
+    }
+
+    if (type === 'monthly') {
+      const month = data.month || data.date;
+      if (month) enrichMonthlyBrief(data, { month });
+    }
+  }
+
   /**
    * 步骤 1: 保存原始数据 JSON
    * @param {Object} data - 原始数据
@@ -340,7 +429,11 @@ class ReportPipeline {
     
     // 根据类型计算标识符
     if (type === 'daily') {
-      identifier = data.date || new Date().toISOString().split('T')[0];
+      // J1：日报按抓取日（scrapedAt 换算 SGT 日期）命名。
+      identifier = getScrapedDate(data.scrapedAt)
+        || getScrapedDate(data.generatedAt)
+        || data.date
+        || new Date().toISOString().split('T')[0];
       filePath = getDailyBriefPath(identifier);
     } else if (type === 'weekly') {
       // 周报使用 ISO 周数格式：2026-W11
@@ -375,6 +468,7 @@ class ReportPipeline {
     // 基础格式
     const formatted = {
       generatedAt: data.scrapedAt || now.toISOString(),
+      scrapedAt: data.scrapedAt || now.toISOString(),
       date: identifier,
       triggerType: type,
       period: type === 'daily' ? '每日' : type === 'weekly' ? '每周' : '每月',
@@ -389,10 +483,30 @@ class ReportPipeline {
     // 周报特定字段
     if (type === 'weekly') {
       formatted.weekStart = identifier;
-      const weekEnd = this.calculateWeekEnd(identifier);
-      formatted.weekEnd = weekEnd;
+      const weekDates = getISOWeekDates(identifier);
+      formatted.weekEnd = weekDates[6] || this.calculateWeekEnd(identifier);
+      formatted.weekNewStars = data.weekNewStars;
+      formatted.prevWeekStats = data.prevWeekStats;
+      formatted.dailyCounts = data.dailyCounts;
+      formatted.weekMetrics = data.weekMetrics;
     }
-    
+
+    if (type === 'daily') {
+      formatted.dailyDiff = data.dailyDiff;
+      formatted.streakDays = data.streakDays;
+    }
+
+    if (type === 'monthly') {
+      if (data.stats) formatted.stats = data.stats;
+      formatted.prevMonthStats = data.prevMonthStats;
+      formatted.weekThemes = data.weekThemes;
+      formatted.monthTop = data.monthTop;
+      formatted.dropList = data.dropList;
+      if (data.dropListNote) formatted.dropListNote = data.dropListNote;
+    }
+
+    if (data.caption) formatted.caption = data.caption;
+
     // 生成 summary
     formatted.summary = this.generateSummary(formatted);
     
@@ -566,12 +680,32 @@ class ReportPipeline {
   }
 
   /**
+   * 计算当前期号（用于核查闸与日志）
+   */
+  getReportIdentifier(data, type) {
+    if (type === 'daily') {
+      return getScrapedDate(data.scrapedAt) || getScrapedDate(data.generatedAt) || data.date;
+    }
+    if (type === 'weekly') return data.weekStart || this.getWeeklyIdentifier(data);
+    if (type === 'monthly') return data.month || data.date || new Date().toISOString().slice(0, 7);
+    return null;
+  }
+
+  getAiCallCount() {
+    const direct = this.analyzer && typeof this.analyzer.getAiCallCount === 'function'
+      ? this.analyzer.getAiCallCount()
+      : 0;
+    const external = this.aiCallCountProvider ? this.aiCallCountProvider() : 0;
+    return Math.max(direct, external);
+  }
+
+  /**
    * 步骤 2: 生成 AI 洞察
    * @param {Object} data - 原始数据
    * @param {string} type - 报告类型
    * @returns {Promise<Object>} AI 洞察结果
    */
-  async generateAIInsights(data, type) {
+  async generateAIInsights(data, type, options = {}) {
     logger.info('[ReportPipeline] 开始 AI 分析...');
 
     try {
@@ -581,9 +715,14 @@ class ReportPipeline {
       const analysisData = {
         ...data,
         brief: {
+          date: data.date,
           projects: data.projects || data.repositories || [],
           stats: data.stats || {},
-          generatedAt: data.generatedAt || new Date().toISOString()
+          dailyDiff: data.dailyDiff,
+          streakDays: data.streakDays,
+          caption: data.caption,
+          scrapedAt: data.scrapedAt || null,
+          generatedAt: data.generatedAt || data.scrapedAt || new Date().toISOString()
         }
       };
 
@@ -593,39 +732,47 @@ class ReportPipeline {
       }
 
       if (type === 'daily') {
-        insights = await this.analyzer.analyzeDaily(analysisData);
+        insights = await this.analyzer.analyzeDaily(analysisData, options);
       } else if (type === 'weekly') {
         // 周报分析：同时进行周度分析和深度趋势分析
-        const weeklyInsights = await this.analyzer.analyzeWeekly(analysisData);
-        
-        // 加载上周的日报数据进行深度趋势分析
-        const weekStart = data.weekStart || this.getWeeklyIdentifier(data);
-        const dailyData = await this.loadWeeklyDailyData(weekStart);
-        
-        if (dailyData && dailyData.length > 0) {
-          logger.info(`[ReportPipeline] 加载了 ${dailyData.length} 天的日报数据，进行深度趋势分析...`);
-          
-          // 构建周范围
-          const weekRange = {
-            start: dailyData[0].date,
-            end: dailyData[dailyData.length - 1].date
-          };
-          
-          const deepTrends = await this.analyzer.analyzeDeepTrends(dailyData, weekRange);
-          
-          if (deepTrends) {
-            insights = {
-              ...weeklyInsights,
-              deepTrends
+        const weeklyInsights = await this.analyzer.analyzeWeekly(analysisData, options);
+
+        // 重写洞察时复用上一版 deepTrends，避免额外的 AI 调用（J14 最多 2 次）
+        if (options.feedback) {
+          const previousDeepTrends = options.previousInsights?.deepTrends || data.aiInsights?.deepTrends;
+          insights = previousDeepTrends
+            ? { ...weeklyInsights, deepTrends: previousDeepTrends }
+            : weeklyInsights;
+        } else {
+          // 加载上周的日报数据进行深度趋势分析
+          const weekStart = data.weekStart || this.getWeeklyIdentifier(data);
+          const dailyData = await this.loadWeeklyDailyData(weekStart);
+
+          if (dailyData && dailyData.length > 0) {
+            logger.info(`[ReportPipeline] 加载了 ${dailyData.length} 天的日报数据，进行深度趋势分析...`);
+
+            // 构建周范围
+            const weekRange = {
+              start: dailyData[0].date,
+              end: dailyData[dailyData.length - 1].date
             };
+
+            const deepTrends = await this.analyzer.analyzeDeepTrends(dailyData, weekRange);
+
+            if (deepTrends) {
+              insights = {
+                ...weeklyInsights,
+                deepTrends
+              };
+            } else {
+              insights = weeklyInsights;
+            }
           } else {
             insights = weeklyInsights;
           }
-        } else {
-          insights = weeklyInsights;
         }
       } else if (type === 'monthly') {
-        insights = await this.analyzer.analyzeMonthly(analysisData);
+        insights = await this.analyzer.analyzeMonthly(analysisData, options);
       } else {
         throw new Error(`不支持的报告类型：${type}`);
       }
@@ -762,6 +909,22 @@ class ReportPipeline {
     // 添加 AI 洞察
     if (insights) {
       reportData.aiInsights = insights;
+    }
+
+    // r10e N4：日报页面 VM 需要 facts（7 日均/上月同期/走势说明）。
+    // AI 分析阶段已用同一套 buildFacts，这里只把结果挂到 reportData，不改算法。
+    if (type === 'daily' && !reportData.facts) {
+      const briefForFacts = {
+        date: date,
+        projects: projects,
+        stats: stats,
+        dailyDiff: data.dailyDiff,
+        streakDays: data.streakDays,
+        caption: data.caption,
+        scrapedAt: data.scrapedAt || null,
+        generatedAt: data.generatedAt || data.scrapedAt || new Date().toISOString()
+      };
+      reportData.facts = buildFacts({ level: 'daily', period: date, brief: briefForFacts });
     }
     
     // 根据类型添加特定字段

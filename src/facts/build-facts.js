@@ -1,0 +1,1202 @@
+'use strict';
+
+const history = require('../metrics/history');
+
+const BRIEF_PATHS = {
+  daily: period => `briefs/daily/data-${period}.json`,
+  weekly: period => `briefs/weekly/data-weekly-${period}.json`,
+  monthly: period => `briefs/monthly/data-month-${period}.json`,
+};
+
+const THRESHOLDS = {
+  daily: [
+    { value: 100, field: 'projects[*].todayStars', label: '高热项目门槛：今日新增 > 100 星' },
+    { value: 10000, field: 'projects[*].todayStars', label: '看点阈值：1 万星（今日新增）' },
+    { value: 100000, field: 'projects[*].todayStars', label: '看点阈值：10 万星（今日新增）' },
+  ],
+  weekly: [
+    { value: 10000, field: 'projects[*].todayStars', label: '看点阈值：1 万星（本周新增）' },
+    { value: 100000, field: 'projects[*].todayStars', label: '看点阈值：10 万星（本周新增）' },
+    { value: 200000, field: 'projects[*].todayStars', label: '看点阈值：20 万星（本周新增）' },
+  ],
+  monthly: [
+    { value: 10000, field: 'monthTop[*].monthStars', label: '看点阈值：1 万星（本月新增）' },
+    { value: 100000, field: 'monthTop[*].monthStars', label: '看点阈值：10 万星（本月新增）' },
+    { value: 200000, field: 'monthTop[*].monthStars', label: '看点阈值：20 万星（本月新增）' },
+  ],
+};
+
+function toNumber(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function sumTodayStars(projects) {
+  return (projects || []).reduce((sum, project) => {
+    return sum + (Number(project?.todayStars) || 0);
+  }, 0);
+}
+
+function maxTodayStars(projects) {
+  return (projects || []).reduce((max, project) => {
+    return Math.max(max, Number(project?.todayStars) || 0);
+  }, 0);
+}
+
+function round1(value) {
+  return Math.round(value * 10) / 10;
+}
+
+function round2(value) {
+  return Math.round(value * 100) / 100;
+}
+
+// B16：方向词由生成器决定。|Δ|/参照 < 5% 记「持平」；负变化不得记「提速」。
+function directionValue(currentValue, referenceValue, kind = null) {
+  const currentNumber = toNumber(currentValue);
+  const referenceNumber = toNumber(referenceValue);
+  if (currentNumber === null || referenceNumber === null) return null;
+  if (kind === 'acceleration') {
+    const delta = currentNumber - referenceNumber;
+    const ratio = referenceNumber > 0 ? Math.abs(delta) / referenceNumber : null;
+    if (ratio !== null && ratio < 0.05) return '持平';
+    if (delta > 0) return '提速';
+    if (delta < 0) return '放缓';
+    return '持平';
+  }
+  if (currentNumber > referenceNumber) return '上升';
+  if (currentNumber < referenceNumber) return '下降';
+  return '持平';
+}
+
+function parseMetricNumber(value) {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  if (typeof value !== 'string') return null;
+  const match = /^([+-]?[\d.]+)\s*(亿|万|千|[kKwW])?$/.exec(value.trim());
+  if (!match) return toNumber(value);
+  const number = Number(match[1]);
+  if (!Number.isFinite(number)) return null;
+  const unit = (match[2] || '').toLowerCase();
+  if (unit === 'k') return number * 1000;
+  if (unit === 'w' || unit === '万') return number * 10000;
+  if (unit === '亿') return number * 100000000;
+  if (unit === '千') return number * 1000;
+  return number;
+}
+
+function maxStreakOf(brief) {
+  let best = null;
+  for (const value of Object.values(brief?.streakDays || {})) {
+    const days = toNumber(value);
+    if (days === null || days < 1) continue;
+    if (best === null || days > best) best = days;
+  }
+  return best;
+}
+
+// 历史 brief 可能没有 streakDays；按同一快照口径回算当天的最长连续在榜天数。
+function maxStreakForBrief(brief) {
+  const direct = maxStreakOf(brief);
+  if (direct !== null) return direct;
+  const snapshot = brief?.scrapedAt || brief?.generatedAt;
+  const recent = history.getBaselineSnapshots(snapshot, 30);
+  if (!recent.length) return null;
+  const sets = recent.map(entry => new Set(history.getProjectNames(entry.brief)));
+  let best = null;
+  for (const name of history.getProjectNames(brief)) {
+    let streak = 1;
+    for (const set of sets) {
+      if (!set.has(name)) break;
+      streak += 1;
+    }
+    if (best === null || streak > best) best = streak;
+  }
+  return best;
+}
+
+// 历史 brief 可能没有 dailyDiff；按相邻快照回算新进/掉榜/连续数。
+function countsForBrief(brief) {
+  if (brief?.dailyDiff?.counts) return brief.dailyDiff.counts;
+  const snapshot = brief?.scrapedAt || brief?.generatedAt;
+  const baseline = history.getBaselineSnapshot(snapshot);
+  if (!baseline) return null;
+  const current = new Set(history.getProjectNames(brief));
+  const previous = new Set(history.getProjectNames(baseline.brief));
+  return {
+    new: [...current].filter(name => !previous.has(name)).length,
+    dropped: [...previous].filter(name => !current.has(name)).length,
+    kept: [...current].filter(name => previous.has(name)).length,
+    returned: 0,
+  };
+}
+
+function dailySnapshot(brief) {
+  const projects = brief?.projects || [];
+  const stats = brief?.stats || {};
+  return {
+    totalProjects: toNumber(stats.totalProjects) ?? projects.length,
+    aiProjects: toNumber(stats.aiProjects) ?? projects.filter(project => project.isAI).length,
+    avgStars: parseMetricNumber(stats.avgStars),
+    totalToday: sumTodayStars(projects),
+    hotCount: projects.filter(project => (Number(project.todayStars) || 0) > 100).length,
+    maxToday: maxTodayStars(projects),
+  };
+}
+
+function sameDayLastMonth(date) {
+  const month = history.getPrevMonth(String(date).slice(0, 7));
+  if (!month) return null;
+  const target = `${month}-${String(date).slice(8, 10)}`;
+  const brief = history.readDailyBrief(target);
+  return brief ? { date: target, brief } : null;
+}
+
+function projectCategory(project) {
+  return project?.analysis?.type || project?.category || null;
+}
+
+function topShare(projects, selector) {
+  const total = (projects || []).length;
+  if (total === 0) return null;
+  const counts = new Map();
+  for (const project of projects) {
+    const key = selector(project);
+    if (!key) continue;
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+  let best = null;
+  for (const [name, count] of counts) {
+    if (!best || count > best.count) best = { name, count };
+  }
+  if (!best) return null;
+  return { name: best.name, count: best.count, share: round1((best.count / total) * 100) };
+}
+
+function shareOf(projects, selector, name) {
+  const total = (projects || []).length;
+  if (!total || !name) return null;
+  const count = projects.filter(project => selector(project) === name).length;
+  return round1((count / total) * 100);
+}
+
+// B16：日报参照数（昨日、7 日均值、上月同期）、类目/语言份额变化、连续上榜提速、换血率。
+// 缺历史即不产出对应事实。
+function addDailyReferenceFacts({ brief, add, addNumber }) {
+  const date = brief.date;
+  if (!date) return;
+
+  // J1：基准 = 抓取日早于本期的最近一份快照；同一抓取日不比较，无基准时不产出参照值。
+  const scrapedAt = brief.scrapedAt || brief.generatedAt;
+  const baseline = history.getBaselineSnapshot(scrapedAt);
+  if (!baseline) return;
+  const prevEntries = [baseline];
+  const avgEntries = history.getBaselineSnapshots(scrapedAt, 7);
+  const currentScrapeDate = history.getScrapedDate(scrapedAt);
+  let monthEntry = sameDayLastMonth(date);
+  if (monthEntry) {
+    const monthScrapeDate = history.getScrapedDate(
+      monthEntry.brief.scrapedAt || monthEntry.brief.generatedAt
+    );
+    // J1：同一抓取日绝不作为参照。
+    if (!monthScrapeDate || monthScrapeDate >= currentScrapeDate) monthEntry = null;
+  }
+  const current = dailySnapshot(brief);
+  const metrics = [
+    { key: 'total_projects', label: '上榜项目数', field: 'stats.totalProjects', pick: snapshot => snapshot.totalProjects },
+    { key: 'ai_projects', label: 'AI 项目数', field: 'stats.aiProjects', pick: snapshot => snapshot.aiProjects },
+    { key: 'avg_stars', label: '平均 Stars', field: 'stats.avgStars', pick: snapshot => snapshot.avgStars },
+    { key: 'hot_count', label: '高热项目数', field: 'projects[*].todayStars', pick: snapshot => snapshot.hotCount },
+    { key: 'total_today', label: '新增星合计', field: 'projects[*].todayStars', pick: snapshot => snapshot.totalToday },
+    { key: 'max_today', label: '最大单项目新增', field: 'projects[*].todayStars', pick: snapshot => snapshot.maxToday },
+  ];
+
+  const addDirection = ({ metric, label, currentValue, referenceValue, source, kind = null }) => {
+    const value = directionValue(currentValue, referenceValue, kind);
+    if (!value) return;
+    add(value, {
+      kind: 'total',
+      field: metric.field,
+      label: `${label}方向（${value}）`,
+      role: 'direction',
+      source,
+      current: toNumber(currentValue),
+      reference: toNumber(referenceValue),
+      comparison: { metric: metric.key, kind: kind || 'reference' },
+    });
+  };
+
+  if (prevEntries.length === 1) {
+    const prev = dailySnapshot(prevEntries[0].brief);
+    for (const metric of metrics) {
+      const referenceValue = metric.pick(prev);
+      addNumber(referenceValue, {
+        kind: 'total',
+        field: metric.field,
+        label: `上期${metric.label}`,
+        role: `prev_${metric.key}`,
+        source: `briefs/daily/data-${prevEntries[0].date}.json#${metric.field}`,
+      });
+      addDirection({
+        metric,
+        label: `今日${metric.label}较上期`,
+        currentValue: metric.pick(current),
+        referenceValue,
+        source: `briefs/daily/data-${date}.json#${metric.field}; briefs/daily/data-${prevEntries[0].date}.json#${metric.field}`,
+      });
+      const currentValue = toNumber(metric.pick(current));
+      const previousValue = toNumber(referenceValue);
+      if (currentValue !== null && previousValue !== null) {
+        add(round1(currentValue - previousValue), {
+          kind: 'total',
+          field: metric.field,
+          label: `今日${metric.label}较上期变化`,
+          role: `delta_day_${metric.key}`,
+          source: `briefs/daily/data-${date}.json#${metric.field}; briefs/daily/data-${prevEntries[0].date}.json#${metric.field}`,
+          comparison: { metric: metric.key, kind: 'day' },
+        });
+      }
+    }
+  }
+
+  if (avgEntries.length >= 2) {
+    const window = avgEntries.length;
+    addNumber(window, {
+      kind: 'total',
+      label: `近 ${window} 日均值窗口份数`,
+      role: 'avg_window',
+      comparison: { kind: 'average', window },
+    });
+    const source = `briefs/daily/data-${avgEntries[avgEntries.length - 1].date}..${avgEntries[0].date}.json#`;
+    for (const metric of metrics) {
+      const values = avgEntries.map(entry => metric.pick(dailySnapshot(entry.brief)));
+      if (values.some(value => value === null || value === undefined)) continue;
+      const average = round1(values.reduce((sum, value) => sum + value, 0) / values.length);
+      addNumber(average, {
+        kind: 'total',
+        field: metric.field,
+        label: `近 ${window} 日均值：${metric.label}`,
+        role: `avg${window}_${metric.key}`,
+        source: `${source}${metric.field}`,
+        comparison: { metric: metric.key, kind: 'average', window },
+      });
+      addDirection({
+        metric,
+        label: window >= 7
+          ? `今日${metric.label}较7日均值`
+          : `今日${metric.label}较近${window}日均值`,
+        currentValue: metric.pick(current),
+        referenceValue: average,
+        source: `briefs/daily/data-${date}.json#${metric.field}; ${source}${metric.field}`,
+      });
+      const currentValue = toNumber(metric.pick(current));
+      if (currentValue !== null && average !== null) {
+        add(round1(currentValue - average), {
+          kind: 'total',
+          field: metric.field,
+          label: `今日${metric.label}较近${window}日均值变化`,
+          role: `delta_avg_${metric.key}`,
+          source: `briefs/daily/data-${date}.json#${metric.field}; ${source}${metric.field}`,
+          comparison: { metric: metric.key, kind: 'average', window },
+        });
+      }
+    }
+  }
+
+  if (monthEntry) {
+    const month = dailySnapshot(monthEntry.brief);
+    for (const metric of metrics) {
+      const referenceValue = metric.pick(month);
+      addNumber(referenceValue, {
+        kind: 'total',
+        field: metric.field,
+        label: `上月同期${metric.label}`,
+        role: `mom_${metric.key}`,
+        source: `briefs/daily/data-${monthEntry.date}.json#${metric.field}`,
+      });
+      addDirection({
+        metric,
+        label: `今日${metric.label}较上月同期`,
+        currentValue: metric.pick(current),
+        referenceValue,
+        source: `briefs/daily/data-${date}.json#${metric.field}; briefs/daily/data-${monthEntry.date}.json#${metric.field}`,
+      });
+    }
+  }
+
+  const currentMaxStreak = maxStreakForBrief(brief);
+  const previousMaxStreak = maxStreakForBrief(prevEntries[0].brief);
+  addNumber(currentMaxStreak, {
+    kind: 'total',
+    field: 'streakDays',
+    label: '连续在榜最长天数',
+    role: 'max_streak',
+  });
+  addNumber(previousMaxStreak, {
+    kind: 'total',
+    field: 'streakDays',
+    label: '上期连续在榜最长天数',
+    role: 'prev_max_streak',
+  });
+  if (currentMaxStreak !== null && previousMaxStreak !== null) {
+    add(round1(currentMaxStreak - previousMaxStreak), {
+      kind: 'total',
+      field: 'streakDays',
+      label: '连续在榜最长天数较上期变化',
+      role: 'delta_day_max_streak',
+      source: `briefs/daily/data-${date}.json#streakDays; briefs/daily/data-${prevEntries[0].date}.json#streakDays`,
+      comparison: { metric: 'max_streak', kind: 'day' },
+    });
+  }
+  if (avgEntries.length >= 2) {
+    const streakValues = avgEntries.map(entry => maxStreakForBrief(entry.brief)).filter(value => value !== null);
+    if (streakValues.length === avgEntries.length) {
+      const averageStreak = round1(streakValues.reduce((sum, value) => sum + value, 0) / streakValues.length);
+      addNumber(averageStreak, {
+        kind: 'total',
+        field: 'streakDays',
+        label: `近 ${avgEntries.length} 日均值：连续在榜最长天数`,
+        role: `avg${avgEntries.length}_max_streak`,
+        comparison: { metric: 'max_streak', kind: 'average', window: avgEntries.length },
+      });
+      if (currentMaxStreak !== null) {
+        add(round1(currentMaxStreak - averageStreak), {
+          kind: 'total',
+          field: 'streakDays',
+          label: '连续在榜最长天数较近均值变化',
+          role: 'delta_avg_max_streak',
+          source: `briefs/daily/data-${date}.json#streakDays`,
+          comparison: { metric: 'max_streak', kind: 'average', window: avgEntries.length },
+        });
+      }
+    }
+  }
+
+  const currentCounts = brief.dailyDiff?.counts;
+  const previousCounts = countsForBrief(prevEntries[0].brief);
+  for (const key of ['new', 'dropped', 'kept']) {
+    const currentValue = toNumber(currentCounts?.[key]);
+    const previousValue = toNumber(previousCounts?.[key]);
+    addNumber(previousValue, {
+      kind: 'total',
+      field: `dailyDiff.counts.${key}`,
+      label: `上期${key === 'new' ? '新进' : key === 'dropped' ? '掉榜' : '连续在榜'}数`,
+      role: `prev_${key}`,
+      source: `briefs/daily/data-${prevEntries[0].date}.json#dailyDiff.counts.${key}`,
+    });
+    if (currentValue !== null && previousValue !== null) {
+      add(round1(currentValue - previousValue), {
+        kind: 'total',
+        field: `dailyDiff.counts.${key}`,
+        label: `${key === 'new' ? '新进' : key === 'dropped' ? '掉榜' : '连续在榜'}数较上期变化`,
+        role: `delta_day_${key}`,
+        source: `briefs/daily/data-${date}.json#dailyDiff.counts.${key}; briefs/daily/data-${prevEntries[0].date}.json#dailyDiff.counts.${key}`,
+        comparison: { metric: key, kind: 'day' },
+      });
+    }
+  }
+
+  const prevBrief = prevEntries[0]?.brief;
+  if (prevBrief) {
+    const prevProjects = prevBrief.projects || [];
+    const projects = brief.projects || [];
+    const category = topShare(projects, projectCategory);
+    if (category) {
+      add(category.count, {
+        kind: 'total',
+        field: 'projects[*].analysis.type',
+        label: `头部类目「${category.name}」项目数`,
+        role: 'category_count',
+        source: `briefs/daily/data-${date}.json#projects[*].analysis.type`,
+      });
+      const previousCount = prevProjects.filter(project => projectCategory(project) === category.name).length;
+      add(previousCount, {
+        kind: 'total',
+        field: 'projects[*].analysis.type',
+        label: `上期头部类目「${category.name}」项目数`,
+        role: 'prev_category_count',
+        source: `briefs/daily/data-${prevEntries[0].date}.json#projects[*].analysis.type`,
+      });
+      const previousShare = shareOf(prevProjects, projectCategory, category.name);
+      if (previousShare !== null) {
+        add(category.share, {
+          kind: 'total',
+          field: 'projects[*].analysis.type',
+          label: `头部类目「${category.name}」份额（%）`,
+          role: 'category_share',
+          source: `briefs/daily/data-${date}.json#projects[*].analysis.type`,
+        });
+        add(round1(previousShare), {
+          kind: 'total',
+          field: 'projects[*].analysis.type',
+          label: `上期头部类目份额「${category.name}」（%）`,
+          role: 'prev_category_share',
+          source: `briefs/daily/data-${prevEntries[0].date}.json#projects[*].analysis.type`,
+        });
+        const shiftValue = round1(category.share - previousShare);
+        add(shiftValue, {
+          kind: 'total',
+          field: 'projects[*].analysis.type',
+          label: `头部类目「${category.name}」份额较上一有数据日变化（百分点）`,
+          role: 'category_shift',
+          source: `briefs/daily/data-${date}.json#projects[*].analysis.type; briefs/daily/data-${prevEntries[0].date}.json#projects[*].analysis.type`,
+        });
+        addDirection({
+          metric: { key: 'category_share', field: 'projects[*].analysis.type' },
+          label: `头部类目「${category.name}」份额较上一有数据日`,
+          currentValue: category.share,
+          referenceValue: previousShare,
+          source: `briefs/daily/data-${date}.json#projects[*].analysis.type; briefs/daily/data-${prevEntries[0].date}.json#projects[*].analysis.type`,
+        });
+      }
+    }
+
+    const language = topShare(projects, project => project.language || null);
+    if (language) {
+      add(language.count, {
+        kind: 'total',
+        field: 'projects[*].language',
+        label: `头部语言「${language.name}」项目数`,
+        role: 'language_count',
+        source: `briefs/daily/data-${date}.json#projects[*].language`,
+      });
+      const previousCount = prevProjects.filter(project => (project.language || null) === language.name).length;
+      add(previousCount, {
+        kind: 'total',
+        field: 'projects[*].language',
+        label: `上期头部语言「${language.name}」项目数`,
+        role: 'prev_language_count',
+        source: `briefs/daily/data-${prevEntries[0].date}.json#projects[*].language`,
+      });
+      const previousShare = shareOf(prevProjects, project => project.language || null, language.name);
+      if (previousShare !== null) {
+        add(language.share, {
+          kind: 'total',
+          field: 'projects[*].language',
+          label: `头部语言「${language.name}」份额（%）`,
+          role: 'language_share',
+          source: `briefs/daily/data-${date}.json#projects[*].language`,
+        });
+        add(round1(previousShare), {
+          kind: 'total',
+          field: 'projects[*].language',
+          label: `上期头部语言份额「${language.name}」（%）`,
+          role: 'prev_language_share',
+          source: `briefs/daily/data-${prevEntries[0].date}.json#projects[*].language`,
+        });
+        const shiftValue = round1(language.share - previousShare);
+        add(shiftValue, {
+          kind: 'total',
+          field: 'projects[*].language',
+          label: `头部语言「${language.name}」份额较上一有数据日变化（百分点）`,
+          role: 'language_shift',
+          source: `briefs/daily/data-${date}.json#projects[*].language; briefs/daily/data-${prevEntries[0].date}.json#projects[*].language`,
+        });
+        addDirection({
+          metric: { key: 'language_share', field: 'projects[*].language' },
+          label: `头部语言「${language.name}」份额较上一有数据日`,
+          currentValue: language.share,
+          referenceValue: previousShare,
+          source: `briefs/daily/data-${date}.json#projects[*].language; briefs/daily/data-${prevEntries[0].date}.json#projects[*].language`,
+        });
+      }
+    }
+  }
+
+  const counts = brief.dailyDiff?.counts;
+  if (counts) {
+    const kept = toNumber(counts.kept);
+    if (prevBrief && kept !== null) {
+      const prevTotal = dailySnapshot(prevBrief).totalProjects;
+      if (prevTotal > 0) {
+        add(round1((kept / prevTotal) * 100), {
+          kind: 'total',
+          field: 'dailyDiff.counts.kept',
+          label: '留存率（连续在榜数 ÷ 上一有数据日上榜数 × 100）',
+          role: 'retention_rate',
+          source: `briefs/daily/data-${date}.json#dailyDiff.counts.kept; briefs/daily/data-${prevEntries[0].date}.json#stats.totalProjects`,
+        });
+      }
+    }
+
+    const newCount = toNumber(counts.new);
+    const returned = toNumber(counts.returned) || 0;
+    if (newCount !== null && current.totalProjects > 0) {
+      add(round1((Math.max(0, newCount - returned) / current.totalProjects) * 100), {
+        kind: 'total',
+        field: 'dailyDiff.counts.new',
+        label: '新面孔率（(新进数 − 回归数) ÷ 当日在榜数 × 100）',
+        role: 'new_face_rate',
+        source: `briefs/daily/data-${date}.json#dailyDiff.counts.new; briefs/daily/data-${date}.json#dailyDiff.counts.returned; briefs/daily/data-${date}.json#stats.totalProjects`,
+      });
+    }
+  }
+}
+
+function addStreakAcceleration({ brief, add, addNumber }) {
+  if (!brief.date) return;
+  // J1：连续上榜提速同样以早于本期抓取日的最近快照为基准。
+  const prevEntry = history.getBaselineSnapshot(brief.scrapedAt || brief.generatedAt);
+  if (!prevEntry) return;
+
+  const prevByName = new Map();
+  for (const project of prevEntry.brief.projects || []) {
+    const key = history.projectKey(project);
+    if (key) prevByName.set(key, project);
+  }
+
+  const projects = brief.projects || [];
+  projects.forEach((project, index) => {
+    const key = history.projectKey(project);
+    const streak = toNumber(brief.streakDays?.[key]);
+    if (!key || streak === null || streak < 2) return;
+
+    const previous = prevByName.get(key);
+    const previousToday = toNumber(previous?.todayStars);
+    const today = toNumber(project.todayStars);
+    if (previousToday === null || today === null) return;
+
+    add(today - previousToday, {
+      project: key,
+      kind: 'single',
+      field: `projects[${index}].todayStars`,
+      label: `${key} 今日新增较前一有数据日变化（星）`,
+      role: 'acceleration',
+      source: `briefs/daily/data-${brief.date}.json#projects[${index}].todayStars; briefs/daily/data-${prevEntry.date}.json#projects[*].todayStars`,
+    });
+
+    const accelerationDirection = directionValue(today, previousToday, 'acceleration');
+    if (accelerationDirection) {
+      add(accelerationDirection, {
+        project: key,
+        kind: 'single',
+        field: `projects[${index}].todayStars`,
+        label: `${key} 今日新增较前一有数据日方向（${accelerationDirection}）`,
+        role: 'direction',
+        source: `briefs/daily/data-${brief.date}.json#projects[${index}].todayStars; briefs/daily/data-${prevEntry.date}.json#projects[*].todayStars`,
+        current: today,
+        reference: previousToday,
+        comparison: { metric: `acceleration:${key}`, kind: 'acceleration' },
+      });
+    }
+
+    if (previousToday > 0) {
+      add(round2(today / previousToday), {
+        project: key,
+        kind: 'single',
+        field: `projects[${index}].todayStars`,
+        label: `${key} 今日新增较前一有数据日倍数`,
+        role: 'acceleration_ratio',
+        source: `briefs/daily/data-${brief.date}.json#projects[${index}].todayStars; briefs/daily/data-${prevEntry.date}.json#projects[*].todayStars`,
+      });
+    }
+  });
+}
+
+// r10：分布/份额/排名的上期口径，以及上期留存率、上期新面孔率、前 3 名合计。
+// 全部由 brief 与它的上一份快照算出；算不出则不产出对应 fact（页面写「上期无数据」）。
+function addDistributionFacts({ brief, add, addNumber }) {
+  const scrapedAt = brief.scrapedAt || brief.generatedAt;
+  const baseline = scrapedAt ? history.getBaselineSnapshot(scrapedAt) : null;
+  const prevBrief = baseline?.brief || null;
+  const prevDate = baseline?.date || null;
+  const prevSource = prevDate ? `briefs/daily/data-${prevDate}.json` : '';
+  const prevPrevEntry = prevBrief && (prevBrief.scrapedAt || prevBrief.generatedAt)
+    ? history.getBaselineSnapshot(prevBrief.scrapedAt || prevBrief.generatedAt)
+    : null;
+  const prevPrevBrief = prevPrevEntry?.brief || null;
+
+  const projects = brief.projects || [];
+  const prevProjects = prevBrief?.projects || [];
+  const prevTotal = prevProjects.length;
+  const prevPrevTotal = prevPrevBrief ? dailySnapshot(prevPrevBrief).totalProjects : null;
+
+  // 前 3 名今日新增合计
+  const sorted = [...projects].sort((left, right) => (Number(right.todayStars) || 0) - (Number(left.todayStars) || 0));
+  if (sorted.length >= 3) {
+    const top3Sum = sorted.slice(0, 3).reduce((sum, project) => sum + (Number(project.todayStars) || 0), 0);
+    add(top3Sum, {
+      kind: 'total',
+      field: 'projects[*].todayStars',
+      label: '前 3 名今日新增合计',
+      role: 'top3_today_sum',
+      source: `briefs/daily/data-${brief.date}.json#projects[*].todayStars`,
+    });
+  }
+
+  // 上期留存率 / 上期新面孔率（上一份快照与它的前一份 brief）
+  if (prevBrief && prevPrevBrief) {
+    const prevCounts = countsForBrief(prevBrief) || {};
+    const prevKept = toNumber(prevCounts.kept);
+    if (prevKept !== null && prevPrevTotal !== null && prevPrevTotal > 0) {
+      add(round1(prevKept / prevPrevTotal * 100), {
+        kind: 'total',
+        field: 'dailyDiff.counts.kept',
+        label: '上期留存率（上期连续在榜数 ÷ 上期的上一份快照上榜数 × 100）',
+        role: 'prev_retention_rate',
+        source: `${prevSource}#dailyDiff.counts.kept; briefs/daily/data-${prevPrevEntry.date}.json#stats.totalProjects`,
+      });
+    }
+    const prevNew = toNumber(prevCounts.new);
+    const prevReturned = toNumber(prevCounts.returned) || 0;
+    if (prevNew !== null && prevTotal > 0) {
+      add(round1(Math.max(0, prevNew - prevReturned) / prevTotal * 100), {
+        kind: 'total',
+        field: 'dailyDiff.counts.new',
+        label: '上期新面孔率（(上期新进数 − 上期回归数) ÷ 上期在榜数 × 100）',
+        role: 'prev_new_face_rate',
+        source: `${prevSource}#dailyDiff.counts.new; ${prevSource}#dailyDiff.counts.returned; ${prevSource}#stats.totalProjects`,
+      });
+    }
+  }
+
+  // 各语言计数（本期与上期，含非头部）
+  const langCounts = new Map();
+  for (const project of projects) {
+    const name = project.language || null;
+    if (!name) continue;
+    langCounts.set(name, (langCounts.get(name) || 0) + 1);
+  }
+  const prevLangCounts = new Map();
+  for (const project of prevProjects) {
+    const name = project.language || null;
+    if (!name) continue;
+    prevLangCounts.set(name, (prevLangCounts.get(name) || 0) + 1);
+  }
+  for (const [name, count] of langCounts) {
+    add(count, {
+      kind: 'total',
+      field: 'projects[*].language',
+      label: `语言「${name}」项目数`,
+      role: `lang_count_${name}`,
+      source: `briefs/daily/data-${brief.date}.json#projects[*].language`,
+    });
+    if (prevBrief) {
+      add(prevLangCounts.get(name) || 0, {
+        kind: 'total',
+        field: 'projects[*].language',
+        label: `上期语言「${name}」项目数`,
+        role: `prev_lang_count_${name}`,
+        source: `${prevSource}#projects[*].language`,
+      });
+    }
+  }
+
+  // 各类型计数（本期与上期）
+  const typeCounts = new Map();
+  for (const project of projects) {
+    const name = projectCategory(project);
+    if (!name) continue;
+    typeCounts.set(name, (typeCounts.get(name) || 0) + 1);
+  }
+  const prevTypeCounts = new Map();
+  for (const project of prevProjects) {
+    const name = projectCategory(project);
+    if (!name) continue;
+    prevTypeCounts.set(name, (prevTypeCounts.get(name) || 0) + 1);
+  }
+  for (const [name, count] of typeCounts) {
+    add(count, {
+      kind: 'total',
+      field: 'projects[*].analysis.type',
+      label: `类型「${name}」项目数`,
+      role: `type_count_${name}`,
+      source: `briefs/daily/data-${brief.date}.json#projects[*].analysis.type`,
+    });
+    if (prevBrief) {
+      add(prevTypeCounts.get(name) || 0, {
+        kind: 'total',
+        field: 'projects[*].analysis.type',
+        label: `上期类型「${name}」项目数`,
+        role: `prev_type_count_${name}`,
+        source: `${prevSource}#projects[*].analysis.type`,
+      });
+    }
+  }
+
+  // 各项目上期排名（按上一份快照的今日新增降序）
+  if (prevBrief) {
+    const prevRanked = [...prevProjects]
+      .sort((left, right) => (Number(right.todayStars) || 0) - (Number(left.todayStars) || 0));
+    prevRanked.forEach((project, index) => {
+      const key = history.projectKey(project);
+      if (!key) return;
+      add(index + 1, {
+        project: key,
+        kind: 'single',
+        field: 'projects[*].todayStars',
+        label: `${key} 上期排名`,
+        role: 'prev_rank',
+        source: `${prevSource}#projects[*].todayStars`,
+      });
+    });
+  }
+}
+
+function buildDailyFacts({ brief, add, addNumber }) {
+  const projects = brief.projects || [];
+  const stats = brief.stats || {};
+
+  addNumber(stats.totalProjects, { kind: 'total', field: 'stats.totalProjects', label: '上榜项目数', role: 'total_projects' });
+  addNumber(stats.aiProjects, { kind: 'total', field: 'stats.aiProjects', label: 'AI 项目数', role: 'ai_projects' });
+  if (stats.avgStars !== undefined && stats.avgStars !== null) {
+    add(stats.avgStars, { kind: 'total', field: 'stats.avgStars', label: '平均 Stars', role: 'avg_stars' });
+  }
+
+  const hotProjects = projects.filter(project => (Number(project.todayStars) || 0) > 100).length;
+  add(hotProjects, { kind: 'total', field: 'projects[*].todayStars', label: '高热项目数（今日新增 > 100 星）', role: 'hot_count' });
+  add(sumTodayStars(projects), { kind: 'total', field: 'projects[*].todayStars', label: '当日新增星合计', role: 'total_today' });
+
+  const counts = brief.dailyDiff?.counts || {};
+  addNumber(counts.new, { kind: 'total', field: 'dailyDiff.counts.new', label: '较上期新上榜数', role: 'new' });
+  addNumber(counts.dropped, { kind: 'total', field: 'dailyDiff.counts.dropped', label: '较上期掉榜数', role: 'dropped' });
+  addNumber(counts.kept, { kind: 'total', field: 'dailyDiff.counts.kept', label: '较上期连续在榜数', role: 'kept' });
+  addNumber(counts.returned, { kind: 'total', field: 'dailyDiff.counts.returned', label: '较上期回归数', role: 'returned' });
+
+  const sortedByToday = [...projects].sort((a, b) => (Number(b.todayStars) || 0) - (Number(a.todayStars) || 0));
+  if (sortedByToday.length >= 2) {
+    const top1 = sortedByToday[0];
+    const top2 = sortedByToday[1];
+    const top1Stars = Number(top1.todayStars) || 0;
+    const top2Stars = Number(top2.todayStars) || 0;
+    if (top2Stars > 0) {
+      const ratio = round1(top1Stars / top2Stars);
+      add(ratio, {
+        kind: 'total',
+        field: 'projects[*].todayStars',
+        label: '当日新增第一名与第二名倍数',
+        role: 'ratioTop1Top2',
+      });
+      add(ratio, {
+        kind: 'total',
+        field: 'projects[*].todayStars',
+        label: '当日新增第一名与第二名倍数（别名）',
+        role: 'ratio_top1_top2',
+      });
+    }
+  }
+
+  addDailyReferenceFacts({ brief, add, addNumber });
+  addStreakAcceleration({ brief, add, addNumber });
+  addDistributionFacts({ brief, add, addNumber });
+
+  projects.forEach((project, index) => {
+    const fullName = history.projectKey(project);
+    if (!fullName) return;
+    addNumber(project.todayStars, {
+      project: fullName,
+      field: `projects[${index}].todayStars`,
+      label: `${fullName} 今日新增星`,
+      role: 'today_stars',
+    });
+    addNumber(project.stars, {
+      project: fullName,
+      field: `projects[${index}].stars`,
+      label: `${fullName} 累计 Stars`,
+      role: 'stars',
+    });
+    addNumber(project.forks, {
+      project: fullName,
+      field: `projects[${index}].forks`,
+      label: `${fullName} Fork 数`,
+      role: 'forks',
+    });
+    addNumber(brief.streakDays?.[fullName], {
+      project: fullName,
+      field: `streakDays["${fullName}"]`,
+      label: `${fullName} 连续上榜天数`,
+      role: 'streak',
+    });
+  });
+
+  for (const threshold of THRESHOLDS.daily) {
+    add(threshold.value, {
+      kind: 'threshold',
+      field: threshold.field,
+      label: threshold.label,
+      role: 'threshold',
+    });
+  }
+
+  const maxToday = maxTodayStars(brief.projects || []);
+  if (maxToday !== null && maxToday !== undefined) {
+    add(maxToday, {
+      kind: 'total',
+      field: 'projects[*].todayStars',
+      label: '最大单项目新增',
+      role: 'max_today',
+      source: `briefs/daily/data-${brief.date}.json#projects[*].todayStars`,
+    });
+  }
+
+  addCurrentShareFactsIfNoPrev({ brief, add });
+
+  return history.getProjectNames(brief);
+}
+
+// 无上一份 brief（与 addDailyReferenceFacts:399 同一判定）时，原分支不产出当期份额/新面孔率，
+// 这里补齐当期口径的三条事实；有上一份 brief 时由原分支产出，此处直接跳过，不重复。
+function addCurrentShareFactsIfNoPrev({ brief, add }) {
+  const date = brief.date;
+  if (!date) return;
+  const scrapedAt = brief.scrapedAt || brief.generatedAt;
+  if (history.getBaselineSnapshot(scrapedAt)) return;
+
+  const projects = brief.projects || [];
+
+  const category = topShare(projects, projectCategory);
+  if (category) {
+    add(category.share, {
+      kind: 'total',
+      field: 'projects[*].analysis.type',
+      label: `头部类目「${category.name}」份额（%）`,
+      role: 'category_share',
+      source: `briefs/daily/data-${date}.json#projects[*].analysis.type`,
+    });
+  }
+
+  const language = topShare(projects, project => project.language || null);
+  if (language) {
+    add(language.share, {
+      kind: 'total',
+      field: 'projects[*].language',
+      label: `头部语言「${language.name}」份额（%）`,
+      role: 'language_share',
+      source: `briefs/daily/data-${date}.json#projects[*].language`,
+    });
+  }
+
+  const counts = brief.dailyDiff?.counts;
+  const newCount = toNumber(counts?.new);
+  const returned = toNumber(counts?.returned) || 0;
+  const totalProjects = dailySnapshot(brief).totalProjects;
+  if (newCount !== null && totalProjects > 0) {
+    add(round1((Math.max(0, newCount - returned) / totalProjects) * 100), {
+      kind: 'total',
+      field: 'dailyDiff.counts.new',
+      label: '新面孔率（(新进数 − 回归数) ÷ 当日在榜数 × 100）',
+      role: 'new_face_rate',
+      source: `briefs/daily/data-${date}.json#dailyDiff.counts.new; briefs/daily/data-${date}.json#dailyDiff.counts.returned; briefs/daily/data-${date}.json#stats.totalProjects`,
+    });
+  }
+}
+
+function buildWeeklyFacts({ brief, metrics, add, addNumber }) {
+  const projects = brief.projects || [];
+  const stats = brief.stats || {};
+  const weekMetrics = brief.weekMetrics || metrics || {};
+  const prevWeekStats = brief.prevWeekStats || weekMetrics.prevWeekStats || {};
+
+  addNumber(stats.totalProjects, { kind: 'total', field: 'stats.totalProjects', label: '上榜项目数', role: 'total_projects' });
+  addNumber(stats.aiProjects, { kind: 'total', field: 'stats.aiProjects', label: 'AI 项目数', role: 'ai_projects' });
+  if (stats.avgStars !== undefined && stats.avgStars !== null) {
+    add(stats.avgStars, { kind: 'total', field: 'stats.avgStars', label: '平均 Stars', role: 'avg_stars' });
+  }
+
+  const totalProjects = toNumber(stats.totalProjects) ?? projects.length;
+  const aiProjects = toNumber(stats.aiProjects) ?? 0;
+  add(totalProjects > 0 ? Math.round((aiProjects / totalProjects) * 100) : 0, {
+    kind: 'total',
+    field: 'stats.aiProjects',
+    label: 'AI 项目占比（%）',
+    role: 'ai_ratio',
+  });
+  add(maxTodayStars(projects), {
+    kind: 'total',
+    field: 'projects[*].todayStars',
+    label: '最大黑马今日新增星',
+    role: 'max_today',
+  });
+
+  addNumber(brief.weekNewStars ?? weekMetrics.weekNewStars, {
+    kind: 'total',
+    field: 'weekNewStars',
+    label: '本周新增星合计',
+    role: 'total_week',
+  });
+
+  const wow = weekMetrics.wow || {};
+  addNumber(wow.previous, { kind: 'total', field: 'weekMetrics.wow.previous', label: '上周新增星合计', role: 'prev_week_total' });
+  addNumber(wow.delta, { kind: 'total', field: 'weekMetrics.wow.delta', label: '较上周变化量', role: 'wow_delta' });
+  addNumber(wow.rate, { kind: 'total', field: 'weekMetrics.wow.rate', label: '环比（%）', role: 'wow_rate' });
+  addNumber(weekMetrics.churnCount, { kind: 'total', field: 'weekMetrics.churnCount', label: '换血项目数', role: 'churn_count' });
+  addNumber(weekMetrics.churnRate, { kind: 'total', field: 'weekMetrics.churnRate', label: '换血率（%）', role: 'churn_rate' });
+
+  addNumber(prevWeekStats.totalProjects, {
+    kind: 'total',
+    field: 'prevWeekStats.totalProjects',
+    label: '上周上榜项目数',
+    role: 'prev_total_projects',
+  });
+  addNumber(prevWeekStats.aiProjects, {
+    kind: 'total',
+    field: 'prevWeekStats.aiProjects',
+    label: '上周 AI 项目数',
+    role: 'prev_ai_projects',
+  });
+  if (prevWeekStats.avgStars !== undefined && prevWeekStats.avgStars !== null) {
+    add(prevWeekStats.avgStars, { kind: 'total', field: 'prevWeekStats.avgStars', label: '上周平均 Stars', role: 'prev_avg_stars' });
+  }
+  addNumber(prevWeekStats.newStarsTotal, {
+    kind: 'total',
+    field: 'prevWeekStats.newStarsTotal',
+    label: '上周新增星合计',
+    role: 'prev_week_total',
+  });
+
+  const dailyCounts = brief.dailyCounts ?? weekMetrics.dailyCounts ?? [];
+  const weekDates = history.getISOWeekDates(brief.weekStart || brief.week || brief.date);
+  dailyCounts.forEach((count, index) => {
+    addNumber(count, {
+      kind: 'total',
+      field: `dailyCounts[${index}]`,
+      label: `日报项目数 ${weekDates[index] || index + 1}`,
+      role: 'daily_count',
+    });
+  });
+
+  const newProjects = weekMetrics.new || [];
+  const continuing = weekMetrics.continuing || [];
+  const returning = weekMetrics.returning || [];
+  const out = weekMetrics.out || [];
+  add(newProjects.length, { kind: 'total', field: 'weekMetrics.new', label: '本周新面孔数', role: 'new' });
+  add(continuing.length, { kind: 'total', field: 'weekMetrics.continuing', label: '本周连续在榜数', role: 'kept' });
+  add(returning.length, { kind: 'total', field: 'weekMetrics.returning', label: '本周回归数', role: 'returned' });
+  add(out.length, { kind: 'total', field: 'weekMetrics.out', label: '本周出局数', role: 'dropped' });
+
+  (weekMetrics.dailyTop3Stats || []).forEach((item, index) => {
+    if (!item.fullName) return;
+    addNumber(item.days, {
+      project: item.fullName,
+      field: `weekMetrics.dailyTop3Stats[${index}].days`,
+      label: `${item.fullName} 本周日报上榜天数`,
+      role: 'top3_days',
+    });
+    addNumber(item.weekStars, {
+      project: item.fullName,
+      field: `weekMetrics.dailyTop3Stats[${index}].weekStars`,
+      label: `${item.fullName} 本周日报新增星`,
+      role: 'top3_stars',
+    });
+  });
+
+  projects.forEach((project, index) => {
+    const fullName = history.projectKey(project);
+    if (!fullName) return;
+    addNumber(project.todayStars, {
+      project: fullName,
+      field: `projects[${index}].todayStars`,
+      label: `${fullName} 本周新增星`,
+      role: 'week_stars',
+    });
+    addNumber(project.stars, {
+      project: fullName,
+      field: `projects[${index}].stars`,
+      label: `${fullName} 累计 Stars`,
+      role: 'stars',
+    });
+    addNumber(project.forks, {
+      project: fullName,
+      field: `projects[${index}].forks`,
+      label: `${fullName} Fork 数`,
+      role: 'forks',
+    });
+  });
+
+  for (const threshold of THRESHOLDS.weekly) {
+    add(threshold.value, {
+      kind: 'threshold',
+      field: threshold.field,
+      label: threshold.label,
+      role: 'threshold',
+    });
+  }
+
+  const dailyTop3Names = (weekMetrics.dailyTop3Stats || [])
+    .map(item => item.fullName)
+    .filter(Boolean);
+  return Array.from(new Set([...history.getProjectNames(brief), ...dailyTop3Names]));
+}
+
+function buildMonthlyFacts({ brief, metrics, add, addNumber }) {
+  const stats = brief.stats || {};
+  const monthTop = brief.monthTop || metrics?.monthTop || [];
+  const allItems = Array.isArray(metrics?.top) && metrics.top.length > 0 ? metrics.top : monthTop;
+  const itemField = Array.isArray(metrics?.top) && metrics.top.length > 0 ? 'top' : 'monthTop';
+  const prevMonthStats = brief.prevMonthStats || metrics?.prevMonthStats || {};
+
+  addNumber(stats.totalProjects, {
+    kind: 'total',
+    field: 'stats.totalProjects',
+    label: '总项目数（日榜去重）',
+    role: 'total_projects',
+  });
+  addNumber(stats.aiProjects, { kind: 'total', field: 'stats.aiProjects', label: 'AI 项目数', role: 'ai_projects' });
+  if (stats.avgStars !== undefined && stats.avgStars !== null) {
+    add(stats.avgStars, { kind: 'total', field: 'stats.avgStars', label: '平均 Stars', role: 'avg_stars' });
+  }
+  addNumber(stats.newStarsTotal, {
+    kind: 'total',
+    field: 'stats.newStarsTotal',
+    label: '本月新增星合计',
+    role: 'total_month',
+  });
+  addNumber(stats.recurringProjects, {
+    kind: 'total',
+    field: 'stats.recurringProjects',
+    label: '重复上榜项目数（上榜 ≥2 天）',
+    role: 'recurring',
+  });
+  addNumber(stats.newProjects, { kind: 'total', field: 'stats.newProjects', label: '新秀数', role: 'new' });
+  addNumber(stats.priorProjects, { kind: 'total', field: 'stats.priorProjects', label: '非新秀项目数', role: 'prior' });
+  addNumber(stats.top5Share, {
+    kind: 'total',
+    field: 'stats.top5Share',
+    label: 'Top5 头部集中度（%）',
+    role: 'top5_share',
+  });
+
+  addNumber(prevMonthStats.projects, {
+    kind: 'total',
+    field: 'prevMonthStats.projects',
+    label: '上月总项目数',
+    role: 'prev_total_projects',
+  });
+  addNumber(prevMonthStats.newStarsTotal, {
+    kind: 'total',
+    field: 'prevMonthStats.newStarsTotal',
+    label: '上月新增星合计',
+    role: 'prev_month_total',
+  });
+  addNumber(prevMonthStats.rookies, {
+    kind: 'total',
+    field: 'prevMonthStats.rookies',
+    label: '上月新秀数',
+    role: 'prev_new',
+  });
+  addNumber(prevMonthStats.priorProjects, {
+    kind: 'total',
+    field: 'prevMonthStats.priorProjects',
+    label: '上月非新秀项目数',
+    role: 'prev_prior',
+  });
+  addNumber(prevMonthStats.top5Share, {
+    kind: 'total',
+    field: 'prevMonthStats.top5Share',
+    label: '上月 Top5 头部集中度（%）',
+    role: 'prev_top5_share',
+  });
+
+  allItems.forEach((item, index) => {
+    const fullName = item.fullName;
+    if (!fullName) return;
+    addNumber(item.monthStars, {
+      project: fullName,
+      field: `${itemField}[${index}].monthStars`,
+      label: `${fullName} 本月新增星`,
+      role: 'month_stars',
+    });
+    addNumber(item.daysOnList, {
+      project: fullName,
+      field: `${itemField}[${index}].daysOnList`,
+      label: `${fullName} 上榜天数`,
+      role: 'days_on_list',
+    });
+    addNumber(item.lastStars, {
+      project: fullName,
+      field: `${itemField}[${index}].lastStars`,
+      label: `${fullName} 累计 Stars`,
+      role: 'stars',
+    });
+  });
+
+  const dropList = brief.dropList || metrics?.dropList || [];
+  dropList.forEach((item, index) => {
+    const fullName = item.fullName;
+    if (!fullName) return;
+    addNumber(item.prevRank, {
+      project: fullName,
+      field: `dropList[${index}].prevRank`,
+      label: `${fullName} 上月排名`,
+      role: 'prev_rank',
+    });
+    addNumber(item.prevMonthStars, {
+      project: fullName,
+      field: `dropList[${index}].prevMonthStars`,
+      label: `${fullName} 上月新增星`,
+      role: 'prev_month_stars',
+    });
+    addNumber(item.currentRank, {
+      project: fullName,
+      field: `dropList[${index}].currentRank`,
+      label: `${fullName} 本月排名`,
+      role: 'current_rank',
+    });
+    addNumber(item.currentMonthStars, {
+      project: fullName,
+      field: `dropList[${index}].currentMonthStars`,
+      label: `${fullName} 本月新增星`,
+      role: 'month_stars',
+    });
+  });
+
+  for (const threshold of THRESHOLDS.monthly) {
+    add(threshold.value, {
+      kind: 'threshold',
+      field: threshold.field,
+      label: threshold.label,
+      role: 'threshold',
+    });
+  }
+
+  return Array.from(new Set(allItems.map(item => item.fullName).filter(Boolean)));
+}
+
+function buildFacts({ level, period, brief, metrics }) {
+  if (!brief || !BRIEF_PATHS[level] || !period) return null;
+
+  const file = BRIEF_PATHS[level](period);
+  const facts = [];
+
+  const add = (value, { project = null, kind = 'single', field, label, role, source, current, reference, comparison }) => {
+    if (value === undefined || value === null) return null;
+    const fact = {
+      id: `f${facts.length + 1}`,
+      value,
+      project: project || null,
+      kind,
+      source: source || `${file}#${field}`,
+      label,
+      role: role || null,
+    };
+    if (current !== undefined) fact.current = current;
+    if (reference !== undefined) fact.reference = reference;
+    if (comparison !== undefined) fact.comparison = comparison;
+    facts.push(fact);
+    return fact.id;
+  };
+
+  const addNumber = (value, options) => {
+    const number = toNumber(value);
+    if (number === null) return null;
+    return add(number, options);
+  };
+
+  let projects;
+  if (level === 'daily') {
+    projects = buildDailyFacts({ brief, add, addNumber });
+  } else if (level === 'weekly') {
+    projects = buildWeeklyFacts({ brief, metrics, add, addNumber });
+  } else {
+    projects = buildMonthlyFacts({ brief, metrics, add, addNumber });
+  }
+
+  return { level, period, projects, facts };
+}
+
+module.exports = {
+  buildFacts,
+  BRIEF_PATHS,
+  THRESHOLDS,
+  parseMetricNumber,
+};

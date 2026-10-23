@@ -56,12 +56,14 @@ class MonthlyGenerator {
 <body>
   <div class="container monthly-report">
     ${this.renderHeader(month)}
-    ${this.renderOverview(aggregation)}
+    ${this.renderOverview(data.stats, data.caption)}
+    ${this.renderMonthlyMetricsSection(data)}
     ${this.renderTheme(aiInsights?.monthlyTheme)}
     ${this.renderTrendEvolution(aiInsights?.trendEvolution)}
     ${this.renderCharts(aggregation)}
-    ${this.renderWikiTracking(aggregation)}
-    ${this.renderLongTermValue(aiInsights?.longTermValue)}
+    ${this.renderWikiTracking(aggregation, this.buildDaysOnListMap(data))}
+    ${this.renderMonthTop(data.monthTop)}
+    ${this.renderLongTermValue(aiInsights?.longTermValue, data.monthTop)}
     ${this.renderEmergingFields(aiInsights?.emergingFields)}
     ${this.renderDarkHorse(aiInsights?.darkHorse)}
     ${this.renderNextMonthForecast(aiInsights?.nextMonthForecast)}
@@ -84,26 +86,128 @@ class MonthlyGenerator {
     `;
   }
 
+  hasValue(value) {
+    if (value === null || value === undefined) return false;
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === 'number') return Number.isFinite(value) && value !== 0;
+    const text = String(value).trim();
+    return text !== '' && text !== '0' && text !== '0%' && text !== 'null' && text !== 'undefined' && text !== 'NaN';
+  }
+
+  buildDaysOnListMap(data = {}) {
+    const items = data.metrics?.top || data.monthTop || [];
+    const map = new Map();
+    for (const item of items) {
+      if (item && item.fullName && Number.isFinite(item.daysOnList)) {
+        map.set(item.fullName, item.daysOnList);
+      }
+    }
+    return map;
+  }
+
   /**
    * 渲染月度概览
    */
-  renderOverview(aggregation) {
-    const stats = [
-      { value: aggregation?.totalProjects || 0, label: '总项目数', detail: '去重后' },
-      { value: aggregation?.recurringProjects?.length || 0, label: '重复上榜', detail: '≥2 次' },
-      { value: aggregation?.newProjects?.length || 0, label: '月度新星', detail: '首次出现' },
-      { value: Object.values(aggregation?.typeDistribution || {}).reduce((a, b) => a + b, 0), label: 'AI 项目', detail: '含 Agent/LLM 等' }
-    ];
+  renderOverview(stats = {}, caption = '') {
+    const recurring = stats.recurringProjects;
+    const newProjects = stats.newProjects;
+    const aiProjects = stats.aiProjects;
+
+    const items = [
+      { value: stats.totalProjects, label: '总项目数', detail: '日榜去重' },
+      { value: recurring, label: '重复上榜', detail: '上榜 ≥2 天' },
+      { value: newProjects, label: '月度新星', detail: '30 天内首次进入日榜' },
+      { value: aiProjects, label: 'AI 项目', detail: '日榜去重' }
+    ].filter(item => this.hasValue(item.value));
+
+    if (items.length === 0) {
+      return this.hasValue(caption) ? `<p class="metric-caption">${caption}</p>` : '';
+    }
 
     return `
       <section class="monthly-overview">
         <h2>月度概览</h2>
         <div class="stats-grid">
-          ${stats.map(stat => `
+          ${items.map(stat => `
             <div class="stat-card">
               <div class="stat-value">${stat.value}</div>
               <div class="stat-label">${stat.label}</div>
               <div class="stat-detail">${stat.detail}</div>
+            </div>
+          `).join('')}
+        </div>
+        ${this.hasValue(caption) ? `<p class="metric-caption">${caption}</p>` : ''}
+      </section>
+    `;
+  }
+
+  renderMonthlyMetricsSection(data) {
+    const prev = data.prevMonthStats || {};
+    const stats = data.stats || {};
+    const weekThemes = data.weekThemes || [];
+    const dropList = data.dropList || [];
+    const dropListNote = data.dropListNote;
+    const lines = [];
+
+    const compare = [];
+    if (this.hasValue(stats.totalProjects) || this.hasValue(prev.projects)) {
+      compare.push(`项目数 ${stats.totalProjects ?? '—'}（上月 ${prev.projects ?? '—'}）`);
+    }
+    if (this.hasValue(stats.newStarsTotal) || this.hasValue(prev.newStarsTotal)) {
+      compare.push(`新增星 ${stats.newStarsTotal ?? '—'}（上月 ${prev.newStarsTotal ?? '—'}）`);
+    }
+    if (this.hasValue(stats.newProjects) || this.hasValue(prev.rookies)) {
+      compare.push(`新秀 ${stats.newProjects ?? '—'}（上月 ${prev.rookies ?? '—'}）`);
+    }
+    if (this.hasValue(stats.top5Share) || this.hasValue(prev.top5Share)) {
+      compare.push(`头部集中度 ${stats.top5Share ?? '—'}%（上月 ${prev.top5Share ?? '—'}%）`);
+    }
+    if (compare.length > 0) {
+      lines.push(`<p>较上月：${compare.join('；')}。</p>`);
+    }
+
+    const themes = weekThemes
+      .filter(item => item && (item.week || item.theme))
+      .map(item => `<li>${item.week || ''}（${item.startDate || ''} 起）：${item.theme || '主题未知'}</li>`);
+    if (themes.length > 0) {
+      lines.push(`<h3>各周主题</h3><ul>${themes.join('')}</ul>`);
+    }
+
+    if (dropList.length > 0) {
+      const items = dropList.map(item => `${item.fullName}（上月第 ${item.prevRank}，本月${item.currentRank ? `第 ${item.currentRank}` : '未进 Top10'}）`);
+      lines.push(`<h3>回落清单</h3><ul>${items.map(item => `<li>${item}</li>`).join('')}</ul>`);
+    } else {
+      lines.push(`<h3>回落清单</h3><p>${dropListNote || '本月无回落'}</p>`);
+    }
+
+    return `
+      <section class="monthly-metrics">
+        <h2>本月与上月</h2>
+        ${lines.join('')}
+      </section>
+    `;
+  }
+
+  renderMonthTop(monthTop) {
+    if (!Array.isArray(monthTop) || monthTop.length === 0) return '';
+
+    const items = monthTop.filter(item => this.hasValue(item.monthStars) || this.hasValue(item.daysOnList));
+    if (items.length === 0) return '';
+
+    return `
+      <section class="month-top">
+        <h2>月度 TOP（按本月新增星）</h2>
+        <div class="project-list">
+          ${items.map((item, index) => `
+            <div class="project-item">
+              <div class="name">
+                <a href="https://github.com/${item.fullName}" target="_blank">${index + 1}. ${item.fullName}</a>
+              </div>
+              <div class="desc">
+                ${this.hasValue(item.monthStars) ? `本月新增 ${item.monthStars} 星` : ''}
+                ${this.hasValue(item.monthStars) && this.hasValue(item.daysOnList) ? ' · ' : ''}
+                ${this.hasValue(item.daysOnList) ? `上榜 ${item.daysOnList} 天` : ''}
+              </div>
             </div>
           `).join('')}
         </div>
@@ -117,11 +221,15 @@ class MonthlyGenerator {
   renderTheme(monthlyTheme) {
     if (!monthlyTheme) return '';
 
+    const oneLiner = this.hasValue(monthlyTheme.oneLiner) ? monthlyTheme.oneLiner : '';
+    const detailed = this.hasValue(monthlyTheme.detailed) ? monthlyTheme.detailed : '';
+    if (!oneLiner && !detailed) return '';
+
     return `
       <section class="monthly-theme">
         <h2>月度主题</h2>
-        <div class="theme-one-liner">${monthlyTheme.oneLiner || '暂无数据'}</div>
-        <div class="theme-detailed">${monthlyTheme.detailed || '暂无详细分析'}</div>
+        ${oneLiner ? `<div class="theme-one-liner">${oneLiner}</div>` : ''}
+        ${detailed ? `<div class="theme-detailed">${detailed}</div>` : ''}
       </section>
     `;
   }
@@ -202,7 +310,7 @@ class MonthlyGenerator {
   /**
    * 渲染 Wiki 追踪模块
    */
-  renderWikiTracking(aggregation) {
+  renderWikiTracking(aggregation, daysOnList = new Map()) {
     if (!aggregation) return '';
 
     const projects = aggregation.recurringProjects || aggregation.topGainers || [];
@@ -250,7 +358,9 @@ class MonthlyGenerator {
                       <a href="../wiki/projects/${p.repo.replace('/', '_')}.md" class="wiki-project-link">
                         ${p.repo}
                       </a>
-                      <span class="wiki-appearances">上榜 ${p.count || p.appearanceCount || 1} 次</span>
+                      ${Number.isFinite(daysOnList.get(p.repo))
+                        ? `<span class="wiki-appearances">上榜 ${daysOnList.get(p.repo)} 次</span>`
+                        : ''}
                     </li>
                   `).join('')}
                 </ul>
@@ -268,13 +378,19 @@ class MonthlyGenerator {
   /**
    * 渲染月度 TOP 项目
    */
-  renderLongTermValue(topProjects) {
+  renderLongTermValue(topProjects, monthTop = []) {
     if (!topProjects || topProjects.length === 0) return '';
+
+    const metricByRepo = new Map((monthTop || []).map(item => [item.fullName, item]));
 
     return `
       <section class="top-projects">
         <h2>月度 TOP 项目</h2>
-        ${topProjects.slice(0, 5).map((project, index) => `
+        ${topProjects.slice(0, 5).map((project, index) => {
+          const metric = metricByRepo.get(project.repo) || {};
+          const oneSentence = project.oneSentence || project.value || project.description || '';
+
+          return `
           <div class="top-project-card">
             <div class="top-project-header">
               <div>
@@ -282,11 +398,10 @@ class MonthlyGenerator {
                 <span class="repo-name">
                   <a href="https://github.com/${project.repo}" target="_blank">${project.repo}</a>
                 </span>
-                <span class="category">${project.category || '技术创新'}</span>
+                ${this.hasValue(project.category) ? `<span class="category">${project.category}</span>` : ''}
               </div>
-              <span class="score">${project.score || 0}</span>
             </div>
-            <div class="description">${project.value || project.description || ''}</div>
+            ${this.hasValue(oneSentence) ? `<div class="description">${oneSentence}</div>` : ''}
             ${project.reasons && project.reasons.length > 0 ? `
               <div class="reasons">
                 <h4>入选理由</h4>
@@ -296,12 +411,15 @@ class MonthlyGenerator {
               </div>
             ` : ''}
             <div class="meta">
-              ${project.stars ? `<span>⭐ ${project.stars}</span>` : ''}
-              ${project.language ? `<span>💻 ${project.language}</span>` : ''}
-              ${project.sustainability ? `<span>持续性：${project.sustainability}</span>` : ''}
+              ${this.hasValue(metric.monthStars) ? `<span>本月新增 ${metric.monthStars} 星</span>` : ''}
+              ${this.hasValue(metric.daysOnList) ? `<span>上榜 ${metric.daysOnList} 天</span>` : ''}
+              ${this.hasValue(project.stars) ? `<span>累计 ${project.stars} 星</span>` : ''}
+              ${this.hasValue(project.language) ? `<span>💻 ${project.language}</span>` : ''}
+              ${this.hasValue(project.sustainability) ? `<span>持续性：${project.sustainability}</span>` : ''}
             </div>
           </div>
-        `).join('')}
+        `;
+        }).join('')}
       </section>
     `;
   }
@@ -338,7 +456,7 @@ class MonthlyGenerator {
    * 渲染月度黑马
    */
   renderDarkHorse(darkHorse) {
-    if (!darkHorse) return '';
+    if (!darkHorse || !this.hasValue(darkHorse.repo)) return '';
 
     return `
       <section class="dark-horse">
@@ -347,7 +465,7 @@ class MonthlyGenerator {
           <div class="repo">
             <a href="https://github.com/${darkHorse.repo}" target="_blank" style="color: white;">${darkHorse.repo}</a>
           </div>
-          <div class="reason">${darkHorse.reason || '暂无描述'}</div>
+          ${this.hasValue(darkHorse.reason) ? `<div class="reason">${darkHorse.reason}</div>` : ''}
         </div>
       </section>
     `;

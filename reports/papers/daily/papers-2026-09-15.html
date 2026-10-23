@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuggingFace AI Papers 日报 - 2026-09-15</title>
+  <link rel="stylesheet" href="../../public/css/style.css">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-card: #161b22;
+      --text-primary: #c9d1d9;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-orange: #d29922;
+      --border: #30363d;
+      --border-light: #21262d;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.5; padding: 24px 16px; font-size: 13px; }
+    .container { max-width: 960px; margin: 0 auto; }
+    header { text-align: center; padding: 32px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+    h1 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+    .date { color: var(--text-secondary); font-size: 0.8125rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); padding: 12px; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
+    .stat-value { font-size: 1.25rem; font-weight: 600; color: var(--accent-green); line-height: 1.2; }
+    .stat-value .star-icon { color: #fbbf24; width: 20px; height: 20px; vertical-align: middle; display: inline-block; }
+    .stat-label { color: var(--text-secondary); margin-top: 4px; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    section { margin-bottom: 24px; }
+    h2 { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .project-list { display: flex; flex-direction: column; gap: 8px; }
+    .star-icon { width: 16px; height: 16px; vertical-align: middle; }
+    .paper-card { background: var(--bg-card); border-radius: 6px; padding: 12px; margin: 8px 0; border: 1px solid var(--border); transition: border-color 0.2s; }
+    .paper-card:hover { border-color: var(--text-muted); }
+    .paper-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; }
+    .paper-name { font-size: 0.875rem; font-weight: 600; color: var(--accent); text-decoration: none; line-height: 1.4; }
+    .paper-name:hover { text-decoration: underline; }
+    .paper-stats { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+    .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.6875rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 2px 6px; border-radius: 10px; border: 1px solid var(--border); white-space: nowrap; }
+    .stat-badge .star-icon { color: #fbbf24; width: 12px; height: 12px; }
+    .paper-abstract { background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin: 8px 0; border: 1px solid var(--border); }
+    .paper-abstract strong { color: var(--text-primary); }
+    .paper-meta { color: var(--text-secondary); font-size: 0.75rem; margin: 8px 0; }
+    .paper-meta a { color: var(--accent); text-decoration: none; }
+    .paper-meta a:hover { text-decoration: underline; }
+    .toggle-btn { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.6875rem; font-weight: 500; transition: all 0.2s; }
+    .toggle-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+    .paper-details { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .paper-details.active { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .detail-column { background: var(--bg-secondary); padding: 8px; border-radius: 6px; }
+    .detail-column h4 { color: var(--text-primary); margin-bottom: 6px; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
+    .detail-column ul { list-style: none; }
+    .detail-column li { color: var(--text-secondary); padding: 3px 0; font-size: 0.75rem; line-height: 1.4; }
+    .ai-section { background: var(--bg-card); padding: 16px; border-radius: 6px; border: 1px solid var(--border); }
+    .ai-section h2, .ai-section h3 { color: var(--text-primary); margin: 16px 0 8px; font-size: 0.75rem; font-weight: 600; }
+    .ai-section h2:first-child, .ai-section h3:first-child { margin-top: 0; }
+    .ai-section p { color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; font-size: 0.8125rem; }
+    .ai-section ul { margin-bottom: 12px; padding-left: 16px; }
+    .ai-section li { color: var(--text-secondary); margin-bottom: 4px; font-size: 0.8125rem; line-height: 1.5; }
+    .lang-dist { display: flex; flex-wrap: wrap; gap: 10px; }
+    .lang-item { background: var(--accent); color: var(--bg-primary); padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+    .paper-type { background: var(--accent-orange); color: var(--bg-primary); padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; margin-left: 6px; }
+    .quick-actions { display: flex; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .action-btn { background: var(--accent); color: var(--bg-primary); padding: 4px 12px; border-radius: 4px; text-decoration: none; font-size: 0.75rem; font-weight: 500; border: none; cursor: pointer; }
+    .action-btn:hover { opacity: 0.9; }
+    .bibtex-block { background: var(--bg-primary); padding: 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.6875rem; color: var(--text-secondary); white-space: pre-wrap; margin-top: 8px; }
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } .paper-details.active { grid-template-columns: 1fr; } .paper-header { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>HuggingFace AI Papers 日报</h1>
+      <div class="date">2026-09-15</div>
+    </header>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">10</div>
+        <div class="stat-label">论文总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">5</div>
+        <div class="stat-label">有 Stars 论文</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">
+          <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor" style="width: 20px; height: 20px;"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+          <span style="vertical-align: middle;">234</span>
+        </div>
+        <div class="stat-label">总 Stars</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">23</div>
+        <div class="stat-label">平均 Stars</div>
+      </div>
+    </section>
+
+    
+      <section class="ai-section">
+        <h2>AI 深度洞察</h2>
+        <p>评测基建与智能体技能优化领跑，机器人与3D生成多点开花</p>
+
+        
+          <h3>技术亮点</h3>
+          <ul>
+            
+              <li>
+                <strong><a href="https://github.com/ktwu01/benchmark-radar" target="_blank" style="color: var(--accent); text-decoration: none;">ktwu01/benchmark-radar</a></strong>: 构建了持续更新的 AI 基准测试活数据库与搜索引擎，解决基准碎片化、过时难追踪的问题。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/MAGICLAB-NUS/LIT" target="_blank" style="color: var(--accent); text-decoration: none;">MAGICLAB-NUS/LIT</a></strong>: 揭示并打破视觉-动作捷径学习问题，提出潜在接口训练提升机器人基础模型泛化性。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/Tencent-Hunyuan/Simple-Attention-Sparsification" target="_blank" style="color: var(--accent); text-decoration: none;">Tencent-Hunyuan/Simple-Attention-Sparsification</a></strong>: 通过端到端优化上下文排序实现简单高效的注意力稀疏化。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/Jerry-LuP/COBRA-Skills" target="_blank" style="color: var(--accent); text-decoration: none;">Jerry-LuP/COBRA-Skills</a></strong>: 用上下文多臂老虎机引导智能体技能库的演化优化，实现技能自动迭代。
+              </li>
+            
+              <li>
+                <strong><a href="https://github.com/LucyTuan/SNAP3D" target="_blank" style="color: var(--accent); text-decoration: none;">LucyTuan/SNAP3D</a></strong>: 从单张图像生成物理可装配的 3D 零件，兼具几何精度与物理合理性。
+              </li>
+            
+          </ul>
+        
+
+        
+          <h3>社区价值</h3>
+          <ul>
+            <li>Benchmark Radar 提供开放可持续更新的评测数据库，降低研究者选基准的成本</li><li>腾讯混元开源注意力稀疏化实现，助力长上下文推理降本增效</li><li>机器人、3D 生成、智能体技能优化等多个方向均附带完整代码，便于复现与二次开发</li>
+          </ul>
+        
+
+        
+          <h3>应用前景</h3>
+          <ul>
+            <li>潜在接口训练可推动通用的跨具身机器人基础模型落地工业与家庭场景</li><li>注意力稀疏化技术可应用于长上下文大模型的低成本推理部署</li><li>技能路由与上下文赌博机方法可支撑企业级 LLM 智能体的自动化能力迭代</li>
+          </ul>
+        
+      </section>
+    
+
+    <section>
+      <h2>论文列表（共 10 篇）</h2>
+      <div class="project-list">
+        
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.11115" class="paper-name" target="_blank">
+            1. Benchmark Radar: A Living Database and Search Engine for AI Benchmarks and Evaluation
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              201
+            </span>
+            <span class="stat-badge" title="GitHub">ktwu01/benchmark-radar</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>基准雷达是您进行基准研究时所需的一切！我们在进行基准研究时不断遇到新的基准，因此我们构建了一个爬虫，不断从网络上收集与基准相关的信号。它每天从37个公共来源提取证据，并不断更新。我们还有一个CLI工具，可以帮助您从12k +基准/评估/数据...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(0)" id="btn-0">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-0">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.11115" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.11115" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/ktwu01/benchmark-radar" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(0)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Benchmark Radar: A Living Database and Search Engine for AI Benchmarks and Evaluation</li>
+              <li>Stars: 201</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.11115" target="_blank">https://huggingface.co/papers/2609.11115</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.11115" target="_blank">https://arxiv.org/abs/2609.11115</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>基准雷达是您进行基准研究时所需的一切！我们在进行基准研究时不断遇到新的基准，因此我们构建了一个爬虫，不断从网络上收集与基准相关的信号。它每天从37个公共来源提取证据，并不断更新。我们还有一个CLI工具，可以帮助您从12k +基准/评估/数据集记录中在几分钟内创建与LaTeX版本相关的基准工作。</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Benchmark radar is all you need when doing benchmark research! We kept running into new benchmarks while doing benchmark research, so we built a crawler that continuously collects benchmark-related signals from across the web. It pulls evidence from 37 public sources every day, and keeps updating. We also have a CLI tool, which can help you create LaTeX version related benchmark work in minutes from 12k+ benchmark/eval/dataset records.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-0">@article{unknown26,
+  title = {Benchmark Radar: A Living Database and Search Engine for AI Benchmarks and Evaluation},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.11115},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.12641" class="paper-name" target="_blank">
+            2. Breaking the Vision-Action Shortcut: Latent Interface Training for Generalizable Robotics Foundation Models
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              24
+            </span>
+            <span class="stat-badge" title="GitHub">MAGICLAB-NUS/LIT</span>
+            <span class="paper-type" title="论文类型">综述</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>机器人基础模型实现了强大的分布内性能，但往往在视觉分布变化下退化。当学习从预训练的视觉表示中生成动作时，模型可能会利用与训练分布中演示的动作相关的任务无关的视觉提示。当这些相关性在分布变化下发生变化时，这种视觉-动作快捷方式可能会破坏泛化。...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(1)" id="btn-1">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-1">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.12641" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.12641" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/MAGICLAB-NUS/LIT" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(1)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Breaking the Vision-Action Shortcut: Latent Interface Training for Generalizable Robotics Foundation Models</li>
+              <li>Stars: 24</li>
+              <li>类型：综述</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.12641" target="_blank">https://huggingface.co/papers/2609.12641</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.12641" target="_blank">https://arxiv.org/abs/2609.12641</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>机器人基础模型实现了强大的分布内性能，但往往在视觉分布变化下退化。当学习从预训练的视觉表示中生成动作时，模型可能会利用与训练分布中演示的动作相关的任务无关的视觉提示。当这些相关性在分布变化下发生变化时，这种视觉-动作快捷方式可能会破坏泛化。缓解这些问题……</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Robot foundation models achieve strong in-distribution performance but often degrade under visual distribution shifts. When learning to generate actions from pretrained visual representations, models may exploit task-irrelevant visual cues that correlate with demonstrated actions within the training distribution. Such vision-action shortcuts can undermine generalization when these correlations change under distribution shifts. Mitigating these shortcuts requires constraining how visual information is used for action generation while preserving task-relevant spatial information. We propose Latent Interface Training (LIT), a framework-agnostic two-stage strategy that first establishes a spatial-goal-conditioned action prior without images, then constrains visual conditioning through a pose-supervised latent interface. Stage 1 trains the action expert to generate action chunks conditioned on language, robot state, and each demonstrated chunk's terminal SE(3) end-effector pose, learning goal-directed action generation independently of visual cues. Stage 2 introduces a latent interface that aggregates visual and semantic representations and serves as the pretrained action expert's only visual conditioning pathway. The interface is supervised to reconstruct the terminal pose previously used to condition Stage 1, encouraging it to retain the goal-relevant spatial information needed for action generation. Across four vision-language-action and world-action architectures (Pi0.5, MolmoAct2, FAST-WAM, and ImageWAM), LIT improves overall LIBERO-Plus success by 3.87-10.70 percentage points while preserving or improving average LIBERO success. Real-world evaluations show 13.30-16.70 percentage-point gains in success aggregated across three tasks under unseen camera configurations, lighting variations, and distractors.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-1">@article{unknown26,
+  title = {Breaking the Vision-Action Shortcut: Latent Interface Training for Generalizable Robotics Foundation Models},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.12641},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.11682" class="paper-name" target="_blank">
+            3. COBRA-Skills: Contextual Bandit-Guided Evolution for Agent Skill Optimization
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              5
+            </span>
+            <span class="stat-badge" title="GitHub">Jerry-LuP/COBRA-Skills</span>
+            <span class="paper-type" title="论文类型">综述</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>COBRA-Skills: Contextual Bandits for Efficient Agent Skill Optimization🚀如何优化Agent Skills ，而无需反复花费大量计算在弱候选者和基于LLM的成本高昂的细...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(2)" id="btn-2">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-2">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.11682" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.11682" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/Jerry-LuP/COBRA-Skills" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(2)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：COBRA-Skills: Contextual Bandit-Guided Evolution for Agent Skill Optimization</li>
+              <li>Stars: 5</li>
+              <li>类型：综述</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.11682" target="_blank">https://huggingface.co/papers/2609.11682</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.11682" target="_blank">https://arxiv.org/abs/2609.11682</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>COBRA-Skills: Contextual Bandits for Efficient Agent Skill Optimization🚀如何优化Agent Skills ，而无需反复花费大量计算在弱候选者和基于LLM的成本高昂的细化上？ COBRA-Skills将技能优化视为一个连续的预算分配问题：接下来哪项技能最值得评估？ COBRA-Skills没有详尽地尝试和完善求职者技能，而是保留了大量的技能……</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>COBRA-Skills: Contextual Bandits for Efficient Agent Skill Optimization 🚀 How can we optimize Agent Skills without repeatedly spending large amounts of computation on weak candidates and costly LLM-based refinement? COBRA-Skills treats skill optimization as a sequential budget-allocation problem: Which skill is most worth evaluating next? Instead of exhaustively trying and refining candidate skills, COBRA-Skills maintains a population of skills and uses: a neural predictor to estimate skill utility, LinearUCB to balance exploration and exploitation, target-agent execution feedback to update the bandit, scheduled evolution operators (regeneration, rollout mutation, and crossover) to evolve the skill population. Results We evaluate COBRA-Skills on 6 diverse agent benchmarks × 3 target models , covering search QA, spreadsheets, document understanding, mathematical reasoning, social reasoning, and embodied tasks. COBRA-Skills achieves: 🏆 the best average performance among the compared methods, 💰 ~55–58% lower optimization cost than SkillOpt, 📊 only 50 optimization examples per benchmark , 🔧 consistent effectiveness under Codex and Claude Code harnesses, 🤖 strong performance even when the target model itself generates and refines skills. An interesting finding is that the cost reduction does not mainly come from reducing target-agent executions. A large part comes from avoiding repeated LLM-based trajectory analysis and skill rewriting. 📄 Paper: https://arxiv.org/abs/2609.11682 💻 Code: https://github.com/Jerry-LuP/COBRA-Skills Feedback and discussions are very welcome!</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-2">@article{unknown26,
+  title = {COBRA-Skills: Contextual Bandit-Guided Evolution for Agent Skill Optimization},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.11682},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.13141" class="paper-name" target="_blank">
+            4. SAS: Simple Attention Sparsification via End-to-End Optimization of Context Ranking
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              3
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(3)" id="btn-3">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-3">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.13141" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.13141" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(3)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：SAS: Simple Attention Sparsification via End-to-End Optimization of Context Ranking</li>
+              <li>Stars: 3</li>
+              <li>类型：研究</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.13141" target="_blank">https://huggingface.co/papers/2609.13141</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.13141" target="_blank">https://arxiv.org/abs/2609.13141</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-3">@article{unknown26,
+  title = {SAS: Simple Attention Sparsification via End-to-End Optimization of Context Ranking},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.13141},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.13146" class="paper-name" target="_blank">
+            5. SNAP3D: Physically Grounded 3D Parts for Assembly from a Single Image
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              1
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Xiaoxuan Ma, Kris Kitani, Nicolas Ugrinovic, Hao-Tang Tsui, Yu-Rou Tuan</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>视频： https://www.youtube.com/watch?v=22yRDaWabwA
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(4)" id="btn-4">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-4">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.13146" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.13146" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(4)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：SNAP3D: Physically Grounded 3D Parts for Assembly from a Single Image</li>
+              <li>Stars: 1</li>
+              <li>类型：研究</li>
+              <li>作者：Xiaoxuan Ma, Kris Kitani, Nicolas Ugrinovic, Hao-Tang Tsui, Yu-Rou Tuan</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.13146" target="_blank">https://huggingface.co/papers/2609.13146</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.13146" target="_blank">https://arxiv.org/abs/2609.13146</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>视频： https://www.youtube.com/watch?v=22yRDaWabwA</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Video: https://www.youtube.com/watch?v=22yRDaWabwA</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-4">@article{ma26,
+  title = {SNAP3D: Physically Grounded 3D Parts for Assembly from a Single Image},
+  author = {Xiaoxuan Ma and Kris Kitani and Nicolas Ugrinovic and Hao-Tang Tsui and Yu-Rou Tuan},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.13146},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.08418" class="paper-name" target="_blank">
+            6. Feyospace-v1: How the Cyber Mercury Seven Trained Frontier Cyber Models
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>We present an end-to-end, data-centric framework for post-training open-weight language models as agentic cyber systems....
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(5)" id="btn-5">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-5">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.08418" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.08418" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(5)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Feyospace-v1: How the Cyber Mercury Seven Trained Frontier Cyber Models</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.08418" target="_blank">https://huggingface.co/papers/2609.08418</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.08418" target="_blank">https://arxiv.org/abs/2609.08418</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>We present an end-to-end, data-centric framework for post-training open-weight language models as agentic cyber systems. The framework addresses five practical challenges in capability transfer: reasoning-signature analysis with Choulea("思维链蒸馏"), cost-efficient teacher sampling with SkyReal(“中转杠杆”), constrained teacher elicitation with Hongzwang(“无限制越狱”), recovery of capabilities weakened by model merging through PSBreakup(“模型拆版”), and the conversion of expert interventions into trainable reasoning with Kreator(“专家融合”). We construct resettable, environment-grounded tasks spanning repository-level coding, vulnerability reproduction, CTFs, Linux kernel history, exploit development, firmware, and device-backed systems. Candidate trajectories are retained only after execution verification and evidence auditing, resulting in 164,269 audited trajectories for long-context supervised fine-tuning. Without reinforcement learning, the resulting Feyospace checkpoints achieve an average improvement of 23.76% on CyberGym and 10.49% across pooled CTF suites. In the evaluation snapshot reported in the paper, Feyospace-s1 reaches a 63.24% verified success rate on CyberGym and ranks 10th overall, while all three checkpoints rank first among open models at comparable parameter scales.</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>We present an end-to-end, data-centric framework for post-training open-weight language models as agentic cyber systems. The framework addresses five practical challenges in capability transfer: reasoning-signature analysis with Choulea("思维链蒸馏"), cost-efficient teacher sampling with SkyReal(“中转杠杆”), constrained teacher elicitation with Hongzwang(“无限制越狱”), recovery of capabilities weakened by model merging through PSBreakup(“模型拆版”), and the conversion of expert interventions into trainable reasoning with Kreator(“专家融合”). We construct resettable, environment-grounded tasks spanning repository-level coding, vulnerability reproduction, CTFs, Linux kernel history, exploit development, firmware, and device-backed systems. Candidate trajectories are retained only after execution verification and evidence auditing, resulting in 164,269 audited trajectories for long-context supervised fine-tuning. Without reinforcement learning, the resulting Feyospace checkpoints achieve an average improvement of 23.76% on CyberGym and 10.49% across pooled CTF suites. In the evaluation snapshot reported in the paper, Feyospace-s1 reaches a 63.24% verified success rate on CyberGym and ranks 10th overall, while all three checkpoints rank first among open models at comparable parameter scales.</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-5">@article{unknown26,
+  title = {Feyospace-v1: How the Cyber Mercury Seven Trained Frontier Cyber Models},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.08418},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.12945" class="paper-name" target="_blank">
+            7. StepAudio 3 Gen Technical Report
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">工具</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Boyang Wang, Bo Zhao, Bin Lin, jerryxxx, BoyongWu</div>
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>我们推出了StepAudio 3 Gen ，这是一种通用音频生成模型，可在统一框架内支持零拍文本到语音(TTS)、语音设计、声音生成、音效、音乐、氛围语音和多种音频类型的混合。StepAudio 3 Gen的核心是一个离散的自回归生成器，它...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(6)" id="btn-6">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-6">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.12945" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.12945" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(6)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：StepAudio 3 Gen Technical Report</li>
+              <li>Stars: 0</li>
+              <li>类型：工具</li>
+              <li>作者：Boyang Wang, Bo Zhao, Bin Lin, jerryxxx, BoyongWu</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.12945" target="_blank">https://huggingface.co/papers/2609.12945</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.12945" target="_blank">https://arxiv.org/abs/2609.12945</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>我们推出了StepAudio 3 Gen ，这是一种通用音频生成模型，可在统一框架内支持零拍文本到语音(TTS)、语音设计、声音生成、音效、音乐、氛围语音和多种音频类型的混合。StepAudio 3 Gen的核心是一个离散的自回归生成器，它直接在残差矢量量化（ RVQ ）令牌上建模音频，与基于扩散变压器的连续...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>We introduce StepAudio 3 Gen, a general-purpose audio generation model that supports zero-shot text-to-speech (TTS), voice design, vocal generation, sound effects, music, vibe speech, and mixtures of multiple audio types within a unified framework. At its core, StepAudio 3 Gen is a discrete autoregressive generator that models audio directly over residual vector quantization (RVQ) tokens, departing from the diffusion Transformer-based continuous generation paradigm prevalent in recent general audio models. Its StepAudio Tokenizer represents general audio at 12.5 Hz in a shared 16×2048 residual code space, jointly quantizing semantic and waveform-level acoustic features so that each code layer preserves both types of information. For generation, the backbone predicts the first codebook along the time axis using autoregressive modeling, while a lightweight causal Transformer completes the remaining fifteen codebooks along the codebook axis. Our study further identifies three key design principles: (1) interference-aware progressive pretraining for acquiring audio capabilities while preserving the textual abilities of the large language model, (2) RVQ Adaptor for effectively incorporating multi-codebook acoustic representations, and (3) discrete autoregressive modeling over a shared representation across general audio domains. With progressive pretraining, multi-task instruction training, and supervised fine-tuning, StepAudio 3 Gen achieves state-of-the-art performance on both TTS and voice design, while retaining strong generation capabilities across speech, vocals, sound effects, and music. Audio samples are available at https://stepaudiollm.github.io/step-audio-3-gen/ .</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-6">@article{wang26,
+  title = {StepAudio 3 Gen Technical Report},
+  author = {Boyang Wang and Bo Zhao and Bin Lin and jerryxxx and BoyongWu},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.12945},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2608.30597" class="paper-name" target="_blank">
+            8. PLC-DPO: Posterior Label Correction in Noisy and Ambiguous Preference Optimization
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">数据</span>
+          </div>
+        </div>
+
+        
+
+        
+          <div class="paper-abstract">
+            <strong>摘要：</strong>偏好数据集通常包含不正确的偏好方向或弱/模棱两可的配对。PLC-DPO为每对引入了潜在的清洁、翻转或领带状态，并使用校准的策略参考余量来推断后部路由权重。这些决定了训练是强化、逆转还是抑制强大的方向性更新。PLC-DPO使用这些权重结合了正...
+          </div>
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(7)" id="btn-7">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-7">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2608.30597" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2608.30597" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(7)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：PLC-DPO: Posterior Label Correction in Noisy and Ambiguous Preference Optimization</li>
+              <li>Stars: 0</li>
+              <li>类型：数据</li>
+              
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2608.30597" target="_blank">https://huggingface.co/papers/2608.30597</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2608.30597" target="_blank">https://arxiv.org/abs/2608.30597</a></li>
+            </ul>
+          </div>
+          
+            <div class="detail-column">
+              <h4>完整翻译</h4>
+              <p>偏好数据集通常包含不正确的偏好方向或弱/模棱两可的配对。PLC-DPO为每对引入了潜在的清洁、翻转或领带状态，并使用校准的策略参考余量来推断后部路由权重。这些决定了训练是强化、逆转还是抑制强大的方向性更新。PLC-DPO使用这些权重结合了正向、反向和并列正则化损失， EMA c...</p>
+            </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p>Preference datasets often contain incorrect preference directions or weak/ambiguous pairs. PLC-DPO introduces a latent clean, flip, or tie state for each pair and uses the calibrated policy–reference margin to infer posterior-like routing weights. These determine whether training reinforces, reverses, or suppresses a strong directional update. PLC-DPO combines forward, reverse-direction, and tie-regularizing losses using these weights, with EMA calibration, warm-up, and confidence gating for stable routing. Rather than simply filtering suspicious pairs, it attempts to correct their training signal while reusing the log-probabilities already required by DPO, without an auxiliary model or additional supervision. Across 57 dataset–model–benchmark cells, PLC-DPO achieves the best mean win rate against DPO (60.5%).</p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-7">@article{unknown26,
+  title = {PLC-DPO: Posterior Label Correction in Noisy and Ambiguous Preference Optimization},
+  author = {Unknown},
+  journal = {arXiv preprint},
+  volume = {arXiv:2608.30597},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.05820" class="paper-name" target="_blank">
+            9. Online Learning with LLM Experts from Limited Feedback
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Ryan A. Rossi, Koyel Mukherjee, Soumyabrata Pal, Wang Wei, Franck-Dernoncourt</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(8)" id="btn-8">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-8">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.05820" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.05820" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(8)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Online Learning with LLM Experts from Limited Feedback</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Ryan A. Rossi, Koyel Mukherjee, Soumyabrata Pal, Wang Wei, Franck-Dernoncourt</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.05820" target="_blank">https://huggingface.co/papers/2609.05820</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.05820" target="_blank">https://arxiv.org/abs/2609.05820</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-8">@article{rossi26,
+  title = {Online Learning with LLM Experts from Limited Feedback},
+  author = {Ryan A. Rossi and Koyel Mukherjee and Soumyabrata Pal and Wang Wei and Franck-Dernoncourt},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.05820},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="paper-card">
+        <div class="paper-header">
+          <a href="https://huggingface.co/papers/2609.05824" class="paper-name" target="_blank">
+            10. Beyond Top-k Skill Retrieval: Diversity-Aware Skill Routing for LLM Agents
+          </a>
+          <div class="paper-stats">
+            <span class="stat-badge" title="Stars">
+              <svg class="star-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              0
+            </span>
+            <span class="stat-badge" title="GitHub">N/A</span>
+            <span class="paper-type" title="论文类型">研究</span>
+          </div>
+        </div>
+
+        <div class="paper-meta">作者：Hongjie Chen, Samyadeep Basu, Tiankai Yang, Wang Wei, Franck-Dernoncourt</div>
+
+        
+
+        <button class="toggle-btn" onclick="toggleDetails(9)" id="btn-9">
+          查看详情
+        </button>
+        <div class="paper-details" id="details-9">
+          <div class="quick-actions">
+            <a href="https://arxiv.org/abs/2609.05824" target="_blank" class="action-btn">arXiv</a>
+            <a href="https://arxiv.org/pdf/2609.05824" target="_blank" class="action-btn">PDF</a>
+            <a href="https://github.com/huggingface" target="_blank" class="action-btn">GitHub</a>
+            <button onclick="copyBibtex(9)" class="action-btn">引用</button>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>论文信息</h4>
+            <ul>
+              <li>标题：Beyond Top-k Skill Retrieval: Diversity-Aware Skill Routing for LLM Agents</li>
+              <li>Stars: 0</li>
+              <li>类型：研究</li>
+              <li>作者：Hongjie Chen, Samyadeep Basu, Tiankai Yang, Wang Wei, Franck-Dernoncourt</li>
+              <li>HuggingFace: <a href="https://huggingface.co/papers/2609.05824" target="_blank">https://huggingface.co/papers/2609.05824</a></li>
+              <li>arXiv: <a href="https://arxiv.org/abs/2609.05824" target="_blank">https://arxiv.org/abs/2609.05824</a></li>
+            </ul>
+          </div>
+          
+          <div class="detail-column">
+            <h4>英文原文</h4>
+            <p></p>
+          </div>
+          <div class="detail-column" style="grid-column: 1 / -1;">
+            <h4>BibTeX 引用</h4>
+            <div class="bibtex-block" id="bibtex-9">@article{chen26,
+  title = {Beyond Top-k Skill Retrieval: Diversity-Aware Skill Routing for LLM Agents},
+  author = {Hongjie Chen and Samyadeep Basu and Tiankai Yang and Wang Wei and Franck-Dernoncourt},
+  journal = {arXiv preprint},
+  volume = {arXiv:2609.05824},
+  year = {2026}
+}</div>
+          </div>
+        </div>
+      </div>
+    
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function toggleDetails(paperId) {
+      const details = document.getElementById('details-' + paperId);
+      const btn = document.getElementById('btn-' + paperId);
+      if (details && btn) {
+        details.classList.toggle('active');
+        btn.textContent = details.classList.contains('active') ? '收起详情' : '查看详情';
+      }
+    }
+
+    function copyBibtex(paperId) {
+      const bibtexBlock = document.getElementById('bibtex-' + paperId);
+      if (bibtexBlock) {
+        navigator.clipboard.writeText(bibtexBlock.textContent).then(() => {
+          const btn = event.target;
+          const originalText = btn.textContent;
+          btn.textContent = '已复制!';
+          setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }).catch(err => {
+          alert('复制失败，请手动复制');
+        });
+      }
+    }
+  </script>
+</body>
+</html>

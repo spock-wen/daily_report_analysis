@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：11
-- 最近更新：2026-09-14
+- 项目总数：12
+- 最近更新：2026-10-19
 - 报告类型：daily
 
 llm 领域收录了与大语言模型、Transformer、基础模型相关的项目。
@@ -19,16 +19,16 @@ llm 领域收录了与大语言模型、Transformer、基础模型相关的项�
 | 5 | [ggml-org/llama.cpp](../../wiki/projects/ggml-org_llama.cpp.md) | 2026-06-07 | 1 | 115308 |
 | 6 | [harry0703/MoneyPrinterTurbo](../../wiki/projects/harry0703_MoneyPrinterTurbo.md) | 2026-06-10 | 1 | 84964 |
 | 7 | [Anil-matcha/Open-Generative-AI](../../wiki/projects/Anil-matcha_Open-Generative-AI.md) | 2026-06-27 | 1 | 21365 |
-| 8 | [lyogavin/airllm](../../wiki/projects/lyogavin_airllm.md) | 2026-08-10 | 1 | 30374 |
-| 9 | [ZhuLinsen/daily_stock_analysis](../../wiki/projects/ZhuLinsen_daily_stock_analysis.md) | 2026-08-11 | 1 | 62099 |
-| 10 | [jundot/omlx](../../wiki/projects/jundot_omlx.md) | 2026-08-24 | 1 | 20448 |
+| 8 | [ZhuLinsen/daily_stock_analysis](../../wiki/projects/ZhuLinsen_daily_stock_analysis.md) | 2026-08-11 | 1 | 62099 |
+| 9 | [jundot/omlx](../../wiki/projects/jundot_omlx.md) | 2026-08-24 | 1 | 20448 |
+| 10 | [lyogavin/airllm](../../wiki/projects/lyogavin_airllm.md) | 2026-10-13 | 1 | 38298 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：404,255
-- 最热项目：[ggml-org/llama.cpp](../../wiki/projects/ggml-org_llama.cpp.md) (115308 ⭐)
+- 总 Stars 数：561,484
+- 最热项目：[Comfy-Org/ComfyUI](../../wiki/projects/Comfy-Org_ComfyUI.md) (139676 ⭐)
 
 
 ---

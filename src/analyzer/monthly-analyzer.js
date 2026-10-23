@@ -3,31 +3,114 @@ const { writeJson } = require('../utils/fs');
 const { getAIInsightsPath } = require('../utils/path');
 const logger = require('../utils/logger');
 const prompts = require('../../config/prompts.json');
+const history = require('../metrics/history');
+const { computeMonthlyMetrics } = require('../metrics');
+const { loadConfig } = require('../checker/config');
+const { buildFacts } = require('../facts/build-facts');
+const { projectNameFromPlaceholder, isProjectPlaceholder } = require('../render/placeholder-renderer');
+
+function collectSuggestions(insights) {
+  const lines = [];
+  const push = (value) => {
+    if (typeof value === 'string' && value.trim()) {
+      lines.push(value.trim());
+      return;
+    }
+    if (Array.isArray(value)) {
+      value.forEach(push);
+    }
+  };
+
+  push(insights?.action);
+  push(insights?.recommendations?.developers);
+  push(insights?.recommendations?.enterprises);
+  push(insights?.nextWeekPoints);
+  push(insights?.trends?.shortTerm);
+  return Array.from(new Set(lines));
+}
+
+function previousMonths(month) {
+  const months = [];
+  let cursor = month;
+  for (let i = 0; i < 2; i += 1) {
+    cursor = history.getPrevMonth(cursor);
+    if (!cursor) break;
+    months.push(cursor);
+  }
+  return months;
+}
+
+function buildRecentSuggestions(month) {
+  if (!month) return '（无）';
+  const lines = [];
+  for (const previous of previousMonths(month)) {
+    const insights = history.readMonthlyInsights(previous);
+    for (const item of collectSuggestions(insights)) {
+      lines.push(`${previous}：${item}`);
+    }
+  }
+  const unique = Array.from(new Set(lines));
+  return unique.length > 0 ? unique.slice(0, 12).join('\n') : '（无）';
+}
 
 /**
  * 月度 AI 分析器
  * 负责对聚合后的月度数据进行深度 AI 分析
  */
 class MonthlyAnalyzer {
+  constructor(options = {}) {
+    this.aiCallCount = 0;
+  }
+
+  getAiCallCount() {
+    return this.aiCallCount;
+  }
+
+  buildFeedbackPrompt(feedback) {
+    if (!Array.isArray(feedback) || feedback.length === 0) return '';
+    const items = feedback.slice(0, 40).map(item => {
+      const quote = item.quote ? `（原句：${item.quote}）` : '';
+      return `- [${item.rule_id}] ${item.field || ''} ${item.message}${quote}`;
+    });
+    return `\n\n【上一版输出未通过内容核查，请逐条修正后重新输出完整 JSON（不要解释）】\n${items.join('\n')}`;
+  }
+
   /**
    * 分析月度数据
    * @param {Object} monthlyData - 聚合后的月度数据
    * @returns {Promise<Object>} AI 分析结果
    */
-  async analyze(monthlyData) {
+  async analyze(monthlyData, options = {}) {
     try {
       logger.info('开始分析月报数据...', { month: monthlyData.month });
 
+      let computed = null;
+      try {
+        computed = monthlyData.month ? computeMonthlyMetrics(monthlyData.month) : null;
+      } catch (error) {
+        logger.warn(`读取月度指标失败：${error.message}`);
+      }
+
+      const facts = monthlyData.facts || options.facts
+        || buildFacts({
+          level: 'monthly',
+          period: monthlyData.month,
+          brief: monthlyData,
+          metrics: computed,
+        });
+
       // 构建分析上下文
-      const contextData = this.prepareContextData(monthlyData);
+      const contextData = this.prepareContextData(monthlyData, { computed, facts });
 
       // 构建 AI 提示词
-      const prompt = this.buildPrompt(monthlyData.month, contextData);
+      let prompt = this.buildPrompt(monthlyData.month, contextData);
+      prompt += this.buildFeedbackPrompt(options.feedback);
       logger.info('Prompt 构建完成', { promptLength: prompt.length });
 
       // 调用 LLM
       let result;
       try {
+        this.aiCallCount += 1;
         result = await callLLM(prompt, {
           temperature: 0.7,
           max_tokens: 8000
@@ -39,7 +122,7 @@ class MonthlyAnalyzer {
       }
 
       // 解析 AI 响应
-      const insights = this.parseInsights(result, monthlyData);
+      const insights = this.parseInsights(result, monthlyData, contextData);
 
       // 保存分析结果
       await this.saveInsights(monthlyData.month, insights);
@@ -64,8 +147,48 @@ class MonthlyAnalyzer {
   /**
    * 准备分析上下文数据
    */
-  prepareContextData(monthlyData) {
+  prepareContextData(monthlyData, options = {}) {
     const aggregation = monthlyData.aggregation || {};
+    const month = monthlyData.month || monthlyData.date || '';
+
+    let computed = options.computed || null;
+    if (!computed) {
+      try {
+        computed = month ? computeMonthlyMetrics(month) : null;
+      } catch (error) {
+        logger.warn(`读取月度指标失败：${error.message}`);
+      }
+    }
+
+    const stats = monthlyData.stats?.totalProjects
+      ? monthlyData.stats
+      : (computed?.stats || monthlyData.stats || {});
+    const priorProjects = stats.priorProjects
+      ?? (computed?.stats?.totalProjects !== undefined && computed?.rookiesCount !== undefined
+        ? computed.stats.totalProjects - computed.rookiesCount
+        : undefined);
+    const rookiesCount = monthlyData.rookiesCount
+      ?? computed?.rookiesCount
+      ?? (stats.totalProjects !== undefined && priorProjects !== undefined
+        ? stats.totalProjects - priorProjects
+        : undefined);
+    const monthTop = monthlyData.monthTop || computed?.monthTop || [];
+    const facts = {
+      month,
+      caption: monthlyData.caption || computed?.caption,
+      stats,
+      rookiesCount,
+      priorProjects,
+      prevMonthStats: monthlyData.prevMonthStats || computed?.prevMonthStats,
+      weekThemes: monthlyData.weekThemes || computed?.weekThemes,
+      monthTop,
+      top: computed?.top,
+      dropList: monthlyData.dropList || computed?.dropList,
+      dropListNote: monthlyData.dropListNote || computed?.dropListNote,
+      top5Share: monthlyData.top5Share ?? computed?.top5Share,
+      newStarsTotal: monthlyData.newStarsTotal ?? computed?.newStarsTotal,
+      aggregateRule: '汇总数字（如 newStarsTotal、本月新增星合计）写入文案时必须带「合计」字样，例：本月合计新增 297628 星；不带「合计」会被核查按单项目归属判 FAIL。'
+    };
 
     // 提取上/中/下旬项目
     const trendEvolution = aggregation.trendEvolution || [];
@@ -77,40 +200,66 @@ class MonthlyAnalyzer {
       keyProjects: period.keyProjects?.slice(0, 3) || []
     }));
 
-    // 准备 TOP 项目候选列表
-    const topProjectCandidates = [
-      ...aggregation.topGainers?.slice(0, 5).map(p => ({
-        repo: p.repo,
-        stars: p.stars,
-        appearanceCount: p.appearanceCount,
-        description: p.description
-      })) || [],
-      ...aggregation.recurringProjects?.slice(0, 5).map(p => ({
-        repo: p.repo,
-        appearanceCount: p.count,
-        description: p.description
-      })) || []
-    ];
+    // TOP 候选优先使用 monthTop（按本月新增星排序）
+    const candidateRepos = monthTop.length > 0
+      ? monthTop.map(item => ({
+          repo: item.fullName,
+          stars: item.lastStars,
+          monthStars: item.monthStars,
+          daysOnList: item.daysOnList,
+          description: item.project?.description || item.description
+        }))
+      : [
+          ...(aggregation.topGainers?.slice(0, 5).map(p => ({
+            repo: p.repo,
+            stars: p.stars,
+            appearanceCount: p.appearanceCount,
+            description: p.description
+          })) || []),
+          ...(aggregation.recurringProjects?.slice(0, 5).map(p => ({
+            repo: p.repo,
+            appearanceCount: p.count,
+            description: p.description
+          })) || [])
+        ];
 
+    const promptFacts = options.facts || monthlyData.facts || null;
     // 准备所有上榜项目列表（用于验证 AI 生成的项目）
-    const allRepos = [
-      ...new Set([
-        ...(aggregation.topGainers?.map(p => p.repo) || []),
-        ...(aggregation.recurringProjects?.map(p => p.repo) || [])
-      ])
-    ];
+    const allRepos = Array.isArray(promptFacts?.projects) && promptFacts.projects.length > 0
+      ? promptFacts.projects
+      : [
+          ...new Set([
+            ...(monthTop.map(item => item.fullName)),
+            ...(aggregation.topGainers?.map(p => p.repo) || []),
+            ...(aggregation.recurringProjects?.map(p => p.repo) || [])
+          ].filter(Boolean))
+        ];
+
+    const candidateByName = new Map(candidateRepos.map(item => [item.repo, item]));
+    const projectNames = Array.isArray(promptFacts?.projects) && promptFacts.projects.length > 0
+      ? promptFacts.projects
+      : allRepos;
+    const projects = projectNames.map(name => ({
+      fullName: name,
+      description: candidateByName.get(name)?.description || '',
+    }));
 
     return {
+      month,
       dailyCount: monthlyData.dailyDataList?.length || 0,
       weeklyCount: monthlyData.weeklyDataList?.length || 0,
-      totalProjects: aggregation.totalProjects || 0,
-      recurringCount: aggregation.recurringProjects?.length || 0,
-      newProjectsCount: aggregation.newProjects?.length || 0,
+      totalProjects: stats.totalProjects ?? 0,
+      recurringCount: stats.recurringProjects ?? aggregation.recurringProjects?.length ?? 0,
+      newProjectsCount: stats.newProjects ?? aggregation.newProjects?.length ?? 0,
       typeDistribution: aggregation.typeDistribution || {},
       languageDistribution: aggregation.languageDistribution || {},
       periodProjects,
-      topProjectCandidates,
-      allRepos
+      topProjectCandidates: candidateRepos,
+      allRepos,
+      projects,
+      facts: promptFacts,
+      metrics: facts,
+      recentSuggestions: buildRecentSuggestions(month)
     };
   }
 
@@ -118,109 +267,54 @@ class MonthlyAnalyzer {
    * 构建 AI 提示词
    */
   buildPrompt(month, contextData) {
-    const systemPrompt = prompts.monthly?.systemPrompt ||
-      '你是一位经验丰富的技术趋势观察家，专注于从 GitHub Trending 数据中发现长期趋势和新兴领域。';
-
+    const systemPrompt = prompts.monthly?.systemPrompt || '';
     const userPrompt = prompts.monthly?.userPrompt || '';
+    const checkerConfig = loadConfig();
 
-    // 使用更详细的自定义提示词
-    const detailedPrompt = `你是一位经验丰富的技术趋势观察家，专注于从 GitHub Trending 数据中发现长期趋势和新兴领域。
-请分析以下月度 GitHub Trending 数据，生成一份深度分析报告。
+    const factsForPrompt = (contextData.facts?.facts || []).map(item => ({
+      id: item.id,
+      role: item.role,
+      label: item.label,
+      value: item.value,
+      project: item.project ?? null,
+      kind: item.kind
+    }));
+    const projectsForPrompt = (contextData.projects || []).map(project => ({
+      fullName: project.fullName,
+      description: project.description || ''
+    }));
 
-【基本信息】
-月份：${month}
-数据周期：${contextData.dailyCount}天日报 + ${contextData.weeklyCount}周周报
-总项目数（去重）：${contextData.totalProjects}
+    const periodText = contextData.periodProjects.map(p =>
+      `- ${p.period} (${p.dates}): 主导类型：${p.topType || '未知'}；关键项目：${(p.keyProjects || []).map(repo => `{{p:${repo}}}`).join('、')}`
+    ).join('\n');
 
-【聚合统计数据】
-- 重复上榜项目：${contextData.recurringCount}个
-- 本月新星项目：${contextData.newProjectsCount}个
-- 领域分布：${JSON.stringify(contextData.typeDistribution)}
-- 语言分布：${JSON.stringify(contextData.languageDistribution)}
+    const candidateText = contextData.topProjectCandidates
+      .map(item => `- {{p:${item.repo}}}`)
+      .join('\n');
 
-【趋势演变数据】
-${contextData.periodProjects.map(p =>
-`- ${p.period} (${p.dates}): ${p.projectCount}个项目，主导类型：${p.topType}`
-).join('\n')}
+    const repoText = contextData.allRepos.slice(0, 80).map(repo => `- {{p:${repo}}}`).join('\n');
 
-【上/中/下旬关键项目】
-${contextData.periodProjects.map(p =>
-`${p.period}: ${p.keyProjects.join(', ')}`
-).join('\n')}
+    let prompt = userPrompt;
+    prompt = prompt.replace('{month}', month);
+    prompt = prompt.replace('{dailyCount}', contextData.dailyCount);
+    prompt = prompt.replace('{weeklyCount}', contextData.weeklyCount);
+    prompt = prompt.replace('{totalProjects}', contextData.totalProjects);
+    prompt = prompt.replace('{facts}', () => JSON.stringify(factsForPrompt, null, 2));
+    prompt = prompt.replace('{projects}', () => JSON.stringify(projectsForPrompt, null, 2));
+    prompt = prompt.replace('{metricsFacts}', JSON.stringify(contextData.metrics || {}, null, 2));
+    prompt = prompt.replace('{periodProjects}', periodText);
+    prompt = prompt.replace('{topProjectCandidates}', candidateText);
+    prompt = prompt.replace('{allRepos}', repoText);
+    prompt = prompt.replace('{recentSuggestions}', contextData.recentSuggestions || '（无）');
+    prompt = prompt.replace('{bannedWords}', (checkerConfig.bannedWords || []).join('\n'));
 
-【TOP 项目候选】（注意：longTermValue 必须从这里选择）
-${contextData.topProjectCandidates.map(p =>
-`- ${p.repo}: ${p.stars ? p.stars + '⭐' : ''}${p.appearanceCount ? ` (出现${p.appearanceCount}次)` : ''}`
-).join('\n')}
-
-【所有上榜项目列表】（trendEvolution 和 emergingFields 的项目必须从这里选择）
-${contextData.allRepos.slice(0, 50).map(repo => `- ${repo}`).join('\n')}
-
-重要约束：
-1. longTermValue 中的 repo 必须从【TOP 项目候选】列表中选择，不能创造新的项目
-2. trendEvolution 的 keyProjects 和 emergingFields 的 projects 必须从【所有上榜项目列表】中选择
-3. 不允许创造任何不在上述列表中的项目名称
-4. 如果候选项目不足以支撑分析，请基于现有项目进行深入分析，而不是编造新项目
-
-请按以下 JSON 格式输出：
-{
-  "monthlyTheme": {
-    "oneLiner": "一句话总结本月核心趋势（50 字以内）",
-    "detailed": "详细解读（500-800 字，有数据支撑）"
-  },
-  "trendEvolution": [
-    {
-      "period": "上旬",
-      "dates": "2026-03-01 ~ 2026-03-10",
-      "theme": "阶段主题",
-      "keyProjects": ["owner/repo1", "owner/repo2"],
-      "analysis": "阶段分析（200-300 字）"
-    },
-    { "period": "中旬", "dates": "...", "theme": "...", "keyProjects": [...], "analysis": "..." },
-    { "period": "下旬", "dates": "...", "theme": "...", "keyProjects": [...], "analysis": "..." }
-  ],
-  "longTermValue": [
-    {
-      "repo": "owner/repo",
-      "category": "技术创新 | 持续热门 | 企业价值",
-      "score": 95,
-      "reasons": ["入选理由 1", "入选理由 2"],
-      "value": "核心价值描述",
-      "sustainability": "高 | 中 | 低"
-    }
-  ],
-  "emergingFields": [
-    {
-      "field": "领域名称",
-      "description": "领域描述（50 字以内）",
-      "projects": ["owner/repo1", "owner/repo2"],
-      "trend": "上升 | 稳定 | 下降"
-    }
-  ],
-  "darkHorse": {
-    "repo": "owner/repo",
-    "reason": "入选理由"
-  },
-  "nextMonthForecast": "下月趋势预测（200-300 字）"
-}
-
-要求：
-1. monthlyTheme 的 oneLiner 要精炼概括本月最核心特点，detailed 要深入分析趋势背后的原因和数据支撑
-2. trendEvolution 要描述上/中/下旬的技术主题演变，每个阶段都要有关键项目和具体分析
-3. longTermValue 选出 3-5 个 TOP 项目，按综合评分排序，包含技术创新、持续热门、企业价值三类
-4. emergingFields 要描述 2-3 个新兴领域，包含领域特点和代表性项目
-5. darkHorse 选出本月最大黑马项目
-6. nextMonthForecast 要基于本月数据做出有理有据的预测
-7. 所有项目名必须使用完整的 'owner/repo' 格式
-8. 分析要有深度，避免泛泛而谈，要有具体数据支撑`;
-
-    return detailedPrompt;
+    return systemPrompt ? `${systemPrompt}\n\n${prompt}` : prompt;
   }
 
   /**
    * 解析 AI 响应
    */
-  parseInsights(llmResponse, monthlyData) {
+  parseInsights(llmResponse, monthlyData, contextData = {}) {
     try {
       if (!llmResponse || llmResponse.trim().length === 0) {
         throw new Error('LLM 返回为空');
@@ -294,10 +388,13 @@ ${contextData.allRepos.slice(0, 50).map(repo => `- ${repo}`).join('\n')}
       // 补充项目链接等元数据，并验证项目是否存在于实际数据中
       const trendingRepos = monthlyData.aggregation?.topGainers || [];
       const recurringRepos = monthlyData.aggregation?.recurringProjects || [];
+      const metricTop = contextData.metrics?.top || contextData.metrics?.monthTop || monthlyData.monthTop || [];
       const allValidRepos = new Set([
         ...trendingRepos.map(p => p.repo),
-        ...recurringRepos.map(p => p.repo)
-      ]);
+        ...recurringRepos.map(p => p.repo),
+        ...metricTop.map(item => item.fullName),
+        ...(contextData.facts?.projects || [])
+      ].filter(Boolean));
 
       logger.info('验证 AI 生成的项目是否存在于实际数据中...', {
         validReposCount: allValidRepos.size,
@@ -308,6 +405,7 @@ ${contextData.allRepos.slice(0, 50).map(repo => `- ${repo}`).join('\n')}
       if (insights.longTermValue) {
         insights.longTermValue = insights.longTermValue
           .filter(item => {
+            if (isProjectPlaceholder(item.repo)) return true;
             if (!allValidRepos.has(item.repo)) {
               logger.warn(`过滤掉不存在的项目：${item.repo}`);
               return false;
@@ -315,11 +413,17 @@ ${contextData.allRepos.slice(0, 50).map(repo => `- ${repo}`).join('\n')}
             return true;
           })
           .map(item => {
-            const repo = trendingRepos.find(r => r.repo === item.repo) ||
-                         recurringRepos.find(r => r.repo === item.repo);
+            const repoName = projectNameFromPlaceholder(item.repo);
+            const repo = trendingRepos.find(r => r.repo === repoName) ||
+                         recurringRepos.find(r => r.repo === repoName);
+            const metric = metricTop.find(entry => entry.fullName === repoName);
+            const rest = { ...item };
+            delete rest.score;
             return {
-              ...item,
-              stars: repo?.stars || repo?.totalStars || 0,
+              ...rest,
+              stars: metric?.lastStars || repo?.stars || repo?.totalStars || 0,
+              monthStars: metric?.monthStars,
+              daysOnList: metric?.daysOnList,
               language: repo?.language || '',
               description: repo?.description || ''
             };
@@ -331,6 +435,7 @@ ${contextData.allRepos.slice(0, 50).map(repo => `- ${repo}`).join('\n')}
         insights.trendEvolution = insights.trendEvolution.map(period => ({
           ...period,
           keyProjects: (period.keyProjects || []).filter(repo => {
+            if (isProjectPlaceholder(repo)) return true;
             if (!allValidRepos.has(repo)) {
               logger.warn(`过滤掉 trendEvolution 中不存在的项目：${repo}`);
               return false;
@@ -345,6 +450,7 @@ ${contextData.allRepos.slice(0, 50).map(repo => `- ${repo}`).join('\n')}
         insights.emergingFields = insights.emergingFields.map(field => ({
           ...field,
           projects: (field.projects || []).filter(repo => {
+            if (isProjectPlaceholder(repo)) return true;
             if (!allValidRepos.has(repo)) {
               logger.warn(`过滤掉 emergingFields 中不存在的项目：${repo}`);
               return false;
@@ -355,21 +461,24 @@ ${contextData.allRepos.slice(0, 50).map(repo => `- ${repo}`).join('\n')}
       }
 
       // 验证并过滤 darkHorse
-      if (insights.darkHorse && !allValidRepos.has(insights.darkHorse.repo)) {
+      if (insights.darkHorse
+        && !isProjectPlaceholder(insights.darkHorse.repo)
+        && !allValidRepos.has(insights.darkHorse.repo)) {
         logger.warn(`过滤掉 darkHorse 不存在的项目：${insights.darkHorse.repo}`);
         // 选择星数最高的项目作为 darkHorse
         const topRepo = trendingRepos[0];
         if (topRepo) {
           insights.darkHorse = {
-            repo: topRepo.repo,
+            repo: `{{p:${topRepo.repo}}}`,
             reason: '本月星数增长最快的项目'
           };
         } else {
           insights.darkHorse = null;
         }
       } else if (insights.darkHorse) {
-        const darkHorseRepo = trendingRepos.find(r => r.repo === insights.darkHorse.repo) ||
-                              recurringRepos.find(r => r.repo === insights.darkHorse.repo);
+        const repoName = projectNameFromPlaceholder(insights.darkHorse.repo);
+        const darkHorseRepo = trendingRepos.find(r => r.repo === repoName) ||
+                              recurringRepos.find(r => r.repo === repoName);
         insights.darkHorse = {
           ...insights.darkHorse,
           stars: darkHorseRepo?.stars || darkHorseRepo?.totalStars || 0,
