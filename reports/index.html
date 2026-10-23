@@ -1,1361 +1,268 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GitHub AI Trending 洞察系统</title>
-  <link rel="stylesheet" href="../public/css/index.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>首页 · GitHub AI Trending 洞察</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:#FBF7F0;color:#2B2118;font-family:"Noto Sans CJK SC","Noto Sans SC",sans-serif;font-size:15px;line-height:1.6}
+a{color:#0F766E;text-decoration:none;position:relative}
+a::after{content:"";position:absolute;left:50%;top:50%;width:100%;height:100%;min-width:44px;min-height:44px;transform:translate(-50%,-50%)}
+p{margin:0}
+.topnav{position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:12px;height:56px;padding:0 20px;background:#FFFDF8;border-bottom:1px solid #E8DDCB}
+.brand{display:inline-flex;align-items:center;font-family:"Noto Serif CJK SC","Noto Serif SC",serif;font-weight:700;font-size:17px;color:#2B2118;margin-right:auto;text-decoration:none}
+.navlinks{display:none;gap:4px}
+.navlinks a{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:0 12px;border-radius:4px;color:#2B2118;font-size:14px;text-decoration:none}
+.navlinks a[aria-current]{background:#F3E9D8;color:#9A3412;font-weight:700;box-shadow:inset 0 -2px 0 #9A3412}
+.menu{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:0 12px;border-radius:4px;color:#2B2118;font-size:14px;text-decoration:none;border:1px solid #E8DDCB;background:#FBF7F0;font-weight:600}
+.shell{max-width:1400px;margin:0 auto;padding:16px 16px 48px;display:flex;flex-direction:column}
+.side{order:2;margin-top:32px;background:#FFFDF8;border:1px solid #E8DDCB;border-radius:4px;padding:16px;scroll-margin-top:72px;font-size:14px}
+.toc{display:none;font-size:14px}
+.side h2,.toc h2{font-size:12px;color:#6B5B4B;letter-spacing:.06em;margin:16px 0 6px;font-weight:700}
+.side ul,.toc ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.side li a{display:flex;align-items:center;min-height:36px;padding:4px 10px;border-radius:4px;color:#6B5B4B;text-decoration:none}
+.side li a.cur{background:#F3E9D8;color:#9A3412;font-weight:700;box-shadow:inset 3px 0 0 #9A3412}
+.side li.sub a{padding-left:22px;font-size:13px}
+.toc li a{display:flex;align-items:center;min-height:36px;padding:4px 10px;border-left:2px solid #E8DDCB;color:#6B5B4B;text-decoration:none}
+main{min-width:0;width:100%}
+.crumb{display:flex;flex-wrap:wrap;align-items:center;font-size:13px;color:#6B5B4B;padding:6px 0;margin-bottom:6px}
+.crumb a{color:#6B5B4B;text-decoration:none;min-width:44px;justify-content:center}
+.crumb .sep{margin:0 10px;color:#6B5B4B}
+.mtoc{display:flex;flex-wrap:wrap;gap:20px 8px;padding:12px 0 12px;margin-bottom:8px}
+.mtoc a{display:inline-flex;align-items:center;padding:4px 10px;border:1px solid #E8DDCB;border-radius:999px;font-size:12px;color:#2B2118;background:#FFFDF8;white-space:nowrap;text-decoration:none;flex:none}
+h1{font-family:"Noto Serif CJK SC","Noto Serif SC",serif;font-size:26px;line-height:1.3;margin:4px 0 6px}
+.meta{color:#6B5B4B;font-size:13px;margin-bottom:16px}
+.sec{margin-top:16px;scroll-margin-top:72px}
+.sec>h2{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;font-family:"Noto Serif CJK SC","Noto Serif SC",serif;font-size:19px;line-height:1.3;margin-bottom:8px}
+.sec>h2 small{font-size:13px;font-family:"Noto Sans CJK SC","Noto Sans SC",sans-serif;font-weight:400;color:#6B5B4B}
+.card{background:#FFFDF8;border:1px solid #E8DDCB;border-radius:4px;padding:16px}
+.hero{position:relative;background:#F3E9D8;border-radius:4px;padding:18px 20px;margin:0 0 16px;border-left:5px solid #0F766E}
+.hero .lead{font-family:"Noto Serif CJK SC","Noto Serif SC",serif;font-size:19px;line-height:1.55;font-weight:700;color:#2B2118}
+.hero .sub{font-size:14px;color:#6B5B4B;margin-top:6px}
+.hype{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:#6B5B4B}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border:1px solid #E8DDCB;border-radius:999px;font-size:12px;color:#6B5B4B;background:#FBF7F0;white-space:nowrap}
+.pill.hype-pill{border-color:#C2410C;color:#C2410C;background:#FFFDF8;font-weight:700}
+.pill.new{border-style:dashed;border-color:#C2410C;color:#C2410C}
+.dots{letter-spacing:2px;color:#C2410C}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card.m{padding:14px}
+.ml{font-size:13px;color:#6B5B4B}
+.mrow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px;margin:4px 0}
+.mv{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+.spark{width:100%;max-width:120px;height:36px}
+.mc{font-size:12px;color:#6B5B4B}
+.up{color:#0F766E}
+.dn{color:#B91C1C}
+.eq{color:#6B5B4B}
+.fail-banner{background:#B91C1C;color:#FFFFFF;text-align:center;font-size:14px;font-weight:700;padding:8px 16px}
+.read{font-size:13px;color:#6B5B4B;margin-top:8px;max-width:36em;line-height:1.6}
+.tag{position:absolute;top:12px;right:12px;font-size:12px;line-height:1;padding:4px 9px;border:1px solid #E8DDCB;border-radius:999px;color:#6B5B4B;background:#FBF7F0;white-space:nowrap}
+.text{position:relative}
+.text h2{font-family:"Noto Serif CJK SC","Noto Serif SC",serif;font-size:18px;margin-bottom:8px;padding-right:76px}
+.text p,.text li{font-size:16px;line-height:1.8;max-width:36em}
+.two{display:grid;grid-template-columns:1fr;gap:12px;margin-top:16px;align-items:stretch}
+.two>.card{display:flex;flex-direction:column}
+.bars h2,.langs h2{font-family:"Noto Serif CJK SC","Noto Serif SC",serif;font-size:18px;margin-bottom:4px}
+.barlist{flex:1;margin-top:6px}
+.bar{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) 54px;gap:8px;align-items:center;margin:8px 0}
+.bmeta{min-width:0}
+.bn{font-size:13px;font-weight:700;line-height:1.4;overflow-wrap:anywhere;word-break:break-word}
+.bd{font-size:12px;color:#6B5B4B;line-height:1.45;overflow-wrap:anywhere;word-break:break-word;margin-top:2px}
+.bt{height:14px;background:#E8DDCB;border-radius:7px;overflow:hidden}
+.bf{height:100%;border-radius:7px}
+.bv{font-size:13px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.srow{display:flex;align-items:center;gap:8px;margin:8px 0}
+.sl{width:36px;flex:none;font-size:13px;color:#6B5B4B}
+.stk{flex:1;display:flex;height:26px;border-radius:6px;overflow:hidden;background:#E8DDCB}
+.seg{display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;font-size:12px;font-weight:700}
+.legend{margin-top:6px}
+.lg{display:inline-flex;align-items:center;gap:4px;font-size:12px;margin:0 10px 4px 0}
+.lg i{width:10px;height:10px;border-radius:2px;display:inline-block}
+.subhead{font-family:"Noto Serif CJK SC","Noto Serif SC",serif;font-size:15px;margin:16px 0 8px;padding-top:12px;border-top:1px solid #E8DDCB}
+.streak{list-style:none;margin:0;padding:0}
+.streak li{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid #E8DDCB}
+.streak li:first-child{border-top:0}
+.days{display:inline-flex;align-items:baseline;justify-content:center;gap:2px;border-radius:4px;background:#F3E9D8;color:#9A3412;font-weight:700;font-size:18px;padding:4px 8px;min-width:44px}
+.days small{font-size:12px;font-weight:400;color:#6B5B4B}
+.streak .who{min-width:0}
+.streak .who a{font-weight:700;font-size:14px;color:#2B2118;text-decoration:none;overflow-wrap:anywhere;word-break:break-word;line-height:1.4}
+.streak .who p{font-size:13px;color:#6B5B4B;line-height:1.5;margin-top:2px;overflow-wrap:anywhere;word-break:break-word}
+.streak .today{font-size:13px;font-weight:700;color:#0F766E;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.crumb a,.streak .who a{display:inline-flex;align-items:center;min-height:24px;max-width:100%;overflow-wrap:anywhere;word-break:break-word}
+.quote{border-left:4px solid #C2410C}
+.quote .prose{font-family:"Noto Serif CJK SC","Noto Serif SC",serif}
+.quote .prose p{font-size:16px;line-height:1.8;max-width:36em}
+.quote .prose p:first-letter{font-size:2.5em;line-height:1;float:left;margin:2px 6px 0 0;color:#C2410C;font-weight:700}
+.advice-list{margin-top:8px;padding-left:0;list-style:none;counter-reset:adv}
+.advice-list li{counter-increment:adv;position:relative;padding-left:1.8em;margin:10px 0;max-width:36em;font-size:15px;line-height:1.7}
+.advice-list li:before{content:counter(adv);position:absolute;left:0;top:.15em;width:1.3em;height:1.3em;line-height:1.3em;text-align:center;border-radius:50%;background:#0F766E;color:#fff;font-size:12px;font-weight:700}
+.plist{display:flex;flex-direction:column;gap:12px}
+.proj{display:grid;grid-template-columns:28px minmax(0,1fr);gap:8px 12px;align-items:start}
+.rank{font-size:18px;font-family:"Noto Serif CJK SC","Noto Serif SC",serif;font-weight:700;color:#6B5B4B;line-height:1.3}
+.proj .name{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.proj h3{font-size:16px;line-height:1.4;margin:0;min-width:0}
+.proj h3 a{display:inline-block;color:#2B2118;text-decoration:none;overflow-wrap:anywhere;word-break:break-word}
+.proj .one{font-size:14px;color:#2B2118;margin-top:6px;line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
+.proj .desc{font-size:13px;color:#6B5B4B;margin-top:4px;line-height:1.5;overflow-wrap:anywhere;word-break:break-word}
+.proj .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pnums{grid-column:2;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;margin-top:10px;font-variant-numeric:tabular-nums;border-top:1px dashed #E8DDCB;padding-top:10px}
+.pnums div{min-width:0}
+.pnums b{display:block;font-size:14px;font-weight:700}
+.pnums span{font-size:12px;color:#6B5B4B}
+.pnums .hot b{color:#0F766E}
+.rel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.rel a{display:flex;flex-direction:column;justify-content:center;min-height:56px;padding:10px 14px;border:1px solid #E8DDCB;border-radius:4px;color:#2B2118;text-decoration:none;background:#FFFDF8;min-width:0}
+.rel span{font-size:14px;font-weight:600}
+.rel small{color:#6B5B4B;font-size:12px;margin-top:2px}
+footer{margin-top:32px;padding-top:16px;border-top:1px solid #E8DDCB;font-size:12px;color:#6B5B4B;line-height:1.6}
+@media(min-width:768px){
+.sec,.two{margin-top:20px}
+.shell{padding:20px 24px 60px}
+.grid{grid-template-columns:repeat(4,1fr)}
+h1{font-size:32px}
+.two{grid-template-columns:1fr 1fr;gap:16px}
+.proj{grid-template-columns:36px minmax(0,1fr)}
+.pnums{grid-column:2;border-top:1px dashed #E8DDCB;padding-top:10px;margin-top:10px;grid-template-columns:repeat(4,minmax(0,1fr))}
+.rel{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(min-width:1200px){
+.shell{display:grid;grid-template-columns:220px minmax(0,1fr) 200px;gap:24px;padding:24px 32px 64px}
+.side{order:0;position:sticky;top:72px;align-self:start;background:transparent;border:0;padding:0;margin-top:0}
+.toc{display:block;position:sticky;top:72px;align-self:start}
+.mtoc{display:none}
+.navlinks{display:flex}
+.menu{display:none}
+h1{font-size:36px}
+.hero .lead{font-size:21px}
+.mv{font-size:30px}
+.text p,.text li{font-size:17px}
+.quote .prose p{font-size:17px}
+.proj{grid-template-columns:40px minmax(0,1fr) 210px;gap:16px}
+.pnums{grid-column:auto;border-top:0;padding-top:0;margin-top:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px}
+}
+/* —— r11b 周/月/首页扩展（对齐设计 SPEC） —— */
+.grid4{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr;gap:12px}
+.grid2{display:grid;grid-template-columns:1fr;gap:12px}
+.ml{font-size:13px;color:#6B5B4B}
+.mv{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;margin:4px 0}
+.mc{font-size:12px;color:#6B5B4B}
+.note{font-size:12px;color:#6B5B4B;margin-top:10px;line-height:1.5}
+.prose{font-size:16px;line-height:1.8;max-width:36em}
+.prose p+p{margin-top:12px}
+.narr{border-left:4px solid #C2410C;padding:4px 0 4px 16px;margin-top:12px}
+.narr:first-child{margin-top:0}
+.narr h3{font-size:16px;margin-bottom:6px;font-family:"Noto Serif CJK SC","Noto Serif SC",serif}
+.bullets{list-style:none;margin:0;padding:0}
+.bullets li{padding:10px 0;border-top:1px solid #E8DDCB;font-size:15px;line-height:1.7;display:flex;gap:10px}
+.bullets li:first-child{border-top:0}
+.bullets li::before{content:"";width:6px;height:6px;border-radius:50%;background:#C2410C;margin-top:10px;flex:none}
+.list{list-style:none;margin:0;padding:0}
+.list li{padding:10px 0;border-top:1px solid #E8DDCB;font-size:14px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start}
+.list li:first-child{border-top:0}
+.list.rank li{grid-template-columns:28px 1fr auto auto}
+.tag{display:inline-flex;padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid #E8DDCB;color:#6B5B4B;background:#FBF7F0;white-space:nowrap;align-self:center}
+.tag.acc{border-color:#0F766E;color:#0F766E;font-weight:700}
+.tag.pri{border-color:#C2410C;color:#C2410C;font-weight:700}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th,.tbl td{text-align:left;padding:10px 8px;border-top:1px solid #E8DDCB;vertical-align:top}
+.tbl th{font-size:12px;color:#6B5B4B;font-weight:700;border-top:0}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums}
+.fold{border:1px dashed #E8DDCB;border-radius:4px;padding:12px 14px;background:#FFFDF8;color:#6B5B4B;font-size:14px}
+.fold summary{cursor:pointer;font-weight:700;color:#2B2118;list-style:none}
+.look{list-style:none;margin:0;padding:0}
+.look li{padding:10px 0;border-top:1px solid #E8DDCB;font-size:15px;line-height:1.7}
+.look li:first-child{border-top:0}
+.look .q{color:#C2410C;font-weight:700;margin-right:6px}
+.cmp-row{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid #E8DDCB;font-size:14px}
+.cmp-row.head{border-top:0;font-size:12px;color:#6B5B4B;font-weight:700;padding-top:0}
+.cmp-row .h{font-weight:700}
+.entry{background:#FFFDF8;border:1px solid #E8DDCB;border-radius:4px;padding:20px;display:flex;flex-direction:column;gap:10px;min-height:140px}
+.entry h3{font-size:20px;font-weight:700;font-family:"Noto Serif CJK SC","Noto Serif SC",serif;line-height:1.35;overflow-wrap:anywhere;word-break:break-word}
+.entry .sum{font-size:15px;line-height:1.6;flex:1}
+.entry .nums{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:#6B5B4B}
+.entry .nums b{color:#2B2118;font-size:18px;font-variant-numeric:tabular-nums}
+.entry .go{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:4px;background:#F3E9D8;color:#9A3412;font-weight:700;font-size:14px;align-self:flex-start;text-decoration:none;position:relative}
+.weekbar{display:flex;gap:8px;flex-wrap:wrap}
+.weekbar a{flex:1;min-width:140px;background:#FFFDF8;border:1px solid #E8DDCB;border-radius:4px;padding:12px;font-size:13px;color:#6B5B4B;text-decoration:none}
+.weekbar a b{display:block;font-size:14px;color:#2B2118;margin-bottom:4px}
+.crown{display:grid;grid-template-columns:1fr;gap:12px}
+.crown .card h3{font-size:15px;margin-bottom:8px;color:#9A3412;font-family:"Noto Serif CJK SC","Noto Serif SC",serif}
+.bars-row{display:flex;align-items:flex-end;gap:8px;height:72px;padding:4px 0}
+.bars-row i{flex:1;background:#C2410C;border-radius:4px 4px 0 0;min-width:0;opacity:.85;display:block}
+.bars-row i:nth-child(2){background:#E9A23B}
+.bars-row i:nth-child(3){background:#0F766E}
+.bars-row i:nth-child(4){background:#7C9A92}
+.barlab{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;font-size:12px;color:#6B5B4B;text-align:center}
+.roster-h{font-size:15px;margin-bottom:8px;font-weight:700}
+.roster-h.new{color:#0F766E}
+.roster-h.cont{color:#9A3412}
+.roster-h.ret{color:#C2410C}
+.sec>h2.plain{font-family:"Noto Serif CJK SC","Noto Serif SC",serif}
+@media(min-width:768px){
+.grid4{grid-template-columns:repeat(4,1fr)}
+.grid3{grid-template-columns:repeat(3,1fr)}
+.grid2{grid-template-columns:1fr 1fr}
+.crown{grid-template-columns:repeat(3,1fr)}
+.mv{font-size:32px}
+.cmp-row{grid-template-columns:1fr auto auto auto}
+}
+@media(max-width:767px){
+.grid4,.grid3,.crown{grid-template-columns:1fr 1fr}
+.cmp-row .h{display:none}
+.entry{min-height:0}
+}
+</style>
 </head>
 <body>
-  <div class="container">
-    <!-- 1. 头部区域 -->
-    <header>
-      <h1>🚀 GitHub AI Trending 洞察系统</h1>
-      <p class="subtitle">每日/每周/每月 AI 项目趋势追踪</p>
-      <p class="last-update">最后更新：2026/10/23 08:44:19</p>
-    </header>
+<header class="topnav">
+<a class="brand" href="index.html">报告站</a>
+<nav class="navlinks" aria-label="主导航"><a href="index.html" aria-current="page">首页</a><a href="daily&#x2F;github-ai-trending-2026-10-22.html">日报</a><a href="weekly&#x2F;github-weekly-2026-W42.html">周报</a><a href="monthly&#x2F;github-monthly-2026-09.html">月报</a></nav>
+<a class="menu" href="#archive" aria-label="打开菜单">菜单</a>
+</header>
+<div class="shell">
+<aside class="side" id="archive" aria-label="报告存档">
+<h2>快捷</h2>
+<ul>
+<li><a href="#entries">三入口</a></li>
+<li><a href="#top5">今日 Top5</a></li>
+<li><a href="#archives">存档</a></li>
+</ul>
+</aside>
+<main>
+<nav class="crumb" aria-label="面包屑"><span>首页</span></nav>
+<h1>今日看什么</h1>
+<p class="meta">入口层：日 &#x2F; 周 &#x2F; 月各一张卡 + 今日 Top5 + 存档。无近14日趋势。更新 2026&#x2F;10&#x2F;23 13:14:23（Asia&#x2F;Singapore）</p>
 
-    <!-- 2. 系统状态卡片 -->
-    <section class="system-status">
-      <h2 class="sr-only">系统状态</h2>
-      <div class="status-grid">
-        
-        <div class="stat-card">
-          <div class="stat-value">226</div>
-          <div class="stat-label">📅 累计日报</div>
-          <div class="stat-detail">每日更新</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">31</div>
-          <div class="stat-label">📊 累计周报</div>
-          <div class="stat-detail">每周汇总</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">7</div>
-          <div class="stat-label">📈 累计月报</div>
-          <div class="stat-detail">月度深度</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">3505</div>
-          <div class="stat-label">🔍 追踪项目</div>
-          <div class="stat-detail">AI: 2614 个</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">75%</div>
-          <div class="stat-label">🤖 AI 占比</div>
-          <div class="stat-detail">追踪中</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">49.4k</div>
-          <div class="stat-label">⭐ 平均 Stars</div>
-          <div class="stat-detail">综合平均</div>
-        </div>
-      </div>
-    </section>
+<section class="sec" id="entries">
+<div class="grid3">
+<div class="entry"><div class="mc">今日 · 日报</div><h3>2026-10-22</h3><p class="sum">上榜 9 项目，日新增合计 8.3k。</p><div class="nums"><span>项目 <b>9</b></span><span>星 <b>8.3k</b></span></div><a class="go" href="daily&#x2F;github-ai-trending-2026-10-22.html">打开日报</a></div>
+<div class="entry"><div class="mc">本周 · 周报</div><h3>AI Agent 插件生态爆发与逆向工程神器崛起，编码工具竞争进入平台化阶段</h3><p class="sum">2026-W42 · 上榜 10 · 周星 298k</p><div class="nums"><span>项目 <b>10</b></span><span>周星 <b>298k</b></span></div><a class="go" href="weekly&#x2F;github-weekly-2026-W42.html">打开周报</a></div>
+<div class="entry"><div class="mc">本月 · 月报</div><h3>Agent 全年主导：&#39;技能化&#39;成为 AI 编程新范式，Skills 生态从工具层跃升为基础设施层。</h3><p class="sum">2026-09 · 收录 214</p><div class="nums"><span>项目 <b>214</b></span><span>月星 <b>248.2k</b></span></div><a class="go" href="monthly&#x2F;github-monthly-2026-09.html">打开月报</a></div>
+</div>
+<p class="note">累计六卡不当主货；本页不展示近14日趋势（已拍删）。</p>
+</section>
 
-    <!-- 3. 最新报告卡片 -->
-    <section class="latest-reports">
-      <h2>🆕 最新报告</h2>
-      <div class="report-cards">
-        
-        <div class="report-card daily">
-          <div class="report-card-header">
-            <h3><span class="icon">📅</span>最新日报</h3>
-            <span class="report-date">2026-10-22</span>
-          </div>
-          <div class="report-card-stats">
-            <span class="stat">9 个项目</span>
-            <span class="stat">6 AI 项目</span>
-            <span class="stat">⭐ 76.4k</span>
-          </div>
-          
-          <a href="daily/github-ai-trending-2026-10-22.html" class="report-card-btn">查看详情</a>
-        </div>
-        <div class="report-card weekly">
-          <div class="report-card-header">
-            <h3><span class="icon">📊</span>最新周报</h3>
-            <span class="report-date">2026-W42</span>
-          </div>
-          <div class="report-card-stats">
-            <span class="stat">10 个项目</span>
-            
-            <span class="stat">⭐ 75.2k</span>
-          </div>
-          <div class="report-card-theme">AI Agent 插件生态爆发与逆向工程神器崛起，编码工具竞争进入平台化阶段</div>
-          <a href="weekly/github-weekly-2026-W42.html" class="report-card-btn">查看详情</a>
-        </div>
-        <div class="report-card monthly">
-          <div class="report-card-header">
-            <h3><span class="icon">📈</span>最新月报</h3>
-            <span class="report-date">2026-09</span>
-          </div>
-          <div class="report-card-stats">
-            <span class="stat">214 个项目</span>
-            
-            <span class="stat">⭐ 248.2k</span>
-          </div>
-          <div class="report-card-theme">Agent 全年主导：'技能化'成为 AI 编程新范式，Skills 生态从工具层跃升为基础设施层。</div>
-          <a href="monthly/github-monthly-2026-09.html" class="report-card-btn">查看详情</a>
-        </div>
-      </div>
-    </section>
+<section class="sec" id="top5">
+<h2>今日 Top5 <small>链当日日报 · 2026-10-22</small></h2>
+<div class="card">
+<ul class="list rank"><li><span>1</span><div><b><a href="daily&#x2F;github-ai-trending-2026-10-22.html">cloudflare&#x2F;security-audit-skill</a></b><br><span class="mc">用于多阶段安全审核的编码代理技能，具有经过独立验证的机器可读结果</span></div><div class="days">+3.0k</div><span class="tag ">今日</span></li><li><span>2</span><div><b><a href="daily&#x2F;github-ai-trending-2026-10-22.html">DietrichGebert&#x2F;ponytail</a></b><br><span class="mc">让你的人工智能代理像房间里最懒惰的高级开发人员一样思考。最好的代码是你从未写过的代码。</span></div><div class="days">+1.9k</div><span class="tag ">今日</span></li><li><span>3</span><div><b><a href="daily&#x2F;github-ai-trending-2026-10-22.html">Graphify-Labs&#x2F;graphify</a></b><br><span class="mc">将任何代码库及其文档、SQL架构、配置和PDF转换为可查询的知识图。Claude Code、Cursor、Codex和Gemini CLI的A&#x2F;</span></div><div class="days">+1.4k</div><span class="tag ">今日</span></li><li><span>4</span><div><b><a href="daily&#x2F;github-ai-trending-2026-10-22.html">supabase&#x2F;supabase</a></b><br><span class="mc">Postgres开发平台。Supabase为您提供了一个专用的Postgres数据库，用于构建您的Web、移动和人工智能应用程序。</span></div><div class="days">+683</div><span class="tag ">今日</span></li><li><span>5</span><div><b><a href="daily&#x2F;github-ai-trending-2026-10-22.html">php&#x2F;php-src</a></b><br><span class="mc">PHP解释器</span></div><div class="days">+423</div><span class="tag ">今日</span></li></ul>
+<p class="note">链接指向当日日报，非历史热榜。</p>
+</div>
+</section>
 
-    <!-- 4. 可交互图表 -->
-    <section class="trends-chart">
-      <div class="chart-header">
-        <h2>📈 实时趋势</h2>
-        <div class="chart-tabs" role="tablist">
-          
-          <button class="chart-tab active" data-chart="projects">
-            新增项目数
-          </button>
-          <button class="chart-tab " data-chart="stars">
-            星数总量
-          </button>
-          <button class="chart-tab " data-chart="ai-ratio">
-            AI 占比 (%)
-          </button>
-        </div>
-      </div>
-      <div class="chart-container">
-        <canvas id="trendChart"></canvas>
-      </div>
-    </section>
+<section class="sec" id="archives">
+<h2>存档</h2>
+<div class="card grid3">
+<div><div class="ml" style="font-weight:700;margin-bottom:8px">日报</div><ul class="bullets" style="font-size:14px"><li><a href="daily&#x2F;github-ai-trending-2026-10-22.html">2026-10-22</a></li><li><a href="daily&#x2F;github-ai-trending-2026-10-21.html">2026-10-21</a></li><li><a href="daily&#x2F;github-ai-trending-2026-10-20.html">2026-10-20</a></li><li><a href="daily&#x2F;github-ai-trending-2026-10-19.html">2026-10-19</a></li><li><a href="daily&#x2F;github-ai-trending-2026-10-18.html">2026-10-18</a></li><li><a href="daily&#x2F;github-ai-trending-2026-10-17.html">2026-10-17</a></li><li><a href="daily&#x2F;github-ai-trending-2026-10-16.html">2026-10-16</a></li><li><a href="daily&#x2F;github-ai-trending-2026-10-15.html">2026-10-15</a></li><li><a href="daily&#x2F;github-ai-trending-2026-10-14.html">2026-10-14</a></li><li><a href="daily&#x2F;github-ai-trending-2026-10-13.html">2026-10-13</a></li></ul></div>
+<div><div class="ml" style="font-weight:700;margin-bottom:8px">周报</div><ul class="bullets" style="font-size:14px"><li><a href="weekly&#x2F;github-weekly-2026-W42.html">2026-W42</a></li><li><a href="weekly&#x2F;github-weekly-2026-W41.html">2026-W41</a></li><li><a href="weekly&#x2F;github-weekly-2026-W40.html">2026-W40</a></li><li><a href="weekly&#x2F;github-weekly-2026-W39.html">2026-W39</a></li><li><a href="weekly&#x2F;github-weekly-2026-W38.html">2026-W38</a></li><li><a href="weekly&#x2F;github-weekly-2026-W37.html">2026-W37</a></li><li><a href="weekly&#x2F;github-weekly-2026-W36.html">2026-W36</a></li><li><a href="weekly&#x2F;github-weekly-2026-W35.html">2026-W35</a></li></ul></div>
+<div><div class="ml" style="font-weight:700;margin-bottom:8px">月报</div><ul class="bullets" style="font-size:14px"><li><a href="monthly&#x2F;github-monthly-2026-09.html">2026-09</a></li><li><a href="monthly&#x2F;github-monthly-2026-08.html">2026-08</a></li><li><a href="monthly&#x2F;github-monthly-2026-07.html">2026-07</a></li><li><a href="monthly&#x2F;github-monthly-2026-06.html">2026-06</a></li><li><a href="monthly&#x2F;github-monthly-2026-05.html">2026-05</a></li><li><a href="monthly&#x2F;github-monthly-2026-04.html">2026-04</a></li></ul></div>
+</div>
+</section>
 
-    <!-- 5. Top 5 热榜项目 -->
-    <section class="top-projects">
-      <h2>🔥 Top 5 热榜项目</h2>
-      <div class="top-projects-grid">
-        
-        <div class="top-project-card">
-          <div class="top-project-rank">#1</div>
-          <a href="https://github.com/codecrafters-io/build-your-own-x" class="top-project-name" target="_blank">codecrafters-io/build-your-own-x</a>
-          <div class="top-project-stars">⭐ 534.8k</div>
-          <div class="top-project-desc">通过从头开始重新创建您最喜爱的技术来掌握编程。</div>
-          <div class="top-project-tags">
-            <span class="tag">通用工具</span>
-            <span class="tag">Markdown</span>
-          </div>
-        </div>
-        <div class="top-project-card">
-          <div class="top-project-rank">#2</div>
-          <a href="https://github.com/sindresorhus/awesome" class="top-project-name" target="_blank">sindresorhus/awesome</a>
-          <div class="top-project-stars">⭐ 482.3k</div>
-          <div class="top-project-desc">关于各种有趣主题的😎精彩列表</div>
-          <div class="top-project-tags">
-            <span class="tag">通用工具</span>
-            <span class="tag">Unknown</span>
-          </div>
-        </div>
-        <div class="top-project-card">
-          <div class="top-project-rank">#3</div>
-          <a href="https://github.com/public-apis/public-apis" class="top-project-name" target="_blank">public-apis/public-apis</a>
-          <div class="top-project-stars">⭐ 469.2k</div>
-          <div class="top-project-desc">免费API的集合列表</div>
-          <div class="top-project-tags">
-            <span class="tag">通用工具</span>
-            <span class="tag">Python</span>
-          </div>
-        </div>
-        <div class="top-project-card">
-          <div class="top-project-rank">#4</div>
-          <a href="https://github.com/freeCodeCamp/freeCodeCamp" class="top-project-name" target="_blank">freeCodeCamp/freeCodeCamp</a>
-          <div class="top-project-stars">⭐ 449.5k</div>
-          <div class="top-project-desc">freeCodeCamp.org的开源代码库和课程。免费学习数学、编程和计算机科学。</div>
-          <div class="top-project-tags">
-            <span class="tag">通用工具</span>
-            <span class="tag">TypeScript</span>
-          </div>
-        </div>
-        <div class="top-project-card">
-          <div class="top-project-rank">#5</div>
-          <a href="https://github.com/jwasham/coding-interview-university" class="top-project-name" target="_blank">jwasham/coding-interview-university</a>
-          <div class="top-project-stars">⭐ 352.3k</div>
-          <div class="top-project-desc">一个完整的计算机科学学习计划，成为一名软件工程师。</div>
-          <div class="top-project-tags">
-            <span class="tag">通用工具</span>
-            <span class="tag">Unknown</span>
-          </div>
-        </div>
-      </div>
-      <a href="daily/github-ai-trending-2026-10-22.html" class="view-all-btn">查看完整榜单 →</a>
-    </section>
-
-    <!-- 6. 报告存档（折叠面板） -->
-    <section class="archive-section">
-      <h2>
-        📁 报告存档
-        <button class="toggle-btn" aria-expanded="false">
-          展开全部 →
-        </button>
-      </h2>
-      <div class="archive-content" hidden>
-        
-        <div class="archive-tab">
-          <span class="archive-type">📅 日报存档</span>
-          <ul>
-            
-              <li>
-                <a href="daily/github-ai-trending-2026-10-22.html" target="_blank">2026-10-22</a>
-                <span class="archive-count">9 个项目</span>
-              </li>
-              <li>
-                <a href="daily/github-ai-trending-2026-10-21.html" target="_blank">2026-10-21</a>
-                <span class="archive-count">11 个项目</span>
-              </li>
-              <li>
-                <a href="daily/github-ai-trending-2026-10-20.html" target="_blank">2026-10-20</a>
-                <span class="archive-count">13 个项目</span>
-              </li>
-              <li>
-                <a href="daily/github-ai-trending-2026-10-19.html" target="_blank">2026-10-19</a>
-                <span class="archive-count">12 个项目</span>
-              </li>
-              <li>
-                <a href="daily/github-ai-trending-2026-10-18.html" target="_blank">2026-10-18</a>
-                <span class="archive-count">13 个项目</span>
-              </li>
-              <li>
-                <a href="daily/github-ai-trending-2026-10-17.html" target="_blank">2026-10-17</a>
-                <span class="archive-count">13 个项目</span>
-              </li>
-              <li>
-                <a href="daily/github-ai-trending-2026-10-16.html" target="_blank">2026-10-16</a>
-                <span class="archive-count">13 个项目</span>
-              </li>
-              <li>
-                <a href="daily/github-ai-trending-2026-10-15.html" target="_blank">2026-10-15</a>
-                <span class="archive-count">12 个项目</span>
-              </li>
-              <li>
-                <a href="daily/github-ai-trending-2026-10-14.html" target="_blank">2026-10-14</a>
-                <span class="archive-count">12 个项目</span>
-              </li>
-              <li>
-                <a href="daily/github-ai-trending-2026-10-13.html" target="_blank">2026-10-13</a>
-                <span class="archive-count">9 个项目</span>
-              </li>
-              <li>
-                <a href="daily/github-ai-trending-2026-10-12.html" target="_blank">2026-10-12</a>
-                <span class="archive-count">9 个项目</span>
-              </li>
-              <li>
-                <a href="daily/github-ai-trending-2026-10-11.html" target="_blank">2026-10-11</a>
-                <span class="archive-count">8 个项目</span>
-              </li>
-              <li>
-                <a href="daily/github-ai-trending-2026-10-10.html" target="_blank">2026-10-10</a>
-                <span class="archive-count">13 个项目</span>
-              </li>
-              <li>
-                <a href="daily/github-ai-trending-2026-10-09.html" target="_blank">2026-10-09</a>
-                <span class="archive-count">11 个项目</span>
-              </li>
-          </ul>
-        </div>
-        <div class="archive-tab">
-          <span class="archive-type">📊 周报存档</span>
-          <ul>
-            
-              <li>
-                <a href="weekly/github-weekly-2026-W42.html" target="_blank">2026-W42</a>
-                <span class="archive-count">10 个项目</span>
-              </li>
-              <li>
-                <a href="weekly/github-weekly-2026-W41.html" target="_blank">2026-W41</a>
-                <span class="archive-count">12 个项目</span>
-              </li>
-              <li>
-                <a href="weekly/github-weekly-2026-W40.html" target="_blank">2026-W40</a>
-                <span class="archive-count">19 个项目</span>
-              </li>
-              <li>
-                <a href="weekly/github-weekly-2026-W39.html" target="_blank">2026-W39</a>
-                <span class="archive-count">18 个项目</span>
-              </li>
-              <li>
-                <a href="weekly/github-weekly-2026-W38.html" target="_blank">2026-W38</a>
-                <span class="archive-count">21 个项目</span>
-              </li>
-              <li>
-                <a href="weekly/github-weekly-2026-W37.html" target="_blank">2026-W37</a>
-                <span class="archive-count">23 个项目</span>
-              </li>
-          </ul>
-        </div>
-        <div class="archive-tab">
-          <span class="archive-type">📈 月报存档</span>
-          <ul>
-            
-              <li>
-                <a href="monthly/github-monthly-2026-09.html" target="_blank">2026-09</a>
-                <span class="archive-count">214 个项目</span>
-              </li>
-              <li>
-                <a href="monthly/github-monthly-2026-08.html" target="_blank">2026-08</a>
-                <span class="archive-count">206 个项目</span>
-              </li>
-              <li>
-                <a href="monthly/github-monthly-2026-07.html" target="_blank">2026-07</a>
-                <span class="archive-count">217 个项目</span>
-              </li>
-              <li>
-                <a href="monthly/github-monthly-2026-06.html" target="_blank">2026-06</a>
-                <span class="archive-count">202 个项目</span>
-              </li>
-              <li>
-                <a href="monthly/github-monthly-2026-05.html" target="_blank">2026-05</a>
-                <span class="archive-count">180 个项目</span>
-              </li>
-              <li>
-                <a href="monthly/github-monthly-2026-04.html" target="_blank">2026-04</a>
-                <span class="archive-count">116 个项目</span>
-              </li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <!-- 7. 底部 -->
-    <footer>
-      <p>由 AI 自动生成 · 数据来源 GitHub Trending API</p>
-      <p>最后更新：2026/10/23 08:44:19</p>
-    </footer>
-  </div>
-
-  <script>
-    // ========== Chart.js 初始化 ==========
-    const chartData = {
-  "labels": [
-    "03-04",
-    "03-05",
-    "03-06",
-    "03-07",
-    "03-08",
-    "03-09",
-    "03-10",
-    "03-11",
-    "03-12",
-    "03-13",
-    "03-14",
-    "03-15",
-    "03-16",
-    "03-17",
-    "03-18",
-    "03-19",
-    "03-20",
-    "03-21",
-    "03-22",
-    "03-23",
-    "03-24",
-    "03-25",
-    "03-26",
-    "03-27",
-    "03-28",
-    "03-29",
-    "03-30",
-    "03-31",
-    "04-01",
-    "04-02",
-    "04-03",
-    "04-04",
-    "04-05",
-    "04-06",
-    "04-07",
-    "04-08",
-    "04-09",
-    "04-10",
-    "04-11",
-    "04-12",
-    "04-13",
-    "04-14",
-    "04-15",
-    "04-16",
-    "04-17",
-    "04-18",
-    "04-19",
-    "04-20",
-    "04-21",
-    "04-22",
-    "04-23",
-    "04-24",
-    "04-25",
-    "04-26",
-    "04-27",
-    "04-28",
-    "04-29",
-    "04-30",
-    "05-01",
-    "05-02",
-    "05-03",
-    "05-04",
-    "05-05",
-    "05-06",
-    "05-07",
-    "05-08",
-    "05-09",
-    "05-10",
-    "05-11",
-    "05-12",
-    "05-13",
-    "05-14",
-    "05-15",
-    "05-16",
-    "05-17",
-    "05-18",
-    "05-20",
-    "05-21",
-    "05-22",
-    "05-23",
-    "05-24",
-    "05-25",
-    "05-26",
-    "05-27",
-    "05-28",
-    "05-29",
-    "05-30",
-    "05-31",
-    "06-01",
-    "06-02",
-    "06-03",
-    "06-04",
-    "06-05",
-    "06-06",
-    "06-07",
-    "06-08",
-    "06-09",
-    "06-10",
-    "06-11",
-    "06-13",
-    "06-14",
-    "06-15",
-    "06-16",
-    "06-17",
-    "06-18",
-    "06-19",
-    "06-20",
-    "06-21",
-    "06-22",
-    "06-23",
-    "06-24",
-    "06-25",
-    "06-26",
-    "06-27",
-    "06-28",
-    "06-29",
-    "06-30",
-    "07-01",
-    "07-02",
-    "07-03",
-    "07-04",
-    "07-05",
-    "07-06",
-    "07-07",
-    "07-08",
-    "07-10",
-    "07-11",
-    "07-12",
-    "07-13",
-    "07-14",
-    "07-15",
-    "07-16",
-    "07-17",
-    "07-18",
-    "07-19",
-    "07-20",
-    "07-21",
-    "07-22",
-    "07-24",
-    "07-25",
-    "07-27",
-    "07-28",
-    "07-29",
-    "07-30",
-    "07-31",
-    "08-01",
-    "08-02",
-    "08-03",
-    "08-04",
-    "08-05",
-    "08-06",
-    "08-07",
-    "08-08",
-    "08-09",
-    "08-10",
-    "08-11",
-    "08-12",
-    "08-13",
-    "08-15",
-    "08-16",
-    "08-17",
-    "08-18",
-    "08-19",
-    "08-20",
-    "08-21",
-    "08-22",
-    "08-23",
-    "08-24",
-    "08-25",
-    "08-26",
-    "08-27",
-    "08-28",
-    "08-30",
-    "08-31",
-    "09-01",
-    "09-02",
-    "09-03",
-    "09-04",
-    "09-05",
-    "09-06",
-    "09-07",
-    "09-08",
-    "09-09",
-    "09-10",
-    "09-11",
-    "09-12",
-    "09-13",
-    "09-14",
-    "09-15",
-    "09-16",
-    "09-17",
-    "09-18",
-    "09-19",
-    "09-20",
-    "09-21",
-    "09-22",
-    "09-23",
-    "09-24",
-    "09-25",
-    "09-26",
-    "09-27",
-    "09-28",
-    "09-29",
-    "09-30",
-    "10-01",
-    "10-02",
-    "10-03",
-    "10-04",
-    "10-05",
-    "10-06",
-    "10-07",
-    "10-08",
-    "10-09",
-    "10-10",
-    "10-11",
-    "10-12",
-    "10-13",
-    "10-14",
-    "10-15",
-    "10-16",
-    "10-17",
-    "10-18",
-    "10-19",
-    "10-20",
-    "10-21",
-    "10-22"
-  ],
-  "datasets": {
-    "projects": {
-      "label": "新增项目",
-      "data": [
-        10,
-        10,
-        9,
-        9,
-        9,
-        9,
-        10,
-        7,
-        10,
-        10,
-        7,
-        9,
-        9,
-        4,
-        4,
-        8,
-        2,
-        7,
-        13,
-        15,
-        10,
-        10,
-        8,
-        8,
-        9,
-        7,
-        6,
-        8,
-        4,
-        2,
-        4,
-        8,
-        6,
-        10,
-        8,
-        9,
-        9,
-        10,
-        10,
-        14,
-        10,
-        9,
-        9,
-        10,
-        10,
-        10,
-        2,
-        1,
-        0,
-        10,
-        10,
-        12,
-        10,
-        8,
-        10,
-        9,
-        10,
-        9,
-        6,
-        7,
-        9,
-        10,
-        15,
-        10,
-        10,
-        10,
-        10,
-        10,
-        13,
-        11,
-        19,
-        15,
-        9,
-        8,
-        18,
-        15,
-        17,
-        19,
-        14,
-        16,
-        16,
-        17,
-        14,
-        17,
-        16,
-        17,
-        19,
-        15,
-        17,
-        11,
-        14,
-        14,
-        17,
-        18,
-        15,
-        16,
-        16,
-        17,
-        19,
-        14,
-        15,
-        18,
-        13,
-        20,
-        17,
-        15,
-        17,
-        17,
-        16,
-        16,
-        13,
-        16,
-        17,
-        20,
-        13,
-        15,
-        19,
-        20,
-        17,
-        20,
-        18,
-        22,
-        16,
-        13,
-        15,
-        19,
-        24,
-        17,
-        10,
-        15,
-        13,
-        17,
-        14,
-        11,
-        19,
-        20,
-        21,
-        19,
-        16,
-        18,
-        15,
-        12,
-        17,
-        14,
-        12,
-        15,
-        15,
-        16,
-        18,
-        13,
-        13,
-        17,
-        12,
-        12,
-        16,
-        17,
-        17,
-        17,
-        13,
-        7,
-        11,
-        13,
-        13,
-        17,
-        17,
-        17,
-        18,
-        19,
-        15,
-        16,
-        19,
-        20,
-        19,
-        16,
-        14,
-        19,
-        19,
-        17,
-        16,
-        18,
-        14,
-        16,
-        13,
-        16,
-        16,
-        16,
-        19,
-        20,
-        14,
-        21,
-        20,
-        17,
-        15,
-        13,
-        12,
-        8,
-        17,
-        14,
-        16,
-        15,
-        9,
-        8,
-        14,
-        17,
-        15,
-        17,
-        19,
-        15,
-        13,
-        12,
-        13,
-        9,
-        11,
-        13,
-        8,
-        9,
-        9,
-        12,
-        12,
-        13,
-        13,
-        13,
-        12,
-        13,
-        11,
-        9
-      ],
-      "borderColor": "#3fb950",
-      "backgroundColor": "rgba(63, 185, 80, 0.1)",
-      "tension": 0.4,
-      "fill": true
-    },
-    "stars": {
-      "label": "星数总量",
-      "data": [
-        98016,
-        148372,
-        118463,
-        111733,
-        204988,
-        124591,
-        176973,
-        133980,
-        118567,
-        539631,
-        83220,
-        132900,
-        129646,
-        507134,
-        45901,
-        116921,
-        1500,
-        156955,
-        342,
-        596060,
-        268121,
-        209075,
-        199325,
-        139641,
-        391367,
-        202019,
-        242565,
-        619671,
-        218552,
-        92955,
-        133911,
-        217536,
-        133897,
-        515905,
-        82667,
-        137638,
-        129120,
-        275432,
-        291944,
-        509724,
-        417192,
-        410587,
-        599512,
-        148084,
-        140667,
-        195004,
-        33019,
-        100,
-        0,
-        326012,
-        302328,
-        737163,
-        723641,
-        744756,
-        382114,
-        880871,
-        231105,
-        631942,
-        169846,
-        512078,
-        191164,
-        217009,
-        707440,
-        307219,
-        144758,
-        146948,
-        236579,
-        195972,
-        527153,
-        293557,
-        631013,
-        802927,
-        341874,
-        400959,
-        496697,
-        449310,
-        715861,
-        903959,
-        682251,
-        791049,
-        1027171,
-        771113,
-        669655,
-        941320,
-        1684390,
-        1436946,
-        1435246,
-        1059239,
-        1154076,
-        510106,
-        1132667,
-        1060806,
-        1125776,
-        1051888,
-        689245,
-        465559,
-        605679,
-        809705,
-        871544,
-        859090,
-        908627,
-        1313510,
-        839496,
-        1323873,
-        939960,
-        515963,
-        549633,
-        668972,
-        818249,
-        975488,
-        575750,
-        509152,
-        681656,
-        1010280,
-        458577,
-        452421,
-        718127,
-        360215,
-        1275554,
-        1218345,
-        654397,
-        848057,
-        1094220,
-        338811,
-        649671,
-        1089277,
-        1233236,
-        510773,
-        561569,
-        678455,
-        597946,
-        1444992,
-        885986,
-        686657,
-        1031349,
-        570270,
-        454141,
-        631837,
-        684377,
-        1035613,
-        456590,
-        409962,
-        834902,
-        735945,
-        282357,
-        431340,
-        984436,
-        884965,
-        997951,
-        1090975,
-        993283,
-        988476,
-        688353,
-        513875,
-        977840,
-        1422441,
-        677686,
-        703125,
-        815787,
-        694669,
-        501917,
-        899642,
-        928829,
-        980079,
-        1351410,
-        1847631,
-        1455707,
-        1407163,
-        862705,
-        599703,
-        786556,
-        687191,
-        622603,
-        563484,
-        814728,
-        1316014,
-        2020007,
-        1561633,
-        1533511,
-        1382953,
-        812413,
-        1296896,
-        864390,
-        658163,
-        571480,
-        375382,
-        540144,
-        945528,
-        446656,
-        1064222,
-        1158141,
-        906153,
-        586069,
-        697594,
-        288588,
-        135345,
-        631607,
-        536673,
-        1118410,
-        888992,
-        260001,
-        293293,
-        389061,
-        1486053,
-        1045501,
-        1313044,
-        1960315,
-        1053140,
-        570171,
-        763244,
-        709940,
-        534750,
-        669923,
-        1430190,
-        467470,
-        602515,
-        514156,
-        828291,
-        1321930,
-        1003473,
-        1118463,
-        871989,
-        935864,
-        1338006,
-        981439,
-        687498
-      ],
-      "borderColor": "#58a6ff",
-      "backgroundColor": "rgba(88, 166, 255, 0.1)",
-      "tension": 0.4,
-      "fill": true
-    },
-    "ai-ratio": {
-      "label": "AI 占比",
-      "data": [
-        90,
-        90,
-        100,
-        100,
-        89,
-        100,
-        90,
-        100,
-        80,
-        90,
-        71,
-        89,
-        100,
-        50,
-        50,
-        88,
-        0,
-        71,
-        92,
-        87,
-        100,
-        80,
-        75,
-        88,
-        78,
-        86,
-        67,
-        75,
-        100,
-        0,
-        50,
-        75,
-        67,
-        70,
-        50,
-        44,
-        100,
-        90,
-        90,
-        86,
-        90,
-        56,
-        67,
-        70,
-        80,
-        60,
-        100,
-        0,
-        0,
-        80,
-        80,
-        42,
-        50,
-        38,
-        50,
-        33,
-        60,
-        56,
-        83,
-        57,
-        78,
-        80,
-        93,
-        80,
-        70,
-        60,
-        80,
-        70,
-        92,
-        82,
-        79,
-        87,
-        67,
-        75,
-        78,
-        100,
-        71,
-        79,
-        64,
-        63,
-        75,
-        76,
-        71,
-        76,
-        81,
-        65,
-        68,
-        73,
-        82,
-        91,
-        86,
-        79,
-        88,
-        83,
-        80,
-        88,
-        88,
-        88,
-        63,
-        79,
-        47,
-        56,
-        38,
-        55,
-        71,
-        87,
-        88,
-        76,
-        81,
-        81,
-        69,
-        69,
-        47,
-        60,
-        62,
-        53,
-        79,
-        85,
-        76,
-        75,
-        83,
-        86,
-        81,
-        85,
-        67,
-        47,
-        33,
-        53,
-        80,
-        60,
-        85,
-        71,
-        71,
-        82,
-        74,
-        85,
-        67,
-        68,
-        63,
-        72,
-        33,
-        50,
-        53,
-        64,
-        75,
-        73,
-        67,
-        81,
-        67,
-        85,
-        77,
-        71,
-        42,
-        75,
-        75,
-        82,
-        82,
-        94,
-        85,
-        57,
-        64,
-        62,
-        69,
-        82,
-        65,
-        71,
-        61,
-        74,
-        73,
-        75,
-        68,
-        70,
-        68,
-        69,
-        71,
-        79,
-        84,
-        76,
-        69,
-        78,
-        71,
-        81,
-        92,
-        88,
-        75,
-        63,
-        68,
-        80,
-        71,
-        71,
-        80,
-        82,
-        67,
-        85,
-        67,
-        63,
-        82,
-        79,
-        75,
-        60,
-        78,
-        75,
-        79,
-        94,
-        80,
-        82,
-        79,
-        67,
-        62,
-        75,
-        77,
-        56,
-        82,
-        77,
-        63,
-        89,
-        78,
-        58,
-        83,
-        77,
-        85,
-        69,
-        83,
-        92,
-        100,
-        67
-      ],
-      "borderColor": "#d29922",
-      "backgroundColor": "rgba(210, 153, 34, 0.1)",
-      "tension": 0.4,
-      "fill": true
-    }
-  },
-  "switchers": [
-    {
-      "id": "projects",
-      "label": "新增项目数",
-      "yMin": 0
-    },
-    {
-      "id": "stars",
-      "label": "星数总量",
-      "yMin": 0
-    },
-    {
-      "id": "ai-ratio",
-      "label": "AI 占比 (%)",
-      "yMin": 0,
-      "yMax": 100
-    }
-  ]
-};
-
-    // Chart 配置
-    const chartConfig = {
-      type: 'line',
-      data: {
-        labels: chartData.labels,
-        datasets: [ chartData.datasets[chartData.switchers[0].id] ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: {
-          mode: 'index',
-          intersect: false,
-        },
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-            labels: {
-              color: 'var(--text-primary)',
-              usePointStyle: true
-            }
-          },
-          tooltip: {
-            backgroundColor: 'rgba(22, 27, 34, 0.95)',
-            titleColor: '#c9d1d9',
-            bodyColor: '#c9d1d9',
-            borderColor: '#30363d',
-            borderWidth: 1
-          }
-        },
-        scales: {
-          x: {
-            ticks: { color: '#8b949e' },
-            grid: { color: '#21262d' },
-            border: { color: '#30363d' }
-          },
-          y: {
-            ticks: { color: '#8b949e' },
-            grid: { color: '#21262d' },
-            border: { color: '#30363d' }
-          }
-        }
-      }
-    };
-
-    // 初始化图表
-    const ctx = document.getElementById('trendChart');
-    const trendChart = new Chart(ctx, chartConfig);
-
-    // 切换图表数据
-    document.querySelectorAll('.chart-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        // 更新 active 状态
-        document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-
-        // 切换数据
-        const chartId = tab.dataset.chart;
-        trendChart.data.datasets = [chartData.datasets[chartId]];
-        trendChart.update();
-      });
-    });
-
-    // ========== 折叠面板交互 ==========
-    const toggleBtn = document.querySelector('.toggle-btn');
-    const archiveContent = document.querySelector('.archive-content');
-
-    toggleBtn.addEventListener('click', () => {
-      const expanded = toggleBtn.getAttribute('aria-expanded') === 'true';
-      toggleBtn.setAttribute('aria-expanded', !expanded);
-      toggleBtn.textContent = expanded ? '展开全部 →' : '收起 ←';
-      archiveContent.hidden = expanded;
-    });
-  </script>
+<footer>报告站 · 首页 · r11b · 入口层 · 无近14日趋势 · 热区 a::after≥44</footer>
+</main>
+</div>
 </body>
 </html>

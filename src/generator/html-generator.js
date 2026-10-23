@@ -4,6 +4,7 @@ const { renderTemplate, markdownToHtml } = require('../utils/template');
 const logger = require('../utils/logger');
 const MonthlyGenerator = require('./monthly-generator');
 const { renderDailyV3 } = require('./daily-v3-view-model');
+const { renderWeeklyV3 } = require('./weekly-v3-view-model');
 const WikiManager = require('../wiki/wiki-manager');
 const path = require('path');
 const fs = require('fs');
@@ -569,51 +570,7 @@ class HTMLGenerator {
   }
 
   renderWeeklyHTML(data) {
-    const { aiInsights, date, weekStart } = data;
-    const projects = data.projects || data.trending_repos || data.brief?.trending_repos || [];
-    const stats = data.stats || data.brief?.stats || {};
-    const summary = data.summary || {};
-
-    // 按类型分组
-    const groupedProjects = this.groupProjectsByType(projects);
-
-    return `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GitHub AI Trending 周报 - ${weekStart || date}</title>
-  <link rel="stylesheet" href="../../public/css/style.css">
-</head>
-<body>
-  <div class="container">
-    <header>
-      <h1>GitHub AI Trending 周报</h1>
-      <div class="date">${weekStart || date}</div>
-    </header>
-
-    ${this.renderWeeklyStatsSection(stats, summary, projects, data.caption || data.brief?.caption)}
-    ${this.renderWeeklyMetricsSection(data)}
-    ${this.renderWeeklyRosterSection(data)}
-    ${this.renderWeeklyThemeSection(aiInsights, projects)}
-    ${this.renderDeepTrendsSection(aiInsights, projects)}
-    ${this.renderWeeklyInsightsSection(aiInsights, projects)}
-    ${this.renderTopProjectsSection(aiInsights, projects)}
-    ${this.renderGroupedProjectsSection(groupedProjects)}
-  </div>
-
-  <script>
-    function toggleDetails(projectId) {
-      const details = document.getElementById('details-' + projectId);
-      const btn = document.getElementById('btn-' + projectId);
-      if (details && btn) {
-        details.classList.toggle('active');
-        btn.textContent = details.classList.contains('active') ? '收起详情' : '查看详情';
-      }
-    }
-  </script>
-</body>
-</html>`;
+    return renderWeeklyV3(data);
   }
 
   renderWeeklyThemeSection(aiInsights, projects = []) {

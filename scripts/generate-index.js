@@ -10,6 +10,7 @@ const path = require('path');
 
 // 工具函数
 const utils = require('../src/utils');
+const { renderHomeV3 } = require('../src/generator/home-v3-view-model');
 
 async function generateIndex() {
   console.log('\n' + '='.repeat(60));
@@ -24,7 +25,7 @@ async function generateIndex() {
 
     // 步骤 2: 生成 HTML
     console.log('🎨 步骤 2/3: 生成 HTML...');
-    const html = generateIndexHTML(reportsData);
+    const html = renderHomeV3(reportsData);
     const reportsDir = process.env.REPORT_OUT_DIR
       ? path.resolve(process.env.REPORT_OUT_DIR)
       : path.join(process.cwd(), 'reports');
