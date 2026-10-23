@@ -7,7 +7,7 @@ const history = require('../metrics/history');
 const paths = require('../utils/path');
 const { DEFAULT_PHRASES, computeHypeIndex, defaultProjectText, stripRepoPrefix, buildDefaultOneSentence, isPrevYesterday } = require('./daily-v3-text');
 const { normalizeCjkSpacing, pickProjectBlurb, ratioPhrase } = require('./daily-v3-copy');
-const { latestReportHref, wikiIndexHref } = require('./report-nav');
+const { latestReportHref, wikiIndexHref, buildNav } = require('./report-nav');
 
 const TEMPLATE_DIR = nodePath.join(__dirname, '..', '..', 'templates', 'daily-v3');
 const TEMPLATE_PATH = nodePath.join(TEMPLATE_DIR, 'daily.mustache');
@@ -1362,13 +1362,14 @@ function buildViewModel(data) {
     title: `日报 ${date} · GitHub AI Trending 洞察`,
     date,
     dateShort: dateShort(date),
-    nav: {
+    brandHome: '../index.html',
+    wikiHref: wikiIndexHref('../'),
+    nav: buildNav('daily', {
       home: '../index.html',
-      daily: `github-ai-trending-${date}.html`,
+      daily: latestReportHref('daily', { prefix: '../', fallbackId: date }),
       weekly: latestReportHref('weekly', { prefix: '../', fallbackId: weekLabel }),
       monthly: latestReportHref('monthly', { prefix: '../', fallbackId: String(date || '').slice(0, 7) }),
-      wiki: wikiIndexHref('../'),
-    },
+    }),
     toc: {},
     week: {
       label: weekLabel,

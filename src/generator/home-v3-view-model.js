@@ -12,7 +12,7 @@ const {
   buildNav,
   oneLiner,
 } = require('./wmh-v3-shared');
-const { homePeriodKind } = require('./report-nav');
+const { homePeriodKind, latestReportHref } = require('./report-nav');
 
 const TEMPLATE_PATH = nodePath.join(TEMPLATE_DIR, 'home.mustache');
 
@@ -110,9 +110,18 @@ function buildViewModel(reportsData) {
 
   const paths = {
     home: 'index.html',
-    daily: latestDaily ? `daily/github-ai-trending-${latestDaily.date}.html` : 'daily/',
-    weekly: latestWeekly ? `weekly/github-weekly-${latestWeekly.week}.html` : 'weekly/',
-    monthly: latestMonthly ? `monthly/github-monthly-${latestMonthly.month}.html` : 'monthly/',
+    daily: latestReportHref('daily', {
+      prefix: '',
+      fallbackId: latestDaily ? latestDaily.date : null,
+    }),
+    weekly: latestReportHref('weekly', {
+      prefix: '',
+      fallbackId: latestWeekly ? latestWeekly.week : null,
+    }),
+    monthly: latestReportHref('monthly', {
+      prefix: '',
+      fallbackId: latestMonthly ? latestMonthly.month : null,
+    }),
   };
 
   const now = new Date();

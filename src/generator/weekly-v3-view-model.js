@@ -246,7 +246,7 @@ function buildViewModel(data) {
   const paths = {
     home: '../index.html',
     daily: latestReportHref('daily', { prefix: '../', fallbackId: startDate || null }),
-    weekly: `github-weekly-${week}.html`,
+    weekly: latestReportHref('weekly', { prefix: '../', fallbackId: week }),
     monthly: latestReportHref('monthly', {
       prefix: '../',
       fallbackId: (startDate || '').slice(0, 7) || null,
