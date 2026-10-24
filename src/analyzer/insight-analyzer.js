@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { callLLM } = require('../utils/llm');
 const { writeJson } = require('../utils/fs');
-const { getAIInsightsPath } = require('../utils/path');
+const { getAIInsightsPath, getFactsPath } = require('../utils/path');
 const logger = require('../utils/logger');
 const prompts = require('../../config/prompts.json');
 const WikiManager = require('../wiki/wiki-manager');
@@ -163,6 +163,7 @@ class InsightAnalyzer {
 
       const facts = dailyData.facts || options.facts
         || buildFacts({ level: 'daily', period: dailyData.date, brief: dailyData.brief });
+      dailyData.facts = facts;
       const contextData = await this.prepareContextData(dailyData.brief, {
         level: 'daily',
         identifier: dailyData.date,
@@ -190,6 +191,8 @@ class InsightAnalyzer {
             slots: slotMap,
           })
         : parsed;
+      // ContentGate 从磁盘读 facts；须在闸前落盘（与本次 AI 使用的同一份）
+      await this.saveFacts('daily', dailyData.date, facts);
       await this.saveInsights('daily', dailyData.date, insights);
 
       logger.success('日报 AI 分析完成', {
@@ -216,6 +219,7 @@ class InsightAnalyzer {
           brief: weeklyData.brief,
           metrics: weeklyData.weekMetrics,
         });
+      weeklyData.facts = facts;
       const contextData = await this.prepareContextData(weeklyData.brief, {
         level: 'weekly',
         identifier: weeklyData.weekStart || weeklyData.date,
@@ -242,7 +246,9 @@ class InsightAnalyzer {
 
       const insights = this.parseInsights(result, weeklyData.brief);
       this.applyWeeklyFactFallbacks(insights, contextData.metrics, contextData.facts);
-      await this.saveInsights('weekly', weeklyData.weekStart, insights);
+      const weekPeriod = weeklyData.weekStart || weeklyData.date;
+      await this.saveFacts('weekly', weekPeriod, facts);
+      await this.saveInsights('weekly', weekPeriod, insights);
 
       logger.success('周报 AI 分析完成', {
         weekStart: weeklyData.weekStart,
@@ -276,6 +282,7 @@ class InsightAnalyzer {
           brief: monthlyData.brief || monthlyData,
           metrics: computed || monthlyData
         });
+      monthlyData.facts = facts;
       const contextData = await this.prepareContextData(monthlyData.brief, {
         level: 'monthly',
         identifier: monthlyData.month || monthlyData.date,
@@ -293,7 +300,9 @@ class InsightAnalyzer {
       });
 
       const insights = this.parseInsights(result, monthlyData.brief);
-      await this.saveInsights('monthly', monthlyData.month, insights);
+      const monthPeriod = monthlyData.month || monthlyData.date;
+      await this.saveFacts('monthly', monthPeriod, facts);
+      await this.saveInsights('monthly', monthPeriod, insights);
 
       logger.success('月报 AI 分析完成', {
         month: monthlyData.month,
@@ -875,6 +884,18 @@ class InsightAnalyzer {
     const filePath = getAIInsightsPath(type, identifier);
     await writeJson(filePath, insights);
     logger.debug(`AI 洞察已保存：${filePath}`);
+  }
+
+  /**
+   * 持久化事实表（ContentGate 读盘路径：data/facts/facts-{level}-{period}.json）
+   * 与 saveInsights 成对：AI 用过的同一份 facts 必须在闸前落盘。
+   */
+  async saveFacts(type, identifier, facts) {
+    if (!facts || !identifier) return null;
+    const filePath = getFactsPath(type, identifier);
+    await writeJson(filePath, facts);
+    logger.debug(`事实表已保存：${filePath}`);
+    return filePath;
   }
 }
 

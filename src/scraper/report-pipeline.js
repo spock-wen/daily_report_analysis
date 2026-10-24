@@ -18,6 +18,7 @@ const {
   getDailyBriefPath,
   getWeeklyBriefPath,
   getMonthlyBriefPath,
+  getFactsPath,
   dataDir
 } = require('../utils/path');
 const {
@@ -153,6 +154,11 @@ class ReportPipeline {
           data.aiInsights = result.insights;
         }
         await this.saveRawData(data, type);
+      }, result);
+
+      // 步骤 3.4: 闸前落盘 facts（AI 已写则覆盖同内容；跳过 AI 时补缺，避免 R5 读盘空表）
+      await this.executeStep('persist-facts', async () => {
+        await this.persistFactsForGate(data, type);
       }, result);
 
       // 步骤 3.5: 内容核查闸（D1/D3）——写 HTML 之前
@@ -680,8 +686,60 @@ class ReportPipeline {
   }
 
   /**
-   * 计算当前期号（用于核查闸与日志）
+   * ContentGate 前确保 data/facts/facts-{level}-{period}.json 存在。
+   * 优先复用 data.facts（与 AI 同份）；否则按 brief 现算。日更不写 render_map
+   * （R5 日更读 insights.renderEntries + facts，不依赖 daily render_map）。
    */
+  async persistFactsForGate(data, type) {
+    const period = this.getReportIdentifier(data, type);
+    if (!period) {
+      logger.warn('[ReportPipeline] persist-facts 跳过：无法解析期次');
+      return null;
+    }
+
+    let facts = data.facts || null;
+    if (!facts) {
+      if (type === 'daily') {
+        const brief = {
+          date: period,
+          projects: data.projects || data.repositories || [],
+          stats: data.stats || {},
+          dailyDiff: data.dailyDiff,
+          streakDays: data.streakDays,
+          caption: data.caption,
+          scrapedAt: data.scrapedAt || null,
+          generatedAt: data.generatedAt || data.scrapedAt || new Date().toISOString()
+        };
+        facts = buildFacts({ level: 'daily', period, brief });
+      } else if (type === 'weekly') {
+        facts = buildFacts({
+          level: 'weekly',
+          period,
+          brief: data.brief || data,
+          metrics: data.weekMetrics || data.metrics
+        });
+      } else if (type === 'monthly') {
+        facts = buildFacts({
+          level: 'monthly',
+          period,
+          brief: data.brief || data,
+          metrics: data.metrics || data
+        });
+      }
+    }
+
+    if (!facts) {
+      logger.warn(`[ReportPipeline] persist-facts 跳过：无法生成 ${type} ${period} 事实表`);
+      return null;
+    }
+
+    const filePath = getFactsPath(type, period);
+    await writeJson(filePath, facts);
+    data.facts = facts;
+    logger.info(`[ReportPipeline] 事实表已落盘：${filePath}`);
+    return filePath;
+  }
+
   getReportIdentifier(data, type) {
     if (type === 'daily') {
       return getScrapedDate(data.scrapedAt) || getScrapedDate(data.generatedAt) || data.date;
@@ -733,6 +791,7 @@ class ReportPipeline {
 
       if (type === 'daily') {
         insights = await this.analyzer.analyzeDaily(analysisData, options);
+        if (analysisData.facts) data.facts = analysisData.facts;
       } else if (type === 'weekly') {
         // 周报分析：同时进行周度分析和深度趋势分析
         const weeklyInsights = await this.analyzer.analyzeWeekly(analysisData, options);
@@ -777,6 +836,7 @@ class ReportPipeline {
         throw new Error(`不支持的报告类型：${type}`);
       }
       
+      if (analysisData.facts) data.facts = analysisData.facts;
       logger.info('[ReportPipeline] AI 分析完成');
       return insights;
     } catch (error) {

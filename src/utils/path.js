@@ -98,6 +98,11 @@ function getAIInsightsPath(type, identifier) {
   return path.join(insightsDir(), type, `insights-${identifier}.json`);
 }
 
+// 事实表路径（与 ContentGate context 读径一致：data/facts/facts-{level}-{period}.json）
+function getFactsPath(level, period) {
+  return path.join(dataDir(), 'facts', `facts-${level}-${period}.json`);
+}
+
 // 主页路径
 function getIndexReportPath() {
   return path.join(reportsDir(), 'index.html');
@@ -153,6 +158,9 @@ module.exports = {
 
   // AI 洞察路径
   getAIInsightsPath,
+
+  // 事实表路径
+  getFactsPath,
 
   // 主页路径
   getIndexReportPath,

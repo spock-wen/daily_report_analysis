@@ -37,6 +37,7 @@ async function runTests() {
     assert(typeof analyzer.buildPrompt === 'function', 'buildPrompt 方法存在');
     assert(typeof analyzer.parseInsights === 'function', 'parseInsights 方法存在');
     assert(typeof analyzer.saveInsights === 'function', 'saveInsights 方法存在');
+    assert(typeof analyzer.saveFacts === 'function', 'saveFacts 方法存在');
 
     // ==================== prepareContextData 测试 ====================
     console.log('\n📦 prepareContextData 方法测试：\n');
@@ -232,6 +233,40 @@ async function runTests() {
     assert(insightsOld.hot[0] === '热点 1', '旧格式 hot 解析正确');
     assert(insightsOld.shortTerm[0] === '短期趋势 1', '旧格式 shortTerm 解析正确');
     assert(insightsOld.action[0] === '建议 1', '旧格式 action 解析正确');
+
+    // ==================== saveFacts / 闸前落盘 ====================
+    console.log('\n📦 saveFacts 落盘测试：\n');
+    const fs = require('fs');
+    const os = require('os');
+    const path = require('path');
+    const { getFactsPath, getAIInsightsPath } = require('../../src/utils/path');
+    const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'persist-facts-'));
+    const prevDataDir = process.env.REPORT_DATA_DIR;
+    process.env.REPORT_DATA_DIR = tmpRoot;
+    try {
+      const period = '2026-10-24';
+      const sampleFacts = {
+        level: 'daily',
+        period,
+        projects: ['owner/repo'],
+        facts: [{ id: 'f1', value: 13, role: 'total_projects' }]
+      };
+      const sampleInsights = { oneLiner: 'test', renderEntries: [{ factId: 'f1', text: '13', path: 'stats.total' }] };
+      await analyzer.saveFacts('daily', period, sampleFacts);
+      await analyzer.saveInsights('daily', period, sampleInsights);
+      const factsPath = getFactsPath('daily', period);
+      const insightsPath = getAIInsightsPath('daily', period);
+      assert(fs.existsSync(insightsPath), 'insights 已落盘');
+      assert(fs.existsSync(factsPath), 'insights 写完磁盘必有 facts');
+      const written = JSON.parse(fs.readFileSync(factsPath, 'utf8'));
+      assert(written.period === period, 'facts.period 正确');
+      assert(Array.isArray(written.facts) && written.facts[0].id === 'f1', 'facts 内容正确');
+      assert(typeof analyzer.saveFacts === 'function', 'saveFacts 方法存在');
+    } finally {
+      if (prevDataDir === undefined) delete process.env.REPORT_DATA_DIR;
+      else process.env.REPORT_DATA_DIR = prevDataDir;
+      fs.rmSync(tmpRoot, { recursive: true, force: true });
+    }
 
   } catch (error) {
     console.log(`  ❌ 测试执行失败：${error.message}`);
