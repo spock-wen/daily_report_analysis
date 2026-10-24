@@ -1,6 +1,7 @@
 const BaseScraper = require('./base-scraper');
 const GitHubTrendingParser = require('./parsers/github-trending-parser');
 const logger = require('../utils/logger');
+const { loadWikiTrendingRaw } = require('../loader/wiki-trending-raw-loader');
 
 /**
  * GitHubScraper - GitHub Trending 抓取器
@@ -244,14 +245,35 @@ class GitHubScraper extends BaseScraper {
    * @returns {Promise<Object>} 抓取并解析后的数据
    */
   async execute(options = {}) {
-    const url = options.url || this.url;
     const saveToFile = options.saveToFile || false;
     const outputPath = options.outputPath;
 
+    // 日榜：读 wiki B raw，禁止请求 github.com/trending，禁止回落 HTML 自采
+    if (this.type === 'daily') {
+      logger.title(`[${this.name}] 日榜改读 wiki trending raw（停 HTML 自采）`);
+      try {
+        const data = await loadWikiTrendingRaw({
+          date: options.date,
+          base: options.wikiBase
+        });
+
+        if (saveToFile && outputPath) {
+          await this.save(data, outputPath);
+        }
+
+        logger.success(`[${this.name}] wiki raw 日榜加载完成`);
+        return data;
+      } catch (error) {
+        logger.error(`[${this.name}] wiki raw 日榜失败（不回落 HTML）：${error.message}`);
+        throw error;
+      }
+    }
+
+    const url = options.url || this.url;
     logger.title(`[${this.name}] 开始执行抓取任务`);
 
     try {
-      // 1. 尝试网页抓取
+      // 周/月：保留 trending HTML 自采（wiki 仅有 daily raw）
       const html = await this.fetch(url);
       const data = await this.parse(html);
 
