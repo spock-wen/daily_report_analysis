@@ -248,23 +248,24 @@ class GitHubScraper extends BaseScraper {
     const saveToFile = options.saveToFile || false;
     const outputPath = options.outputPath;
 
-    // 日榜：读 wiki B raw，禁止请求 github.com/trending，禁止回落 HTML 自采
-    if (this.type === 'daily') {
-      logger.title(`[${this.name}] 日榜改读 wiki trending raw（停 HTML 自采）`);
+    // 日/周/月：读 wiki trending raw，禁止请求 github.com/trending，禁止回落 HTML 自采
+    if (this.type === 'daily' || this.type === 'weekly' || this.type === 'monthly') {
+      logger.title(`[${this.name}] ${this.type} 改读 wiki trending raw（停 HTML 自采）`);
       try {
         const data = await loadWikiTrendingRaw({
           date: options.date,
-          base: options.wikiBase
+          base: options.wikiBase,
+          period: this.type
         });
 
         if (saveToFile && outputPath) {
           await this.save(data, outputPath);
         }
 
-        logger.success(`[${this.name}] wiki raw 日榜加载完成`);
+        logger.success(`[${this.name}] wiki raw ${this.type} 加载完成`);
         return data;
       } catch (error) {
-        logger.error(`[${this.name}] wiki raw 日榜失败（不回落 HTML）：${error.message}`);
+        logger.error(`[${this.name}] wiki raw ${this.type} 失败（不回落 HTML）：${error.message}`);
         throw error;
       }
     }
@@ -273,7 +274,6 @@ class GitHubScraper extends BaseScraper {
     logger.title(`[${this.name}] 开始执行抓取任务`);
 
     try {
-      // 周/月：保留 trending HTML 自采（wiki 仅有 daily raw）
       const html = await this.fetch(url);
       const data = await this.parse(html);
 
@@ -286,7 +286,6 @@ class GitHubScraper extends BaseScraper {
     } catch (error) {
       logger.error(`[${this.name}] 抓取失败：${error.message}`);
 
-      // 2. 如果配置了重试处理器，尝试通过重试处理器重试
       if (this.retryHandler) {
         logger.info(`[${this.name}] 尝试通过重试处理器重试...`);
         const shouldRetry = await this.retryHandler.handleRetry({
@@ -302,7 +301,6 @@ class GitHubScraper extends BaseScraper {
         }
       }
 
-      // 3. 重试处理器不可用或已完成，抛出错误
       throw error;
     }
   }
