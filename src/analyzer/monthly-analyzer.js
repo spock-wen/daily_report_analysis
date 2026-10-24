@@ -1,6 +1,6 @@
 const { callLLM } = require('../utils/llm');
 const { writeJson } = require('../utils/fs');
-const { getAIInsightsPath } = require('../utils/path');
+const { getAIInsightsPath, getFactsPath } = require('../utils/path');
 const logger = require('../utils/logger');
 const prompts = require('../../config/prompts.json');
 const history = require('../metrics/history');
@@ -98,6 +98,7 @@ class MonthlyAnalyzer {
           brief: monthlyData,
           metrics: computed,
         });
+      monthlyData.facts = facts;
 
       // 构建分析上下文
       const contextData = this.prepareContextData(monthlyData, { computed, facts });
@@ -124,7 +125,8 @@ class MonthlyAnalyzer {
       // 解析 AI 响应
       const insights = this.parseInsights(result, monthlyData, contextData);
 
-      // 保存分析结果
+      // 保存事实表 + 洞察（闸从磁盘读 facts，须在 ContentGate 前落盘）
+      await this.saveFacts(monthlyData.month, facts);
       await this.saveInsights(monthlyData.month, insights);
 
       logger.success('月报 AI 分析完成', {
@@ -517,6 +519,14 @@ class MonthlyAnalyzer {
     const filePath = getAIInsightsPath('monthly', month);
     await writeJson(filePath, insights);
     logger.debug(`月报 AI 洞察已保存：${filePath}`);
+  }
+
+  async saveFacts(month, facts) {
+    if (!facts || !month) return null;
+    const filePath = getFactsPath('monthly', month);
+    await writeJson(filePath, facts);
+    logger.debug(`月报事实表已保存：${filePath}`);
+    return filePath;
   }
 }
 
