@@ -3,7 +3,8 @@ const logger = require('../../utils/logger');
 
 /**
  * DailyScraper - 每日趋势抓取器
- * 继承 GitHubScraper，专门用于抓取 GitHub 每日趋势数据
+ * 继承 GitHubScraper；日榜走 wiki trending raw（见 GitHubScraper.execute），
+ * 不再请求 github.com/trending。
  */
 class DailyScraper extends GitHubScraper {
   /**
@@ -82,9 +83,10 @@ class DailyScraper extends GitHubScraper {
     return {
       name: this.name,
       type: this.getType(),
-      description: 'GitHub 每日趋势抓取器',
+      description: '日榜：读 wiki trending raw（停 github.com/trending HTML 自采）',
       schedule: this.getSchedule(),
       language: this.language || 'all',
+      source: 'wiki-trending-raw',
       url: this.url
     };
   }
