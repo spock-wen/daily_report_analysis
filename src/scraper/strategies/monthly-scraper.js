@@ -3,7 +3,8 @@ const logger = require('../../utils/logger');
 
 /**
  * MonthlyScraper - 每月趋势抓取器
- * 继承 GitHubScraper，专门用于抓取 GitHub 每月趋势数据
+ * 继承 GitHubScraper；月榜走 wiki trending-monthly raw（见 GitHubScraper.execute），
+ * 不再请求 github.com/trending?since=monthly。
  */
 class MonthlyScraper extends GitHubScraper {
   /**
@@ -81,7 +82,8 @@ class MonthlyScraper extends GitHubScraper {
     return {
       name: this.name,
       type: this.getType(),
-      description: 'GitHub 每月趋势抓取器',
+      description: '月榜：读 wiki trending-monthly raw（停 github.com/trending?since=monthly HTML 自采）',
+      source: 'wiki-trending-raw',
       schedule: this.getSchedule(),
       language: this.language || 'all',
       url: this.url

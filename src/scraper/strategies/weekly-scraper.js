@@ -3,7 +3,8 @@ const logger = require('../../utils/logger');
 
 /**
  * WeeklyScraper - 每周趋势抓取器
- * 继承 GitHubScraper，专门用于抓取 GitHub 每周趋势数据
+ * 继承 GitHubScraper；周榜走 wiki trending-weekly raw（见 GitHubScraper.execute），
+ * 不再请求 github.com/trending?since=weekly。
  */
 class WeeklyScraper extends GitHubScraper {
   /**
@@ -84,7 +85,8 @@ class WeeklyScraper extends GitHubScraper {
     return {
       name: this.name,
       type: this.getType(),
-      description: 'GitHub 每周趋势抓取器',
+      description: '周榜：读 wiki trending-weekly raw（停 github.com/trending?since=weekly HTML 自采）',
+      source: 'wiki-trending-raw',
       schedule: this.getSchedule(),
       language: this.language || 'all',
       url: this.url
