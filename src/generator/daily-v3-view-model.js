@@ -1014,7 +1014,14 @@ function buildArchive({ date, weekLabel, priorDates }) {
   if (prevMonth) {
     items.push({ cls: '', href: `../monthly/github-monthly-${prevMonth}.html`, label: `${prevMonth} 月报` });
   }
-  return items;
+  // 最新周/月文件与上期相同时会叠同 href；按出现顺序去重，保留先出现的一条
+  const seen = new Set();
+  return items.filter(item => {
+    if (!item || !item.href) return true;
+    if (seen.has(item.href)) return false;
+    seen.add(item.href);
+    return true;
+  });
 }
 
 function listReportFiles(dir) {
@@ -1462,6 +1469,7 @@ function renderDailyV3(data) {
 }
 
 module.exports = {
+  buildArchive,
   buildViewModel,
   renderDailyV3,
 };
