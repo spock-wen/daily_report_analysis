@@ -14,11 +14,13 @@ const logger = require('../utils/logger');
 const { writeJson } = require('../utils/fs');
 const { getEnvBool } = require('../utils/config');
 const fs = require('fs');
+const path = require('path');
 const {
   getDailyBriefPath,
   getWeeklyBriefPath,
   getMonthlyBriefPath,
   getFactsPath,
+  getAIInsightsPath,
   dataDir
 } = require('../utils/path');
 const {
@@ -30,6 +32,8 @@ const {
 } = require('../metrics');
 const { runContentGate } = require('../checker/gate');
 const { buildFacts } = require('../facts/build-facts');
+const { renderInsights, writeRenderMap } = require('../render/placeholder-renderer');
+const { isR5Insights } = require('../checker/rules/r5');
 
 // 导入依赖模块
 const InsightAnalyzer = require('../analyzer/insight-analyzer');
@@ -161,6 +165,20 @@ class ReportPipeline {
         await this.persistFactsForGate(data, type);
       }, result);
 
+      // 步骤 3.45: 闸前渲染占位（周/月；日更 R5 跳过）并落盘 insights + render_map
+      await this.executeStep('render-insights', async () => {
+        if (!result.insights) {
+          logger.info('[ReportPipeline] 无洞察，跳过占位渲染');
+          return;
+        }
+        const rendered = await this.renderInsightsForGate(data, type, result.insights);
+        if (rendered) {
+          result.insights = rendered.insights;
+          data.aiInsights = rendered.insights;
+          await this.saveRawData(data, type);
+        }
+      }, result);
+
       // 步骤 3.5: 内容核查闸（D1/D3）——写 HTML 之前
       if (this.enableContentCheck) {
         await this.executeStep('content-check', async () => {
@@ -185,8 +203,14 @@ class ReportPipeline {
                 result.insights = rewritten;
                 data.aiInsights = rewritten;
                 await this.saveRawData(data, type);
+                const rendered = await this.renderInsightsForGate(data, type, rewritten);
+                if (rendered) {
+                  result.insights = rendered.insights;
+                  data.aiInsights = rendered.insights;
+                  await this.saveRawData(data, type);
+                }
               }
-              return rewritten;
+              return result.insights;
             }
           });
 
@@ -738,6 +762,75 @@ class ReportPipeline {
     data.facts = facts;
     logger.info(`[ReportPipeline] 事实表已落盘：${filePath}`);
     return filePath;
+  }
+
+  /**
+   * ContentGate 前渲染 insights 占位并落盘（参照 scripts/generate-sample.js）。
+   * 日更 R5 用 renderEntries，不走占位渲染、不写 daily render_map。
+   * 周/月：写回 data/insights/{level}/insights-{period}.json，并落 render_map。
+   */
+  async renderInsightsForGate(data, type, insights) {
+    if (!insights || typeof insights !== 'object') return null;
+
+    if (type === 'daily' && isR5Insights(insights)) {
+      logger.info('[ReportPipeline] 日更 R5 洞察跳过占位渲染（依赖 renderEntries）');
+      return null;
+    }
+
+    const period = this.getReportIdentifier(data, type);
+    if (!period) {
+      logger.warn('[ReportPipeline] render-insights 跳过：无法解析期次');
+      return null;
+    }
+
+    const factsDoc = data.facts || null;
+    if (!factsDoc || !Array.isArray(factsDoc.facts)) {
+      logger.warn(`[ReportPipeline] render-insights 跳过：无事实表 ${type} ${period}`);
+      return null;
+    }
+
+    const projectTags = {};
+    const projectList = data.projects || data.repositories || data.brief?.projects || [];
+    for (const project of projectList) {
+      const name = project.fullName || project.repo || project.name;
+      if (name && project.tag) projectTags[name] = project.tag;
+    }
+
+    const rendered = renderInsights({
+      insights,
+      facts: factsDoc.facts,
+      projects: factsDoc.projects,
+      projectTags,
+      level: type,
+      period,
+    });
+
+    if (rendered.errors.length > 0) {
+      logger.warn(`[ReportPipeline] 占位渲染告警 ${rendered.errors.length} 条（仍写入渲染结果供闸核查）`, {
+        sample: rendered.errors.slice(0, 3).map(e => `${e.path}: ${e.message}`),
+      });
+    }
+
+    const insightsPath = getAIInsightsPath(type, period);
+    await writeJson(insightsPath, rendered.insights);
+
+    // 日更不写 render_map（与 persist-facts 注释一致）；周/月写
+    if (type !== 'daily') {
+      const renderMapPath = path.join(dataDir(), 'render', `render_map-${type}-${period}.json`);
+      if (fs.existsSync(renderMapPath)) {
+        fs.unlinkSync(renderMapPath);
+      }
+      writeRenderMap({
+        level: type,
+        period,
+        entries: rendered.entries,
+        renderMapPath,
+      });
+      logger.info(`[ReportPipeline] 渲染记录已落盘：${renderMapPath}（entries=${rendered.entries.length}）`);
+    }
+
+    logger.info(`[ReportPipeline] 洞察已渲染落盘：${insightsPath}`);
+    return rendered;
   }
 
   getReportIdentifier(data, type) {
