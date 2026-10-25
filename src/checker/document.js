@@ -23,6 +23,20 @@ function buildCharLineMap(text) {
   return map;
 }
 
+/** 标识符字段：仓库/项目名等，跨期合法重复，不得当作 B6/B4 散文句。 */
+const IDENTIFIER_KEY_RE = /^(fullName|project_name|projectName|repo|name)$/;
+
+function leafKeyFromPath(pathStr) {
+  if (!pathStr) return '';
+  const parts = String(pathStr).split('.');
+  const last = parts[parts.length - 1] || '';
+  return last.replace(/\[\d+\]/g, '');
+}
+
+function isIdentifierString(item) {
+  return IDENTIFIER_KEY_RE.test(leafKeyFromPath(item && item.path));
+}
+
 function createJsonDocument(filePath, data, role, options = {}) {
   const raw = options.raw !== undefined ? options.raw : JSON.stringify(data, null, 2);
   const synthetic = Boolean(options.synthetic);
@@ -31,6 +45,7 @@ function createJsonDocument(filePath, data, role, options = {}) {
   if (synthetic) {
     for (const item of strings) item.line = null;
   }
+  const proseStrings = strings.filter(item => !isIdentifierString(item));
   const lineStarts = parsed.lineStarts;
   return {
     path: filePath,
@@ -43,7 +58,7 @@ function createJsonDocument(filePath, data, role, options = {}) {
     nodeByPath: parsed.nodeByPath,
     strings,
     text: strings.map(item => item.value).join('\n'),
-    sentences: strings.flatMap(item =>
+    sentences: proseStrings.flatMap(item =>
       splitSentences(item.value, () => item.line).map(sentence => ({ ...sentence, line: item.line, path: item.path }))
     ),
     lineAtOffset(offset) {
@@ -192,4 +207,6 @@ module.exports = {
   detectDocumentTarget,
   documentContains,
   documentNormalizedText,
+  isIdentifierString,
+  leafKeyFromPath,
 };

@@ -68,6 +68,12 @@ class ReportPipeline {
     this.enableWikiPostProcessing = options.enableWikiPostProcessing !== undefined ? options.enableWikiPostProcessing : true;
     this.enableContentCheck = options.contentCheck !== undefined ? options.contentCheck : true;
     this.rewriteInsightsHook = typeof options.rewriteInsights === 'function' ? options.rewriteInsights : null;
+    // SKIP_CONTENT_REWRITE=1 | skipContentRewrite:true | rewriteInsights:false|null → 闸 FAIL 不调 AI 重写
+    // rewriteInsights 未传（undefined）仍走默认 generateAIInsights 回退；显式 null/false 才跳过
+    this.skipContentRewrite = options.skipContentRewrite === true
+      || options.rewriteInsights === false
+      || options.rewriteInsights === null
+      || process.env.SKIP_CONTENT_REWRITE === '1';
     this.aiCallCountProvider = typeof options.getAiCallCount === 'function' ? options.getAiCallCount : null;
 
     // 初始化子模块
@@ -183,13 +189,17 @@ class ReportPipeline {
       if (this.enableContentCheck) {
         await this.executeStep('content-check', async () => {
           const identifier = this.getReportIdentifier(data, type);
-          const gate = await runContentGate({
+          const gateOptions = {
             level: type,
             period: identifier,
             dataDir: dataDir(),
             logger,
             getAiCallCount: () => this.getAiCallCount(),
-            rewrite: async (findings) => {
+          };
+          if (this.skipContentRewrite) {
+            logger.info('[ReportPipeline] 已跳过 ContentGate AI 重写（SKIP_CONTENT_REWRITE/skipContentRewrite）');
+          } else {
+            gateOptions.rewrite = async (findings) => {
               let rewritten;
               if (this.rewriteInsightsHook) {
                 rewritten = await this.rewriteInsightsHook(findings);
@@ -211,8 +221,9 @@ class ReportPipeline {
                 }
               }
               return result.insights;
-            }
-          });
+            };
+          }
+          const gate = await runContentGate(gateOptions);
 
           if (!gate.pass) {
             const error = new Error(`内容核查未通过（${gate.findings.length} 条 FAIL），已停止生成`);
