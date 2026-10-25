@@ -41,7 +41,11 @@ class CompleteWorkflow {
       enableIndex: options.enableIndex !== undefined ? options.enableIndex : true,
       enableNotification: options.enableNotification !== undefined ? options.enableNotification : true,
       contentCheck: options.contentCheck !== undefined ? options.contentCheck : true,
-      rewriteInsights: typeof options.rewriteInsights === 'function' ? options.rewriteInsights : null,
+      // 未传 rewriteInsights → undefined（流水线默认回退重写）；显式 null/false → 跳过重写
+      rewriteInsights: typeof options.rewriteInsights === 'function'
+        ? options.rewriteInsights
+        : (Object.prototype.hasOwnProperty.call(options, 'rewriteInsights') ? options.rewriteInsights : undefined),
+      skipContentRewrite: options.skipContentRewrite === true || process.env.SKIP_CONTENT_REWRITE === '1',
       getAiCallCount: typeof options.getAiCallCount === 'function' ? options.getAiCallCount : null,
       autoStart: options.autoStart || false
     };
@@ -76,6 +80,7 @@ class CompleteWorkflow {
       enableNotification: this.options.enableNotification,
       contentCheck: this.options.contentCheck,
       rewriteInsights: this.options.rewriteInsights,
+      skipContentRewrite: this.options.skipContentRewrite,
       getAiCallCount: this.options.getAiCallCount
     });
     
