@@ -17,18 +17,24 @@ const config = {
 
 
 /**
- * 按模型名决定 thinking 参数（OpenAI 兼容非 Ollama 路径）
- * - glm-5* / glm-5.3-flash 等始终思考模型：{ type: 'low' }
- * - 其余（如 deepseek）：{ type: 'disabled' }
+ * 按模型名决定 thinking / reasoning_effort（OpenAI 兼容非 Ollama 路径）
+ * - glm-5*：thinking.type=enabled + 顶层 reasoning_effort=low
+ *   （智谱文档：thinking.type 只能 enabled；力度用 reasoning_effort）
+ * - 其余：thinking.type=disabled（不带 reasoning_effort）
  * @param {string} model
- * @returns {{ type: 'low' | 'disabled' }}
+ * @returns {{ thinking: { type: 'enabled' | 'disabled' }, reasoning_effort?: 'low' | 'high' | 'max' }}
  */
 function resolveThinkingForModel(model) {
   const name = String(model || '').toLowerCase();
   if (name.includes('glm-5')) {
-    return { type: 'low' };
+    return {
+      thinking: { type: 'enabled' },
+      reasoning_effort: 'low',
+    };
   }
-  return { type: 'disabled' };
+  return {
+    thinking: { type: 'disabled' },
+  };
 }
 
 /**
@@ -82,9 +88,13 @@ async function callLLM(prompt, options = {}) {
   } else {
     requestBody.max_tokens = maxTokens;
     requestBody.stream = true;
-    // 按模型分支 thinking：glm-5* 始终思考、禁 disabled（API 1210）；
-    // deepseek 等仍 disabled，避免 reasoning 占满 max_tokens
-    requestBody.thinking = resolveThinkingForModel(model);
+    // 按模型分支 thinking：glm-5* → enabled + reasoning_effort=low；
+    // 其余 disabled（不带 reasoning_effort）
+    const thinkingOpts = resolveThinkingForModel(model);
+    requestBody.thinking = thinkingOpts.thinking;
+    if (thinkingOpts.reasoning_effort) {
+      requestBody.reasoning_effort = thinkingOpts.reasoning_effort;
+    }
   }
 
   try {
