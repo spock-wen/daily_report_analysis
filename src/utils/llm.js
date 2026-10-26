@@ -15,6 +15,22 @@ const config = {
   timeout: parseInt(process.env.LLM_TIMEOUT || '120000', 10),
 };
 
+
+/**
+ * 按模型名决定 thinking 参数（OpenAI 兼容非 Ollama 路径）
+ * - glm-5* / glm-5.3-flash 等始终思考模型：{ type: 'low' }
+ * - 其余（如 deepseek）：{ type: 'disabled' }
+ * @param {string} model
+ * @returns {{ type: 'low' | 'disabled' }}
+ */
+function resolveThinkingForModel(model) {
+  const name = String(model || '').toLowerCase();
+  if (name.includes('glm-5')) {
+    return { type: 'low' };
+  }
+  return { type: 'disabled' };
+}
+
 /**
  * 调用 LLM API
  * @param {string} prompt - 提示词
@@ -66,9 +82,9 @@ async function callLLM(prompt, options = {}) {
   } else {
     requestBody.max_tokens = maxTokens;
     requestBody.stream = true;
-    // 禁用推理模型的思考阶段（deepseek-v4-flash 等）：
-    // 否则 reasoning 会耗尽 max_tokens 预算，导致 content 为空或 JSON 被截断
-    requestBody.thinking = { type: 'disabled' };
+    // 按模型分支 thinking：glm-5* 始终思考、禁 disabled（API 1210）；
+    // deepseek 等仍 disabled，避免 reasoning 占满 max_tokens
+    requestBody.thinking = resolveThinkingForModel(model);
   }
 
   try {
@@ -217,5 +233,6 @@ function parseAIResponse(response) {
 module.exports = {
   callLLM,
   parseAIResponse,
+  resolveThinkingForModel,
   config,
 };
