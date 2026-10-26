@@ -575,6 +575,26 @@ class ReportPipeline {
   }
 
   /**
+   * 闸前/洞察前补齐日更 stats。缺 totalProjects/aiProjects/avgStars 时
+   * buildFacts 会漏 avg_stars / delta_avg_avg_stars，页面 metrics d7Text（如 26.3k）对不上 R5。
+   */
+  ensureDailyStats(data) {
+    const projects = data.projects || data.repositories || [];
+    const stats = { ...(data.stats || {}) };
+    if (stats.totalProjects === undefined || stats.totalProjects === null) {
+      stats.totalProjects = projects.length;
+    }
+    if (stats.aiProjects === undefined || stats.aiProjects === null) {
+      stats.aiProjects = projects.filter(r => r.isAI).length;
+    }
+    if (stats.avgStars === undefined || stats.avgStars === null || stats.avgStars === '') {
+      stats.avgStars = this.calculateAvgStars(projects);
+    }
+    data.stats = stats;
+    return stats;
+  }
+
+  /**
    * 计算周结束日期
    */
   calculateWeekEnd(weekStart) {
@@ -733,7 +753,16 @@ class ReportPipeline {
     }
 
     let facts = data.facts || null;
-    if (!facts) {
+    const factsMissingCritical = (doc) => {
+      if (!doc || !Array.isArray(doc.facts)) return true;
+      const roles = new Set(doc.facts.map(f => f && f.role).filter(Boolean));
+      // 日更 R5：metrics 平均总星 d7Text 依赖 avg_stars + delta_avg_avg_stars
+      return !roles.has('avg_stars') || !roles.has('total_projects');
+    };
+    if (type === 'daily') {
+      this.ensureDailyStats(data);
+    }
+    if (!facts || (type === 'daily' && factsMissingCritical(facts))) {
       if (type === 'daily') {
         const brief = {
           date: period,
@@ -874,12 +903,13 @@ class ReportPipeline {
       let insights;
 
       // 构建兼容的数据结构，包含 brief 字段
+      const dailyStats = type === 'daily' ? this.ensureDailyStats(data) : (data.stats || {});
       const analysisData = {
         ...data,
         brief: {
           date: data.date,
           projects: data.projects || data.repositories || [],
-          stats: data.stats || {},
+          stats: dailyStats,
           dailyDiff: data.dailyDiff,
           streakDays: data.streakDays,
           caption: data.caption,

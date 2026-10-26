@@ -739,8 +739,12 @@ function buildDailyFacts({ brief, add, addNumber }) {
 
   addNumber(stats.totalProjects, { kind: 'total', field: 'stats.totalProjects', label: '上榜项目数', role: 'total_projects' });
   addNumber(stats.aiProjects, { kind: 'total', field: 'stats.aiProjects', label: 'AI 项目数', role: 'ai_projects' });
-  if (stats.avgStars !== undefined && stats.avgStars !== null) {
-    add(stats.avgStars, { kind: 'total', field: 'stats.avgStars', label: '平均 Stars', role: 'avg_stars' });
+  // 存数值（解析 44k→44000），供 R5 对上 metrics d7Text 的 26.3k 等 k 格式
+  {
+    const avgStarsNum = parseMetricNumber(stats.avgStars) ?? toNumber(stats.avgStars);
+    if (avgStarsNum !== null) {
+      addNumber(avgStarsNum, { kind: 'total', field: 'stats.avgStars', label: '平均 Stars', role: 'avg_stars' });
+    }
   }
 
   const hotProjects = projects.filter(project => (Number(project.todayStars) || 0) > 100).length;
@@ -889,8 +893,12 @@ function buildWeeklyFacts({ brief, metrics, add, addNumber }) {
 
   addNumber(stats.totalProjects, { kind: 'total', field: 'stats.totalProjects', label: '上榜项目数', role: 'total_projects' });
   addNumber(stats.aiProjects, { kind: 'total', field: 'stats.aiProjects', label: 'AI 项目数', role: 'ai_projects' });
-  if (stats.avgStars !== undefined && stats.avgStars !== null) {
-    add(stats.avgStars, { kind: 'total', field: 'stats.avgStars', label: '平均 Stars', role: 'avg_stars' });
+  // 存数值（解析 44k→44000），供 R5 对上 metrics d7Text 的 26.3k 等 k 格式
+  {
+    const avgStarsNum = parseMetricNumber(stats.avgStars) ?? toNumber(stats.avgStars);
+    if (avgStarsNum !== null) {
+      addNumber(avgStarsNum, { kind: 'total', field: 'stats.avgStars', label: '平均 Stars', role: 'avg_stars' });
+    }
   }
 
   const totalProjects = toNumber(stats.totalProjects) ?? projects.length;
@@ -935,7 +943,12 @@ function buildWeeklyFacts({ brief, metrics, add, addNumber }) {
     role: 'prev_ai_projects',
   });
   if (prevWeekStats.avgStars !== undefined && prevWeekStats.avgStars !== null) {
-    add(prevWeekStats.avgStars, { kind: 'total', field: 'prevWeekStats.avgStars', label: '上周平均 Stars', role: 'prev_avg_stars' });
+    {
+      const prevAvg = parseMetricNumber(prevWeekStats.avgStars) ?? toNumber(prevWeekStats.avgStars);
+      if (prevAvg !== null) {
+        addNumber(prevAvg, { kind: 'total', field: 'prevWeekStats.avgStars', label: '上周平均 Stars', role: 'prev_avg_stars' });
+      }
+    }
   }
   addNumber(prevWeekStats.newStarsTotal, {
     kind: 'total',
@@ -1032,8 +1045,12 @@ function buildMonthlyFacts({ brief, metrics, add, addNumber }) {
     role: 'total_projects',
   });
   addNumber(stats.aiProjects, { kind: 'total', field: 'stats.aiProjects', label: 'AI 项目数', role: 'ai_projects' });
-  if (stats.avgStars !== undefined && stats.avgStars !== null) {
-    add(stats.avgStars, { kind: 'total', field: 'stats.avgStars', label: '平均 Stars', role: 'avg_stars' });
+  // 存数值（解析 44k→44000），供 R5 对上 metrics d7Text 的 26.3k 等 k 格式
+  {
+    const avgStarsNum = parseMetricNumber(stats.avgStars) ?? toNumber(stats.avgStars);
+    if (avgStarsNum !== null) {
+      addNumber(avgStarsNum, { kind: 'total', field: 'stats.avgStars', label: '平均 Stars', role: 'avg_stars' });
+    }
   }
   addNumber(stats.newStarsTotal, {
     kind: 'total',
