@@ -1,7 +1,7 @@
 'use strict';
 
 const { loadConfig } = require('../checker/config');
-const { pickProjectBlurb } = require('./daily-v3-copy');
+const { pickProjectBlurb, normalizeCjkSpacing } = require('./daily-v3-copy');
 const history = require('../metrics/history');
 
 const SLOT_TYPES = {
@@ -137,7 +137,8 @@ function extractCandidateClauses(project = {}) {
   for (const rawClause of rawClauses) {
     if (/\d/.test(rawClause)) continue;
     const cleaned = cleanClause(rawClause, project);
-    if (cleaned.length >= 4 && !/\d/.test(cleaned)) {
+    // 卡片简介必须含中文（B17）。英文原文不能当缺省简介，否则跨卡去重后会落成无中文的说明。
+    if (cleaned.length >= 4 && !/\d/.test(cleaned) && /[\u4e00-\u9fa5]/.test(cleaned)) {
       candidates.push(cleaned);
     }
   }
@@ -883,13 +884,20 @@ function buildAdviceCandidates(brief, index, prevLabel = '较上期') {
   return candidates;
 }
 
+// 闸在中英文补空格之后比对简介。补空格前「Claude Code」只有 11 字，补完「 Claude Code」才到 12 字。
+function cardOverlapSurface(text) {
+  return normalizeCjkSpacing(String(text || '')).trim();
+}
+
 function hasLongSubstringOverlap(candidate, existingTexts, minLength = 12) {
-  if (!candidate || candidate.length < minLength) return false;
-  for (const existing of existingTexts) {
-    if (!existing || existing.length < minLength) continue;
-    for (let i = 0; i <= candidate.length - minLength; i++) {
-      const sub = candidate.slice(i, i + minLength);
-      if (existing.includes(sub)) return true;
+  const left = cardOverlapSurface(candidate);
+  if (!left || left.length < minLength) return false;
+  for (const existing of existingTexts || []) {
+    const right = cardOverlapSurface(existing);
+    if (!right || right.length < minLength) continue;
+    for (let i = 0; i <= left.length - minLength; i += 1) {
+      const sub = left.slice(i, i + minLength);
+      if (right.includes(sub)) return true;
     }
   }
   return false;
@@ -1173,6 +1181,8 @@ module.exports = {
   buildDefaultOneSentence,
   buildDefaultDescZh,
   buildDefaultDescShortZh,
+  hasLongSubstringOverlap,
+  cardOverlapSurface,
   cleanTypeName,
   hasConsecutiveDuplicate,
   isPrevYesterday,

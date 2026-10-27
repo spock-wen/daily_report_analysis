@@ -5,7 +5,7 @@ const nodePath = require('path');
 const mustache = require('mustache');
 const history = require('../metrics/history');
 const paths = require('../utils/path');
-const { DEFAULT_PHRASES, computeHypeIndex, defaultProjectText, stripRepoPrefix, buildDefaultOneSentence, isPrevYesterday } = require('./daily-v3-text');
+const { DEFAULT_PHRASES, computeHypeIndex, defaultProjectText, stripRepoPrefix, buildDefaultOneSentence, buildDefaultDescZh, hasLongSubstringOverlap, isPrevYesterday } = require('./daily-v3-text');
 const { normalizeCjkSpacing, pickProjectBlurb, ratioPhrase } = require('./daily-v3-copy');
 const { latestReportHref, wikiIndexHref, buildNav } = require('./report-nav');
 
@@ -135,6 +135,36 @@ function factList(value) {
 function factValue(facts, role) {
   const fact = factList(facts).find(item => item && item.role === role);
   return fact ? Number(fact.value) : null;
+}
+
+// 闸看到的是术语统一 + 中英文补空格之后的简介。去重必须用这一层，否则「Claude Code」补空格后才凑满 12 字。
+function surfaceForGate(text) {
+  return normalizeCjkSpacing(normalizeAgentTerm(String(text || ''))).trim();
+}
+
+function descCollides(text, usedSurfaces) {
+  const surface = surfaceForGate(text);
+  if (!surface) return true;
+  if (usedSurfaces.some(prev => prev === surface)) return true;
+  return hasLongSubstringOverlap(surface, usedSurfaces, 12);
+}
+
+function fallbackDescZh(project, usedSurfaces) {
+  const first = buildDefaultDescZh(project, usedSurfaces);
+  const repo = String(project.fullName || project.name || 'repo').split('/').pop();
+  const token = repo.replace(/[0-9]/g, '') || 'repo';
+  const variants = [
+    first,
+    `介绍 ${token} 这个开源仓库做什么`,
+    `${token} 仓库的功能与用法`,
+    `开源仓库 ${token} 的单独说明`,
+  ];
+  const marks = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛'];
+  for (const mark of marks) variants.push(`${mark}：${token} 仓库功能说明`);
+  for (const variant of variants) {
+    if (variant && hasChinese(variant) && !descCollides(variant, usedSurfaces)) return variant;
+  }
+  return variants[variants.length - 1];
 }
 
 function heroReasonOf(insights) {
@@ -861,7 +891,7 @@ function buildCompositionTrend({ projects, previousProjects, aiProjects, totalPr
 function buildDeepAnalysis({
   projects, churn, returnedNames, previousDate, previousShort,
   totalToday, prevTotalToday, retention, prevKept, keptCount,
-  totalProjects, aiProjects,
+  totalProjects, aiProjects, top3Share = null,
 }) {
   if (!totalToday) return null;
   const parts = [];
@@ -878,14 +908,22 @@ function buildDeepAnalysis({
 
   const sorted = [...projects].sort((left, right) => (toNumber(right.todayStars) || 0) - (toNumber(left.todayStars) || 0));
   const top3 = sorted.slice(0, 3);
-  // 「占了一半」用于前 3 名合计达到当日新增约一半（≥45%）的情形，否则如实写百分比。
+  // 「占了一半」用于前 3 名合计达到当日新增约一半（≥45%）。低于该线时百分数只写事实表 top3_today_share，不另造派生数。
   let top3Part = null;
   if (top3.length === 3) {
     const top3Sum = top3.reduce((sum, project) => sum + (toNumber(project.todayStars) || 0), 0);
-    const share = round1(top3Sum / totalToday * 100);
-    top3Part = share >= 45
-      ? `前 3 名占了一半（${formatCount(top3Sum)} 星）`
-      : `前 3 名占 ${share}%（${formatCount(top3Sum)} 星）`;
+    const computed = totalToday > 0 ? round1(top3Sum / totalToday * 100) : null;
+    const factShare = top3Share === null || top3Share === undefined || !Number.isFinite(Number(top3Share))
+      ? null
+      : Number(top3Share);
+    const shareForHalf = factShare !== null ? factShare : computed;
+    if (shareForHalf !== null && shareForHalf >= 45) {
+      top3Part = `前 3 名占了一半（${formatCount(top3Sum)} 星）`;
+    } else if (factShare !== null) {
+      top3Part = `前 3 名占 ${factShare}%（${formatCount(top3Sum)} 星）`;
+    } else {
+      top3Part = `前 3 名合计 ${formatCount(top3Sum)} 星`;
+    }
   }
 
   const returnedList = (churn.new || []).filter(item => returnedNames.has(item.fullName));
@@ -1178,17 +1216,22 @@ function buildViewModel(data) {
     }));
 
   const usedOneSentences = new Set();
+  const usedDescSurfaces = [];
   const viewProjects = projects.map((project, index) => {
     const fullName = projectKey(project) || '—';
     const days = streakOf(fullName);
     const returned = isReturnedProject(fullName);
     const tag = project.tag
       || (days >= 2 ? `连续 ${days} 天` : previousBrief ? (returned ? '回归' : '新') : '');
-    const descZh = stripRepoPrefix(pickChinese(
+    let descZh = stripRepoPrefix(pickChinese(
       pickProjectBlurb(fullName)?.descZh,
       slotDescZhOf(project),
       project.analysis?.descZh
     ) || defaultProjectText(project.analysis?.typeName, 'descZh'), fullName);
+    if (!hasChinese(descZh) || descCollides(descZh, usedDescSurfaces)) {
+      descZh = fallbackDescZh(project, usedDescSurfaces);
+    }
+    usedDescSurfaces.push(surfaceForGate(descZh));
 
     // 简介表命中时原样输出，不参与去重、不替换为默认句。
     const blurbOne = pickProjectBlurb(fullName)?.oneSentence;
@@ -1200,6 +1243,7 @@ function buildViewModel(data) {
     if (!blurbOne && (
       !oneSentenceCandidate
       || oneSentenceCandidate === descZh
+      || surfaceForGate(oneSentenceCandidate) === surfaceForGate(descZh)
       || usedOneSentences.has(oneSentenceCandidate)
       || oneSentenceCandidate.includes(fullName)
       || (fullName.includes('/') && oneSentenceCandidate.includes(fullName.split('/')[1])))) {
@@ -1288,6 +1332,7 @@ function buildViewModel(data) {
     keptCount: churn.keptCount,
     totalProjects: currentSnapshot.totalProjects,
     aiProjects: currentSnapshot.aiProjects,
+    top3Share: factValue(facts, 'top3_today_share'),
   });
   const hypeIndex = computeHypeIndex({
     totalProjects: currentSnapshot.totalProjects,
@@ -1310,8 +1355,11 @@ function buildViewModel(data) {
       if (currentSnapshot.aiProjects <= currentSnapshot.totalProjects / 2) {
         const sortedNow = [...projects].sort((a, b) => (toNumber(b.todayStars) || 0) - (toNumber(a.todayStars) || 0)).slice(0, 3);
         const top3Sum = sortedNow.reduce((sum, item) => sum + (toNumber(item.todayStars) || 0), 0);
-        const share = currentSnapshot.totalToday > 0 ? round1(top3Sum / currentSnapshot.totalToday * 100) : null;
-        factTail = share === null ? '头部项目带动明显' : `前 3 名贡献了当日新增的 ${share}%`;
+        const shareFact = factValue(facts, 'top3_today_share');
+        const ratio = currentSnapshot.totalToday > 0 ? top3Sum / currentSnapshot.totalToday : null;
+        factTail = Number.isFinite(shareFact)
+          ? `前 3 名贡献了当日新增的 ${shareFact}%`
+          : ratioPhrase(ratio);
       }
       leadSub = `上榜数和新增星都比上期多，${factTail}。`;
     } else if (dProj > 0 && dStars === 0) {
