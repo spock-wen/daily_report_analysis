@@ -13,8 +13,81 @@ const {
   oneLiner,
 } = require('./wmh-v3-shared');
 const { homePeriodKind, latestReportHref } = require('./report-nav');
+const reportPaths = require('../utils/path');
 
 const TEMPLATE_PATH = nodePath.join(TEMPLATE_DIR, 'home.mustache');
+
+const PERIOD_ID = {
+  weekly: /^\d{4}-W\d{2}$/,
+  monthly: /^\d{4}-\d{2}$/,
+};
+
+const PERIOD_FILE_RE = {
+  weekly: /^github-weekly-(\d{4}-W\d{2})\.html$/,
+  monthly: /^github-monthly-(\d{4}-\d{2})\.html$/,
+};
+
+function periodRel(kind, id) {
+  if (kind === 'weekly') return `weekly/github-weekly-${id}.html`;
+  if (kind === 'monthly') return `monthly/github-monthly-${id}.html`;
+  return null;
+}
+
+// 读者向链接只认正式 HTML。CSS 里的 .fail-banner 规则不算红条（例如 W43 仅有样式）。
+function hasReaderFailChrome(html) {
+  return /class="fail-banner"/.test(html) || /内容核查未通过（FAIL）/.test(html);
+}
+
+function readerPeriodHref(kind, id) {
+  if (!PERIOD_ID[kind] || !PERIOD_ID[kind].test(id)) return null;
+  const rel = periodRel(kind, id);
+  const abs = nodePath.join(reportPaths.reportsDir(), rel);
+  if (!fs.existsSync(abs)) return null;
+  const html = fs.readFileSync(abs, 'utf8');
+  if (hasReaderFailChrome(html)) return null;
+  return rel;
+}
+
+function latestReaderPeriodHref(kind) {
+  const dirName = kind === 'weekly' ? 'weekly' : 'monthly';
+  const dir = nodePath.join(reportPaths.reportsDir(), dirName);
+  if (!fs.existsSync(dir)) return null;
+  const ids = fs.readdirSync(dir)
+    .map(name => {
+      const match = PERIOD_FILE_RE[kind].exec(name);
+      return match ? match[1] : null;
+    })
+    .filter(Boolean)
+    .sort()
+    .reverse();
+  for (const id of ids) {
+    const href = readerPeriodHref(kind, id);
+    if (href) return href;
+  }
+  return null;
+}
+
+function periodEntryLink(kind, id) {
+  const href = readerPeriodHref(kind, id);
+  if (href) {
+    return {
+      linkable: true,
+      href,
+      go: kind === 'weekly' ? '打开周报' : '打开月报',
+    };
+  }
+  return {
+    linkable: false,
+    href: '',
+    go: kind === 'weekly' ? '周报审阅中' : '月报审阅中',
+  };
+}
+
+function periodArchiveItem(kind, id) {
+  const href = readerPeriodHref(kind, id);
+  if (href) return { label: id, href };
+  return { label: `${id}（下架）`, href: '' };
+}
 
 function sumToday(projects) {
   return (projects || []).reduce((s, p) => s + (Number(p.todayStars) || 0), 0);
@@ -55,12 +128,14 @@ function buildViewModel(reportsData) {
         { label: '项目', value: String(latestDaily.projectCount) },
         { label: '星', value: formatCount(dailyStars) },
       ],
+      linkable: true,
       href: `daily/github-ai-trending-${latestDaily.date}.html`,
       go: '打开日报',
     });
   }
   if (latestWeekly) {
     const theme = oneLiner(latestWeekly.theme) || latestWeekly.week;
+    const link = periodEntryLink('weekly', latestWeekly.week);
     entries.push({
       kind: homePeriodKind('weekly', latestWeekly.week),
       title: theme, // 完整标题，不截断（P2 债顺带）
@@ -69,12 +144,14 @@ function buildViewModel(reportsData) {
         { label: '项目', value: String(latestWeekly.projectCount) },
         { label: '周星', value: formatCount(weeklyStars) },
       ],
-      href: `weekly/github-weekly-${latestWeekly.week}.html`,
-      go: '打开周报',
+      linkable: link.linkable,
+      href: link.href,
+      go: link.go,
     });
   }
   if (latestMonthly) {
     const theme = oneLiner(latestMonthly.theme) || latestMonthly.month;
+    const link = periodEntryLink('monthly', latestMonthly.month);
     entries.push({
       kind: homePeriodKind('monthly', latestMonthly.month),
       title: theme,
@@ -83,8 +160,9 @@ function buildViewModel(reportsData) {
         { label: '项目', value: String(latestMonthly.projectCount) },
         { label: '月星', value: String(monthlyStarsLabel) },
       ],
-      href: `monthly/github-monthly-${latestMonthly.month}.html`,
-      go: '打开月报',
+      linkable: link.linkable,
+      href: link.href,
+      go: link.go,
     });
   }
 
@@ -114,14 +192,8 @@ function buildViewModel(reportsData) {
       prefix: '',
       fallbackId: latestDaily ? latestDaily.date : null,
     }),
-    weekly: latestReportHref('weekly', {
-      prefix: '',
-      fallbackId: latestWeekly ? latestWeekly.week : null,
-    }),
-    monthly: latestReportHref('monthly', {
-      prefix: '',
-      fallbackId: latestMonthly ? latestMonthly.month : null,
-    }),
+    weekly: latestReaderPeriodHref('weekly') || '',
+    monthly: latestReaderPeriodHref('monthly') || '',
   };
 
   const now = new Date();
@@ -141,14 +213,8 @@ function buildViewModel(reportsData) {
         label: d.date,
         href: `daily/github-ai-trending-${d.date}.html`,
       })),
-      weekly: weekly.slice(-8).reverse().map(w => ({
-        label: w.week,
-        href: `weekly/github-weekly-${w.week}.html`,
-      })),
-      monthly: monthly.slice(-6).reverse().map(m => ({
-        label: m.month,
-        href: `monthly/github-monthly-${m.month}.html`,
-      })),
+      weekly: weekly.slice(-8).reverse().map(w => periodArchiveItem('weekly', w.week)),
+      monthly: monthly.slice(-6).reverse().map(m => periodArchiveItem('monthly', m.month)),
     },
     footer: '报告站 · 首页 · r11b · 入口层 · 无近14日趋势 · 热区 a::after≥44',
   };
