@@ -7,7 +7,14 @@ const history = require('../metrics/history');
 const paths = require('../utils/path');
 const { DEFAULT_PHRASES, computeHypeIndex, defaultProjectText, stripRepoPrefix, buildDefaultOneSentence, buildDefaultDescZh, hasLongSubstringOverlap, isPrevYesterday } = require('./daily-v3-text');
 const { normalizeCjkSpacing, pickProjectBlurb, ratioPhrase } = require('./daily-v3-copy');
-const { latestReportHref, wikiIndexHref, buildNav } = require('./report-nav');
+const {
+  latestReportHref,
+  wikiIndexHref,
+  buildNav,
+  readerPeriodHref,
+  latestReaderPeriodHref,
+  latestReaderPeriodId,
+} = require('./report-nav');
 
 const TEMPLATE_DIR = nodePath.join(__dirname, '..', '..', 'templates', 'daily-v3');
 const TEMPLATE_PATH = nodePath.join(TEMPLATE_DIR, 'daily.mustache');
@@ -1006,10 +1013,22 @@ function buildStabilityAdvice({ streak, projects, previousRankOf, prevTodayOf })
 
 // priorDates 为 brief 日期（YYYY-MM-DD，本期之前的最近若干份，新→旧），仅在本期报告目录里
 // 没有日报文件时用来补足日报存档。
+// 上月正式名缺失、仅有 *.FAIL.html、或正文有 FAIL 红条时不写读者 href。
+function monthlyArchiveItem(id) {
+  const rel = readerPeriodHref('monthly', id);
+  if (rel) return { cls: '', href: `../${rel}`, label: `${id} 月报` };
+  return { cls: '', href: '', label: `${id}（下架）` };
+}
+
+function monthlyRelatedItem(id) {
+  const rel = readerPeriodHref('monthly', id);
+  if (rel) return { href: `../${rel}`, title: `${id} 月报`, sub: '上月' };
+  return { href: '', title: `${id} 月报`, sub: '审阅中' };
+}
+
 function buildArchive({ date, weekLabel, priorDates }) {
   const dailyFiles = listReportFiles(nodePath.join(paths.REPORTS_DIR, 'daily'));
   const weeklyFiles = listReportFiles(nodePath.join(paths.REPORTS_DIR, 'weekly'));
-  const monthlyFiles = listReportFiles(nodePath.join(paths.REPORTS_DIR, 'monthly'));
   const weekHref = weekLabel
     ? `../weekly/github-weekly-${weekLabel}.html`
     : latestReportHref('weekly', { prefix: '../' });
@@ -1043,15 +1062,11 @@ function buildArchive({ date, weekLabel, priorDates }) {
   if (prevWeek) {
     items.push({ cls: '', href: `../weekly/github-weekly-${prevWeek}.html`, label: `${prevWeek} 周报` });
   }
-  if (monthlyFiles.length) {
-    const match = /^github-monthly-(\d{4}-\d{2})\.html$/.exec(monthlyFiles[0]);
-    if (match) items.push({ cls: '', href: `../monthly/${monthlyFiles[0]}`, label: `${match[1]} 月报` });
-  }
+  const latestMonthlyId = latestReaderPeriodId('monthly');
+  if (latestMonthlyId) items.push(monthlyArchiveItem(latestMonthlyId));
   const currentMonth = String(date || '').slice(0, 7);
   const prevMonth = history.getPrevMonth(currentMonth);
-  if (prevMonth) {
-    items.push({ cls: '', href: `../monthly/github-monthly-${prevMonth}.html`, label: `${prevMonth} 月报` });
-  }
+  if (prevMonth && prevMonth !== latestMonthlyId) items.push(monthlyArchiveItem(prevMonth));
   // 最新周/月文件与上期相同时会叠同 href；按出现顺序去重，保留先出现的一条
   const seen = new Set();
   return items.filter(item => {
@@ -1287,7 +1302,7 @@ function buildViewModel(data) {
       ? { href: `../weekly/github-weekly-${prevWeekLabel}.html`, title: `${prevWeekLabel} 周报`, sub: '上周' }
       : null,
     prevMonthLabel
-      ? { href: `../monthly/github-monthly-${prevMonthLabel}.html`, title: `${prevMonthLabel} 月报`, sub: '上月' }
+      ? monthlyRelatedItem(prevMonthLabel)
       : null,
     { href: wikiIndexHref('../'), title: 'Wiki 领域索引', sub: '项目与领域历史' },
   ].filter(Boolean);
@@ -1423,7 +1438,7 @@ function buildViewModel(data) {
       home: '../index.html',
       daily: latestReportHref('daily', { prefix: '../', fallbackId: date }),
       weekly: latestReportHref('weekly', { prefix: '../', fallbackId: weekLabel }),
-      monthly: latestReportHref('monthly', { prefix: '../', fallbackId: String(date || '').slice(0, 7) }),
+      monthly: latestReaderPeriodHref('monthly', { prefix: '../' }) || '',
     }),
     toc: {},
     week: {

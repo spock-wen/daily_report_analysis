@@ -18,6 +18,76 @@ function latestFile(subdir, re) {
   return null;
 }
 
+// 读者向周/月链接只认正式 HTML。文件名 *.FAIL.html 不匹配正式名。
+// CSS 里的 .fail-banner 规则不算红条（例如 W43 仅有样式）。
+const PERIOD_ID = {
+  weekly: /^\d{4}-W\d{2}$/,
+  monthly: /^\d{4}-\d{2}$/,
+};
+
+const PERIOD_FILE_RE = {
+  weekly: /^github-weekly-(\d{4}-W\d{2})\.html$/,
+  monthly: /^github-monthly-(\d{4}-\d{2})\.html$/,
+};
+
+function periodRel(kind, id) {
+  if (kind === 'weekly') return `weekly/github-weekly-${id}.html`;
+  if (kind === 'monthly') return `monthly/github-monthly-${id}.html`;
+  return null;
+}
+
+function hasReaderFailChrome(html) {
+  return /class="fail-banner"/.test(html) || /内容核查未通过（FAIL）/.test(html);
+}
+
+/**
+ * 正式 HTML 在盘上且正文没有 FAIL 红条时，返回相对 reports 根的路径；否则 null。
+ * 不把 fallback 文件名当成读者链接。
+ */
+function readerPeriodHref(kind, id) {
+  if (!PERIOD_ID[kind] || !PERIOD_ID[kind].test(id)) return null;
+  const rel = periodRel(kind, id);
+  const abs = nodePath.join(paths.reportsDir(), rel);
+  if (!fs.existsSync(abs)) return null;
+  const html = fs.readFileSync(abs, 'utf8');
+  if (hasReaderFailChrome(html)) return null;
+  return rel;
+}
+
+/**
+ * 从新到旧找第一份可给读者的正式周/月报。
+ * @param {'weekly'|'monthly'} kind
+ * @param {{ prefix?: string }} [opts] prefix 默认 ''；日报/周报页用 '../'
+ * @returns {string|null}
+ */
+function latestReaderPeriodHref(kind, opts = {}) {
+  if (!PERIOD_FILE_RE[kind]) return null;
+  const prefix = opts.prefix == null ? '' : opts.prefix;
+  const dirName = kind === 'weekly' ? 'weekly' : 'monthly';
+  const dir = nodePath.join(paths.reportsDir(), dirName);
+  if (!fs.existsSync(dir)) return null;
+  const ids = fs.readdirSync(dir)
+    .map(name => {
+      const match = PERIOD_FILE_RE[kind].exec(name);
+      return match ? match[1] : null;
+    })
+    .filter(Boolean)
+    .sort()
+    .reverse();
+  for (const id of ids) {
+    const href = readerPeriodHref(kind, id);
+    if (href) return `${prefix}${href}`;
+  }
+  return null;
+}
+
+function latestReaderPeriodId(kind) {
+  const href = latestReaderPeriodHref(kind);
+  if (!href || !PERIOD_FILE_RE[kind]) return null;
+  const match = PERIOD_FILE_RE[kind].exec(nodePath.basename(href));
+  return match ? match[1] : null;
+}
+
 /**
  * 顶栏/互链：优先报告目录最新具体篇；无文件时回退到已知期次文件名（勿链裸目录）。
  * @param {'daily'|'weekly'|'monthly'} kind
@@ -105,6 +175,10 @@ module.exports = {
   listHtml,
   latestFile,
   latestReportHref,
+  hasReaderFailChrome,
+  readerPeriodHref,
+  latestReaderPeriodHref,
+  latestReaderPeriodId,
   wikiIndexHref,
   todaySingapore,
   homePeriodKind,

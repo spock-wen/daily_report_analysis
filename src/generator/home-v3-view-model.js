@@ -12,60 +12,14 @@ const {
   buildNav,
   oneLiner,
 } = require('./wmh-v3-shared');
-const { homePeriodKind, latestReportHref } = require('./report-nav');
-const reportPaths = require('../utils/path');
+const {
+  homePeriodKind,
+  latestReportHref,
+  readerPeriodHref,
+  latestReaderPeriodHref,
+} = require('./report-nav');
 
 const TEMPLATE_PATH = nodePath.join(TEMPLATE_DIR, 'home.mustache');
-
-const PERIOD_ID = {
-  weekly: /^\d{4}-W\d{2}$/,
-  monthly: /^\d{4}-\d{2}$/,
-};
-
-const PERIOD_FILE_RE = {
-  weekly: /^github-weekly-(\d{4}-W\d{2})\.html$/,
-  monthly: /^github-monthly-(\d{4}-\d{2})\.html$/,
-};
-
-function periodRel(kind, id) {
-  if (kind === 'weekly') return `weekly/github-weekly-${id}.html`;
-  if (kind === 'monthly') return `monthly/github-monthly-${id}.html`;
-  return null;
-}
-
-// 读者向链接只认正式 HTML。CSS 里的 .fail-banner 规则不算红条（例如 W43 仅有样式）。
-function hasReaderFailChrome(html) {
-  return /class="fail-banner"/.test(html) || /内容核查未通过（FAIL）/.test(html);
-}
-
-function readerPeriodHref(kind, id) {
-  if (!PERIOD_ID[kind] || !PERIOD_ID[kind].test(id)) return null;
-  const rel = periodRel(kind, id);
-  const abs = nodePath.join(reportPaths.reportsDir(), rel);
-  if (!fs.existsSync(abs)) return null;
-  const html = fs.readFileSync(abs, 'utf8');
-  if (hasReaderFailChrome(html)) return null;
-  return rel;
-}
-
-function latestReaderPeriodHref(kind) {
-  const dirName = kind === 'weekly' ? 'weekly' : 'monthly';
-  const dir = nodePath.join(reportPaths.reportsDir(), dirName);
-  if (!fs.existsSync(dir)) return null;
-  const ids = fs.readdirSync(dir)
-    .map(name => {
-      const match = PERIOD_FILE_RE[kind].exec(name);
-      return match ? match[1] : null;
-    })
-    .filter(Boolean)
-    .sort()
-    .reverse();
-  for (const id of ids) {
-    const href = readerPeriodHref(kind, id);
-    if (href) return href;
-  }
-  return null;
-}
 
 function periodEntryLink(kind, id) {
   const href = readerPeriodHref(kind, id);
