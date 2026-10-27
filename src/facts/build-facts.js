@@ -834,8 +834,27 @@ function buildDailyFacts({ brief, add, addNumber }) {
   }
 
   addCurrentShareFactsIfNoPrev({ brief, add });
+  // 追加在日更事实末尾，避免改动已有 fact id。深度分析「前 3 名占 N%」只认这条事实。
+  addTop3TodayShare({ brief, add });
 
   return history.getProjectNames(brief);
+}
+
+// 前 3 名今日新增 ÷ 当日新增合计 × 100，一位小数。与页面 buildDeepAnalysis 同一口径。
+function addTop3TodayShare({ brief, add }) {
+  const projects = brief.projects || [];
+  const sorted = [...projects].sort((left, right) => (Number(right.todayStars) || 0) - (Number(left.todayStars) || 0));
+  if (sorted.length < 3) return;
+  const top3Sum = sorted.slice(0, 3).reduce((sum, project) => sum + (Number(project.todayStars) || 0), 0);
+  const totalToday = sumTodayStars(projects);
+  if (!(totalToday > 0)) return;
+  add(round1((top3Sum / totalToday) * 100), {
+    kind: 'total',
+    field: 'projects[*].todayStars',
+    label: '前 3 名今日新增占当日新增合计（%）',
+    role: 'top3_today_share',
+    source: `briefs/daily/data-${brief.date}.json#projects[*].todayStars`,
+  });
 }
 
 // 无上一份 brief（与 addDailyReferenceFacts:399 同一判定）时，原分支不产出当期份额/新面孔率，
