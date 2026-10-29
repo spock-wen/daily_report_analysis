@@ -4,6 +4,7 @@ const fs = require('fs');
 const nodePath = require('path');
 const mustache = require('mustache');
 const history = require('../metrics/history');
+const { appearanceCounts } = require('../metrics/daily-metrics');
 const paths = require('../utils/path');
 const { DEFAULT_PHRASES, computeHypeIndex, defaultProjectText, stripRepoPrefix, buildDefaultOneSentence, buildDefaultDescZh, hasLongSubstringOverlap, isPrevYesterday } = require('./daily-v3-text');
 const { normalizeCjkSpacing, pickProjectBlurb, ratioPhrase } = require('./daily-v3-copy');
@@ -1232,9 +1233,19 @@ function buildViewModel(data) {
 
   const usedOneSentences = new Set();
   const usedDescSurfaces = [];
+  const appearanceDays = appearanceCounts({
+    brief: {
+      date,
+      scrapedAt: scrapedAt || brief.scrapedAt,
+      generatedAt: generatedAt || brief.generatedAt,
+      projects,
+    },
+    date,
+  });
   const viewProjects = projects.map((project, index) => {
     const fullName = projectKey(project) || '—';
     const days = streakOf(fullName);
+    const appearances = appearanceDays[fullName] || 0;
     const returned = isReturnedProject(fullName);
     const tag = project.tag
       || (days >= 2 ? `连续 ${days} 天` : previousBrief ? (returned ? '回归' : '新') : '');
@@ -1282,6 +1293,7 @@ function buildViewModel(data) {
       starsFmt: formatCount(project.stars),
       forksFmt: formatCount(project.forks),
       streakText: `${days} 天`,
+      appearancesText: `${appearances} 次`,
     };
   });
 

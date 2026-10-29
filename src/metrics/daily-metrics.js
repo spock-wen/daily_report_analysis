@@ -42,15 +42,18 @@ function computeDailyMetrics(date, options = {}) {
     return streak;
   };
 
+  const appearances = appearanceCounts({ brief, date });
   const newProjects = [];
   const returned = [];
   const kept = [];
   const tags = {};
   const streakDays = {};
+  const appearanceDays = {};
 
   for (const name of currentNames) {
     const streak = streakFor(name);
     streakDays[name] = streak;
+    appearanceDays[name] = appearances[name] || 1;
 
     if (prevSet.has(name)) {
       kept.push(name);
@@ -95,9 +98,61 @@ function computeDailyMetrics(date, options = {}) {
           },
     },
     streakDays,
+    appearanceDays,
     tags,
     caption: DAILY_CAPTION,
   };
+}
+
+function snapshotTimeMs(brief) {
+  const raw = brief?.scrapedAt || brief?.generatedAt;
+  if (!raw) return 0;
+  const time = new Date(raw).getTime();
+  return Number.isNaN(time) ? 0 : time;
+}
+
+function captureDayOf(brief, fallbackDate) {
+  const stamped = history.getScrapedDate(brief?.scrapedAt || brief?.generatedAt);
+  if (stamped) return stamped;
+  if (history.DATE_RE.test(String(brief?.date || ''))) return brief.date;
+  if (history.DATE_RE.test(String(fallbackDate || ''))) return fallbackDate;
+  return null;
+}
+
+// 累计上榜：全部可用日报 brief 里，该 owner/repo 出现过的不同抓取日。
+// 同一抓取日只计最新一份快照（与连续上榜的基准去重一致），断档日照计，含本期。
+// 不读 Wiki。调用方现算，不把结果写进 facts。
+function appearanceCounts(options = {}) {
+  const byDay = new Map();
+  const consider = (entryBrief, fallbackDate) => {
+    if (!entryBrief) return;
+    const day = captureDayOf(entryBrief, fallbackDate);
+    if (!day) return;
+    const time = snapshotTimeMs(entryBrief);
+    const prev = byDay.get(day);
+    if (prev && prev.time > time) return;
+    byDay.set(day, {
+      time,
+      names: history.getProjectNames(entryBrief),
+    });
+  };
+
+  for (const day of history.listDailyDates()) {
+    consider(history.readDailyBrief(day), day);
+  }
+  if (options.brief) {
+    const currentDay = captureDayOf(options.brief, options.date || options.brief.date);
+    if (currentDay) byDay.delete(currentDay);
+    consider(options.brief, options.date || options.brief.date);
+  }
+
+  const counts = {};
+  for (const entry of byDay.values()) {
+    for (const name of entry.names) {
+      counts[name] = (counts[name] || 0) + 1;
+    }
+  }
+  return counts;
 }
 
 function enrichDailyBrief(brief, options = {}) {
@@ -120,6 +175,7 @@ function enrichDailyBrief(brief, options = {}) {
 
 module.exports = {
   DAILY_CAPTION,
+  appearanceCounts,
   computeDailyMetrics,
   enrichDailyBrief,
 };

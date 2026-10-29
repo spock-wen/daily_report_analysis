@@ -27,7 +27,7 @@
 | deep.text | ins.deepAnalysis |
 | deep.actions[] / deep.hasActions | ins.action 取前 3 条（最多 3）/ 有建议时为真，否则整段「建议」不渲染 |
 | total | brief.stats.totalProjects |
-| projects[] | brief.projects[]（按 todayStars 降序）：rank、fullName、url、tag、tagNew（tag 为 新/回归 时真）、oneSentence（ins.project_insights[].oneSentence，缺省回落 analysis.oneSentence）、descZh、typeName（analysis.typeName）、language、community（analysis.community.level）、todayStars/starsFmt/forksFmt（千分位）、streakText（streakDays+" 天"）、anchor（"p-"+fullName 小写非字母数字转 -） |
+| projects[] | brief.projects[]（按 todayStars 降序）：rank、fullName、url、tag、tagNew（tag 为 新/回归 时真）、oneSentence（ins.project_insights[].oneSentence，缺省回落 analysis.oneSentence）、descZh、typeName（analysis.typeName）、language、community（analysis.community.level）、todayStars/starsFmt/forksFmt（千分位）、streakText（streakDays+" 天"）、appearancesText（全部可用日报 brief 的不同抓取日次数+" 次"）、anchor（"p-"+fullName 小写非字母数字转 -） |
 | related[] {href,title,sub} | 上期日报（dailyDiff.prevDate + 其 stats.totalProjects）、上周周报、上月月报、Wiki；均来自 reports/ 与 wiki 目录 |
 | footer | 固定文案 + total + scrapedAtLocal |
 
