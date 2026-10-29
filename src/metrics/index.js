@@ -8,6 +8,7 @@ module.exports = {
   DAILY_CAPTION: daily.DAILY_CAPTION,
   WEEKLY_CAPTION: weekly.WEEKLY_CAPTION,
   MONTHLY_CAPTION: monthly.MONTHLY_CAPTION,
+  appearanceCounts: daily.appearanceCounts,
   computeDailyMetrics: daily.computeDailyMetrics,
   enrichDailyBrief: daily.enrichDailyBrief,
   computeWeeklyMetrics: weekly.computeWeeklyMetrics,

@@ -4,6 +4,7 @@ const fs = require('fs');
 const nodePath = require('path');
 const mustache = require('mustache');
 const history = require('../metrics/history');
+const { appearanceCounts } = require('../metrics/daily-metrics');
 const weeklyMetrics = require('../metrics/weekly-metrics');
 const {
   TEMPLATE_DIR,
@@ -80,7 +81,7 @@ function buildTrackRows(currProjects, prevProjects) {
     });
 }
 
-function rosterItems(names, byName, kind) {
+function rosterItems(names, byName, kind, appearanceDays) {
   return (names || []).slice(0, 8).map(name => {
     const p = byName.get(name);
     const stars = Number(p?.todayStars) || 0;
@@ -92,6 +93,7 @@ function rosterItems(names, byName, kind) {
       valueUnit: '星',
       tag: kind === 'new' ? '新' : kind === 'cont' ? '连续' : '回归',
       tagCls: kind === 'new' ? 'acc' : kind === 'cont' ? 'pri' : '',
+      appearancesText: `${appearanceDays?.[name] || 0} 次`,
     };
   });
 }
@@ -234,14 +236,19 @@ function buildViewModel(data) {
   const narratives = buildNarratives(ai, projects, tracks);
   const lookahead = buildLookahead(ai, metrics, tracks, top1);
 
-  const fullList = sorted.map((p, idx) => ({
-    rank: idx + 1,
-    fullName: projectKey(p),
-    url: p.url || `https://github.com/${projectKey(p)}`,
-    blurb: projectBlurb(p),
-    stars: formatCount(p.todayStars),
-    track: trackOf(p),
-  }));
+  const appearanceDays = appearanceCounts();
+  const fullList = sorted.map((p, idx) => {
+    const fullName = projectKey(p);
+    return {
+      rank: idx + 1,
+      fullName,
+      url: p.url || `https://github.com/${fullName}`,
+      blurb: projectBlurb(p),
+      stars: formatCount(p.todayStars),
+      track: trackOf(p),
+      appearancesText: `${appearanceDays[fullName] || 0} 次`,
+    };
+  });
 
   const paths = {
     home: '../index.html',
@@ -311,8 +318,8 @@ function buildViewModel(data) {
     hasTrackOverview: tracks.length > 0,
     trackOverviewRows: tracks,
     narratives,
-    rosterNew: rosterItems(metrics.new, byName, 'new'),
-    rosterCont: rosterItems(metrics.continuing, byName, 'cont').map(item => {
+    rosterNew: rosterItems(metrics.new, byName, 'new', appearanceDays),
+    rosterCont: rosterItems(metrics.continuing, byName, 'cont', appearanceDays).map(item => {
       // 连续栏右侧显示「周」占位：无周连胜字段时用日榜天数兜底
       const days = (metrics.dailyTop3Stats || []).find(d => d.fullName === item.fullName)?.days;
       if (days) {
@@ -321,7 +328,7 @@ function buildViewModel(data) {
       }
       return item;
     }),
-    rosterRet: rosterItems(metrics.returning, byName, 'ret'),
+    rosterRet: rosterItems(metrics.returning, byName, 'ret', appearanceDays),
     trackRows: tracks,
     trackNote: tracks[0]
       ? `收束：本周是「${tracks[0].note}」主导的结构，不是全赛道普涨。`

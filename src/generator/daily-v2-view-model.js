@@ -4,6 +4,7 @@ const fs = require('fs');
 const nodePath = require('path');
 const mustache = require('mustache');
 const history = require('../metrics/history');
+const { appearanceCounts } = require('../metrics/daily-metrics');
 const paths = require('../utils/path');
 const { latestReportHref, wikiIndexHref, buildNav } = require('./report-nav');
 
@@ -465,10 +466,20 @@ function buildViewModel(data) {
     if (name && item.oneSentence) projectInsights.set(name, item.oneSentence);
   }
 
+  const appearanceDays = appearanceCounts({
+    brief: {
+      date,
+      scrapedAt: scrapedAt || brief.scrapedAt,
+      generatedAt: generatedAt || brief.generatedAt,
+      projects,
+    },
+    date,
+  });
   const viewProjects = projects.map((project, index) => {
     const fullName = projectKey(project) || '—';
     const analysis = project.analysis || {};
     const days = toNumber(streakDays?.[fullName]) ?? 1;
+    const appearances = appearanceDays[fullName] || 0;
     const tag = project.tag || '';
     const oneSentence = projectInsights.get(fullName)
       || analysis.oneSentence
@@ -493,6 +504,7 @@ function buildViewModel(data) {
       starsFmt: formatCount(project.stars),
       forksFmt: formatCount(project.forks),
       streakText: `${days} 天`,
+      appearancesText: `${appearances} 次`,
     };
   });
 
