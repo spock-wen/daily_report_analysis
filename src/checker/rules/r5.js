@@ -511,6 +511,23 @@ function addCanonicalKeys(set, value) {
       set.add(`${kVal.toFixed(1)}k`);
       set.add(`${Math.round(kVal)}k`);
     }
+
+    // Mirror generator formatK (avgStars / metrics d7Text): e.g. 949 → page `0.9k`.
+    // Without this, isKnownNumber only hits exact num:900 while facts keep the raw delta.
+    if (abs > 0) {
+      const thousands = abs / 1000;
+      const body = Number.isInteger(thousands)
+        ? String(thousands)
+        : (Math.round(thousands * 10) / 10).toFixed(1);
+      const kText = `${body}k`;
+      set.add(kText);
+      set.add(kText.replace(/k$/, 'K'));
+      const displayNum = toNumber(kText);
+      if (displayNum !== null && Number.isFinite(displayNum)) {
+        set.add(`num:${displayNum}`);
+        set.add(String(displayNum));
+      }
+    }
   }
 }
 
