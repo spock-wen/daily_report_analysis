@@ -23,8 +23,8 @@ function buildCharLineMap(text) {
   return map;
 }
 
-/** 标识符字段：仓库/项目名等，跨期合法重复，不得当作 B6/B4 散文句。 */
-const IDENTIFIER_KEY_RE = /^(fullName|project_name|projectName|repo|name)$/;
+/** 标识符字段：仓库/项目名等，跨期合法重复，不得当作 B6 散文句。 */
+const IDENTIFIER_KEY_RE = /^(fullName|project_name|projectName|repo|name|projects|keyProjects)$/;
 
 function leafKeyFromPath(pathStr) {
   if (!pathStr) return '';

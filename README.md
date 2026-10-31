@@ -209,10 +209,10 @@ node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/c
 
 B4 白名单格式（这些数字不要求 render_map 条目）：
 
-- 日期：`YYYY-MM-DD`、`YYYY年M月D日`、`M月D日`
+- 日期：`YYYY-MM-DD`、`YYYY年M月D日`、`M月D日`、`YYYY 年`、`M 月`（`月` 后不是 `个`，所以「3 个月」仍要渲染记录）
 - 时间：`HH:mm`、`HH:mm:ss`（B12 抓取时刻）
 - 时区：`UTC+8`、`UTC+08:00`（B12 抓取时刻）
-- 参照口径：`7 日`、`前 7 个`（B16 的「7 日均值」短语，不是数字断言）
+- 参照口径：`7 日`、`前 7 个`（B16 的「7 日均值」短语，不是数字断言）。`7` 前面不能再有数字，避免「147 个」被切成「14」
 - 期号：`YYYY-Www`（如 `2026-W42`）、`YYYY-MM`（如 `2026-09`）
 - 排名序号：`第N`、`TopN`（大小写不敏感）、`#N`、`1.` 形式的列表序号
 
