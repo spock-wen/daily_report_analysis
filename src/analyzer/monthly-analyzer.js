@@ -427,7 +427,9 @@ class MonthlyAnalyzer {
               monthStars: metric?.monthStars,
               daysOnList: metric?.daysOnList,
               language: repo?.language || '',
-              description: repo?.description || ''
+              // GitHub about 常带未绑定数字（如 646 languages）。月报页不渲染该字段，
+              // 覆盖进洞察会让 B4 把目录文案当成正文数字。只保留模型自己写的 description。
+              description: typeof item.description === 'string' ? item.description : ''
             };
           });
       }
