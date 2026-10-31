@@ -1080,7 +1080,7 @@ function buildMonthlyFacts({ brief, metrics, add, addNumber }) {
   addNumber(stats.recurringProjects, {
     kind: 'total',
     field: 'stats.recurringProjects',
-    label: '重复上榜项目数（上榜 ≥2 天）',
+    label: '重复上榜项目数（两天及以上）',
     role: 'recurring',
   });
   addNumber(stats.newProjects, { kind: 'total', field: 'stats.newProjects', label: '新秀数', role: 'new' });

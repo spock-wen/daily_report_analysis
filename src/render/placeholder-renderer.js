@@ -13,6 +13,14 @@ const STATUS_PLACEHOLDER_RE = /\{\{s:([^{}]+)\}\}/g;
 const STATUS_LEFTOVER_RE = /\{\{s[^{}]*\}\}/g;
 const PROJECT_PLACEHOLDER_RE = /\{\{p:([^{}]+)\}\}/g;
 
+// 事实标签曾写成「上榜 ≥2 天」。模型会把门槛里的 2 原样抄进正文，
+// 这段数字没有 {{f…}}，B4 会判没有渲染记录。比较符号后的门槛改成「两天及以上」。
+const UNBOUND_RECURRING_DAY_RE = /[ \t]*(?:>=|≥|≧|＞=|＞＝|大于等于)\s*2(?![\d.])\s*[天日]/g;
+
+function rewriteUnboundRecurringThreshold(value) {
+  return String(value == null ? '' : value).replace(UNBOUND_RECURRING_DAY_RE, '两天及以上');
+}
+
 function formatFactValue(value) {
   return String(value);
 }
@@ -53,6 +61,7 @@ function renderInsights({ insights, facts, projects, projectTags, level, period 
   const errors = [];
 
   const renderString = (value, fieldPath) => {
+    value = rewriteUnboundRecurringThreshold(value);
     const invalidFactPlaceholders = new Set();
     const matches = [];
     value.replace(FACT_PLACEHOLDER_RE, (placeholder, id, role, offset) => {
@@ -287,6 +296,7 @@ module.exports = {
   writeRenderMap,
   projectNameFromPlaceholder,
   isProjectPlaceholder,
+  rewriteUnboundRecurringThreshold,
   formatFactValue,
   FACT_PLACEHOLDER_RE,
   DIRECTION_PLACEHOLDER_RE,
