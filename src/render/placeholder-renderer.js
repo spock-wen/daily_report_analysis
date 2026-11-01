@@ -2,7 +2,8 @@
 
 const fs = require('fs');
 const path = require('path');
-const { findSlotAssignments } = require('../facts/roles');
+const { findSlotAssignments, resolveCitedFact } = require('../facts/roles');
+const { stripBoilerplateValue } = require('./strip-boilerplate');
 const { statusWordFromTag } = require('../facts/status');
 
 const FACT_PLACEHOLDER_RE = /\{\{f(\d+)(?::([a-z0-9_]+))?\}\}/g;
@@ -35,9 +36,16 @@ function isProjectPlaceholder(value) {
   return typeof value === 'string' && /^\{\{p:[^{}]+\}\}$/.test(value.trim());
 }
 
+function placeholderForFact(fact) {
+  const id = String(fact.id).replace(/^f/, '');
+  return fact.role ? `{{f${id}:${fact.role}}}` : `{{f${id}}}`;
+}
+
 function renderInsights({ insights, facts, projects, projectTags, level, period }) {
+  insights = stripBoilerplateValue(insights);
+  const factList = Array.isArray(facts) ? facts : [];
   const factMap = new Map();
-  for (const fact of facts || []) {
+  for (const fact of factList) {
     if (fact && fact.id !== undefined && fact.id !== null) {
       factMap.set(String(fact.id), fact);
     }
@@ -85,6 +93,10 @@ function renderInsights({ insights, facts, projects, projectTags, level, period 
         });
         return placeholder;
       }
+      const allowedRoles = slotByOffset.get(match.offset);
+      const bound = match.role
+        ? resolveCitedFact(fact, match.role, factList, allowedRoles)
+        : fact;
       if (!match.role) {
         errors.push({
           path: fieldPath,
@@ -92,30 +104,23 @@ function renderInsights({ insights, facts, projects, projectTags, level, period 
           quote: value,
           message: `事实占位 ${placeholder} 缺少 role（应写 {{f${match.id}:<role>}}）`,
         });
-      } else if (fact.role && match.role !== fact.role) {
-        errors.push({
-          path: fieldPath,
-          placeholder,
-          quote: value,
-          message: `事实占位 ${placeholder} 的 role 与事实 ${fact.id} 的 role「${fact.role}」不一致`,
-        });
       }
-      const allowedRoles = slotByOffset.get(match.offset);
+      const storedPlaceholder = placeholderForFact(bound);
       // B16：方向词事实（role=direction）跟随所在参照句，不参与语义槽归属。
-      if (fact.role && fact.role !== 'direction' && allowedRoles && !allowedRoles.includes(fact.role)) {
+      if (bound.role && bound.role !== 'direction' && allowedRoles && !allowedRoles.includes(bound.role)) {
         errors.push({
           path: fieldPath,
-          placeholder,
+          placeholder: storedPlaceholder,
           quote: value,
-          message: `事实占位 ${placeholder} 所在语义槽与 role「${fact.role}」不一致`,
+          message: `事实占位 ${storedPlaceholder} 所在语义槽与 role「${bound.role}」不一致`,
         });
       }
-      const text = formatFactValue(fact.value);
+      const text = formatFactValue(bound.value);
       entries.push({
         path: fieldPath,
-        placeholder,
-        factId: fact.id,
-        role: match.role,
+        placeholder: storedPlaceholder,
+        factId: bound.id,
+        role: bound.role || match.role,
         text,
       });
       return text;

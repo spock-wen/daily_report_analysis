@@ -187,8 +187,72 @@ function roleFromPlaceholder(placeholder) {
   return match && match[1] ? match[1] : null;
 }
 
+// 模型常把事实 role 写成「看起来像」的别名。别名只在与所引事实的 role 对得上时生效。
+const ROLE_ALIASES = {
+  total_month_stars: 'total_month',
+  total_week_stars: 'total_week',
+  total_today_stars: 'total_today',
+  month_total_stars: 'total_month',
+  new_stars_total: 'total_month',
+};
+
+function sameProject(left, right) {
+  return (left?.project || null) === (right?.project || null);
+}
+
+function pushCandidate(list, candidate) {
+  if (!candidate || candidate.id === undefined || candidate.id === null) return;
+  if (list.some(item => String(item.id) === String(candidate.id))) return;
+  list.push(candidate);
+}
+
+// 占位 role 与所引事实 role 不一致时，选一个 role 能对上的事实：
+// 优先语义槽允许、且与占位所写 role（或它的别名）一致的事实。
+function resolveCitedFact(fact, requestedRole, facts, allowedRoles) {
+  if (!fact) return fact;
+  const candidates = [];
+  pushCandidate(candidates, fact);
+  if (requestedRole && requestedRole !== fact.role) {
+    const pool = Array.isArray(facts) ? facts : [];
+    pushCandidate(candidates, pool.find(candidate => candidate.role === requestedRole && sameProject(candidate, fact)));
+    const alias = ROLE_ALIASES[requestedRole];
+    if (alias) {
+      pushCandidate(candidates, pool.find(candidate => candidate.role === alias && sameProject(candidate, fact)));
+      if (!fact.project) {
+        pushCandidate(candidates, pool.find(candidate => !candidate.project && candidate.role === alias));
+      }
+    }
+  }
+
+  const allowed = Array.isArray(allowedRoles) ? allowedRoles : null;
+  if (allowed && allowed.length > 0) {
+    const fitting = candidates.filter(candidate => candidate.role && allowed.includes(candidate.role));
+    if (fitting.length > 0) {
+      const exact = requestedRole && fitting.find(candidate => candidate.role === requestedRole);
+      if (exact) return exact;
+      const alias = ROLE_ALIASES[requestedRole];
+      const aliased = alias && fitting.find(candidate => candidate.role === alias);
+      if (aliased) return aliased;
+      return fitting[0];
+    }
+  }
+
+  if (requestedRole) {
+    const exact = candidates.find(candidate => candidate.role === requestedRole);
+    if (exact) return exact;
+    const alias = ROLE_ALIASES[requestedRole];
+    if (alias) {
+      const aliased = candidates.find(candidate => candidate.role === alias);
+      if (aliased) return aliased;
+    }
+  }
+  return fact;
+}
+
 module.exports = {
   SLOT_RULES,
+  ROLE_ALIASES,
   findSlotAssignments,
   roleFromPlaceholder,
+  resolveCitedFact,
 };
