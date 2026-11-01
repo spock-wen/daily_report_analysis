@@ -28,6 +28,7 @@ const {
   weekBarsFootnote,
 } = require('./wmh-svg-charts');
 const { latestReportHref } = require('./report-nav');
+const { pickProjectBlurb } = require('./daily-v3-copy');
 
 const TEMPLATE_PATH = nodePath.join(TEMPLATE_DIR, 'monthly.mustache');
 
@@ -238,6 +239,66 @@ function buildMonthlyFullList(metrics, data, month, top) {
   });
 }
 
+// 与周报 projectBlurb 同一截断。只收字符串，避免把 selfClaim 之类的非文案收成句子。
+const INTRO_TEXT_KEYS = ['descZh', 'summary', 'summaryZh', 'blurb', 'oneSentence', 'descShortZh'];
+const INTRO_DESC_KEYS = ['description', 'desc'];
+
+function normalizeIntro(value) {
+  if (typeof value !== 'string') return '';
+  const text = value.replace(/\s+/g, ' ').trim();
+  if (!text) return '';
+  return text.slice(0, 72);
+}
+
+function firstIntro(record, keys) {
+  if (!record || typeof record !== 'object') return null;
+  for (const key of keys) {
+    const text = normalizeIntro(record[key]);
+    if (text) return { key, text };
+  }
+  return null;
+}
+
+function recordHasIntro(record) {
+  return Boolean(firstIntro(record, INTRO_TEXT_KEYS) || firstIntro(record, INTRO_DESC_KEYS));
+}
+
+// 一句介绍：先中文/摘要/blurb（简介表，再项目卡片），没有再退 GitHub description / desc。
+// 都空则 text 为空，模板不渲染空壳句。
+function explainProjectIntro(fullName, ...records) {
+  const curated = firstIntro(pickProjectBlurb(fullName), INTRO_TEXT_KEYS);
+  if (curated) {
+    return { text: curated.text, source: `project-blurbs.json:${curated.key}` };
+  }
+  for (const record of records) {
+    const hit = firstIntro(record, INTRO_TEXT_KEYS);
+    if (hit) return { text: hit.text, source: `project.${hit.key}` };
+  }
+  for (const record of records) {
+    const hit = firstIntro(record, INTRO_DESC_KEYS);
+    if (hit) return { text: hit.text, source: `project.${hit.key}` };
+  }
+  return { text: '', source: '' };
+}
+
+function projectIntro(fullName, ...records) {
+  return explainProjectIntro(fullName, ...records).text;
+}
+
+// 最后一张带介绍的日榜卡片盖过更早的空卡片；聚合里才有的仓库仍留在 lookup 里。
+function introCards(month, data) {
+  const map = buildProjectLookup(month, data);
+  if (!month) return map;
+  for (const entry of history.getMonthDailyEntries(month)) {
+    for (const project of entry.brief?.projects || []) {
+      const key = projectKey(project);
+      if (!key || !recordHasIntro(project)) continue;
+      map.set(key, project);
+    }
+  }
+  return map;
+}
+
 function buildViewModel(data) {
   const month = data.month || data.date;
   const metrics = data._metrics
@@ -310,6 +371,12 @@ function buildViewModel(data) {
   const dailyLineSvg = renderDailyLineSvg(dailySeries, { month });
   const dailyLineNote = dailyLineFootnote(dailySeries);
 
+  const introByName = introCards(month, data);
+  const blurbFor = (fullName, ...records) => {
+    if (!fullName || fullName === '—') return '';
+    return projectIntro(fullName, introByName.get(fullName), ...records);
+  };
+
   const topRows = top.map((item, idx) => {
     const p = item.project || {};
     return {
@@ -322,6 +389,7 @@ function buildViewModel(data) {
       ].filter(Boolean).join(' · '),
       monthStars: formatCount(item.monthStars),
       totalStars: formatCount(item.lastStars || p.stars),
+      blurb: blurbFor(item.fullName, p),
     };
   });
 
@@ -401,16 +469,19 @@ function buildViewModel(data) {
         title: '持久王',
         name: persistence?.fullName || '—',
         meta: persistence ? `上榜 ${persistence.daysOnList} 天 · 月增 ${formatCount(persistence.monthStars)}` : '数据不足',
+        blurb: blurbFor(persistence?.fullName, persistence),
       },
       {
         title: '单日星增王',
         name: peak?.fullName || '—',
         meta: peak ? `单日峰值 ${formatCount(peak.stars)}${peak.date ? ` · ${peak.date.slice(5)}` : ''}` : '数据不足',
+        blurb: blurbFor(peak?.fullName, peak),
       },
       {
         title: '新秀精选',
         name: rookiePick?.fullName || '—',
         meta: rookiePick ? `本月首次进榜 · 月增 ${formatCount(rookiePick.monthStars)}` : '数据不足',
+        blurb: blurbFor(rookiePick?.fullName, rookiePick),
       },
     ],
     langRows,
@@ -442,4 +513,5 @@ function renderMonthlyV3(data) {
 module.exports = {
   buildViewModel,
   renderMonthlyV3,
+  explainProjectIntro,
 };
