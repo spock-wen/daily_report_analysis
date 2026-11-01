@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const logger = require('../../utils/logger');
 const { computeMonthlyMetrics } = require('../../metrics');
+const { stripProjectAnalysis } = require('../../render/strip-boilerplate');
 
 /**
  * 月度数据聚合器
@@ -335,7 +336,8 @@ class MonthlyAggregator {
 
     return Array.from(projectCount.values())
       .filter(p => p.count >= 2)
-      .sort((a, b) => b.count - a.count);
+      .sort((a, b) => b.count - a.count)
+      .map(project => stripProjectAnalysis(project));
   }
 
   /**

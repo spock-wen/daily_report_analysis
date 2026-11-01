@@ -33,6 +33,7 @@ const {
 const { runContentGate } = require('../checker/gate');
 const { buildFacts } = require('../facts/build-facts');
 const { renderInsights, writeRenderMap } = require('../render/placeholder-renderer');
+const { stripProjectAnalysis, stripWeekThemes, stripBoilerplateValue } = require('../render/strip-boilerplate');
 const { isR5Insights } = require('../checker/rules/r5');
 
 // 导入依赖模块
@@ -559,6 +560,19 @@ class ReportPipeline {
     // 月报保留聚合数据（aggregation）
     if (type === 'monthly' && data.aggregation) {
       formatted.aggregation = data.aggregation;
+    }
+
+    if (type === 'monthly') {
+      formatted.weekThemes = stripWeekThemes(formatted.weekThemes);
+      if (formatted.aggregation && Array.isArray(formatted.aggregation.recurringProjects)) {
+        formatted.aggregation = {
+          ...formatted.aggregation,
+          recurringProjects: formatted.aggregation.recurringProjects.map(project => stripProjectAnalysis(project)),
+        };
+      }
+      if (formatted.aiInsights) {
+        formatted.aiInsights = stripBoilerplateValue(formatted.aiInsights);
+      }
     }
 
     return formatted;

@@ -1,4 +1,5 @@
 const history = require('./history');
+const { stripBoilerplateText } = require('../render/strip-boilerplate');
 
 const MONTHLY_CAPTION = '口径：本月新增星由日榜回算（当月最后一次出现 stars − 首次出现前一有数据日 stars；前一日不在榜则用首次出现日 stars − 当日 todayStars）；上榜天数只算日榜日期；新秀为当月首次进入日榜且此前 30 天日榜未出现的项目；头部集中度＝新增星 Top5 之和÷当月新增星合计。';
 
@@ -149,9 +150,10 @@ function buildWeekThemes(month) {
     const startDate = history.getISOWeekStart(week);
     const insights = history.readWeeklyInsights(week);
     const weeklyTheme = insights?.weeklyTheme;
-    const theme = typeof weeklyTheme === 'string'
+    const rawTheme = typeof weeklyTheme === 'string'
       ? weeklyTheme
       : (weeklyTheme?.oneLiner || null);
+    const theme = typeof rawTheme === 'string' ? stripBoilerplateText(rawTheme) : rawTheme;
 
     return {
       week,
