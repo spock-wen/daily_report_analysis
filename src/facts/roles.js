@@ -97,11 +97,20 @@ const SLOT_RULES = [
   { pattern: /星的新增/g, roles: ['today_stars', 'total_today', 'max_today', 'week_stars', 'total_week', 'month_stars', 'total_month'] },
   // 「中新增 N 星」：数字在「新增」后。与「天上榜」同句时必须单独成槽，
   // 否则最近槽会把 month_stars 判成 days_on_list（月10 longTermValue[0].oneSentence）。
-  // 前面已有「本月/本周/今日/当日/单日/当天/合计」时不重复开槽，免得盖住更窄的槽。
-  { pattern: /(?<!本月|本周|今日|当日|单日|当天|合计)新增\s*(?:\{\{f\d+:[a-z0-9_]+\}\}|\d+(?:\.\d+)?)\s*星/g, roles: ['today_stars', 'total_today', 'max_today', 'week_stars', 'total_week', 'month_stars', 'total_month'] },
+  // 前面已有「本月/本周/今日/当日/单日/当天/合计/日报」时不重复开槽，免得盖住更窄的槽。
+  // 「日报」留给上面的 top3_stars 槽（日报新增 N 星）。
+  { pattern: /(?<!本月|本周|今日|当日|单日|当天|合计|日报)新增\s*(?:\{\{f\d+:[a-z0-9_]+\}\}|\d+(?:\.\d+)?)\s*星/g, roles: ['today_stars', 'total_today', 'max_today', 'week_stars', 'total_week', 'month_stars', 'total_month'] },
   // days_on_list：上榜 N 天 / 天上榜 / 上榜周期（FINDINGS 月09）
   // 月10 另两句用的是「天在榜」「天的在榜」，不是「天的上榜」。
-  { pattern: /天上榜|天的上榜|天的在榜|天在榜|上榜天数|上榜周期/g, roles: ['days_on_list'] },
+  // top3_days：周报「日报上榜天数」（W44 nextWeekPoints「领先本周的 N 天」落在这个槽）。
+  { pattern: /天上榜|天的上榜|天的在榜|天在榜|上榜天数|上榜周期/g, roles: ['days_on_list', 'top3_days'] },
+  // 「上榜 N 天」数字在「上榜」后。周报 dailyTop3Notes 写 top3_days，月报写 days_on_list。
+  { pattern: /上榜\s*(?:\{\{f\d+:[a-z0-9_]+\}\}|\d+(?:\.\d+)?)\s*天/g, roles: ['days_on_list', 'top3_days'] },
+  // W44 dailyTop3Notes：「日报合计新增 N 星 / 日报新增 N 星」是 top3_stars
+  // （label「本周日报新增星」）。模式吃到数字，并且下面的「合计」不再吃「日报合计」，
+  // 否则更靠近数字的合计槽会把 top3_stars 判成 total_week / week_stars。
+  { pattern: /日报合计新增\s*(?:\{\{f\d+:[a-z0-9_]+\}\}|\d+(?:\.\d+)?)\s*星/g, roles: ['top3_stars'] },
+  { pattern: /日报新增\s*(?:\{\{f\d+:[a-z0-9_]+\}\}|\d+(?:\.\d+)?)\s*星/g, roles: ['top3_stars'] },
   // 「累计 N 天」是上榜天数，不是累计星（月10 monthlyTheme.detailed {{f30:days_on_list}}）。
   // 「累计 N 星与 M 天的在榜」里这个负向条件不吃掉前面的累计星槽。
   { pattern: /累计(?!\s*(?:\{\{f\d+:days_on_list\}\}|\d+(?:\.\d+)?)\s*天)/g, roles: ['stars'] },
@@ -111,8 +120,9 @@ const SLOT_RULES = [
   // W44 nextWeekPoints 写的是「星看点阈值」，事实标签也是「看点阈值」，不是「星门槛」。
   { pattern: /看点阈值|星门槛/g, roles: ['threshold'] },
   { pattern: /百分点/g, roles: ['category_shift', 'language_shift'] },
-  // 合计槽同时容纳 per-project week_stars/month_stars（「周榜合计新增」只命中「合计」时）
-  { pattern: /合计/g, roles: ['total_today', 'total_week', 'total_month', 'week_stars', 'month_stars', 'prev_total_today', 'avg7_total_today', 'mom_total_today', 'prev_week_total', 'prev_month_total'] },
+  // 合计槽同时容纳 per-project week_stars/month_stars（「周榜合计新增」只命中「合计」时）。
+  // 「日报合计」是 top3_stars，不进这个槽。
+  { pattern: /(?<!日报)合计/g, roles: ['total_today', 'total_week', 'total_month', 'week_stars', 'month_stars', 'prev_total_today', 'avg7_total_today', 'mom_total_today', 'prev_week_total', 'prev_month_total'] },
   // B16：参照数、份额变化、提速、换血率的语义槽。
   { pattern: /上期|昨日|前一有数据日|上一有数据日/g, roles: PREV_SLOT_ROLES },
   { pattern: /7\s*日均值|七日均值|前\s*7\s*个有数据日/g, roles: REFERENCE_AVG7_ROLES },
