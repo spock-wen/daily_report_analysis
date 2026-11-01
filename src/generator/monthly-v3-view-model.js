@@ -4,6 +4,7 @@ const fs = require('fs');
 const nodePath = require('path');
 const mustache = require('mustache');
 const history = require('../metrics/history');
+const { appearanceCounts } = require('../metrics/daily-metrics');
 const monthlyMetrics = require('../metrics/monthly-metrics');
 const {
   TEMPLATE_DIR,
@@ -140,6 +141,103 @@ function buildInsights(ai, dropList, dropListNote, domainRows) {
   return items.slice(0, 5).map((item, idx) => ({ index: idx + 1, title: item.title, body: item.body }));
 }
 
+function absorbProject(map, project) {
+  const key = projectKey(project);
+  if (!key) return;
+  map.set(key, project);
+}
+
+// 本月项目卡片：先放 brief / recurring，再用当月日榜后出现的记录覆盖，供 track 与 blurb。
+function buildProjectLookup(month, data) {
+  const map = new Map();
+  for (const project of data.projects || []) absorbProject(map, project);
+  for (const project of data.aggregation?.topGainers || []) absorbProject(map, project);
+  for (const project of data.aggregation?.recurringProjects || []) absorbProject(map, project);
+  if (month) {
+    for (const entry of history.getMonthDailyEntries(month)) {
+      for (const project of entry.brief?.projects || []) absorbProject(map, project);
+    }
+  }
+  return map;
+}
+
+function pushFullRow(rows, seen, fullName, starsNum, daysOnList) {
+  if (!fullName || seen.has(fullName)) return false;
+  seen.add(fullName);
+  rows.push({
+    fullName,
+    starsNum: Number(starsNum) || 0,
+    daysOnList: Number(daysOnList) || 0,
+  });
+  return true;
+}
+
+// 完整列表口径：优先本月收录全量 metrics.top（日榜去重，按本月新增星排序，
+// 是上表 monthTop 的超集，项数不少于 Top 表）。没有 top 时退到
+// aggregation.recurringProjects。上表里仍缺的仓库再补进列表。
+// 字段对齐周报 fullList：rank / url / fullName / track / blurb /
+// stars（本月新增星，对应周报当期 todayStars）/ appearancesText（appearanceCounts 累计上榜）。
+function buildMonthlyFullList(metrics, data, month, top) {
+  const included = Array.isArray(metrics.top) ? metrics.top : [];
+  const rows = [];
+  const seen = new Set();
+
+  if (included.length > 0) {
+    for (const item of included) {
+      pushFullRow(rows, seen, item.fullName, item.monthStars, item.daysOnList);
+    }
+  } else {
+    for (const project of data.aggregation?.recurringProjects || []) {
+      pushFullRow(
+        rows,
+        seen,
+        projectKey(project),
+        project.monthStars,
+        project.count || project.daysOnList,
+      );
+    }
+  }
+
+  let addedFromTop = false;
+  for (const item of top || []) {
+    if (!item?.fullName) continue;
+    const existing = rows.find(row => row.fullName === item.fullName);
+    if (!existing) {
+      if (pushFullRow(rows, seen, item.fullName, item.monthStars, item.daysOnList)) {
+        addedFromTop = true;
+      }
+      continue;
+    }
+    if (included.length === 0) {
+      existing.starsNum = Number(item.monthStars) || existing.starsNum;
+      existing.daysOnList = Number(item.daysOnList) || existing.daysOnList;
+    }
+  }
+
+  if (included.length === 0 || addedFromTop) {
+    rows.sort((a, b) => (
+      b.starsNum - a.starsNum
+      || b.daysOnList - a.daysOnList
+      || a.fullName.localeCompare(b.fullName)
+    ));
+  }
+
+  const projects = buildProjectLookup(month, data);
+  const appearanceDays = appearanceCounts();
+  return rows.map((row, idx) => {
+    const project = projects.get(row.fullName) || { fullName: row.fullName };
+    return {
+      rank: idx + 1,
+      fullName: row.fullName,
+      url: project.url || `https://github.com/${row.fullName}`,
+      blurb: projectBlurb(project),
+      stars: formatCount(row.starsNum),
+      track: trackOf(project),
+      appearancesText: `${appearanceDays[row.fullName] || 0} 次`,
+    };
+  });
+}
+
 function buildViewModel(data) {
   const month = data.month || data.date;
   const metrics = data._metrics
@@ -252,6 +350,8 @@ function buildViewModel(data) {
     { label: '头部集中度 Top5', value: `${top5Share}%` },
   ];
 
+  const fullList = buildMonthlyFullList(metrics, data, month, top);
+
   return {
     css: readCss(),
     title: `月报 ${month} · GitHub AI Trending 洞察`,
@@ -322,7 +422,8 @@ function buildViewModel(data) {
     weekBarsSvg,
     weekBarsNote,
     kpiRows,
-    fullNote: `全量 Top ${top.length} 已列于上表。Wiki 仅文字入口，无域墙。`,
+    fullList,
+    fullCount: fullList.length,
     wikiHref: '../wiki-index.html',
     caption: metrics.caption || monthlyMetrics.MONTHLY_CAPTION,
     footer: `报告站 · 月报 ${month} · r11c 趋势图 · 砍黑马/预测/Wiki域墙 · 静态 SVG · 热区 a::after≥44`,
