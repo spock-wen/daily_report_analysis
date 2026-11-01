@@ -117,7 +117,13 @@ const SLOT_RULES = [
   { pattern: /Forks|Fork|fork|分支/g, roles: ['forks'] },
   { pattern: /个在榜项目/g, roles: COUNT_ROLES },
   { pattern: /个项目|项目数/g, roles: COUNT_ROLES },
-  // W44 nextWeekPoints 写的是「星看点阈值」，事实标签也是「看点阈值」，不是「星门槛」。
+  // 提示词规定看点阈值写成「{{f<id>:threshold}} 星看点阈值」，数字在词前面。
+  // 只匹配「看点阈值」时槽起点在数字之后。同一分句若先有「周榜合计新增」，
+  // 最近前置槽是「合计」，threshold 会被判成 week_stars / total_week
+  // （闸证 check-weekly-2026-W44 nextWeekPoints[2]，generatedAt 2026-11-01T07:10:44.175Z）。
+  // 槽起点落在紧挨着的数字上，才压得过前面的合计槽。占位和渲染后的数字都要认。
+  { pattern: /(?:\{\{f\d+:[a-z0-9_]+\}\}|\d+(?:\.\d+)?)\s*星看点阈值/g, roles: ['threshold'] },
+  // 词在数字前时仍由这一条认。「星门槛」是同一 role 的别名，不另放宽。
   { pattern: /看点阈值|星门槛/g, roles: ['threshold'] },
   { pattern: /百分点/g, roles: ['category_shift', 'language_shift'] },
   // 合计槽同时容纳 per-project week_stars/month_stars（「周榜合计新增」只命中「合计」时）。
