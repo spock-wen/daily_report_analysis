@@ -5,6 +5,7 @@ const path = require('path');
 const { findSlotAssignments, resolveCitedFact } = require('../facts/roles');
 const { stripBoilerplateValue } = require('./strip-boilerplate');
 const { statusWordFromTag } = require('../facts/status');
+const { normalizeWeeklyInsights } = require('./weekly-insight-normalizer');
 
 const FACT_PLACEHOLDER_RE = /\{\{f(\d+)(?::([a-z0-9_]+))?\}\}/g;
 const FACT_LEFTOVER_RE = /\{\{f[^{}]*\}\}/g;
@@ -57,6 +58,13 @@ function renderInsights({ insights, facts, projects, projectTags, level, period 
       .filter(Boolean)
       .map(name => String(name).trim())
   );
+
+  if (level === 'weekly') {
+    insights = normalizeWeeklyInsights(insights, {
+      facts: factList,
+      projects: Array.from(projectSet),
+    });
+  }
 
   const tagMap = new Map();
   if (projectTags instanceof Map) {

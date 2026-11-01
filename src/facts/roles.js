@@ -77,11 +77,16 @@ const SLOT_RULES = [
   { pattern: /掉榜|出局/g, roles: ['dropped'] },
   { pattern: /新上榜|新面孔(?!率)/g, roles: ['new'] },
   { pattern: /回归/g, roles: ['returned'] },
-  { pattern: /连续(?:在榜|\s*\d+\s*[天日])/g, roles: ['streak', 'kept'] },
+  // 「连续在榜 N 个」是在榜项目个数（kept）。「连续 N 天」是天数，不是个数。
+  { pattern: /连续在榜/g, roles: ['streak', 'kept'] },
+  { pattern: /连续\s*(?:\{\{f\d+:[a-z0-9_]+\}\}|\d+)\s*[天日]/g, roles: ['streak', 'appearance_days', 'days_on_list'] },
   // max_today：今日/单日峰值与「今日新增」同槽（FINDINGS W42）
   { pattern: /今日新增|当日新增|单日新增|当天新增|今日峰值|单日峰值|最大单[日项]/g, roles: ['today_stars', 'total_today', 'max_today'] },
   // week_stars 同义：周榜合计新增 / 本周合计新增（FINDINGS W42）
   { pattern: /周榜合计新增|本周合计新增|本周新增/g, roles: ['week_stars', 'total_week'] },
+  // W44 nextWeekPoints：「周新增（本周 N 星）」里的数字在「本周新增」之前。
+  // 不吃「上周新增 / 本周新增」，避免和上一行或 prev_week_total 抢同一个槽。
+  { pattern: /(?<![上本])周新增/g, roles: ['week_stars', 'total_week'] },
   // 「占本月新增星的比例」是集中度的分母说法，不是本月新增星。
   // 月10 monthlyTheme.detailed：{{f8:top5_share}} 被「本月新增」最近槽抢走。
   { pattern: /头部集中度|占本月新增星的比例/g, roles: ['top5_share', 'prev_top5_share'] },
@@ -103,7 +108,8 @@ const SLOT_RULES = [
   { pattern: /Forks|Fork|fork|分支/g, roles: ['forks'] },
   { pattern: /个在榜项目/g, roles: COUNT_ROLES },
   { pattern: /个项目|项目数/g, roles: COUNT_ROLES },
-  { pattern: /星门槛/g, roles: ['threshold'] },
+  // W44 nextWeekPoints 写的是「星看点阈值」，事实标签也是「看点阈值」，不是「星门槛」。
+  { pattern: /看点阈值|星门槛/g, roles: ['threshold'] },
   { pattern: /百分点/g, roles: ['category_shift', 'language_shift'] },
   // 合计槽同时容纳 per-project week_stars/month_stars（「周榜合计新增」只命中「合计」时）
   { pattern: /合计/g, roles: ['total_today', 'total_week', 'total_month', 'week_stars', 'month_stars', 'prev_total_today', 'avg7_total_today', 'mom_total_today', 'prev_week_total', 'prev_month_total'] },
@@ -115,7 +121,9 @@ const SLOT_RULES = [
   { pattern: /倍/g, roles: ['ratioTop1Top2', 'ratio_top1_top2', 'acceleration_ratio'] },
   { pattern: /提速|加速/g, roles: ['acceleration', 'acceleration_ratio'] },
   // 「变化」专指提速/变化量，份额变化仍由上面的份额槽负责。
-  { pattern: /(?<!份额)变化/g, roles: ['acceleration'] },
+  // 日报变化量 role=acceleration；周报「较上周变化量」role=wow_delta（W44 weeklyTheme.detailed）。
+  { pattern: /(?<!份额)变化/g, roles: ['acceleration', 'wow_delta'] },
+  { pattern: /环比/g, roles: ['wow_rate'] },
   { pattern: /留存率/g, roles: ['retention_rate'] },
   { pattern: /新面孔率/g, roles: ['new_face_rate'] },
 ];

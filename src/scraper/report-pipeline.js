@@ -31,7 +31,7 @@ const {
   getScrapedDate
 } = require('../metrics');
 const { runContentGate } = require('../checker/gate');
-const { buildFacts } = require('../facts/build-facts');
+const { buildFacts, listWeeklyDailyAppearances } = require('../facts/build-facts');
 const { renderInsights, writeRenderMap } = require('../render/placeholder-renderer');
 const { stripProjectAnalysis, stripWeekThemes, stripBoilerplateValue } = require('../render/strip-boilerplate');
 const { isR5Insights } = require('../checker/rules/r5');
@@ -850,10 +850,19 @@ class ReportPipeline {
       if (name && project.tag) projectTags[name] = project.tag;
     }
 
+    const projectNames = new Set(factsDoc.projects || []);
+    if (type === 'weekly') {
+      const appearances = listWeeklyDailyAppearances({
+        weekStart: data.weekStart || data.brief?.weekStart || period,
+        date: data.date || data.brief?.date,
+      });
+      for (const item of appearances) projectNames.add(item.fullName);
+    }
+
     const rendered = renderInsights({
       insights,
       facts: factsDoc.facts,
-      projects: factsDoc.projects,
+      projects: Array.from(projectNames),
       projectTags,
       level: type,
       period,
