@@ -904,7 +904,31 @@ function addCurrentShareFactsIfNoPrev({ brief, add }) {
   }
 }
 
-function buildWeeklyFacts({ brief, metrics, add, addNumber }) {
+function resolveWeekId(brief) {
+  const raw = brief?.weekStart || brief?.week || brief?.date || '';
+  if (history.getISOWeekStart(raw)) return raw;
+  if (history.DATE_RE.test(String(raw))) return history.getISOWeekId(raw);
+  return null;
+}
+
+// 深度趋势引用的是本周日榜仓库，不一定在周榜 15 条里。
+// 这些仓库必须进入 facts.projects，{{p:}} 才渲染得出 B5 记录。
+function listWeeklyDailyAppearances(brief) {
+  const dates = history.getISOWeekDates(resolveWeekId(brief));
+  const byName = new Map();
+  for (const date of dates) {
+    const daily = history.readDailyBrief(date);
+    for (const project of daily?.projects || []) {
+      const key = history.projectKey(project);
+      if (!key) continue;
+      if (!byName.has(key)) byName.set(key, { fullName: key, days: 0 });
+      byName.get(key).days += 1;
+    }
+  }
+  return Array.from(byName.values()).sort((left, right) => left.fullName.localeCompare(right.fullName));
+}
+
+function buildWeeklyFacts({ brief, metrics, period, add, addNumber }) {
   const projects = brief.projects || [];
   const stats = brief.stats || {};
   const weekMetrics = brief.weekMetrics || metrics || {};
@@ -1047,7 +1071,21 @@ function buildWeeklyFacts({ brief, metrics, add, addNumber }) {
   const dailyTop3Names = (weekMetrics.dailyTop3Stats || [])
     .map(item => item.fullName)
     .filter(Boolean);
-  return Array.from(new Set([...history.getProjectNames(brief), ...dailyTop3Names]));
+  const names = new Set([...history.getProjectNames(brief), ...dailyTop3Names]);
+  const appearances = listWeeklyDailyAppearances({
+    weekStart: brief.weekStart || brief.week || period,
+    date: brief.date,
+  });
+  for (const item of appearances) {
+    names.add(item.fullName);
+    addNumber(item.days, {
+      project: item.fullName,
+      field: `dailyAppearance.${item.fullName}.days`,
+      label: `${item.fullName} 本周日报出现天数`,
+      role: 'appearance_days',
+    });
+  }
+  return Array.from(names);
 }
 
 function buildMonthlyFacts({ brief, metrics, add, addNumber }) {
@@ -1222,7 +1260,7 @@ function buildFacts({ level, period, brief, metrics }) {
   if (level === 'daily') {
     projects = buildDailyFacts({ brief, add, addNumber });
   } else if (level === 'weekly') {
-    projects = buildWeeklyFacts({ brief, metrics, add, addNumber });
+    projects = buildWeeklyFacts({ brief, metrics, period, add, addNumber });
   } else {
     projects = buildMonthlyFacts({ brief, metrics, add, addNumber });
   }
@@ -1232,6 +1270,7 @@ function buildFacts({ level, period, brief, metrics }) {
 
 module.exports = {
   buildFacts,
+  listWeeklyDailyAppearances,
   BRIEF_PATHS,
   THRESHOLDS,
   parseMetricNumber,

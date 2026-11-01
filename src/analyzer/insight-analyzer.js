@@ -107,6 +107,11 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function attachSystemPrompt(level, body) {
+  const systemPrompt = prompts[level]?.systemPrompt || '';
+  return systemPrompt ? `${systemPrompt}\n\n${body}` : body;
+}
+
 async function callLLMWithRetry(prompt, options = {}) {
   let lastError = null;
 
@@ -227,7 +232,7 @@ class InsightAnalyzer {
         facts
       });
       const promptTemplate = prompts.weekly.userPrompt;
-      let prompt = this.buildPrompt(promptTemplate, contextData);
+      let prompt = attachSystemPrompt('weekly', this.buildPrompt(promptTemplate, contextData));
       prompt += this.buildFeedbackPrompt(options.feedback);
       logger.info('Prompt 构建完成，准备调用 LLM...', { promptLength: prompt.length });
 
@@ -316,6 +321,36 @@ class InsightAnalyzer {
     }
   }
 
+  buildDeepTrendsPrompt(dailyDataList, weekRange) {
+    const days = Array.isArray(dailyDataList) ? dailyDataList : [];
+    const dailyDataText = days.map(day => {
+      const projects = (day.projects || []).slice(0, 15).map(project =>
+        `- ${project.fullName}: ${project.description} (AI: ${project.isAI}, Trends: ${project.trend_data ? project.trend_data.join(', ') : ''})`
+      ).join('\n');
+      return `### ${day.date} (Day ${day.dayIndex + 1})\n${projects}`;
+    }).join('\n\n');
+
+    const repoNames = [];
+    const seen = new Set();
+    for (const day of days) {
+      for (const project of day.projects || []) {
+        const name = project.fullName || project.repo || project.name;
+        if (!name || seen.has(name)) continue;
+        seen.add(name);
+        repoNames.push(name);
+      }
+    }
+
+    let prompt = prompts.deepTrends.userPrompt;
+    prompt = prompt.replace('{weekStart}', weekRange.start);
+    prompt = prompt.replace('{weekEnd}', weekRange.end);
+    prompt = prompt.replace('{dailyData}', () => dailyDataText);
+    prompt = prompt.replace('{repoList}', () => (
+      repoNames.length > 0 ? repoNames.map(name => `- {{p:${name}}}`).join('\n') : '（无）'
+    ));
+    return attachSystemPrompt('deepTrends', prompt);
+  }
+
   async analyzeDeepTrends(dailyDataList, weekRange) {
     try {
       logger.info('开始分析深度趋势...', { weekStart: weekRange.start, days: dailyDataList.length });
@@ -325,18 +360,7 @@ class InsightAnalyzer {
         return null;
       }
 
-      const dailyDataText = dailyDataList.map(day => {
-        const projects = day.projects.slice(0, 15).map(p =>
-          `- ${p.fullName}: ${p.description} (AI: ${p.isAI}, Trends: ${p.trend_data ? p.trend_data.join(', ') : ''})`
-        ).join('\n');
-        return `### ${day.date} (Day ${day.dayIndex + 1})\n${projects}`;
-      }).join('\n\n');
-
-      const promptTemplate = prompts.deepTrends.userPrompt;
-      let prompt = promptTemplate;
-      prompt = prompt.replace('{weekStart}', weekRange.start);
-      prompt = prompt.replace('{weekEnd}', weekRange.end);
-      prompt = prompt.replace('{dailyData}', dailyDataText);
+      const prompt = this.buildDeepTrendsPrompt(dailyDataList, weekRange);
 
       const result = await callLLMWithRetry(prompt, {
         temperature: 0.8,
@@ -900,3 +924,4 @@ class InsightAnalyzer {
 }
 
 module.exports = InsightAnalyzer;
+module.exports.attachSystemPrompt = attachSystemPrompt;
