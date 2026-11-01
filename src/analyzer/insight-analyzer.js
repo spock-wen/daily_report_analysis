@@ -686,8 +686,8 @@ class InsightAnalyzer {
       notes.push({
         repo: `{{p:${item.fullName}}}`,
         note: inWeekly
-          ? `本周日报上榜 ${factPlaceholder(daysFact)} 天，期内新增 ${factPlaceholder(starsFact)} 星，同时进入周榜。`
-          : `本周日报上榜 ${factPlaceholder(daysFact)} 天，期内新增 ${factPlaceholder(starsFact)} 星，但未进入周榜，原因未知。`
+          ? `本周日报上榜 ${factPlaceholder(daysFact)} 天，日报合计新增 ${factPlaceholder(starsFact)} 星，同时进入周榜。`
+          : `本周日报上榜 ${factPlaceholder(daysFact)} 天，日报合计新增 ${factPlaceholder(starsFact)} 星，但未进入周榜，原因未知。`
       });
     }
 
