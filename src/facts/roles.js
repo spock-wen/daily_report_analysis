@@ -83,6 +83,10 @@ const SLOT_RULES = [
   // week_stars 同义：周榜合计新增 / 本周合计新增（FINDINGS W42）
   { pattern: /周榜合计新增|本周合计新增|本周新增/g, roles: ['week_stars', 'total_week'] },
   { pattern: /本月新增/g, roles: ['month_stars', 'total_month'] },
+  // 「贡献 N 星的新增」：数字在前。与「天的上榜」同句时必须单独成槽，
+  // 否则最近槽会把 month_stars 判成 days_on_list（月10 trendEvolution[0].analysis）。
+  // 不写「新增星」，避免碰到夹具里的「当日新增星合计」。
+  { pattern: /星的新增/g, roles: ['today_stars', 'total_today', 'max_today', 'week_stars', 'total_week', 'month_stars', 'total_month'] },
   // days_on_list：上榜 N 天 / 天上榜 / 上榜周期（FINDINGS 月09）
   { pattern: /天上榜|天的上榜|上榜天数|上榜周期/g, roles: ['days_on_list'] },
   { pattern: /累计/g, roles: ['stars'] },
