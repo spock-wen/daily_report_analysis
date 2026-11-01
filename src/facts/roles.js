@@ -82,14 +82,24 @@ const SLOT_RULES = [
   { pattern: /今日新增|当日新增|单日新增|当天新增|今日峰值|单日峰值|最大单[日项]/g, roles: ['today_stars', 'total_today', 'max_today'] },
   // week_stars 同义：周榜合计新增 / 本周合计新增（FINDINGS W42）
   { pattern: /周榜合计新增|本周合计新增|本周新增/g, roles: ['week_stars', 'total_week'] },
-  { pattern: /本月新增/g, roles: ['month_stars', 'total_month'] },
+  // 「占本月新增星的比例」是集中度的分母说法，不是本月新增星。
+  // 月10 monthlyTheme.detailed：{{f8:top5_share}} 被「本月新增」最近槽抢走。
+  { pattern: /头部集中度|占本月新增星的比例/g, roles: ['top5_share', 'prev_top5_share'] },
+  { pattern: /本月新增(?!星的比例)/g, roles: ['month_stars', 'total_month'] },
   // 「贡献 N 星的新增」：数字在前。与「天的上榜」同句时必须单独成槽，
   // 否则最近槽会把 month_stars 判成 days_on_list（月10 trendEvolution[0].analysis）。
   // 不写「新增星」，避免碰到夹具里的「当日新增星合计」。
   { pattern: /星的新增/g, roles: ['today_stars', 'total_today', 'max_today', 'week_stars', 'total_week', 'month_stars', 'total_month'] },
+  // 「中新增 N 星」：数字在「新增」后。与「天上榜」同句时必须单独成槽，
+  // 否则最近槽会把 month_stars 判成 days_on_list（月10 longTermValue[0].oneSentence）。
+  // 前面已有「本月/本周/今日/当日/单日/当天/合计」时不重复开槽，免得盖住更窄的槽。
+  { pattern: /(?<!本月|本周|今日|当日|单日|当天|合计)新增\s*(?:\{\{f\d+:[a-z0-9_]+\}\}|\d+(?:\.\d+)?)\s*星/g, roles: ['today_stars', 'total_today', 'max_today', 'week_stars', 'total_week', 'month_stars', 'total_month'] },
   // days_on_list：上榜 N 天 / 天上榜 / 上榜周期（FINDINGS 月09）
-  { pattern: /天上榜|天的上榜|上榜天数|上榜周期/g, roles: ['days_on_list'] },
-  { pattern: /累计/g, roles: ['stars'] },
+  // 月10 另两句用的是「天在榜」「天的在榜」，不是「天的上榜」。
+  { pattern: /天上榜|天的上榜|天的在榜|天在榜|上榜天数|上榜周期/g, roles: ['days_on_list'] },
+  // 「累计 N 天」是上榜天数，不是累计星（月10 monthlyTheme.detailed {{f30:days_on_list}}）。
+  // 「累计 N 星与 M 天的在榜」里这个负向条件不吃掉前面的累计星槽。
+  { pattern: /累计(?!\s*(?:\{\{f\d+:days_on_list\}\}|\d+(?:\.\d+)?)\s*天)/g, roles: ['stars'] },
   { pattern: /Forks|Fork|fork|分支/g, roles: ['forks'] },
   { pattern: /个在榜项目/g, roles: COUNT_ROLES },
   { pattern: /个项目|项目数/g, roles: COUNT_ROLES },
