@@ -3,7 +3,7 @@
 ## 领域概览
 
 - 项目总数：12
-- 最近更新：2026-10-19
+- 最近更新：2026-11-01
 - 报告类型：daily
 
 llm 领域收录了与大语言模型、Transformer、基础模型相关的项目。
@@ -27,8 +27,8 @@ llm 领域收录了与大语言模型、Transformer、基础模型相关的项�
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：561,484
-- 最热项目：[Comfy-Org/ComfyUI](../../wiki/projects/Comfy-Org_ComfyUI.md) (139676 ⭐)
+- 总 Stars 数：440,894
+- 最热项目：[ggml-org/llama.cpp](../../wiki/projects/ggml-org_llama.cpp.md) (115308 ⭐)
 
 
 ---
