@@ -3,7 +3,7 @@
 ## 领域概览
 
 - 项目总数：11
-- 最近更新：2026-11-02
+- 最近更新：2026-11-03
 - 报告类型：daily
 
 devtool 领域收录了与开发工具、IDE 插件、代码辅助相关的项目。
@@ -21,14 +21,14 @@ devtool 领域收录了与开发工具、IDE 插件、代码辅助相关的项�
 | 7 | [imthenachoman/How-To-Secure-A-Linux-Server](../../wiki/projects/imthenachoman_How-To-Secure-A-Linux-Server.md) | 2026-05-13 | 1 | 27068 |
 | 8 | [ton-blockchain/acton](../../wiki/projects/ton-blockchain_acton.md) | 2026-05-13 | 1 | 197 |
 | 9 | [apple/container](../../wiki/projects/apple_container.md) | 2026-06-25 | 1 | 43182 |
-| 10 | [D4Vinci/Scrapling](../../wiki/projects/D4Vinci_Scrapling.md) | 2026-11-02 | 1 | 92780 |
+| 10 | [spotify/portal-ai-plugins](../../wiki/projects/spotify_portal-ai-plugins.md) | 2026-11-03 | 1 | 3027 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：210,187
-- 最热项目：[D4Vinci/Scrapling](../../wiki/projects/D4Vinci_Scrapling.md) (92780 ⭐)
+- 总 Stars 数：203,054
+- 最热项目：[D4Vinci/Scrapling](../../wiki/projects/D4Vinci_Scrapling.md) (94737 ⭐)
 
 
 ---

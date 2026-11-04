@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：16
-- 最近更新：2026-11-02
+- 项目总数：14
+- 最近更新：2026-11-03
 - 报告类型：daily
 
 agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相关的项目。
@@ -21,13 +21,13 @@ agent 领域收录了与AI Agent、智能体、多智能体协作、自动化相
 | 7 | [anthropics/claude-plugins-community](../../wiki/projects/anthropics_claude-plugins-community.md) | 2026-08-31 | 1 | 2874 |
 | 8 | [coreyhaines31/marketingskills](../../wiki/projects/coreyhaines31_marketingskills.md) | 2026-10-04 | 1 | 53043 |
 | 9 | [morluto/rea](../../wiki/projects/morluto_rea.md) | 2026-10-19 | 1 | 321942 |
-| 10 | [vercel-labs/agent-desktop](../../wiki/projects/vercel-labs_agent-desktop.md) | 2026-11-02 | 1 | 9508 |
+| 10 | [thedotmack/claude-mem](../../wiki/projects/thedotmack_claude-mem.md) | 2026-11-03 | 1 | 111851 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：1,268,788
+- 总 Stars 数：1,105,607
 - 最热项目：[morluto/rea](../../wiki/projects/morluto_rea.md) (321942 ⭐)
 
 
