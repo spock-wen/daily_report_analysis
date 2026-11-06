@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：11
-- 最近更新：2026-11-03
+- 项目总数：10
+- 最近更新：2026-11-05
 - 报告类型：daily
 
 speech 领域收录了与语音识别、语音合成、音频处理相关的项目。
@@ -17,17 +17,17 @@ speech 领域收录了与语音识别、语音合成、音频处理相关的项�
 | 3 | [openai/whisper](../../wiki/projects/openai_whisper.md) | 2026-06-06 | 1 | 101839 |
 | 4 | [altic-dev/FluidVoice](../../wiki/projects/altic-dev_FluidVoice.md) | 2026-06-29 | 1 | 4360 |
 | 5 | [Starmel/OpenSuperWhisper](../../wiki/projects/Starmel_OpenSuperWhisper.md) | 2026-07-06 | 1 | 1804 |
-| 6 | [microsoft/VibeVoice](../../wiki/projects/microsoft_VibeVoice.md) | 2026-07-29 | 1 | 51242 |
-| 7 | [moeru-ai/airi](../../wiki/projects/moeru-ai_airi.md) | 2026-08-03 | 1 | 46542 |
-| 8 | [jamiepine/voicebox](../../wiki/projects/jamiepine_voicebox.md) | 2026-09-17 | 1 | 54826 |
-| 9 | [hugohe3/ppt-master](../../wiki/projects/hugohe3_ppt-master.md) | 2026-10-10 | 1 | 59397 |
-| 10 | [debpalash/VoiceStudio](../../wiki/projects/debpalash_VoiceStudio.md) | 2026-10-18 | 1 | 75250 |
+| 6 | [moeru-ai/airi](../../wiki/projects/moeru-ai_airi.md) | 2026-08-03 | 1 | 46542 |
+| 7 | [jamiepine/voicebox](../../wiki/projects/jamiepine_voicebox.md) | 2026-09-17 | 1 | 54826 |
+| 8 | [hugohe3/ppt-master](../../wiki/projects/hugohe3_ppt-master.md) | 2026-10-10 | 1 | 59397 |
+| 9 | [debpalash/VoiceStudio](../../wiki/projects/debpalash_VoiceStudio.md) | 2026-10-18 | 1 | 75250 |
+| 10 | [microsoft/VibeVoice](../../wiki/projects/microsoft_VibeVoice.md) | 2026-11-05 | 1 | 55877 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：574,923
+- 总 Stars 数：575,004
 - 最热项目：[yt-dlp/yt-dlp](../../wiki/projects/yt-dlp_yt-dlp.md) (164940 ⭐)
 
 
