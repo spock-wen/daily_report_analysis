@@ -328,25 +328,26 @@ node scripts/run-daily-workflow.js --no-push
 #### GitHub Trending 周报
 
 ```bash
-# 生成本周周报
+# 当期 raw 就绪后预检，通过才发布（含推送）
 node scripts/run-weekly-workflow.js
 
-# 不发送推送通知
+# 不发送推送通知；预检仍不会写正式页，通过后才会写 HTML
 node scripts/run-weekly-workflow.js --no-push
+
+# 显式指定 raw 文件名对应的周一
+node scripts/run-weekly-workflow.js --week-start 2026-11-02
 ```
 
 **周报工作流程**：
-1. 抓取 GitHub Trending Weekly
-2. 调用 GitHub API 增强项目数据
-3. 项目分析（翻译 + 详细分析）
-4. **自动加载上周 7 天的日报数据**
-5. AI 分析（周度主题 + 深度趋势分析）
-6. **自动更新项目 Wiki 版本历史**
-7. 生成 HTML 报告（包含深度趋势章节）
-8. 更新首页
-9. 推送通知（可选）
+1. 确认 `raw/trending-weekly/{周一}.json` 完整、非空、周期吻合（有限等待，缺数据不是通过）
+2. 在临时目录做隔离预检（ContentGate；不写正式 data / HTML / 首页 / Wiki，不发通知）
+3. 通过后用同一份内容发布一次正式 HTML 与数据
+4. 更新首页
+5. 推送通知（可选；`--no-push` 或 `REPORT_NO_PUSH=1` 时跳过）
 
-> **注意**：周一运行时会自动生成上周（W12）的周报，汇总上周一到周日的数据。
+调度、备份和回滚见 `docs/ops/weekly-admission.md`。直接调用 `triggerManual('weekly')` 不会再发布周报。
+
+> **注意**：不传 `--week-start` 时，周期是运行日所在周的周一（周日运行即当周，例如 2026-11-08 → `2026-11-02`）。主机时区需与报告日一致，线上为 Asia/Singapore。
 
 #### GitHub Trending 月报
 
@@ -508,8 +509,8 @@ crontab -e
 # 每日 7:00 生成 GitHub 日报
 0 7 * * * cd /path/to/daily_report_analysis && node scripts/run-daily-workflow.js
 
-# 每周一 6:00 生成 GitHub 周报（生成上周的周报）
-0 6 * * 1 cd /path/to/daily_report_analysis && node scripts/run-weekly-workflow.js
+# 周报在采集完成之后再跑。线上步骤见 docs/ops/weekly-admission.md
+10 12 * * 0 cd /path/to/daily_report_analysis && node scripts/run-weekly-workflow.js
 
 # 每月 1 日 6:00 生成上月月报
 0 6 1 * * cd /path/to/daily_report_analysis && node scripts/run-monthly-workflow.js
