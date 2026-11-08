@@ -306,7 +306,7 @@ function generateFeishuWeekly(weeklyData, insights) {
         tag: "div",
         text: {
           tag: "lark_md",
-          content: `**🔮 短期趋势预判**\n${linkifyRepos(formatFeishuTrends(insights.trends.shortTerm))}`
+          content: `**🔮 短期趋势预判**\n${linkifyRepos(formatFeishuTrends(insights.trends?.shortTerm || []))}`
         }
       },
       { tag: "hr" },
@@ -396,7 +396,7 @@ function generateWeLinkWeekly(weeklyData, insights) {
   // 提取 3 个关键信号
   const signal1 = extractOneLiner(insights.highlights[0]);
   const signal2 = extractOneLiner(insights.highlights[1]);
-  const signal3 = extractOneLiner(insights.trends.shortTerm[0]);
+  const signal3 = extractOneLiner(insights.trends?.shortTerm?.[0]);
   
   // 提取新兴领域
   const emergingField = insights.emergingFields[0]?.field || '暂无';
