@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：13
-- 最近更新：2026-11-07
+- 项目总数：11
+- 最近更新：2026-11-08
 - 报告类型：daily
 
 devtool 领域收录了与开发工具、IDE 插件、代码辅助相关的项目。
@@ -27,8 +27,8 @@ devtool 领域收录了与开发工具、IDE 插件、代码辅助相关的项�
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：305,608
-- 最热项目：[tailwindlabs/tailwindcss](../../wiki/projects/tailwindlabs_tailwindcss.md) (98449 ⭐)
+- 总 Stars 数：113,426
+- 最热项目：[apple/container](../../wiki/projects/apple_container.md) (43182 ⭐)
 
 
 ---
