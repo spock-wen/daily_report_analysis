@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：10
-- 最近更新：2026-11-09
+- 项目总数：11
+- 最近更新：2026-11-12
 - 报告类型：daily
 
 llm 领域收录了与大语言模型、Transformer、基础模型相关的项目。
@@ -16,19 +16,19 @@ llm 领域收录了与大语言模型、Transformer、基础模型相关的项�
 | 2 | [PriorLabs/TabPFN](../../wiki/projects/PriorLabs_TabPFN.md) | 2026-05-07 | 1 | 6779 |
 | 3 | [NVlabs/Sana](../../wiki/projects/NVlabs_Sana.md) | 2026-05-18 | 1 | 6505 |
 | 4 | [truelockmc/streambert](../../wiki/projects/truelockmc_streambert.md) | 2026-05-21 | 1 | 3947 |
-| 5 | [ggml-org/llama.cpp](../../wiki/projects/ggml-org_llama.cpp.md) | 2026-06-07 | 1 | 115308 |
-| 6 | [harry0703/MoneyPrinterTurbo](../../wiki/projects/harry0703_MoneyPrinterTurbo.md) | 2026-06-10 | 1 | 84964 |
-| 7 | [Anil-matcha/Open-Generative-AI](../../wiki/projects/Anil-matcha_Open-Generative-AI.md) | 2026-06-27 | 1 | 21365 |
-| 8 | [jundot/omlx](../../wiki/projects/jundot_omlx.md) | 2026-08-24 | 1 | 20448 |
-| 9 | [lyogavin/airllm](../../wiki/projects/lyogavin_airllm.md) | 2026-10-13 | 1 | 38298 |
-| 10 | [ZhuLinsen/daily_stock_analysis](../../wiki/projects/ZhuLinsen_daily_stock_analysis.md) | 2026-11-09 | 1 | 68798 |
+| 5 | [harry0703/MoneyPrinterTurbo](../../wiki/projects/harry0703_MoneyPrinterTurbo.md) | 2026-06-10 | 1 | 84964 |
+| 6 | [Anil-matcha/Open-Generative-AI](../../wiki/projects/Anil-matcha_Open-Generative-AI.md) | 2026-06-27 | 1 | 21365 |
+| 7 | [jundot/omlx](../../wiki/projects/jundot_omlx.md) | 2026-08-24 | 1 | 20448 |
+| 8 | [lyogavin/airllm](../../wiki/projects/lyogavin_airllm.md) | 2026-10-13 | 1 | 38298 |
+| 9 | [ZhuLinsen/daily_stock_analysis](../../wiki/projects/ZhuLinsen_daily_stock_analysis.md) | 2026-11-09 | 1 | 68798 |
+| 10 | [ashhart/TensorFold](../../wiki/projects/ashhart_TensorFold.md) | 2026-11-12 | 1 | 1926 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：386,881
-- 最热项目：[ggml-org/llama.cpp](../../wiki/projects/ggml-org_llama.cpp.md) (115308 ⭐)
+- 总 Stars 数：408,026
+- 最热项目：[ggml-org/llama.cpp](../../wiki/projects/ggml-org_llama.cpp.md) (134527 ⭐)
 
 
 ---

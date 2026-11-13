@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：13
-- 最近更新：2026-11-10
+- 项目总数：14
+- 最近更新：2026-11-12
 - 报告类型：daily
 
 general 领域收录了与AI 相关技术相关的项目。
@@ -27,8 +27,8 @@ general 领域收录了与AI 相关技术相关的项目。
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：261,008
-- 最热项目：[sherlock-project/sherlock](../../wiki/projects/sherlock-project_sherlock.md) (108899 ⭐)
+- 总 Stars 数：357,858
+- 最热项目：[nodejs/node](../../wiki/projects/nodejs_node.md) (123587 ⭐)
 
 
 ---
