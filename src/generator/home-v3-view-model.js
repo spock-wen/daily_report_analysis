@@ -14,12 +14,17 @@ const {
 } = require('./wmh-v3-shared');
 const {
   homePeriodKind,
-  latestReportHref,
   readerPeriodHref,
   latestReaderPeriodHref,
 } = require('./report-nav');
 
 const TEMPLATE_PATH = nodePath.join(TEMPLATE_DIR, 'home.mustache');
+
+function periodGoLabel(kind, linked) {
+  if (kind === 'daily') return linked ? '打开日报' : '日报审阅中';
+  if (kind === 'weekly') return linked ? '打开周报' : '周报审阅中';
+  return linked ? '打开月报' : '月报审阅中';
+}
 
 function periodEntryLink(kind, id) {
   const href = readerPeriodHref(kind, id);
@@ -27,13 +32,13 @@ function periodEntryLink(kind, id) {
     return {
       linkable: true,
       href,
-      go: kind === 'weekly' ? '打开周报' : '打开月报',
+      go: periodGoLabel(kind, true),
     };
   }
   return {
     linkable: false,
     href: '',
-    go: kind === 'weekly' ? '周报审阅中' : '月报审阅中',
+    go: periodGoLabel(kind, false),
   };
 }
 
@@ -74,6 +79,7 @@ function buildViewModel(reportsData) {
   const entries = [];
   if (latestDaily) {
     const lead = oneLiner(latestDaily.theme) || `上榜 ${latestDaily.projectCount} 项目，日新增合计 ${formatCount(dailyStars)}。`;
+    const link = periodEntryLink('daily', latestDaily.date);
     entries.push({
       kind: '今日 · 日报',
       title: latestDaily.date,
@@ -82,9 +88,9 @@ function buildViewModel(reportsData) {
         { label: '项目', value: String(latestDaily.projectCount) },
         { label: '星', value: formatCount(dailyStars) },
       ],
-      linkable: true,
-      href: `daily/github-ai-trending-${latestDaily.date}.html`,
-      go: '打开日报',
+      linkable: link.linkable,
+      href: link.href,
+      go: link.go,
     });
   }
   if (latestWeekly) {
@@ -135,17 +141,14 @@ function buildViewModel(reportsData) {
         tag: tag.text,
         tagCls: tag.cls,
         href: latestDaily
-          ? `daily/github-ai-trending-${latestDaily.date}.html`
-          : '#',
+          ? (readerPeriodHref('daily', latestDaily.date) || '')
+          : '',
       };
     });
 
   const paths = {
     home: 'index.html',
-    daily: latestReportHref('daily', {
-      prefix: '',
-      fallbackId: latestDaily ? latestDaily.date : null,
-    }),
+    daily: latestReaderPeriodHref('daily') || '',
     weekly: latestReaderPeriodHref('weekly') || '',
     monthly: latestReaderPeriodHref('monthly') || '',
   };
@@ -163,10 +166,7 @@ function buildViewModel(reportsData) {
     topProjects,
     topDate: latestDaily?.date || '—',
     archives: {
-      daily: daily.slice(-10).reverse().map(d => ({
-        label: d.date,
-        href: `daily/github-ai-trending-${d.date}.html`,
-      })),
+      daily: daily.slice(-10).reverse().map(d => periodArchiveItem('daily', d.date)),
       weekly: weekly.slice(-8).reverse().map(w => periodArchiveItem('weekly', w.week)),
       monthly: monthly.slice(-6).reverse().map(m => periodArchiveItem('monthly', m.month)),
     },
