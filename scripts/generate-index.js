@@ -11,6 +11,7 @@ const path = require('path');
 // 工具函数
 const utils = require('../src/utils');
 const { renderHomeV3 } = require('../src/generator/home-v3-view-model');
+const { readerPeriodHref } = require('../src/generator/report-nav');
 
 async function generateIndex() {
   console.log('\n' + '='.repeat(60));
@@ -96,6 +97,10 @@ function collectReportsData() {
       // 提取日期
       const dateMatch = file.match(/data-(\d{4}-\d{2}-\d{2})\.json/);
       const date = dateMatch ? dateMatch[1] : data.date;
+      if (!readerPeriodHref('daily', date)) {
+        console.log(`   ⚠️  跳过无正式页的日报：${date}`);
+        return;
+      }
 
       // 提取 AI 洞察主题
       const theme = data.aiInsights?.theme || data.aiInsights?.monthlyTheme || '';
@@ -127,6 +132,10 @@ function collectReportsData() {
       // 从文件名提取周数（data-weekly-2026-W11.json → 2026-W11）
       const weekMatch = file.match(/data-weekly-(\d{4}-W\d{2})\.json/);
       const week = weekMatch ? weekMatch[1] : (data.week || data.date);
+      if (!readerPeriodHref('weekly', week)) {
+        console.log(`   ⚠️  跳过无正式页的周报：${week}`);
+        return;
+      }
 
       // 提取 AI 洞察主题（处理对象或字符串）
       const themeInsights = data.aiInsights || {};
@@ -171,6 +180,10 @@ function collectReportsData() {
         return;
       }
       const month = monthMatch[1];
+      if (!readerPeriodHref('monthly', month)) {
+        console.log(`   ⚠️  跳过无正式页的月报：${month}`);
+        return;
+      }
 
       // 提取 AI 洞察主题（处理对象或字符串）
       const themeInsights = data.aiInsights || {};
@@ -336,7 +349,7 @@ function buildLatestReports(reportsData) {
         ai: latestDaily.aiProjectCount,
         avgStars: latestDaily.avgStars
       },
-      url: `daily/github-ai-trending-${latestDaily.date}.html`,
+      url: readerPeriodHref('daily', latestDaily.date) || '',
       theme: latestDaily.theme
     });
   }
@@ -351,7 +364,7 @@ function buildLatestReports(reportsData) {
         total: latestWeekly.projectCount,
         avgStars: latestWeekly.avgStars
       },
-      url: `weekly/github-weekly-${latestWeekly.week}.html`,
+      url: readerPeriodHref('weekly', latestWeekly.week) || '',
       theme: latestWeekly.theme
     });
   }
@@ -366,7 +379,7 @@ function buildLatestReports(reportsData) {
         total: latestMonthly.projectCount,
         avgStars: latestMonthly.avgStars
       },
-      url: `monthly/github-monthly-${latestMonthly.month}.html`,
+      url: readerPeriodHref('monthly', latestMonthly.month) || '',
       theme: latestMonthly.theme
     });
   }
@@ -406,27 +419,24 @@ function buildArchives(reportsData) {
   const archives = [
     {
       title: '📅 日报存档',
-      items: reportsData.daily.slice(-14).reverse().map(d => ({
-        date: d.date,
-        url: `daily/github-ai-trending-${d.date}.html`,
-        count: d.projectCount
-      }))
+      items: reportsData.daily.slice(-14).reverse().flatMap(d => {
+        const url = readerPeriodHref('daily', d.date);
+        return url ? [{ date: d.date, url, count: d.projectCount }] : [];
+      })
     },
     {
       title: '📊 周报存档',
-      items: reportsData.weekly.slice(-6).reverse().map(w => ({
-        date: w.week,
-        url: `weekly/github-weekly-${w.week}.html`,
-        count: w.projectCount
-      }))
+      items: reportsData.weekly.slice(-6).reverse().flatMap(w => {
+        const url = readerPeriodHref('weekly', w.week);
+        return url ? [{ date: w.week, url, count: w.projectCount }] : [];
+      })
     },
     {
       title: '📈 月报存档',
-      items: reportsData.monthly.slice(-6).reverse().map(m => ({
-        date: m.month,
-        url: `monthly/github-monthly-${m.month}.html`,
-        count: m.projectCount
-      }))
+      items: reportsData.monthly.slice(-6).reverse().flatMap(m => {
+        const url = readerPeriodHref('monthly', m.month);
+        return url ? [{ date: m.month, url, count: m.projectCount }] : [];
+      })
     }
   ];
 
@@ -682,12 +692,20 @@ function getWeekNumber(dateStr) {
   return `${date.getFullYear()}-W${weekNumber.toString().padStart(2, '0')}`;
 }
 
-// 执行生成
-generateIndex()
-  .then(result => {
-    process.exit(result.success ? 0 : 1);
-  })
-  .catch(error => {
-    console.error('\n💥 未处理的错误:', error);
-    process.exit(1);
-  });
+module.exports = {
+  generateIndex,
+  collectReportsData,
+  buildArchives,
+  buildLatestReports,
+};
+
+if (require.main === module) {
+  generateIndex()
+    .then(result => {
+      process.exit(result.success ? 0 : 1);
+    })
+    .catch(error => {
+      console.error('\n💥 未处理的错误:', error);
+      process.exit(1);
+    });
+}
