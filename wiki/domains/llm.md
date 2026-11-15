@@ -3,7 +3,7 @@
 ## 领域概览
 
 - 项目总数：10
-- 最近更新：2026-11-13
+- 最近更新：2026-11-14
 - 报告类型：daily
 
 llm 领域收录了与大语言模型、Transformer、基础模型相关的项目。
@@ -20,14 +20,14 @@ llm 领域收录了与大语言模型、Transformer、基础模型相关的项�
 | 6 | [Anil-matcha/Open-Generative-AI](../../wiki/projects/Anil-matcha_Open-Generative-AI.md) | 2026-06-27 | 1 | 21365 |
 | 7 | [jundot/omlx](../../wiki/projects/jundot_omlx.md) | 2026-08-24 | 1 | 20448 |
 | 8 | [lyogavin/airllm](../../wiki/projects/lyogavin_airllm.md) | 2026-10-13 | 1 | 38298 |
-| 9 | [ashhart/TensorFold](../../wiki/projects/ashhart_TensorFold.md) | 2026-11-12 | 1 | 1926 |
-| 10 | [ZhuLinsen/daily_stock_analysis](../../wiki/projects/ZhuLinsen_daily_stock_analysis.md) | 2026-11-13 | 1 | 71561 |
+| 9 | [ZhuLinsen/daily_stock_analysis](../../wiki/projects/ZhuLinsen_daily_stock_analysis.md) | 2026-11-13 | 1 | 71561 |
+| 10 | [ashhart/TensorFold](../../wiki/projects/ashhart_TensorFold.md) | 2026-11-14 | 1 | 2153 |
 
 ## 领域趋势
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：276,262
+- 总 Stars 数：276,489
 - 最热项目：[harry0703/MoneyPrinterTurbo](../../wiki/projects/harry0703_MoneyPrinterTurbo.md) (84964 ⭐)
 
 
