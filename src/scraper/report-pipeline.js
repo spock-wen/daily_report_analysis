@@ -868,6 +868,12 @@ class ReportPipeline {
       period,
     });
 
+    if (rendered.dropped?.length > 0) {
+      logger.warn(`[ReportPipeline] 榜外仓库所在句已确定性删除 ${rendered.dropped.length} 处`, {
+        sample: rendered.dropped.slice(0, 5).map(d => `${d.path}: ${d.message}`),
+      });
+    }
+
     if (rendered.errors.length > 0) {
       logger.warn(`[ReportPipeline] 占位渲染告警 ${rendered.errors.length} 条（仍写入渲染结果供闸核查）`, {
         sample: rendered.errors.slice(0, 3).map(e => `${e.path}: ${e.message}`),
@@ -1022,31 +1028,17 @@ class ReportPipeline {
     try {
       logger.info(`[ReportPipeline] 加载周 ${weekIdentifier} 的日报数据...`);
       
-      // 解析周标识符
-      const match = weekIdentifier.match(/^(\d{4})-W(\d{2})$/);
-      if (!match) {
+      // 与事实表（listWeeklyDailyAppearances）同一个周窗口来源。
+      // 曾用本地时间构造日期再 toISOString()：UTC+ 时区（65 为 UTC+8）整周前移一天，
+      // 读成上周日~本周六，深度趋势的仓库清单混入上周日的榜外仓库（W46 的 B5）。
+      const weekDates = getISOWeekDates(weekIdentifier);
+      if (weekDates.length === 0) {
         logger.warn(`[ReportPipeline] 无效的周标识符：${weekIdentifier}`);
         return [];
       }
-      
-      const year = parseInt(match[1]);
-      const week = parseInt(match[2]);
-      
-      // 计算该周的起始日期（周一）
-      const jan1 = new Date(year, 0, 1);
-      const dayOfWeek = jan1.getDay() || 7; // 1=周一, ..., 7=周日
-      const daysToFirstMonday = dayOfWeek <= 4 ? 1 - dayOfWeek : 8 - dayOfWeek;
-      const firstMonday = new Date(year, 0, 1 + daysToFirstMonday);
-      const weekStart = new Date(firstMonday);
-      weekStart.setDate(firstMonday.getDate() + (week - 1) * 7);
-      
-      // 加载该周的7天数据
+
       const dailyData = [];
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(weekStart);
-        date.setDate(weekStart.getDate() + i);
-        const dateStr = date.toISOString().split('T')[0];
-        
+      weekDates.forEach((dateStr, i) => {
         try {
           const filePath = getDailyBriefPath(dateStr);
           logger.debug(`[ReportPipeline] 检查日报文件：${filePath}`);
@@ -1064,7 +1056,7 @@ class ReportPipeline {
         } catch (err) {
           logger.warn(`[ReportPipeline] 加载 ${dateStr} 日报数据失败：${err.message}`);
         }
-      }
+      });
       
       logger.info(`[ReportPipeline] 成功加载 ${dailyData.length} 天的日报数据`);
       return dailyData;

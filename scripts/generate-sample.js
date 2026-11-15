@@ -692,6 +692,22 @@ async function main() {
   let insights = await runAnalysis();
   if (!insights || typeof insights !== 'object') insights = {};
 
+  // 周报与正式流程（report-pipeline.generateAIInsights）一致：再做一次深度趋势，
+  // 否则 nopush 试跑碰不到 deepTrends 里的 {{p:}} 榜外仓库（W46 的 B5 只在 cron 出现）。
+  // 周窗口与仓库清单用的是流程里同一个 loadWeeklyDailyData。
+  let deepTrends = null;
+  if (level === 'weekly') {
+    const ReportPipeline = require('../src/scraper/report-pipeline');
+    const dailyData = await Object.create(ReportPipeline.prototype).loadWeeklyDailyData(period);
+    if (dailyData.length > 0) {
+      deepTrends = await analyzer.analyzeDeepTrends(dailyData, {
+        start: dailyData[0].date,
+        end: dailyData[dailyData.length - 1].date,
+      });
+      if (deepTrends) insights = { ...insights, deepTrends };
+    }
+  }
+
   const { isR5Insights } = require('../src/checker/rules/r5');
 
   if (level === 'daily' && isR5Insights(insights)) {
@@ -830,7 +846,7 @@ async function main() {
   if (rendered.errors.length > 0 && analyzer.getAiCallCount() < 2) {
     console.error(`[render] 占位校验失败 ${rendered.errors.length} 条，重试 AI 1 次...`);
     const rewritten = await runAnalysis({ feedback: renderFeedback(rendered.errors) });
-    if (rewritten && typeof rewritten === 'object') insights = rewritten;
+    if (rewritten && typeof rewritten === 'object') insights = deepTrends ? { ...rewritten, deepTrends } : rewritten;
     rendered = renderCurrent();
   }
 
@@ -904,7 +920,7 @@ async function main() {
       ? async (findings) => {
           const rewritten = await runAnalysis({ feedback: findings });
           if (rewritten && typeof rewritten === 'object') {
-            insights = rewritten;
+            insights = deepTrends ? { ...rewritten, deepTrends } : rewritten;
           }
           const next = renderCurrent();
           if (next.errors.length > 0) {
