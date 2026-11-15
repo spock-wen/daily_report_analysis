@@ -66,6 +66,87 @@ function rewriteWanApproximation(text) {
   return String(text || '').replace(WAN_RE, (_full, suffix) => (suffix ? '万星以上' : '万'));
 }
 
+// 「日报上榜 / 日报出现 N 天」绑 appearance_days 时统一写成「日报出现 N 天」：
+// 这条事实是本周日榜出现天数（不限前三），「上榜 N 天」是 days_on_list / top3_days 的句式。
+// 只改措辞，数字仍是模型引用的占位，闸规则不动。
+const APPEARANCE_DAYS_RE = /(?:日报)?(?:上榜|出现)\s*(\{\{f\d+:appearance_days\}\})\s*天/g;
+
+function rewriteAppearanceDays(text) {
+  return String(text || '').replace(APPEARANCE_DAYS_RE, '日报出现 $1 天');
+}
+
+const SENTENCE_CHUNK_RE = /[^。！？\n]+[。！？\n]?/g;
+const WHOLE_PROJECT_PLACEHOLDER_RE = /^\{\{p:([^{}]+)\}\}$/;
+const ANY_PROJECT_PLACEHOLDER_RE = /\{\{p:([^{}]+)\}\}/g;
+const DROP = Symbol('drop');
+
+function offListNames(text, allowed) {
+  const found = [];
+  ANY_PROJECT_PLACEHOLDER_RE.lastIndex = 0;
+  let match;
+  while ((match = ANY_PROJECT_PLACEHOLDER_RE.exec(String(text || ''))) !== null) {
+    const name = match[1].trim();
+    if (!allowed.has(name)) found.push(name);
+  }
+  return found;
+}
+
+// 榜外仓库（{{p:X}} 不在当期项目清单）渲染不出来，B5 必 FAIL。
+// 提示词已给出清单，这里是确定性兜底：整句删除，并通过 onDrop 记录路径与原因。
+// 整个字段就是榜外占位（repo / evidence.name / projects[]）时，删掉该字段所在的条目。
+// 项目清单为空时不动（没有可比对的清单）。
+function dropOffListProjects(insights, projects, onDrop) {
+  const allowed = new Set((projects || []).map(name => String(name).trim()).filter(Boolean));
+  if (allowed.size === 0) return insights;
+  const report = (path, names, sentence) => {
+    if (typeof onDrop === 'function') onDrop({ path, names, sentence });
+  };
+
+  const walk = (value, path) => {
+    if (typeof value === 'string') {
+      const whole = WHOLE_PROJECT_PLACEHOLDER_RE.exec(value.trim());
+      if (whole) {
+        if (allowed.has(whole[1].trim())) return value;
+        report(path, [whole[1].trim()], value);
+        return DROP;
+      }
+      if (offListNames(value, allowed).length === 0) return value;
+      const kept = [];
+      for (const chunk of value.match(SENTENCE_CHUNK_RE) || []) {
+        const names = offListNames(chunk, allowed);
+        if (names.length > 0) {
+          report(path, names, chunk.trim());
+        } else {
+          kept.push(chunk);
+        }
+      }
+      return kept.join('').trim();
+    }
+    if (Array.isArray(value)) {
+      const out = [];
+      value.forEach((item, index) => {
+        const next = walk(item, `${path}[${index}]`);
+        if (next === DROP || (typeof item === 'string' && typeof next === 'string' && next === '' && item.trim() !== '')) return;
+        out.push(next);
+      });
+      return out;
+    }
+    if (value && typeof value === 'object') {
+      const out = {};
+      for (const [key, item] of Object.entries(value)) {
+        const next = walk(item, path ? `${path}.${key}` : key);
+        if (next === DROP) return DROP;
+        out[key] = next;
+      }
+      return out;
+    }
+    return value;
+  };
+
+  const result = walk(insights, '');
+  return result === DROP ? {} : result;
+}
+
 function bareProjectName(value) {
   const text = String(value || '').trim();
   const wrapped = /^\{\{p:([^{}]+)\}\}$/.exec(text);
@@ -190,6 +271,7 @@ function normalizeString(text, options) {
   let out = rewriteBannedContrast(text);
   out = rewriteShortDates(out);
   out = rewriteWanApproximation(out);
+  out = rewriteAppearanceDays(out);
   out = wrapProjectNames(out, projects);
   out = bindBareNumbers(out, facts, projects, options.siblingProject || null);
   if (options.stripDigits) out = stripUnboundDigits(out);
@@ -199,6 +281,7 @@ function normalizeString(text, options) {
 function normalizeWeeklyInsights(insights, options = {}) {
   const facts = Array.isArray(options.facts) ? options.facts : [];
   const projects = options.projects || [];
+  insights = dropOffListProjects(insights, projects, options.onDrop);
 
   const walk = (value, path) => {
     if (typeof value === 'string') {
@@ -246,5 +329,7 @@ module.exports = {
   rewriteBannedContrast,
   rewriteShortDates,
   rewriteWanApproximation,
+  rewriteAppearanceDays,
+  dropOffListProjects,
   wrapProjectNames,
 };

@@ -106,6 +106,10 @@ const SLOT_RULES = [
   { pattern: /天上榜|天的上榜|天的在榜|天在榜|上榜天数|上榜周期/g, roles: ['days_on_list', 'top3_days'] },
   // 「上榜 N 天」数字在「上榜」后。周报 dailyTop3Notes 写 top3_days，月报写 days_on_list。
   { pattern: /上榜\s*(?:\{\{f\d+:[a-z0-9_]+\}\}|\d+(?:\.\d+)?)\s*天/g, roles: ['days_on_list', 'top3_days'] },
+  // appearance_days：周报「本周日报出现 N 天」，本周日榜出现过的项目都有这条事实，不限日报前三
+  // （top3_days 只给前三，同一句式也认）。此前这个句式没有槽：W46 两次 nopush 重跑里，
+  // 「其累计 N 星且日报出现 M 天」的 M 被「累计」槽抢走（PH1/B10）。
+  { pattern: /日报出现\s*(?:\{\{f\d+:[a-z0-9_]+\}\}|\d+)\s*天/g, roles: ['appearance_days', 'top3_days'] },
   // W44 dailyTop3Notes：「日报合计新增 N 星 / 日报新增 N 星」是 top3_stars
   // （label「本周日报新增星」）。模式吃到数字，并且下面的「合计」不再吃「日报合计」，
   // 否则更靠近数字的合计槽会把 top3_stars 判成 total_week / week_stars。

@@ -59,10 +59,21 @@ function renderInsights({ insights, facts, projects, projectTags, level, period 
       .map(name => String(name).trim())
   );
 
+  const entries = [];
+  const errors = [];
+  // 榜外仓库所在句的确定性删除记录。不进 errors：已删掉的句子不再有占位，闸无需再拦。
+  const dropped = [];
+
   if (level === 'weekly') {
     insights = normalizeWeeklyInsights(insights, {
       facts: factList,
       projects: Array.from(projectSet),
+      onDrop: ({ path: fieldPath, names, sentence }) => dropped.push({
+        path: fieldPath,
+        names,
+        quote: sentence,
+        message: `榜外仓库 ${names.join('、')} 不在当期项目清单，所在句已删除`,
+      }),
     });
   }
 
@@ -72,9 +83,6 @@ function renderInsights({ insights, facts, projects, projectTags, level, period 
   } else if (projectTags && typeof projectTags === 'object') {
     for (const [name, tag] of Object.entries(projectTags)) tagMap.set(String(name).trim(), tag);
   }
-
-  const entries = [];
-  const errors = [];
 
   const renderString = (value, fieldPath) => {
     value = rewriteUnboundRecurringThreshold(value);
@@ -278,6 +286,7 @@ function renderInsights({ insights, facts, projects, projectTags, level, period 
     insights: walk(insights, ''),
     entries,
     errors,
+    dropped,
   };
 }
 
