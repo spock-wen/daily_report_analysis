@@ -219,3 +219,55 @@ test('已提交的月 10 数据：「平均累计 62000 星」的 avg_stars 不�
   });
   assert.equal(findings.some(item => /avg_stars/.test(item.message)), false, JSON.stringify(findings.filter(item => /avg_stars/.test(item.message))));
 });
+
+// PR#44 返工（工程审 P1）：「每个项目」「翻倍/加倍/倍增」不能无槽放行。
+// 下面每一句在 main 6aba569 上都是 FAIL（语义槽 + B10），在新 tip 上必须仍然 FAIL。
+test('返工 P1：「每个项目」「翻倍/加倍/倍增」后的错 role 仍被槽表拦下', () => {
+  const wrong = [
+    // 审查方原例
+    ['翻倍至 forks', '翻倍至 {{f1:forks}} 星'],
+    ['每个项目 stars', '每个项目 {{f1:stars}} 星'],
+    // 翻倍 / 加倍 / 倍增 后面不是 week_stars / 比值的 role
+    ['翻倍至 stars', '翻倍至 {{f1:stars}} 星'],
+    ['翻倍至 avg_stars', '翻倍至 {{f1:avg_stars}} 星'],
+    ['加倍 forks', '加倍 {{f1:forks}}'],
+    ['倍增至 stars', '倍增至 {{f1:stars}} 星'],
+    ['倍增至 threshold', '倍增至 {{f1:threshold}} 星'],
+    ['能否翻倍到 top3_stars', '能否翻倍到 {{f1:top3_stars}} 星'],
+    ['有望加倍至 appearance_days', '有望加倍至 {{f1:appearance_days}} 星'],
+    ['翻倍达到 forks', '周新增翻倍达到 {{f1:forks}} 星'],
+    // 每个项目 / 平均每个项目 后面不是平均类 role
+    ['每个项目获得 week_stars', '每个项目获得 {{f1:week_stars}} 星'],
+    ['每个项目新增 forks', '每个项目新增 {{f1:forks}} 个'],
+    ['平均每个项目 stars', '平均每个项目 {{f1:stars}} 星'],
+    ['平均每个项目获得 stars（原写法无连接词白名单）', '平均每个项目获得 {{f1:stars}} 星'],
+    ['平均每个项目拿下 forks', '平均每个项目拿下 {{f1:forks}} 星'],
+    ['同句：每个项目 avg 对、翻倍后 forks 错', '每个项目 {{f1:avg_stars}} 星，翻倍至 {{f2:forks}} 星'],
+    ['同句：共 N 个项目，平均每个项目 stars', '共 {{f1:total_projects}} 个项目，平均每个项目 {{f2:stars}} 星'],
+  ];
+  const failures = [];
+  for (const [label, sentence] of wrong) {
+    const found = gate({ highlights: [sentence] }, factsFor([sentence]), ['a/b']);
+    const slotErr = found.rendered.errors.some(e => /语义槽/.test(e.message));
+    if (!slotErr || found.b10.length === 0) failures.push(`${label} | ${sentence} | slotErr=${slotErr} b10=${found.b10.length}`);
+  }
+  assert.deepEqual(failures, []);
+});
+
+test('返工 P1：翻倍 / 每个项目 后的合法 role 仍能过（替代槽，不是放行）', () => {
+  const right = [
+    '周新增能否翻倍于本周 {{f1:week_stars}} 星',
+    '周新增有望翻倍至 {{f1:week_stars}} 星',
+    '每个项目 {{f1:avg_stars}} 星',
+    '平均每个项目获得 {{f1:avg_stars}} 星',
+    '上周平均每个项目 {{f1:prev_avg_stars}} 星',
+    '平均每个项目累计 {{f1:avg_stars}} 星与 {{f2:forks}} 个 Fork',
+    '共 {{f1:total_projects}} 个项目，平均每个项目 {{f2:avg_stars}} 星',
+  ];
+  const failures = [];
+  for (const sentence of right) {
+    const found = gate({ highlights: [sentence] }, factsFor([sentence]), ['a/b']);
+    if (found.rendered.errors.length > 0 || found.b10.length > 0) failures.push(`${sentence} | ${JSON.stringify(found.rendered.errors.map(e => e.message))}`);
+  }
+  assert.deepEqual(failures, []);
+});

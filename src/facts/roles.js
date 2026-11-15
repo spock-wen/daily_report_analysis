@@ -120,7 +120,10 @@ const SLOT_RULES = [
   // 「平均累计 N 星 / 平均 Stars 为 N」是平均星数（avg_stars），不是单项目累计星。
   // 此前这个句式没有槽，「平均累计」的「累计」被 stars 槽抢走（W46 65 试跑第 1 次 PH1）。
   // 下面的「累计」槽对「平均…累计」不再开槽，数字落在这条平均槽里。
-  { pattern: /平均(?:每个项目|每项目|项目)?(?:累计)?\s*(?:Stars?|星数|星标数?)?\s*(?:为|达到?|约|是)?\s*(?:\{\{f\d+:[a-z0-9_]+\}\}|\d+(?:\.\d+)?)/g, roles: ['avg_stars', 'prev_avg_stars', 'avg7_avg_stars', 'mom_avg_stars'] },
+  { pattern: /平均(?:项目)?(?:累计)?\s*(?:Stars?|星数|星标数?)?\s*(?:为|达到?|约|是)?\s*(?:\{\{f\d+:[a-z0-9_]+\}\}|\d+(?:\.\d+)?)/g, roles: ['avg_stars', 'prev_avg_stars', 'avg7_avg_stars', 'mom_avg_stars'] },
+  // 「平均每个项目 / 平均每项目」本身是平均星数的修饰语：这里给它自己的槽（只认平均类 role），
+  // 其后的数字（「累计」「为」「达到」等任意连接词之后）仍要核 role，不能因为摘掉了「个项目」槽而无槽。
+  { pattern: /平均每个项目|平均每项目/g, roles: ['avg_stars', 'prev_avg_stars', 'avg7_avg_stars', 'mom_avg_stars'] },
   { pattern: /(?<!平均|平均每个项目|平均每项目|平均项目)累计(?!\s*(?:\{\{f\d+:days_on_list\}\}|\d+(?:\.\d+)?)\s*天)/g, roles: ['stars'] },
   // 「N 个 Fork」数字在前：槽起点落在数字上，才压得过同分句前面的「累计」槽
   // （本机 glm-5.3-flash 生成：「其累计 N 星与 M 个 Fork」的 M 被累计槽抢走）。
@@ -129,7 +132,10 @@ const SLOT_RULES = [
   { pattern: /(?<!个\s*)(?:Forks|Fork|fork|分支)/g, roles: ['forks'] },
   { pattern: /个在榜项目/g, roles: COUNT_ROLES },
   // 「平均每个项目累计 N 星」里的「每个项目」是平均星数的修饰语，不是项目个数槽。
+  // 「每个项目」（前面没有「平均」）保留原来「个项目」槽的 role 集合，再加平均类 role，
+  // 即只增不减；「平均每个项目」由上面的专属槽负责，这里用 lookbehind 避免同一处开两个槽。
   { pattern: /(?<!每)个项目|项目数/g, roles: COUNT_ROLES },
+  { pattern: /(?<!平均)每个项目/g, roles: [...COUNT_ROLES, 'avg_stars', 'prev_avg_stars', 'avg7_avg_stars', 'mom_avg_stars'] },
   // 提示词规定看点阈值写成「{{f<id>:threshold}} 星看点阈值」，数字在词前面。
   // 只匹配「看点阈值」时槽起点在数字之后。同一分句若先有「周榜合计新增」，
   // 最近前置槽是「合计」，threshold 会被判成 week_stars / total_week
@@ -149,6 +155,10 @@ const SLOT_RULES = [
   { pattern: /类目[^，,、；;。\n]{0,20}份额|语言[^，,、；;。\n]{0,20}份额|份额变化/g, roles: ['category_share', 'category_shift', 'language_share', 'language_shift'] },
   // 「翻倍 / 倍增」是动词，不是倍数；「能否翻倍于本周 N 星」里的 N 是 week_stars。
   { pattern: /(?<![翻加])倍(?!增)/g, roles: ['ratioTop1Top2', 'ratio_top1_top2', 'acceleration_ratio'] },
+  // 翻倍 / 加倍 / 倍增 保留自己的槽，不再无槽放行：沿用原「倍」槽的比值类 role，
+  // 另加 week_stars / total_week（「周新增能否翻倍于本周 N 星」里的 N，W46 sweep 的合法写法）。
+  // 其它 role（forks / stars / avg_stars …）放在这些词后面仍按错 role 拦。
+  { pattern: /翻倍|加倍|倍增/g, roles: ['ratioTop1Top2', 'ratio_top1_top2', 'acceleration_ratio', 'week_stars', 'total_week'] },
   { pattern: /提速|加速/g, roles: ['acceleration', 'acceleration_ratio'] },
   // 「变化」专指提速/变化量，份额变化仍由上面的份额槽负责。
   // 日报变化量 role=acceleration；周报「较上周变化量」role=wow_delta（W44 weeklyTheme.detailed）。
