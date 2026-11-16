@@ -145,7 +145,7 @@ async function runFixtureCase() {
 
 async function runRealDataRender() {
   console.log('\n' + '='.repeat(60));
-  console.log('  本地渲染真实数据到临时目录（11-12 等缺页不出现）');
+  console.log('  本地渲染真实数据到临时目录（缺页不出现）');
   console.log('='.repeat(60) + '\n');
 
   const outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'index-real-render-'));
@@ -164,7 +164,35 @@ async function runRealDataRender() {
     const hrefs = collectHrefs(html);
 
     assert(path.resolve(indexPath).startsWith(path.resolve(outDir)), '输出在独立临时目录');
-    assert(hrefCount(hrefs, 'github-ai-trending-2026-11-12.html') === 0, '缺页 2026-11-12 不出现在 href');
+
+    // 缺页日期按 reports/daily 实际正式页推导：11-12 已于 50a3549 入库，写死「缺页」会过时。
+    const officialDailyRe = /^github-ai-trending-(\d{4}-\d{2}-\d{2})\.html$/;
+    const existingDaily = new Set(
+      fs.readdirSync(path.join(REPO_ROOT, 'reports', 'daily'))
+        .filter((name) => officialDailyRe.test(name))
+        .map((name) => name.match(officialDailyRe)[1])
+    );
+    const briefRe = /^data-(\d{4}-\d{2}-\d{2})\.json$/;
+    const briefDates = fs.readdirSync(path.join(REPO_ROOT, 'data', 'briefs', 'daily'))
+      .filter((name) => briefRe.test(name))
+      .map((name) => name.match(briefRe)[1])
+      .sort();
+    let missingDate = briefDates.find((date) => !existingDaily.has(date));
+    if (!missingDate) {
+      const cursor = new Date(Date.UTC(2026, 0, 1));
+      for (let i = 0; i < 800; i++) {
+        const iso = cursor.toISOString().slice(0, 10);
+        if (!existingDaily.has(iso)) {
+          missingDate = iso;
+          break;
+        }
+        cursor.setUTCDate(cursor.getUTCDate() + 1);
+      }
+    }
+    if (!missingDate) {
+      throw new Error('未能从真实目录推导出一个不存在的正式日报日期');
+    }
+    assert(hrefCount(hrefs, `github-ai-trending-${missingDate}.html`) === 0, `缺页 ${missingDate} 不出现在 href`);
     assert(hrefCount(hrefs, '.FAIL') === 0, '真实渲染零链接指向 .FAIL');
     assert(hrefCount(hrefs, 'daily/github-ai-trending-2026-11-11.html') >= 1, '已有正式页 2026-11-11 照常出现');
     assert(hrefCount(hrefs, 'daily/github-ai-trending-2026-11-13.html') >= 1, '已有正式页 2026-11-13 照常出现');
