@@ -18,19 +18,22 @@ function latestFile(subdir, re) {
   return null;
 }
 
-// 读者向周/月链接只认正式 HTML。文件名 *.FAIL.html 不匹配正式名。
+// 读者向日/周/月链接只认正式 HTML。文件名 *.FAIL.html 不匹配正式名。
 // CSS 里的 .fail-banner 规则不算红条（例如 W43 仅有样式）。
 const PERIOD_ID = {
+  daily: /^\d{4}-\d{2}-\d{2}$/,
   weekly: /^\d{4}-W\d{2}$/,
   monthly: /^\d{4}-\d{2}$/,
 };
 
 const PERIOD_FILE_RE = {
+  daily: /^github-ai-trending-(\d{4}-\d{2}-\d{2})\.html$/,
   weekly: /^github-weekly-(\d{4}-W\d{2})\.html$/,
   monthly: /^github-monthly-(\d{4}-\d{2})\.html$/,
 };
 
 function periodRel(kind, id) {
+  if (kind === 'daily') return `daily/github-ai-trending-${id}.html`;
   if (kind === 'weekly') return `weekly/github-weekly-${id}.html`;
   if (kind === 'monthly') return `monthly/github-monthly-${id}.html`;
   return null;
@@ -63,7 +66,8 @@ function readerPeriodHref(kind, id) {
 function latestReaderPeriodHref(kind, opts = {}) {
   if (!PERIOD_FILE_RE[kind]) return null;
   const prefix = opts.prefix == null ? '' : opts.prefix;
-  const dirName = kind === 'weekly' ? 'weekly' : 'monthly';
+  const dirName = kind === 'daily' || kind === 'weekly' || kind === 'monthly' ? kind : null;
+  if (!dirName) return null;
   const dir = nodePath.join(paths.reportsDir(), dirName);
   if (!fs.existsSync(dir)) return null;
   const ids = fs.readdirSync(dir)
