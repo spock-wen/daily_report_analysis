@@ -69,10 +69,32 @@ function rewriteWanApproximation(text) {
 // 「日报上榜 / 日报出现 N 天」绑 appearance_days 时统一写成「日报出现 N 天」：
 // 这条事实是本周日榜出现天数（不限前三），「上榜 N 天」是 days_on_list / top3_days 的句式。
 // 只改措辞，数字仍是模型引用的占位，闸规则不动。
-const APPEARANCE_DAYS_RE = /(?:日报)?(?:上榜|出现)\s*(\{\{f\d+:appearance_days\}\})\s*天/g;
+const APPEARANCE_DAYS_RE = /(?:日报)?(?:上榜|出现|在榜)\s*(\{\{f\d+:appearance_days\}\})\s*天/g;
+// 「N 天上榜日报 / N 天出现在日报」数字在前的说法。
+const APPEARANCE_DAYS_TRAILING_RE = /(\{\{f\d+:appearance_days\}\})\s*天(?:上榜|出现|在榜)(?:于|在)?日报/g;
 
 function rewriteAppearanceDays(text) {
-  return String(text || '').replace(APPEARANCE_DAYS_RE, '日报出现 $1 天');
+  return String(text || '')
+    .replace(APPEARANCE_DAYS_RE, '日报出现 $1 天')
+    .replace(APPEARANCE_DAYS_TRAILING_RE, '日报出现 $1 天');
+}
+
+// 「日报累计新增 / 日报期间新增 / 日报内新增 N 星」绑 top3_stars 时统一写成「日报合计新增 N 星」
+// （原句式会落进累计 / 今日新增槽）。必须带「日报」：没有「日报」的「合计新增」
+// 仍落在周榜合计槽被挡（weekly-w44-fail9 的反例），这里不放宽。
+const TOP3_STARS_RE = /日报(?:累计|期间|内)新增\s*(\{\{f\d+:top3_stars\}\})\s*星/g;
+
+// 看点阈值（threshold）后面跟「星看点 / 星阈值」但没写全「星看点阈值」时补全
+// （「N 星看点的差距」「N 星阈值」都落不进 threshold 槽）。必须有「看点 / 阈值」线索：
+// 没有线索的「突破 N 星」仍落在合计 / 累计槽被挡（weekly-w44 PH1 的反例），这里不放宽。
+const THRESHOLD_CUE_RE = /(\{\{f\d+:threshold\}\})\s*星(?:看点(?!阈值)|阈值)/g;
+
+function rewriteThresholdCue(text) {
+  return String(text || '').replace(THRESHOLD_CUE_RE, '$1 星看点阈值');
+}
+
+function rewriteTop3Stars(text) {
+  return String(text || '').replace(TOP3_STARS_RE, '日报合计新增 $1 星');
 }
 
 const SENTENCE_CHUNK_RE = /[^。！？\n]+[。！？\n]?/g;
@@ -272,6 +294,8 @@ function normalizeString(text, options) {
   out = rewriteShortDates(out);
   out = rewriteWanApproximation(out);
   out = rewriteAppearanceDays(out);
+  out = rewriteTop3Stars(out);
+  out = rewriteThresholdCue(out);
   out = wrapProjectNames(out, projects);
   out = bindBareNumbers(out, facts, projects, options.siblingProject || null);
   if (options.stripDigits) out = stripUnboundDigits(out);
@@ -330,6 +354,8 @@ module.exports = {
   rewriteShortDates,
   rewriteWanApproximation,
   rewriteAppearanceDays,
+  rewriteTop3Stars,
+  rewriteThresholdCue,
   dropOffListProjects,
   wrapProjectNames,
 };
