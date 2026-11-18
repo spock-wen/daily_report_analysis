@@ -185,7 +185,21 @@ class CompleteWorkflow {
    * @param {string} type - 报告类型
    * @returns {Promise<Object>} 执行结果
    */
+  isIsolatedWeeklyPreflight(data) {
+    return data?.__weeklyAdmission?.purpose === 'isolated-preflight'
+      && this.pipeline
+      && !this.pipeline.enableHTML
+      && !this.pipeline.enableIndex
+      && !this.pipeline.enableNotification;
+  }
+
   async executePipeline(data, type) {
+    if (type === 'weekly' && !this.isIsolatedWeeklyPreflight(data)) {
+      const error = new Error('周报正式生成只能由 weekly admission 在预检通过后发布');
+      error.code = 'WEEKLY_ADMISSION_REQUIRED';
+      throw error;
+    }
+
     const executionId = `${type}-${Date.now()}`;
     logger.info('[CompleteWorkflow] 开始执行报告流水线', { type, executionId });
     
@@ -259,6 +273,22 @@ class CompleteWorkflow {
     }
 
     try {
+      if (type === 'weekly') {
+        const isolated = options.weeklyPreflight === true
+          && options.data?.__weeklyAdmission?.purpose === 'isolated-preflight'
+          && !this.options.enableHTML
+          && !this.options.enableIndex
+          && !this.options.enableNotification;
+        if (!isolated) {
+          return {
+            success: false,
+            errorCode: 'WEEKLY_ADMISSION_REQUIRED',
+            error: '周报正式生成只能由 weekly admission 在当期 raw 预检通过后发布',
+            type
+          };
+        }
+      }
+
       let data;
 
       // 如果提供了预获取的数据，直接使用（用于月报聚合场景）
