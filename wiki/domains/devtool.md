@@ -2,8 +2,8 @@
 
 ## 领域概览
 
-- 项目总数：11
-- 最近更新：2026-11-17
+- 项目总数：14
+- 最近更新：2026-11-18
 - 报告类型：daily
 
 devtool 领域收录了与开发工具、IDE 插件、代码辅助相关的项目。
@@ -27,8 +27,8 @@ devtool 领域收录了与开发工具、IDE 插件、代码辅助相关的项�
 
 
 - 平均上榜次数：1.0
-- 总 Stars 数：125,201
-- 最热项目：[apple/container](../../wiki/projects/apple_container.md) (43182 ⭐)
+- 总 Stars 数：233,374
+- 最热项目：[jquery/jquery](../../wiki/projects/jquery_jquery.md) (60006 ⭐)
 
 
 ---
