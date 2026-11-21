@@ -409,6 +409,9 @@ function evaluateCase(caseItem, options = {}) {
       renderMap: readCaseJson(caseItem.render_map, root),
       facts: readCaseJson(caseItem.facts, root),
       r3: caseItem.r3,
+      // 用例没声明 render_map/facts 时不隐式读 dataDir 下的同期文件：
+      // 仓库 data/ 会被自动同步补进 r3 文件（如 c5d14d5 的 W42），不应改变旧用例的检查模式。
+      implicitDiskData: false,
     };
     if (brief !== undefined) checkOptions.brief = brief;
     if (viewModel !== undefined) checkOptions.viewModel = viewModel;

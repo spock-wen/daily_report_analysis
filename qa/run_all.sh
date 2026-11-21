@@ -178,6 +178,14 @@ for casesFile in "${CASES_FILES[@]}"; do
   fi
 done
 
+# ④ 附：用例运行器不得隐式读取 data/ 下的渲染记录/事实表（生产 checkReport 仍读）
+CASE_RUNNER_CODE=0
+node --test tests/checker/evaluate-case-implicit-data.test.js || CASE_RUNNER_CODE=$?
+GROUP_LINES+=("GROUP case_runner_implicit_data exit=${CASE_RUNNER_CODE}")
+if [ "$CASE_RUNNER_CODE" -ne 0 ]; then
+  UNKNOWN_FAILS+=("case_runner_implicit_data:exit=${CASE_RUNNER_CODE}")
+fi
+
 for line in "${GROUP_LINES[@]}"; do
   echo "$line"
 done

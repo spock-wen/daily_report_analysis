@@ -45,12 +45,17 @@ function normalizeRenderMap(value) {
   return null;
 }
 
+// options.implicitDiskData === false：只用调用方显式给的渲染记录/事实表，不回落读取
+// dataDir 下的同期文件（用例运行器 evaluateCase 用；生产路径不传，行为不变）。
 function resolveRenderMap(options, dataDir, level, period) {
+  const implicitDisk = options.implicitDiskData !== false;
   if (options.renderMap !== undefined && options.renderMap !== null) {
     const normalized = normalizeRenderMap(options.renderMap);
     if (normalized) return normalized;
+    if (!implicitDisk) throw new Error('渲染记录格式不对（需为数组或含 entries 数组的对象），不回落读取 data/');
   }
   const explicit = options.renderMapPath;
+  if (!explicit && !implicitDisk) return null;
   const filePath = explicit ? path.resolve(explicit) : defaultRenderMapPath(dataDir, level, period);
   const data = readJson(filePath);
   if (data) return normalizeRenderMap(data) || { entries: [] };
@@ -61,6 +66,7 @@ function resolveRenderMap(options, dataDir, level, period) {
 function resolveFacts(options, dataDir, level, period) {
   if (options.facts !== undefined && options.facts !== null) return options.facts;
   const explicit = options.factsPath;
+  if (!explicit && options.implicitDiskData === false) return null;
   const filePath = explicit ? path.resolve(explicit) : defaultFactsPath(dataDir, level, period);
   const data = readJson(filePath);
   if (data) return data;
