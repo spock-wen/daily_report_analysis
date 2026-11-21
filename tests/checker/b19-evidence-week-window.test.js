@@ -143,7 +143,7 @@ test('负例：evidence 缺 day / 非 YYYY-MM-DD 门禁 FAIL', () => {
 
 test('正例 W46：门禁也放行仅两天的 evidence 子集，不要求完整七天', async () => {
   const sparse = readPublishedInsights('2026-W46');
-  sparse.deepTrends.evidence = [sparse.deepTrends.evidence[0], sparse.deepTrends.evidence[8]];
+  sparse.deepTrends.evidence = sparse.deepTrends.evidence.slice(0, 2); // 保留原下标，day 为 11-09、11-11
   const { dataDir } = makeDataDir('2026-W46', sparse);
   const gate = await runContentGate({ level: 'weekly', period: '2026-W46', dataDir, logger: silentLogger });
   assert.equal(gate.pass, true, JSON.stringify(gate.findings));
