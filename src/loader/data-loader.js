@@ -2,6 +2,7 @@ const path = require('path');
 const { readJson, fileExists, ensureDir } = require('../utils/fs');
 const { getDailyBriefPath, getWeeklyBriefPath, getMonthlyBriefPath, getAIInsightsPath } = require('../utils/path');
 const logger = require('../utils/logger');
+const history = require('../metrics/history');
 
 /**
  * 数据加载器 - 负责加载和验证报告数据
@@ -67,40 +68,22 @@ class DataLoader {
   async loadPastWeekDailyData(weekStart) {
     try {
       const dailyDataList = [];
-      
-      // 检查 weekStart 格式，如果是 YYYY-Www 格式，则解析出周一的日期
-      let startDate;
-      if (weekStart.includes('-W')) {
-        const parts = weekStart.split('-W');
-        const year = parseInt(parts[0]);
-        const week = parseInt(parts[1]);
-        
-        // 计算该周周一的日期 (ISO week date algorithm)
-        // 1. 获取当年的 1月4日 (这天一定在第一周)
-        const jan4 = new Date(year, 0, 4);
-        // 2. 获取该周周一的日期
-        const dayOfWeek = jan4.getDay() || 7; // Sunday is 0, make it 7
-        const firstMonday = new Date(jan4);
-        firstMonday.setDate(jan4.getDate() - dayOfWeek + 1);
-        
-        // 3. 加上 (week - 1) * 7 天
-        startDate = new Date(firstMonday);
-        startDate.setDate(firstMonday.getDate() + (week - 1) * 7);
-      } else {
-        startDate = new Date(weekStart);
+
+      // 与事实表 / loadWeeklyDailyData 同源：禁止本地 Date + toISOString()（UTC+ 会整周前移一天）。
+      let dates = [];
+      if (String(weekStart || '').includes('-W')) {
+        dates = history.getISOWeekDates(weekStart);
+      } else if (/^\d{4}-\d{2}-\d{2}$/.test(String(weekStart || ''))) {
+        dates = Array.from({ length: 7 }, (_, i) => history.addDays(weekStart, i));
       }
 
-      if (isNaN(startDate.getTime())) {
+      if (!dates.length) {
         logger.warn(`无效的周起始日期: ${weekStart}`);
         return [];
       }
-      
-      // 遍历一周 7 天
-      for (let i = 0; i < 7; i++) {
-        const currentDate = new Date(startDate);
-        currentDate.setDate(startDate.getDate() + i);
-        const dateStr = currentDate.toISOString().split('T')[0];
-        
+
+      for (let i = 0; i < dates.length; i++) {
+        const dateStr = dates[i];
         try {
           const briefPath = getDailyBriefPath(dateStr);
           if (await fileExists(briefPath)) {

@@ -28,7 +28,9 @@ const {
   enrichWeeklyBrief,
   enrichMonthlyBrief,
   getISOWeekDates,
-  getScrapedDate
+  getScrapedDate,
+  addDays,
+  getISOWeekId
 } = require('../metrics');
 const { runContentGate } = require('../checker/gate');
 const { buildFacts, listWeeklyDailyAppearances } = require('../facts/build-facts');
@@ -612,21 +614,17 @@ class ReportPipeline {
    * 计算周结束日期
    */
   calculateWeekEnd(weekStart) {
-    if (!weekStart) {
-      const now = new Date();
-      const dayOfWeek = now.getDay();
-      const diff = 6 - dayOfWeek;
-      const end = new Date(now);
-      end.setDate(end.getDate() + (diff < 0 ? 7 + diff : diff));
-      return end.toISOString().split('T')[0];
+    if (weekStart && /^\d{4}-W\d{2}$/.test(weekStart)) {
+      const dates = getISOWeekDates(weekStart);
+      return dates[6] || null;
     }
-    
-    const start = new Date(weekStart);
-    if (isNaN(start.getTime())) {
-      return new Date().toISOString().split('T')[0];
+    if (weekStart && /^\d{4}-\d{2}-\d{2}$/.test(weekStart)) {
+      return addDays(weekStart, 6);
     }
-    start.setDate(start.getDate() + 6);
-    return start.toISOString().split('T')[0];
+    const today = getScrapedDate(new Date());
+    if (!today) return null;
+    const dates = getISOWeekDates(getISOWeekId(today));
+    return dates[6] || today;
   }
 
   /**
