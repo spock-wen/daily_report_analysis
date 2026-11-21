@@ -93,6 +93,24 @@ function latestReaderPeriodId(kind) {
 }
 
 /**
+ * 读者向期次链接：preferredId 有正式页则用之；否则回退到最近一篇已发布正式页。
+ * 用于日报「本周周报」等：周日 12:00 当周正式页存在前，不得链到尚不存在的当周文件。
+ * @returns {{ id: string, href: string }|null}
+ */
+function resolveReaderPeriodHref(kind, preferredId, opts = {}) {
+  const prefix = opts.prefix == null ? '' : opts.prefix;
+  if (preferredId) {
+    const href = readerPeriodHref(kind, preferredId);
+    if (href) return { id: preferredId, href: `${prefix}${href}` };
+  }
+  const latestId = latestReaderPeriodId(kind);
+  if (!latestId) return null;
+  const href = readerPeriodHref(kind, latestId);
+  if (!href) return null;
+  return { id: latestId, href: `${prefix}${href}` };
+}
+
+/**
  * 顶栏/互链：优先报告目录最新具体篇；无文件时回退到已知期次文件名（勿链裸目录）。
  * @param {'daily'|'weekly'|'monthly'} kind
  * @param {{ prefix?: string, fallbackId?: string|null }} [opts]
@@ -183,6 +201,7 @@ module.exports = {
   readerPeriodHref,
   latestReaderPeriodHref,
   latestReaderPeriodId,
+  resolveReaderPeriodHref,
   wikiIndexHref,
   todaySingapore,
   homePeriodKind,

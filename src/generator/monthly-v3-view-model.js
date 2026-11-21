@@ -27,7 +27,7 @@ const {
   renderWeekBarsSvg,
   weekBarsFootnote,
 } = require('./wmh-svg-charts');
-const { latestReportHref } = require('./report-nav');
+const { latestReaderPeriodHref, readerPeriodHref } = require('./report-nav');
 const { pickProjectBlurb } = require('./daily-v3-copy');
 
 const TEMPLATE_PATH = nodePath.join(TEMPLATE_DIR, 'monthly.mustache');
@@ -349,11 +349,14 @@ function buildViewModel(data) {
   const domainRows = domainRowsFromAgg(currAgg, prevAgg);
   const insights = buildInsights(ai, dropList, dropListNote, domainRows);
 
-  const weekBars = weekThemes.slice(0, 4).map(w => ({
-    week: w.week,
-    theme: (w.theme || '主题待补').slice(0, 48),
-    href: `../weekly/github-weekly-${w.week}.html`,
-  }));
+  const weekBars = weekThemes.slice(0, 4).map(w => {
+    const rel = readerPeriodHref('weekly', w.week);
+    return {
+      week: w.week,
+      theme: (w.theme || '主题待补').slice(0, 48),
+      href: rel ? `../${rel}` : '',
+    };
+  });
 
   // 四周新增柱：按周主题对应周 brief 的 todayStars 合计
   const weekStarBars = weekBars.map(w => {
@@ -393,13 +396,11 @@ function buildViewModel(data) {
     };
   });
 
-  const monthWeeks = history.getWeeksInMonth(month) || [];
-  const weeklyFallback = monthWeeks.length ? monthWeeks[monthWeeks.length - 1] : null;
   const paths = {
     home: '../index.html',
-    daily: latestReportHref('daily', { prefix: '../', fallbackId: `${month}-01` }),
-    weekly: latestReportHref('weekly', { prefix: '../', fallbackId: weeklyFallback }),
-    monthly: latestReportHref('monthly', { prefix: '../', fallbackId: month }),
+    daily: latestReaderPeriodHref('daily', { prefix: '../' }) || '',
+    weekly: latestReaderPeriodHref('weekly', { prefix: '../' }) || '',
+    monthly: latestReaderPeriodHref('monthly', { prefix: '../' }) || '',
   };
 
   const kpiRows = [
