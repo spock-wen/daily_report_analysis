@@ -141,6 +141,25 @@ test('负例：evidence 缺 day / 非 YYYY-MM-DD 门禁 FAIL', () => {
   assert.deepEqual(hits.map(h => h.field).sort(), ['deepTrends.evidence[1]', 'deepTrends.evidence[2].day']);
 });
 
+test('正例 W46：门禁也放行仅两天的 evidence 子集，不要求完整七天', async () => {
+  const sparse = readPublishedInsights('2026-W46');
+  sparse.deepTrends.evidence = [sparse.deepTrends.evidence[0], sparse.deepTrends.evidence[8]];
+  const { dataDir } = makeDataDir('2026-W46', sparse);
+  const gate = await runContentGate({ level: 'weekly', period: '2026-W46', dataDir, logger: silentLogger });
+  assert.equal(gate.pass, true, JSON.stringify(gate.findings));
+});
+
+test('负例 嵌套 evidence：deepTrends 以外的数组也经注册规则拦截，无对象条目不可漏检', () => {
+  const nested = readPublishedInsights('2026-W46');
+  nested.extra = [{ nested: { evidence: [{ day: '2026-11-08' }, 'no-day'] } }];
+  const { dataDir } = makeDataDir('2026-W46', nested);
+  const result = checkReport({ level: 'weekly', period: '2026-W46', dataDir });
+  assert.equal(result.pass, false);
+  assert.deepEqual(b19(result.findings).map(h => h.field), [
+    'extra[0].nested.evidence[0].day', 'extra[0].nested.evidence[1]',
+  ]);
+});
+
 test('正例 W44：无 deepTrends/evidence 时 B19 不报（W44 已发布原样）', () => {
   const { dataDir } = makeDataDir('2026-W44', readPublishedInsights('2026-W44'));
   const result = checkReport({ level: 'weekly', period: '2026-W44', dataDir });
