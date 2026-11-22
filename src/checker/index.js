@@ -150,6 +150,15 @@ function checkReport(options = {}) {
       ? loadDocument(briefPath, 'brief')
       : createJsonDocument(null, brief, 'brief', { synthetic: true }));
   }
+  // B20 等规则 applies 要 doc.role === 'facts'。facts 已进 ctx，但未列入 documents 时不会跑。
+  if (facts) {
+    const factsPath = options.factsPath
+      ? path.resolve(options.factsPath)
+      : path.join(dataDir, 'facts', `facts-${level}-${period}.json`);
+    documents.push(fileExists(factsPath)
+      ? loadDocument(factsPath, 'facts')
+      : createJsonDocument(null, facts, 'facts', { synthetic: true }));
+  }
 
   if (documents.length === 0) {
     return {
