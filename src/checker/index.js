@@ -37,6 +37,7 @@ const RULES = [
   require('./rules/b16'),
   require('./rules/b17'),
   require('./rules/b18'),
+  require('./rules/b20'),
   require('./rules/c1'),
   require('./rules/c2'),
   require('./rules/c3'),
@@ -148,6 +149,15 @@ function checkReport(options = {}) {
     documents.push(fileExists(briefPath)
       ? loadDocument(briefPath, 'brief')
       : createJsonDocument(null, brief, 'brief', { synthetic: true }));
+  }
+  // B20 等规则 applies 要 doc.role === 'facts'。facts 已进 ctx，但未列入 documents 时不会跑。
+  if (facts) {
+    const factsPath = options.factsPath
+      ? path.resolve(options.factsPath)
+      : path.join(dataDir, 'facts', `facts-${level}-${period}.json`);
+    documents.push(fileExists(factsPath)
+      ? loadDocument(factsPath, 'facts')
+      : createJsonDocument(null, facts, 'facts', { synthetic: true }));
   }
 
   if (documents.length === 0) {
