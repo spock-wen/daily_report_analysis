@@ -591,8 +591,9 @@ class ReportPipeline {
   }
 
   /**
-   * 闸前/洞察前补齐日更 stats。缺 totalProjects/aiProjects/avgStars 时
-   * buildFacts 会漏 avg_stars / delta_avg_avg_stars，页面 metrics d7Text（如 26.3k）对不上 R5。
+   * 闸前/洞察前补齐 stats（日更与周报共用）。缺 totalProjects/aiProjects/avgStars 时
+   * buildFacts 会漏 avg_stars / total_projects；周报还会把缺失的 aiProjects 当成 0，
+   * 写出 ai_ratio=0，与随后落盘的 brief.stats 自相矛盾。
    */
   ensureDailyStats(data) {
     const projects = data.projects || data.repositories || [];
@@ -771,10 +772,29 @@ class ReportPipeline {
       // 日更 R5：metrics 平均总星 d7Text 依赖 avg_stars + delta_avg_avg_stars
       return !roles.has('avg_stars') || !roles.has('total_projects');
     };
-    if (type === 'daily') {
+    const weeklyFactsInconsistent = (doc, stats) => {
+      if (!doc || !Array.isArray(doc.facts)) return true;
+      const roles = new Set(doc.facts.map(f => f && f.role).filter(Boolean));
+      if (!roles.has('total_projects') || !roles.has('ai_projects') || !roles.has('ai_ratio')) return true;
+      const total = Number(stats && stats.totalProjects);
+      const ai = Number(stats && stats.aiProjects);
+      if (!Number.isFinite(total) || !Number.isFinite(ai) || total <= 0) return false;
+      const ratio = doc.facts.find(f => f && f.role === 'ai_ratio');
+      const expected = Math.round((ai / total) * 100);
+      return Number(ratio && ratio.value) !== expected;
+    };
+    if (type === 'daily' || type === 'weekly') {
       this.ensureDailyStats(data);
+      if (type === 'weekly' && data.brief && typeof data.brief === 'object') {
+        data.brief.stats = data.stats;
+        if (!data.brief.projects || data.brief.projects.length === 0) {
+          data.brief.projects = data.projects || data.repositories || [];
+        }
+      }
     }
-    if (!facts || (type === 'daily' && factsMissingCritical(facts))) {
+    if (!facts
+      || (type === 'daily' && factsMissingCritical(facts))
+      || (type === 'weekly' && weeklyFactsInconsistent(facts, data.stats))) {
       if (type === 'daily') {
         const brief = {
           date: period,
@@ -930,13 +950,16 @@ class ReportPipeline {
       let insights;
 
       // 构建兼容的数据结构，包含 brief 字段
-      const dailyStats = type === 'daily' ? this.ensureDailyStats(data) : (data.stats || {});
+      // 周报原先只透传 data.stats；未补齐时 brief.stats 为空，facts 把 ai_ratio 写成 0。
+      const reportStats = (type === 'daily' || type === 'weekly')
+        ? this.ensureDailyStats(data)
+        : (data.stats || {});
       const analysisData = {
         ...data,
         brief: {
           date: data.date,
           projects: data.projects || data.repositories || [],
-          stats: dailyStats,
+          stats: reportStats,
           dailyDiff: data.dailyDiff,
           streakDays: data.streakDays,
           caption: data.caption,

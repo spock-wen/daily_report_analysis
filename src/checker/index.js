@@ -38,6 +38,7 @@ const RULES = [
   require('./rules/b17'),
   require('./rules/b18'),
   require('./rules/b19'),
+  require('./rules/b20'),
   require('./rules/c1'),
   require('./rules/c2'),
   require('./rules/c3'),
@@ -149,6 +150,15 @@ function checkReport(options = {}) {
     documents.push(fileExists(briefPath)
       ? loadDocument(briefPath, 'brief')
       : createJsonDocument(null, brief, 'brief', { synthetic: true }));
+  }
+  // B20 等规则 applies 要 doc.role === 'facts'。facts 已进 ctx，但未列入 documents 时不会跑。
+  if (facts) {
+    const factsPath = options.factsPath
+      ? path.resolve(options.factsPath)
+      : path.join(dataDir, 'facts', `facts-${level}-${period}.json`);
+    documents.push(fileExists(factsPath)
+      ? loadDocument(factsPath, 'facts')
+      : createJsonDocument(null, facts, 'facts', { synthetic: true }));
   }
 
   if (documents.length === 0) {
@@ -410,6 +420,9 @@ function evaluateCase(caseItem, options = {}) {
       renderMap: readCaseJson(caseItem.render_map, root),
       facts: readCaseJson(caseItem.facts, root),
       r3: caseItem.r3,
+      // 用例没声明 render_map/facts 时不隐式读 dataDir 下的同期文件：
+      // 仓库 data/ 会被自动同步补进 r3 文件（如 c5d14d5 的 W42），不应改变旧用例的检查模式。
+      implicitDiskData: false,
     };
     if (brief !== undefined) checkOptions.brief = brief;
     if (viewModel !== undefined) checkOptions.viewModel = viewModel;

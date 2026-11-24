@@ -179,6 +179,22 @@ for casesFile in "${CASES_FILES[@]}"; do
   fi
 done
 
+# ④ 附：用例运行器不得隐式读取 data/ 下的渲染记录/事实表（生产 checkReport 仍读）
+CASE_RUNNER_CODE=0
+node --test tests/checker/evaluate-case-implicit-data.test.js || CASE_RUNNER_CODE=$?
+GROUP_LINES+=("GROUP case_runner_implicit_data exit=${CASE_RUNNER_CODE}")
+if [ "$CASE_RUNNER_CODE" -ne 0 ]; then
+  UNKNOWN_FAILS+=("case_runner_implicit_data:exit=${CASE_RUNNER_CODE}")
+fi
+
+# ④ 附：周报 facts.ai_ratio 与 brief.stats 自洽（B20 + 空 stats 回退计数）
+AI_RATIO_CODE=0
+node --test tests/facts/build-weekly-ai-ratio.test.js tests/checker/b20-facts-brief-consistency.test.js || AI_RATIO_CODE=$?
+GROUP_LINES+=("GROUP weekly_ai_ratio_consistency exit=${AI_RATIO_CODE}")
+if [ "$AI_RATIO_CODE" -ne 0 ]; then
+  UNKNOWN_FAILS+=("weekly_ai_ratio_consistency:exit=${AI_RATIO_CODE}")
+fi
+
 for line in "${GROUP_LINES[@]}"; do
   echo "$line"
 done

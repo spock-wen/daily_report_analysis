@@ -934,8 +934,12 @@ function buildWeeklyFacts({ brief, metrics, period, add, addNumber }) {
   const weekMetrics = brief.weekMetrics || metrics || {};
   const prevWeekStats = brief.prevWeekStats || weekMetrics.prevWeekStats || {};
 
-  addNumber(stats.totalProjects, { kind: 'total', field: 'stats.totalProjects', label: '上榜项目数', role: 'total_projects' });
-  addNumber(stats.aiProjects, { kind: 'total', field: 'stats.aiProjects', label: 'AI 项目数', role: 'ai_projects' });
+  // stats 可能尚未补齐（周报 AI 分析阶段曾只透传 data.stats，空对象时
+  // 旧逻辑把 aiProjects 当成 0，写出 ai_ratio=0）。缺省时与日更一致，按项目计数。
+  const totalProjects = toNumber(stats.totalProjects) ?? projects.length;
+  const aiProjects = toNumber(stats.aiProjects) ?? projects.filter(project => project.isAI).length;
+  addNumber(totalProjects, { kind: 'total', field: 'stats.totalProjects', label: '上榜项目数', role: 'total_projects' });
+  addNumber(aiProjects, { kind: 'total', field: 'stats.aiProjects', label: 'AI 项目数', role: 'ai_projects' });
   // 存数值（解析 44k→44000），供 R5 对上 metrics d7Text 的 26.3k 等 k 格式
   {
     const avgStarsNum = parseMetricNumber(stats.avgStars) ?? toNumber(stats.avgStars);
@@ -944,8 +948,6 @@ function buildWeeklyFacts({ brief, metrics, period, add, addNumber }) {
     }
   }
 
-  const totalProjects = toNumber(stats.totalProjects) ?? projects.length;
-  const aiProjects = toNumber(stats.aiProjects) ?? 0;
   add(totalProjects > 0 ? Math.round((aiProjects / totalProjects) * 100) : 0, {
     kind: 'total',
     field: 'stats.aiProjects',
