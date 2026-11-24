@@ -38,6 +38,23 @@ function makeDataDir(weekId, insights) {
   return { root, dataDir };
 }
 
+// makeDataDir 把 data/facts 软链到仓库；合入 B20 后，已发布 W45 facts.ai_ratio=0
+// 会额外被拦。正例若要验证「修好 evidence 后门禁整体 PASS」，须在临时目录覆盖该 facts，不改仓库已发布文件。
+function writeLocalFacts(dataDir, weekId, mutate) {
+  const repoFacts = path.join(REPO_DATA, 'facts');
+  const dest = path.join(dataDir, 'facts');
+  fs.unlinkSync(dest);
+  fs.mkdirSync(dest);
+  const file = `facts-weekly-${weekId}.json`;
+  for (const name of fs.readdirSync(repoFacts)) {
+    if (name === file) continue;
+    fs.symlinkSync(path.join(repoFacts, name), path.join(dest, name));
+  }
+  const doc = JSON.parse(fs.readFileSync(path.join(repoFacts, file), 'utf8'));
+  mutate(doc);
+  fs.writeFileSync(path.join(dest, file), `${JSON.stringify(doc, null, 2)}\n`);
+}
+
 function b19(findings) {
   return findings.filter(finding => finding.rule_id === 'B19');
 }
@@ -94,8 +111,10 @@ test('负例 W45：已发布 W45 insights 原样（两条 day=2026-11-01）经�
     assert.match(hit.message, /2026-11-02\.\.2026-11-08/);
     assert.ok(hit.line > 0, '要定位到行号');
   }
-  // 除 B19 外没有别的 FAIL（门禁里新增的只有这两条）
-  assert.equal(result.findings.length, hits.length);
+  // 合入 B20 后，已发布 W45 facts.ai_ratio=0 与 brief.stats 15/18（83%）也会被拦；B19 覆盖不减。
+  const b20 = result.findings.filter(finding => finding.rule_id === 'B20');
+  assert.ok(b20.some(hit => hit.field === 'ai_ratio' && String(hit.quote) === '0'));
+  assert.equal(result.findings.filter(finding => finding.rule_id !== 'B19' && finding.rule_id !== 'B20').length, 0);
 });
 
 test('负例 W45 经 runContentGate：FAIL 不放行，写 FAIL 清单到临时目录', async () => {
@@ -103,6 +122,7 @@ test('负例 W45 经 runContentGate：FAIL 不放行，写 FAIL 清单到临时�
   const gate = await runContentGate({ level: 'weekly', period: '2026-W45', dataDir, logger: silentLogger });
   assert.equal(gate.pass, false);
   assert.equal(b19(gate.findings).length, 2);
+  assert.ok(gate.findings.some(finding => finding.rule_id === 'B20' && finding.field === 'ai_ratio'));
   assert.ok(gate.paths.jsonPath.startsWith(root), gate.paths.jsonPath);
 });
 
@@ -111,6 +131,10 @@ test('正例 W45：同一份 insights 只把两条 11-01 改成窗内日期，�
   fixed.deepTrends.evidence[0].day = '2026-11-02';
   fixed.deepTrends.evidence[3].day = '2026-11-02';
   const { dataDir } = makeDataDir('2026-W45', fixed);
+  writeLocalFacts(dataDir, '2026-W45', doc => {
+    const ratio = (doc.facts || []).find(item => item && item.role === 'ai_ratio');
+    if (ratio) ratio.value = 83; // 与 brief.stats 15/18 一致，隔离 B20，只验 B19 修好后不误报
+  });
   const gate = await runContentGate({ level: 'weekly', period: '2026-W45', dataDir, logger: silentLogger });
   assert.equal(gate.pass, true, JSON.stringify(gate.findings));
 });
