@@ -1,100 +1,75 @@
 #!/usr/bin/env node
 
 /**
- * 重新发送推送通知脚本
+ * 安全补推入口：只发 WeLink，不写页，不发飞书。
  *
  * 用法:
- *   node scripts/resend-push.js daily 2026-04-15
- *   node scripts/resend-push.js weekly 2026-W16
- *   node scripts/resend-push.js monthly 2026-03
- *   node scripts/resend-push.js papers 2026-04-01
+ *   node scripts/resend-push.js daily 2026-11-26
+ *   node scripts/resend-push.js daily 2026-11-26 --dry-run
+ *   node scripts/resend-push.js daily 2026-11-26 --send
+ *   node scripts/resend-push.js weekly 2026-W16 --dry-run
  */
 
-const path = require('path');
+'use strict';
+
 const logger = require('../src/utils/logger');
+const { parseArgs, helpText, resendWeLinkOnly } = require('../src/notifier/resend-welink');
 
-// 命令行参数
-const args = process.argv.slice(2);
-const reportType = args[0];
-const reportId = args[1];
-const shouldHelp = args.includes('--help') || args.includes('-h');
+async function main(argv = process.argv.slice(2)) {
+  let args;
+  try {
+    args = parseArgs(argv);
+  } catch (error) {
+    logger.error(error.message);
+    process.exitCode = 1;
+    return;
+  }
 
-if (shouldHelp || !reportType || !reportId) {
-  console.log(`
-重新发送推送通知脚本
-
-用法:
-  node scripts/resend-push.js <type> <id>
-
-参数:
-  type      报告类型：daily, weekly, monthly, papers
-  id        报告标识：
-            - daily:   日期格式 YYYY-MM-DD (如 2026-04-15)
-            - weekly:  周数格式 YYYY-Www (如 2026-W16)
-            - monthly: 月份格式 YYYY-MM (如 2026-03)
-            - papers:  日期格式 YYYY-MM-DD (如 2026-04-01)
-
-示例:
-  node scripts/resend-push.js daily 2026-04-15
-  node scripts/resend-push.js weekly 2026-W16
-  node scripts/resend-push.js monthly 2026-03
-  node scripts/resend-push.js papers 2026-04-01
-`);
-  process.exit(0);
-}
-
-/**
- * 发送推送通知
- */
-async function resendPush(reportType, reportId) {
-  logger.info(`\n=== 重新发送推送通知：${reportType} ${reportId} ===\n`);
+  if (args.help || !args.reportType || !args.reportId) {
+    console.log(helpText());
+    process.exitCode = 0;
+    return;
+  }
 
   try {
-    const MessageSender = require('../src/notifier/message-sender');
-    const sender = new MessageSender();
-
-    // 构建报告 URL
-    let reportUrl;
-    const baseUrl = 'https://report.wenspock.site';
-
-    switch (reportType) {
-      case 'daily':
-        reportUrl = `${baseUrl}/daily/github-ai-trending-${reportId}.html`;
-        break;
-      case 'weekly':
-        reportUrl = `${baseUrl}/weekly/github-weekly-${reportId}.html`;
-        break;
-      case 'monthly':
-        reportUrl = `${baseUrl}/monthly/github-monthly-${reportId}.html`;
-        break;
-      case 'papers':
-        reportUrl = `${baseUrl}/papers/papers-${reportId}.html`;
-        break;
-      default:
-        throw new Error(`未知的报告类型：${reportType}`);
-    }
-
-    logger.info(`推送 URL: ${reportUrl}`);
-
-    // 发送通知
-    const result = await sender.sendFeishu({
-      type: reportType,
-      title: `GitHub ${reportType === 'daily' ? '日报' : reportType === 'weekly' ? '周报' : reportType === 'monthly' ? '月报' : '论文'}报告`,
-      reportUrl: reportUrl
+    const result = await resendWeLinkOnly({
+      reportType: args.reportType,
+      reportId: args.reportId,
+      send: args.send
     });
 
-    if (result.success) {
-      logger.success('\n✅ 推送通知已发送\n');
-    } else {
-      logger.error('\n❌ 推送发送失败:', result.error);
-      process.exit(1);
+    if (result.dryRun) {
+      logger.info('干跑完成，未发送 WeLink / 飞书，未写页');
+      logger.info(`计划推送链接: ${result.plan.reportUrl}`);
+      logger.info('FEISHU_CALLED=no');
+      logger.info('要实际补推请加 --send');
+      process.exitCode = 0;
+      return;
     }
 
+    const summary = result.summary;
+    logger.info(`WELINK_OK=${summary.WELINK_OK}`);
+    for (const line of summary.groups) {
+      logger.info(line);
+    }
+    logger.info('FEISHU_CALLED=no');
+
+    if (result.success) {
+      logger.success('两个群均返回成功且有回执');
+      process.exitCode = 0;
+      return;
+    }
+
+    logger.error(`补推未成功：${summary.reason || '回执未齐'}`);
+    process.exitCode = 1;
   } catch (error) {
-    logger.error(`❌ 推送发送失败：${error.message}`);
-    console.error(error);
-    process.exit(1);
+    logger.error(`补推失败：${error.message}`);
+    process.exitCode = 1;
   }
 }
 
-resendPush(reportType, reportId);
+if (require.main === module) {
+  main();
+}
+
+module.exports = { main };

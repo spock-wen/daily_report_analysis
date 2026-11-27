@@ -35,6 +35,7 @@ const { buildFacts, listWeeklyDailyAppearances } = require('../facts/build-facts
 const { renderInsights, writeRenderMap } = require('../render/placeholder-renderer');
 const { stripProjectAnalysis, stripWeekThemes, stripBoilerplateValue } = require('../render/strip-boilerplate');
 const { isR5Insights } = require('../checker/rules/r5');
+const { evaluatePipelineNotification } = require('../notifier/welink-receipts');
 
 // 导入依赖模块
 const InsightAnalyzer = require('../analyzer/insight-analyzer');
@@ -322,12 +323,22 @@ class ReportPipeline {
       result.data = data;
       result.duration = Date.now() - startTime;
       
+      const receiptVerdict = evaluatePipelineNotification(result.notificationResults);
+      result.welinkReceipts = receiptVerdict;
+      result.notificationSent = receiptVerdict.ok;
+
       logger.success(`[ReportPipeline] 报告生成流程完成：${type}`, {
         duration: `${result.duration}ms`,
         htmlPath: result.htmlPath,
         insightsGenerated: !!result.insights,
-        notificationSent: !!result.notificationResults
+        notificationSent: receiptVerdict.ok,
+        welinkReceipts: `${receiptVerdict.okCount}/${receiptVerdict.expectedGroupCount}`
       });
+      if (this.enableNotification && !receiptVerdict.ok) {
+        logger.warn('[ReportPipeline] WeLink 回执未齐，不把推送记为成功（不采信 notificationResults 非空）', {
+          reason: receiptVerdict.reason
+        });
+      }
 
       return result;
     } catch (error) {
