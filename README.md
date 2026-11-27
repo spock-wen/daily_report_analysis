@@ -95,7 +95,8 @@ node scripts/check-report.js --cases /home/box/shared/report-redesign/refactor/c
 - 退出码：`0` PASS；`1` FAIL（或有用例未通过）；`2` 参数错误。
 - 常规模式把 FAIL 清单写到 `<data-dir>/../check/check-<level>-<period>.{json,md}`，每条含文件、行号、字段、原句、规则 ID 和说明。
 - `--cases` 读取 jsonl（每行 `id, rule_id, expect, file, line, quote, expected_hit_fields, source`），用例文件路径相对 `--cases-root`（默认 `/home/box/shared/report-redesign`）；`line: null` 表示整份文档级检查。
-- 覆盖规则：A1、A2、A5、B3、B4、B5、B7、B8、B10、B12、B13、B15、B16、B18、C1、C2、C3、C4、C5、D2（NAME）。
+- 覆盖规则：A1、A2、A5、B3、B4、B5、B7、B8、B10、B12、B13、B15、B16、B18、B19、C1、C2、C3、C4、C5、D2（NAME）。
+- B19（周报周窗口）：insights 里所有 `evidence[].day` 逐条须落在 ISO 周（周一至周日）内，窗内不齐 7 天也放行；缺 day、非 `YYYY-MM-DD`、越窗即 FAIL。周报 HTML 页头第一处 `YYYY-MM-DD — YYYY-MM-DD` 须与 ISO 七天逐项相等（`checkWeekWindow`），页面没有范围句时不由 B19 报。
 - 生成流程在写 HTML 前调用同一套核查；FAIL 时自动重写洞察 1 次，仍 FAIL 则不写 HTML、不推送，写出 FAIL 清单并以非 0 退出（D1/D3）。
 
 ### 配置文件与开关

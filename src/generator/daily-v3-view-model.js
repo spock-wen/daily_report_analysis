@@ -9,12 +9,12 @@ const paths = require('../utils/path');
 const { DEFAULT_PHRASES, computeHypeIndex, defaultProjectText, stripRepoPrefix, buildDefaultOneSentence, buildDefaultDescZh, hasLongSubstringOverlap, isPrevYesterday } = require('./daily-v3-text');
 const { normalizeCjkSpacing, pickProjectBlurb, ratioPhrase } = require('./daily-v3-copy');
 const {
-  latestReportHref,
   wikiIndexHref,
   buildNav,
   readerPeriodHref,
   latestReaderPeriodHref,
   latestReaderPeriodId,
+  resolveReaderPeriodHref,
 } = require('./report-nav');
 
 const TEMPLATE_DIR = nodePath.join(__dirname, '..', '..', 'templates', 'daily-v3');
@@ -1030,12 +1030,15 @@ function monthlyRelatedItem(id) {
 function buildArchive({ date, weekLabel, priorDates }) {
   const dailyFiles = listReportFiles(nodePath.join(paths.REPORTS_DIR, 'daily'));
   const weeklyFiles = listReportFiles(nodePath.join(paths.REPORTS_DIR, 'weekly'));
-  const weekHref = weekLabel
-    ? `../weekly/github-weekly-${weekLabel}.html`
-    : latestReportHref('weekly', { prefix: '../' });
+  // 当周正式周报未发布时，链最近一篇已发布周报（与首页 readerPeriodHref 同口径）。
+  const weekResolved = resolveReaderPeriodHref('weekly', weekLabel, { prefix: '../' });
+  const weekHref = weekResolved ? weekResolved.href : '';
+  const weekArchiveLabel = weekResolved
+    ? (weekResolved.id === weekLabel ? weekLabel : `${weekResolved.id} 周报`)
+    : (weekLabel || '周报');
   const items = [
     { cls: '', href: '../index.html', label: '首页 · 总览' },
-    { cls: '', href: weekHref, label: weekLabel || '周报' },
+    { cls: '', href: weekHref, label: weekArchiveLabel },
   ];
   const currentFile = `github-ai-trending-${date}.html`;
   const priorList = (Array.isArray(priorDates) ? priorDates : []).filter(Boolean);
@@ -1057,11 +1060,17 @@ function buildArchive({ date, weekLabel, priorDates }) {
   }
   if (weeklyFiles.length) {
     const match = /^github-weekly-(\d{4}-W\d{2})\.html$/.exec(weeklyFiles[0]);
-    if (match) items.push({ cls: '', href: `../weekly/${weeklyFiles[0]}`, label: `${match[1]} 周报` });
+    if (match) {
+      const rel = readerPeriodHref('weekly', match[1]);
+      if (rel) items.push({ cls: '', href: `../${rel}`, label: `${match[1]} 周报` });
+    }
   }
   const prevWeek = weekLabel ? history.shiftISOWeek(weekLabel, -1) : null;
   if (prevWeek) {
-    items.push({ cls: '', href: `../weekly/github-weekly-${prevWeek}.html`, label: `${prevWeek} 周报` });
+    const prevRel = readerPeriodHref('weekly', prevWeek);
+    if (prevRel) {
+      items.push({ cls: '', href: `../${prevRel}`, label: `${prevWeek} 周报` });
+    }
   }
   const latestMonthlyId = latestReaderPeriodId('monthly');
   if (latestMonthlyId) items.push(monthlyArchiveItem(latestMonthlyId));
@@ -1310,8 +1319,12 @@ function buildViewModel(data) {
           sub: `${formatCount(previousProjects.length)} 个项目`,
         }
       : null,
-    prevWeekLabel
-      ? { href: `../weekly/github-weekly-${prevWeekLabel}.html`, title: `${prevWeekLabel} 周报`, sub: '上周' }
+    prevWeekLabel && readerPeriodHref('weekly', prevWeekLabel)
+      ? {
+          href: `../${readerPeriodHref('weekly', prevWeekLabel)}`,
+          title: `${prevWeekLabel} 周报`,
+          sub: '上周',
+        }
       : null,
     prevMonthLabel
       ? monthlyRelatedItem(prevMonthLabel)
@@ -1448,15 +1461,18 @@ function buildViewModel(data) {
     wikiHref: wikiIndexHref('../'),
     nav: buildNav('daily', {
       home: '../index.html',
-      daily: latestReportHref('daily', { prefix: '../', fallbackId: date }),
-      weekly: latestReportHref('weekly', { prefix: '../', fallbackId: weekLabel }),
+      daily: latestReaderPeriodHref('daily', { prefix: '../' }) || '',
+      weekly: latestReaderPeriodHref('weekly', { prefix: '../' }) || '',
       monthly: latestReaderPeriodHref('monthly', { prefix: '../' }) || '',
     }),
     toc: {},
-    week: {
-      label: weekLabel,
-      href: weekLabel ? `../weekly/github-weekly-${weekLabel}.html` : latestReportHref('weekly', { prefix: '../' }),
-    },
+    week: (() => {
+      const resolved = resolveReaderPeriodHref('weekly', weekLabel, { prefix: '../' });
+      if (resolved) {
+        return { label: resolved.id, href: resolved.href };
+      }
+      return { label: weekLabel || '周报', href: '' };
+    })(),
     scrapedAtLocal,
     generatedAtLocal,
     archive: buildArchive({ date, weekLabel, priorDates: priorEntries.map(entry => entry.date) }),

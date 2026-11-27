@@ -24,7 +24,7 @@ const {
   renderWeekTopSvg,
   weekTopFootnote,
 } = require('./wmh-svg-charts');
-const { latestReportHref, latestReaderPeriodHref } = require('./report-nav');
+const { latestReaderPeriodHref } = require('./report-nav');
 
 const TEMPLATE_PATH = nodePath.join(TEMPLATE_DIR, 'weekly.mustache');
 
@@ -252,8 +252,8 @@ function buildViewModel(data) {
 
   const paths = {
     home: '../index.html',
-    daily: latestReportHref('daily', { prefix: '../', fallbackId: startDate || null }),
-    weekly: latestReportHref('weekly', { prefix: '../', fallbackId: week }),
+    daily: latestReaderPeriodHref('daily', { prefix: '../' }) || '',
+    weekly: latestReaderPeriodHref('weekly', { prefix: '../' }) || '',
     monthly: latestReaderPeriodHref('monthly', { prefix: '../' }) || '',
   };
 

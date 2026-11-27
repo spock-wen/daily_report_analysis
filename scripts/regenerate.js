@@ -58,6 +58,7 @@ const HTMLGenerator = require('../src/generator/html-generator');
 const PapersHtmlGenerator = require('../src/generator/paper-html-generator');
 const { getDailyReportPath, getWeeklyReportPath, getMonthlyReportPath } = require('../src/utils/path');
 const logger = require('../src/utils/logger');
+const history = require('../src/metrics/history');
 
 /**
  * 从 HTML 文件路径推断 JSON 路径
@@ -152,27 +153,9 @@ function loadWeeklyData(weekId) {
     throw new Error(`无效的周数格式：${weekId}，应为 YYYY-Www (如 2026-W16)`);
   }
 
-  const year = parseInt(weekMatch[1]);
-  const week = parseInt(weekMatch[2]);
-
-  // 计算该周的日期范围（ISO 周数计算）
-  const jan4 = new Date(year, 0, 4);
-  const jan4Day = jan4.getDay() || 7;
-  const firstMonday = new Date(jan4);
-  firstMonday.setDate(jan4.getDate() - jan4Day + 1);
-
-  const targetMonday = new Date(firstMonday);
-  targetMonday.setDate(firstMonday.getDate() + (week - 1) * 7);
-
-  const dates = [];
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(targetMonday);
-    date.setDate(date.getDate() + i);
-    const dateStr = date.toISOString().split('T')[0];
-    if (date <= new Date()) {
-      dates.push(dateStr);
-    }
-  }
+  // 与 getISOWeekDates 同源；禁止本地 Date + toISOString()（UTC+ 会整周前移一天）。
+  const today = history.getScrapedDate(new Date());
+  const dates = history.getISOWeekDates(weekId).filter(dateStr => !today || dateStr <= today);
 
   logger.info(`周报 ${weekId} 包含日期：${dates.join(', ')}`);
 
@@ -403,18 +386,8 @@ function loadMonthlyData(monthId) {
     throw new Error(`无效的月份格式：${monthId}，应为 YYYY-MM (如 2026-03)`);
   }
 
-  const year = parseInt(monthMatch[1]);
-  const month = parseInt(monthMatch[2]);
-  const daysInMonth = new Date(year, month, 0).getDate();
-  const dates = [];
-
-  for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(year, month - 1, day);
-    const dateStr = date.toISOString().split('T')[0];
-    if (date <= new Date()) {
-      dates.push(dateStr);
-    }
-  }
+  const today = history.getScrapedDate(new Date());
+  const dates = history.getMonthDates(monthId).filter(dateStr => !today || dateStr <= today);
 
   logger.info(`月份 ${monthId} 包含 ${dates.length} 天`);
 

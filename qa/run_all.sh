@@ -11,6 +11,7 @@
 #   ⑤ qa/cases_r11b 周月首页结构门（同类点各一 pass/fail）
 #   ⑥ qa/cases_r11c 趋势图结构门（同类点各一 pass/fail）
 #   ⑦ qa/cases_home_kind 首页 kind 相对日历（pass/fail）
+#   ⑧ 2A/4A 隔离检查：日报周报链、LINKCHECK、周窗口时区、B19 周窗口门禁（不改已跟踪正式页）
 #
 # 用法：
 #   bash qa/run_all.sh
@@ -221,6 +222,19 @@ node qa/cases_home_kind/run_home_kind.js || HOME_KIND_CODE=$?
 GROUP_LINES+=("GROUP cases_home_kind exit=${HOME_KIND_CODE}")
 if [ "$HOME_KIND_CODE" -ne 0 ]; then
   UNKNOWN_FAILS+=("cases_home_kind:exit=${HOME_KIND_CODE}")
+fi
+
+echo "== ⑧ 2A/4A 日报周报链与周窗口隔离检查 =="
+WINDOW_CODE=0
+node --test tests/metrics/week-window.test.js tests/loader/week-window-timezone.test.js tests/generator/daily-weekly-reader-links.test.js \
+  tests/checker/b19-evidence-week-window.test.js \
+  || WINDOW_CODE=$?
+if [ "$WINDOW_CODE" -eq 0 ]; then
+  node tests/generator/daily-v3-archive.test.js || WINDOW_CODE=$?
+fi
+GROUP_LINES+=("GROUP week_window_2a4a exit=${WINDOW_CODE}")
+if [ "$WINDOW_CODE" -ne 0 ]; then
+  UNKNOWN_FAILS+=("week_window_2a4a:exit=${WINDOW_CODE}")
 fi
 
 if [ "${#UNKNOWN_FAILS[@]}" -ne 0 ]; then
