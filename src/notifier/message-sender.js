@@ -1,5 +1,5 @@
-// 使用全局 fetch（Node 18+ 原生支持）
-const fetch = globalThis.fetch;
+// 使用全局 fetch（Node 18+ 原生支持）；调用时取当前 globalThis.fetch，便于测试注入
+const fetch = (...args) => globalThis.fetch(...args);
 const https = require('https');
 
 const logger = require('../utils/logger');
@@ -186,13 +186,13 @@ class MessageSender {
       const message = this.buildWeLinkMessage(options);
       const webhookUrls = config.notifier.welink.webhookUrls.split(',').map(url => url.trim());
       
-      logger.debug('WeLink 配置', { webhookUrls, messageText: message.content.text.substring(0, 50) });
+      logger.debug('WeLink 配置', { webhookCount: webhookUrls.length, messageText: message.content.text.substring(0, 50) });
       
       const results = await Promise.all(
         webhookUrls.map(url => this.sendWebhookRequest(url, message))
       );
 
-      logger.debug('WeLink 请求结果', { results });
+      logger.debug('WeLink 请求结果', { resultCount: results.length });
       
       // 检查每个结果的实际状态
       const processedResults = results.map((result, index) => {
@@ -201,11 +201,13 @@ class MessageSender {
                          (result.code === '0' || result.code === 0 || result.errcode === 0 || result.result?.code === '0');
         
         if (isSuccess) {
-          logger.info(`WeLink 群组 ${index + 1} 推送成功`, { webhookUrl: webhookUrls[index] });
+          logger.info(`WeLink 群组 ${index + 1} 推送成功`, { webhookIndex: index });
         } else {
-          logger.warn(`WeLink 群组 ${index + 1} 推送失败`, { 
-            webhookUrl: webhookUrls[index],
-            result 
+          const code = result.code ?? result.errcode ?? (result.result && result.result.code);
+          logger.warn(`WeLink 群组 ${index + 1} 推送失败`, {
+            webhookIndex: index,
+            code: code !== undefined ? code : null,
+            error: result.error || 'WeLink server error'
           });
         }
         
@@ -319,7 +321,7 @@ class MessageSender {
         if (successCount > 0) {
           logger.info('✅ WeLink weekly notification sent successfully');
         } else {
-          logger.error('❌ WeLink weekly notification failed', results.welink);
+          logger.error('❌ WeLink weekly notification failed', { successCount, groupCount: Array.isArray(results.welink) ? results.welink.length : 1 });
         }
       }
       
@@ -392,7 +394,7 @@ class MessageSender {
         if (successCount > 0) {
           logger.info('✅ WeLink monthly notification sent successfully');
         } else {
-          logger.error('❌ WeLink monthly notification failed', results.welink);
+          logger.error('❌ WeLink monthly notification failed', { successCount, groupCount: Array.isArray(results.welink) ? results.welink.length : 1 });
         }
       }
 
